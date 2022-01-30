@@ -272,7 +272,6 @@ frontend  machine-config-server
     option tcplog
 
 #all backend
-
 backend router-http-traffic
         balance source
         mode tcp
@@ -310,8 +309,7 @@ $ systemctl restart haproxy
 ~~~
 
 
-**1.6.download/install OC tools:**
-[OpenShift安装程序及映象下载](https://access.redhat.com/downloads/content/290/ver=4.7/rhel---8/4.7.13/x86_64/product-software)
+**1.6.[下载](https://access.redhat.com/downloads/content/290/ver=4.7/rhel---8/4.7.13/x86_64/product-software)/install OC tools:**
 ~~~
 - CLI Command/openshift-install
 $ tar xvf oc-4.7.18-linux.tar.gz
