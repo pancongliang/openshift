@@ -309,7 +309,7 @@ $ systemctl restart haproxy
 ~~~
 
 
-**1.6.[下载](https://access.redhat.com/downloads/content/290/ver=4.7/rhel---8/4.7.13/x86_64/product-software)/install OC tools:**
+**1.6.[download](https://access.redhat.com/downloads/content/290/ver=4.7/rhel---8/4.7.13/x86_64/product-software)/install OC tools:**
 ~~~
 - CLI Command/openshift-install
 $ tar xvf oc-4.7.18-linux.tar.gz
