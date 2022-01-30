@@ -201,8 +201,7 @@ nameserver 10.72.45.160
 
 $ vim /etc/sysconfig/network-scripts/ifcfg-ens3 
 DNS1=10.72.45.160
-~~~
-~~~
+
 $ nslookup bootstrap.ocp4-6.example.com
 $ nslookup master01.ocp4-6.example.com
 $ nslookup master02.ocp4-6.example.com
@@ -214,7 +213,6 @@ $ nslookup worker01.ocp4-6.example.com
 ~~~
 $ cat /dev/null > /etc/haproxy/haproxy.cfg 
 $ vim /etc/haproxy/haproxy.cfg 
-~~~
 ```shell
 # Global settings
 #---------------------------------------------------------------------
@@ -326,6 +324,7 @@ $ systemctl restart haproxy
 $ tar xvf oc-4.7.18-linux.tar.gz
 $ scp -r copan root@10.72.37.100:/root/
 ~~~
+
 **CLI Command**
 ~~~
 $ tar xvf openshift-install-linux-4.7.18.tar.gz
@@ -353,7 +352,6 @@ $ oc version
 ~~~
 
 **g.创建离线镜像仓库:**
-
 [自签名证书参考](https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw)
  
 **签发步骤以我的主机为 bastion.ocp4-8.example.com 为准，请自行替换 image registry 的 hostname:**
