@@ -1,11 +1,8 @@
-How to get bundle image reference from existing operator bundle index image in OpenShift?
-https://access.redhat.com/solutions/6452951
-https://bugzilla.redhat.com/show_bug.cgi?id=1835889
-
 ## Updating an index image
 
-### 1.查看当前index image 有哪些 operator 及版本:*
-**1.1 确认目前正在使用的 index image 中有哪些 operator 以及版本** 
+### 1.查看当前index image 有哪些 operator 及版本
+
+**1.1 确认目前正在使用的 index image 中有哪些 operator 以及版本:** 
 ~~~
 
 $ podman run -p 50051:50051 -it harbor.registry.example.com/olm/redhat-operator-index:v4.7
@@ -18,7 +15,7 @@ $ grpcurl -plaintext localhost:50051 api.Registry/ListPackages
 }
 ~~~
 
-**1.2 确认目前正在使用的 index image 中 operator 版本**
+**1.2 确认目前正在使用的 index image 中 operator 版本:**
 ~~~
 - 在 Terminal-2 中，运行如下命令，其中 index image 为当前使用的 index image:
 $ podman run -p 50051:50051 -it harbor.registry.example.com/olm/redhat-operator-index:v4.7
@@ -26,7 +23,7 @@ $ podman run -p 50051:50051 -it harbor.registry.example.com/olm/redhat-operator-
 - 在 Terminal-1 中，通过 grpcurl 命令,获取 Bundles,并生成 bundles.txt 文件:
 $ grpcurl -plaintext localhost:50051 api.Registry.ListBundles > bundles.txt
 
-- 通过如下命令筛选 bundlePath 
+- 通过如下命令筛选 bundlePath:
 $ grep -A3 <operator-name> bundles.txt | egrep '"(bundlePath|channelName|value)"'
 $ grep -A3  elasticsearch-operator bundles.txt | egrep '"(bundlePath|channelName|value)"'
   "channelName": "4.6",
@@ -39,13 +36,13 @@ $ grep -A3  elasticsearch-operator bundles.txt | egrep '"(bundlePath|channelName
 ~~~
 
 ### 2.获取 bundles
-**2.1 登录 registry**
+**2.1 登录 registry:**
 ~~~
 $ podman login registry.redhat.io
 $ podman login <local registry>
 ~~~
 
-**2.2 获取 bundles 文件**
+**2.2 获取 bundles 文件:**
 ~~~
 - 在 Terminal-2 中，获取 redhat operator index image:
 $ podman run -p 50051:50051 -it registry.redhat.io/redhat/redhat-operator-index:v4.7
@@ -57,25 +54,25 @@ $ grpcurl -plaintext -d '{"name":"cluster-logging"}' localhost:50051 api.Registr
 $ grpcurl -plaintext -d '{"pkgName":"cluster-logging","channelName":"stable"}' localhost:50051 api.Registry.ListBundles
 ~~~
 
-**2.3 通过如下命令筛选 bundlePath**
+**2.3 通过如下命令筛选 bundlePath:**
 ~~~
 $ grep -A3 <operator-name> bundles.txt | egrep '"(bundlePath|channelName|value)"'
 
-- 查找 elasticsearch-operator 的 bundlePath
+- 查找 elasticsearch-operator 的 bundlePath:
 $ grep -A3 elasticsearch-operator bundles.txt | egrep '"(bundlePath|channelName|value)"'
  ···output···
   "channelName": "stable-5.2",
   "bundlePath": "registry.redhat.io/openshift-logging/elasticsearch-operator-bundle@sha256:6e05a9f3f276f1679d4b18a6e105b2222cefc1710ae7d54b46f00f86cca344c1",
       "value": "{\"packageName\":\"elasticsearch-operator\",\"version\":\"5.2.2-21\"}"
 
-- 查找 cluster-logging 的 bundlePath
+- 查找 cluster-logging 的 bundlePath:
 $ grep -A3 cluster-logging bundles.txt | egrep '"(bundlePath|channelName|value)"'
   ···output···
   "channelName": "stable-5.2",
   "bundlePath": "registry.redhat.io/openshift-logging/cluster-logging-operator-bundle@sha256:f21bb9310b2500745317879ac1f214e952c11e77c2a438878ae11812d717d07e",
       "value": "{\"packageName\":\"cluster-logging\",\"version\":\"5.2.2-21\"}"
 
-- 查找 metering-ocp 的 bundlePath
+- 查找 metering-ocp 的 bundlePath:
 $ grep -A15 metering-ocp bundles.txt | egrep '"(bundlePath|channelName|value)"'
   "channelName": "4.7",
   "bundlePath": "registry.redhat.io/openshift4/ose-metering-ansible-operator-bundle@sha256:e3d4a8bb9733857d297a215aad5b5d0b833a9915f19321d5a23e9cbaa6cef5ec",
@@ -83,8 +80,8 @@ $ grep -A15 metering-ocp bundles.txt | egrep '"(bundlePath|channelName|value)"'
 ~~~
 
 
-### 3. 更新并新增 operator:**
-**3.1 更新 elasticsearch-operator，cluster-logging  并新增加 metering-ocp 至新的 image index**
+### 3. 更新并新增 operator
+**3.1 更新 elasticsearch-operator，cluster-logging  并新增加 metering-ocp 至新的 image index:**
 ~~~
 $ opm index add \
     --bundles <registry>/<namespace>/<new_bundle_image>@sha256:<digest> \ #<-- 要添加到index的其他bundle images用 , 分隔
@@ -102,14 +99,14 @@ $ opm index add \
     --pull-tool  podman
 ~~~
 
-**3.2 确认新增及更新的 operator**
+**3.2 确认新增及更新的 operator:**
 ~~~
-- 确认新增 operator
+- 确认新增 operator:
 $ podman push harbor.registry.example.com/olm/redhat-operator-index:v4.7-1
 $ podman run -p 50051:50051 -it harbor.registry.example.com/olm/redhat-operator-index:v4.7-1
 $ grpcurl -plaintext localhost:50051 api.Registry/ListPackages
 
-- 确认更新的 operator
+- 确认更新的 operator:
 $ grpcurl -plaintext localhost:50051 api.Registry.ListBundles > bundles.txt
 grep -A3 elasticsearch-operator bundles.txt | egrep '"(bundlePath|channelName|value)"'
 $ grep -A3 cluster-logging bundles.txt | egrep '"(bundlePath|channelName|value)"'
@@ -118,7 +115,7 @@ $ grep -A15 metering-ocp bundles.txt | egrep '"(bundlePath|channelName|value)"'
 
 
 ### 4. 缓存 image 至 local registry
-**4.1 将 REG_CREDS 环境变量设置为 registry 凭证文件路径(podman login 认证文件)**
+**4.1 将 REG_CREDS 环境变量设置为 registry 凭证文件路径(podman login 认证文件):**
 ~~~
 $ podman login harbor.registry.example.com
 $ REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json
@@ -134,7 +131,7 @@ $ cat ${REG_CREDS}
         }
 ~~~
 
-**4.2 运行如下命令将 index_image 缓存至 local registry**
+**4.2 运行如下命令将 index_image 缓存至 local registry:**
 ~~~
 $ oc adm catalog mirror \
     harbor.registry.example.com/olm/redhat-operator-index:v4.7-1 \
@@ -145,8 +142,8 @@ Output········
 wrote mirroring manifests to manifests-redhat-operator-index-1635419959 #<--保存如下文件名称
 ~~~
 
-### 5. 使用replace命令替换icsp，执行此步骤会触发 machine config reboot机制，所有节点都会自动重启
-**5.1 替换icsp**
+### 5. 使用replace命令替换icsp
+**5.1 替换icsp（执行此步骤会触发 machine config reboot机制，所有节点都会自动重启）:**
 ~~~
 $ ls manifests-redhat-operator-index-1635419959
 catalogsource.yaml  imageContentSourcePolicy.yaml  mapping.txt
@@ -155,14 +152,14 @@ $ oc replace -f manifests-redhat-operator-index-1635419959/imageContentSourcePol
 imagecontentsourcepolicy.operator.openshift.io/redhat-operator-index created
 ~~~
 
-**5.2 节点重启**
+**5.2 节点重启:**
 ~~~
 $ oc get mcp
 NAME     CONFIG                                             UPDATED   UPDATING   DEGRADED   MACHINECOUNT   READYMACHINECOUNT   UPDATEDMACHINECOUNT   DEGRADEDMACHINECOUNT   AGE
 master   rendered-master-8e1b448c2ebc070a3e20e05e1d79147e   False     True       False      3              0                   0                     0                      9d
 worker   rendered-worker-d3acd1da90077b696a7aad091c712316   False     True       False      1              0                   0                     0                      9d
 
-**c. 重启完成**
+- 重启完成:
 $ oc get mcp
 NAME     CONFIG                                             UPDATED   UPDATING   DEGRADED   MACHINECOUNT   READYMACHINECOUNT   UPDATEDMACHINECOUNT   DEGRADEDMACHINECOUNT   AGE
 master   rendered-master-8e1b448c2ebc070a3e20e05e1d79147e   True      False      False      3              3                   3                     0                      9d
@@ -215,7 +212,7 @@ $ oc get packagemanifest metering-ocp -o yaml -n openshift-marketplace | egrep "
 ~~~
 
 ### - 可选: 升级efk
-**a.因为之前 efk channel 是 5.1 因此需要手动更改 channel 为 5.2**
+**a.因为之前 efk channel 是 5.1 因此需要手动更改 channel 为 5.2:**
 ~~~
 webconsole -> Administrator -> Operator -> installd Operator-> Project: All Projects -> Red Hat OpenShift Logging -> Subscription -> Channel -> stable-5.2 -> save 
 ~~~
@@ -225,13 +222,13 @@ webconsole -> Administrator -> Operator -> installd Operator-> Project: All Proj
 webconsole -> Administrator -> Operator -> installd Operator -> operator status 显示 Upgrade available:
 ~~~
 
-**c. 升级efk, 在webconsole中先升级elasticsearch-operator成功后，在升级cluster-logging**
+**c. 升级efk, 在webconsole中先升级elasticsearch-operator成功后，在升级cluster-logging:**
 ~~~
 webconsole -> Administrator -> Operator -> installd Operator -> elasticsearch-operator -> Upgrade available
 webconsole -> Administrator -> Operator -> installd Operator -> cluster-logging -> Upgrade available
 ~~~
 
-**d. 等待pod重启完成**
+**d. 等待pod重启完成:**
 ~~~
 $ oc get po -n openshift-logging
 NAME                                            READY   STATUS              RESTARTS   AGE
@@ -265,7 +262,7 @@ fluentd-n27mk                                   2/2     Running     0          7
 kibana-6f78fd574d-vzcpb                         2/2     Running     0          95m
 ~~~
 
-**e. 验证升级至预期版本**
+**e. 验证升级至预期版本:**
 ~~~
 $ oc get csv -n openshift-logging
 NAME                              DISPLAY                            VERSION    REPLACES                         PHASE
