@@ -58,11 +58,12 @@ Login Succeeded!
 ~~~
 
 > **- Prompt** 
+> 
 > 使用 “可选 B: 如果 Mirror registry 在断开连接的主机上” 缓存镜像， 请确保 OC command 高于 4.6.45 版本。
 > 
-> [1.Bug: oc adm catalog mirror doesn work for the air-gapped cluster](https://bugzilla.redhat.com/show_bug.cgi?id=1942818)
+> [Bug: oc adm catalog mirror doesn work for the air-gapped cluster](https://bugzilla.redhat.com/show_bug.cgi?id=1942818)
 >
-> [2.Download: CLI](https://access.redhat.com/downloads/content/290/ver=4.6/rhel---8/4.6.45/x86_64/product-software)
+> [Download: CLI](https://access.redhat.com/downloads/content/290/ver=4.6/rhel---8/4.6.45/x86_64/product-software)
 
 ### 2.修剪 index image
 
