@@ -442,8 +442,7 @@ $ oc adm -a ${LOCAL_SECRET_JSON} release mirror \
   --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
   --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} 
 ...
- #record image content source
-- mirrors:
+- mirrors:                                      #<-- record image content source
   - docker.registry.com:5000/ocp4/openshift4
   source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
