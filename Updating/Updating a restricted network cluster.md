@@ -10,8 +10,8 @@
   - 下载pull secret文件并添加/认证本地镜像仓库凭证信息
 
 
-
 **1.下载pull-secret并添加/认证本地镜像仓库凭证信息**
+
 a. 下载 pull-secret
 
 [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
@@ -25,6 +25,7 @@ $ podman login --authfile /root/pull-secret bastion.ocp4.example.com:5000
 ~~~
 
 **2.下载ocp image repository至本地镜像仓库**
+
 a.设置所需的环境变量
 ~~~
 - 定义发布版本:
@@ -60,7 +61,7 @@ $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \
     --dry-run
 ~~~
 
-c.将镜像下载到本地镜像仓库**
+c.将镜像下载到本地镜像仓库
 - 可选(A): 本地镜像仓库主机可以访问internet
 i. 通过如下命令，下载image到本地镜像仓库:
 ~~~
@@ -143,6 +144,7 @@ $ oc get node
 ~~~
 
 **3.创建image signature configmap**
+
 a.设置所需的环境变量
 ~~~
 - 将版本添加到OCP_RELEASE_NUMBER环境变量中: 
@@ -182,6 +184,7 @@ $ oc apply -f checksum-${OCP_RELEASE_NUMBER}.yaml
 ~~~
 
 **4.升级受限网络集群**
+
 a. 升级集群
 ~~~
 $ oc adm upgrade --allow-explicit-upgrade \ 
@@ -203,6 +206,3 @@ $ oc get clusterversion
 $ oc get nodes
 $ oc get co
 ~~~
-
-
-[如何在 Openshift 4.x 中升级断开连接的集群:](https://access.redhat.com/solutions/5398761)
