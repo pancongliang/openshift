@@ -1,15 +1,29 @@
-### Updating a restricted network cluster
+## Updating a restricted network cluster
 
 **- 准备事项:**
   - 可以访问 Internet 以获取必要的容器image，
-  - 对受限网络环境中的容器registry具有写入权限以push和pull image。容器registry必须与Docker registry API v2兼容
-  - 安装oc命令行界面 (CLI) 工具
+  - 对受限网络环境中的registry具有写入权限以push和pull image。registry必须与Docker registry API v2兼容
+  - 安装oc命令行界面 [CLI Tool](https://access.redhat.com/downloads/content/290/ver=4.7/rhel---8/4.7.13/x86_64/product-software)
   - 以具有admin特权的用户身份访问集群
   - 有一个最近的[etcd备份，以防升级失败](https://docs.openshift.com/container-platform/4.8/backup_and_restore/disaster_recovery/scenario-2-restoring-cluster-state.html#dr-restoring-cluster-state)
-  - 确保所有MCP都在运行且未pause
-  - pull secret
+  - 确保所有MCP都在运行且未暂停
+  - 下载pull secret文件并添加/认证本地镜像仓库凭证信息
 
-**1.简化安装定义变量:**
+**1.下载pull-secret并添加/认证本地镜像仓库凭证信息**
+a. 下载 pull-secret
+
+[Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
+
+b. 添加/认证本地镜像仓库凭证信息
+~~~
+$ podman login --authfile /root/pull-secret bastion.ocp4.example.com:5000    
+  Username: admin
+  Password: redhat
+  Login Succeeded!
+~~~
+
+**2.下载ocp image repository至本地镜像仓库**
+a.设置所需的环境变量
 ~~~
 - 定义发布版本:
 $ export OCP_RELEASE=4.8.21
@@ -37,23 +51,23 @@ $ export ARCHITECTURE=x86_64
 $ export REMOVABLE_MEDIA_PATH="/root/mirror"
 ~~~
 
-**2.查看 mirror 及配置清单:**
+b.查看image及配置清单
 ~~~
 $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
     --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
     --dry-run
 ~~~
 
-**3.将镜像映射到内部registry**
-**- 可选(A): mirror registry 可以访问 internet**
-a. 通过如下命令，缓存image到 offline mirror registry:
+c.将镜像下载到本地镜像仓库**
+- 可选(A): 本地镜像仓库主机可以访问internet
+i. 通过如下命令，下载image到本地镜像仓库:
 ~~~
 $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
     --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
    --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} 
 # Output········
 # To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
-apiVersion: operator.openshift.io/v1alpha1
+apiVersion: operator.openshift.io/v1alpha1              # <-- 保存此ImageContentSourcePolicy输出
 kind: ImageContentSourcePolicy
 metadata:
   name: example
@@ -67,86 +81,16 @@ spec:
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ~~~
 
-b.复制 a 步骤中输出的ImageContentSourcePolicy内容，然后创建ImageContentSourcePolicy(更新icsp后会重启node):
-~~~
-$ vim icsp.yaml
-apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
-metadata:
-  name: example
-spec:
-  repositoryDigestMirrors:
-  - mirrors:
-    - bastion.ocp4.example.com:5000/ocp4/openshift4
-    source: quay.io/openshift-release-dev/ocp-release
-  - mirrors:
-    - bastion.ocp4.example.com:5000/ocp4/openshift4
-    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+- 可选(B): 离线环境: 完全隔离的网络中使用usb移动镜像
+i. 将移动硬盘连接到可访问Internet的主机中
 
-$ oc apply -f icsp.yaml
-
-- 更新icsp后会重启node: 
-$ oc get mcp 
-$ oc get node 
-~~~
-
-c.手动创建image signature config map:
-~~~
-- 将版本添加到OCP_RELEASE_NUMBER环境变量中: 
-$ export OCP_RELEASE_NUMBER=4.8.21
-
-- 将集群系统架构添加到architecture环境变量中: 
-$ export ARCHITECTURE=x86_64
-
-- 从Quay获取image摘要: 
-$ export DIGEST="$(oc adm release info quay.io/openshift-release-dev/ocp-release:${OCP_RELEASE_NUMBER}-${ARCHITECTURE} | sed -n 's/Pull From: .*@//p')"
-
-- 设置摘要算法: 
-$ export DIGEST_ALGO="${DIGEST%%:*}"
-
-- 设置摘要签名: 
-$ export DIGEST_ENCODED="${DIGEST#*:}"
-
-- 从mirror.openshift.com网站获取image签名: 
-$ export SIGNATURE_BASE64=$(curl -s "https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/${DIGEST_ALGO}=${DIGEST_ENCODED}/signature-1" | base64 -w0 && echo)
-
-- 创建configmap并应用
-$ cat >checksum-${OCP_RELEASE_NUMBER}.yaml <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: release-image-${OCP_RELEASE_NUMBER}
-  namespace: openshift-config-managed
-  labels:
-    release.openshift.io/verification-signatures: ""
-binaryData:
-  ${DIGEST_ALGO}-${DIGEST_ENCODED}: ${SIGNATURE_BASE64}
-EOF
-
-$ oc apply -f checksum-${OCP_RELEASE_NUMBER}.yaml
-~~~
-
-d.通过如下命令，升级集群
-~~~
-$ oc adm upgrade --allow-explicit-upgrade --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}<sha256_sum_value> 
-
-- 例如:
-- $ oc adm upgrade --allow-explicit-upgrade --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@sha256:f7e664bf56c882f934ed02eb05018e2683ddf42135e33eae1e4192948372d5ae
-
-- sha256_sum_value值确认方法: 
-  - 方法1:  https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.8.21/release.txt
-  - 方法2:  a 步骤输出中确认，并把 sha256-xxx 中的 - 改为 : 即可: 
-  - 方法3:  more /path-to/mirror/config/signature-sha256-xxxx.yaml
-~~~
-
-**- 可选(B): offline 环境: 完全隔离的网络中使用usb移动镜像:**
-a.通过如下命令，将image和configuration manifests下载至usb移动设备,并保存ImageContentSourcePolicy输出:
+ii. 可访问Internet的主机中，通过如下命令，下载image到本地目录
 ~~~
 $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
     --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE}
 # Output········
 # To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
-apiVersion: operator.openshift.io/v1alpha1
+apiVersion: operator.openshift.io/v1alpha1      # <-- 保存此ImageContentSourcePolicy输出
 kind: ImageContentSourcePolicy
 metadata:
   name: example
@@ -160,25 +104,26 @@ spec:
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ~~~
 
-b.确认镜像是否下载完成，带 .download 的还没下载完:
+iii. 确认镜像是否下载完成，带 .download 的还没下载完:
 ~~~
 ls -ltr /path-to/mirror/v2/openshift/release/blobs
 -rw------- 1 root root  32991334 Jul 13 08:32 sha256:02f2c0460a851814ecfab36b80df694c1746c39b480a6ad5a7e4f26e5880969a
 -rw------- 1 root root 112982468 Jul 13 08:37 sha256:05812bc5e0758d0374f1ece3b4afb139731446062aaf39ae4fc920971000b884.download
 ~~~
 
-c.将usb连接至受限网络环境后，上传image至local mirror registry:
+iv.将移动硬盘连接至离线仓库主机后，上传image至本地镜像仓库:
 ~~~
-$ oc image mirror  -a ${LOCAL_SECRET_JSON} --from-dir=${REMOVABLE_MEDIA_PATH}/mirror "file://openshift/release:${OCP_RELEASE}*" ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} 
+$ oc image mirror  -a ${LOCAL_SECRET_JSON} --from-dir=${REMOVABLE_MEDIA_PATH}/mirror \
+      "file://openshift/release:${OCP_RELEASE}*" ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} 
 ~~~
 
-d.复制 a 步骤中输出的ImageContentSourcePolicy内容，然后创建ImageContentSourcePolicy(更新icsp后会重启node):
+d.复制上一步骤中输出的ImageContentSourcePolicy内容，然后创建ImageContentSourcePolicy(更新icsp后会重启node):
 ~~~
 $ vim icsp.yaml
 apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
-  name: example
+  name: ocp4-version   #<-- 可自定义icsp名称
 spec:
   repositoryDigestMirrors:
   - mirrors:
@@ -195,8 +140,9 @@ $ oc get mcp
 $ oc get node 
 ~~~
 
-e.手动创建image signature config map:
-~~~ 
+**3.创建image signature configmap**
+a.设置所需的环境变量
+~~~
 - 将版本添加到OCP_RELEASE_NUMBER环境变量中: 
 $ export OCP_RELEASE_NUMBER=4.8.21
 
@@ -214,8 +160,10 @@ $ export DIGEST_ENCODED="${DIGEST#*:}"
 
 - 从mirror.openshift.com网站获取image签名: 
 $ export SIGNATURE_BASE64=$(curl -s "https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/${DIGEST_ALGO}=${DIGEST_ENCODED}/signature-1" | base64 -w0 && echo)
+~~~
 
-- 创建configmap并应用:
+b.创建configmap
+~~~
 $ cat >checksum-${OCP_RELEASE_NUMBER}.yaml <<EOF
 apiVersion: v1
 kind: ConfigMap
@@ -231,19 +179,27 @@ EOF
 $ oc apply -f checksum-${OCP_RELEASE_NUMBER}.yaml
 ~~~
 
-f. 更新集群:
+**4.升级受限网络集群**
+a. 升级集群
 ~~~
 $ oc adm upgrade --allow-explicit-upgrade \ 
     --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}<sha256_sum_value> 
 
+- sha256_sum_value值确认方法: 
+  - 方法1:  https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.8.21/release.txt
+  - 方法2:  创建configmap步骤输出中确认，并把 sha256-xxx 中的 - 改为 : 即可: 
+  - 方法3:  more /path-to/mirror/config/signature-sha256-xxxx.yaml
+
 - 例如:
 $ oc adm upgrade --allow-explicit-upgrade \ 
      --to-image  ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@sha256:f7e664bf56c882f934ed02eb05018e2683ddf42135e33eae1e4192948372d5ae
+~~~
 
-- sha256_sum_value值确认方法: 
-  - 方法1:  https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.8.21/release.txt
-  - 方法2:  a 步骤输出中确认，并把 sha256-xxx 中的 - 改为 : 即可: 
-  - 方法3:  more /path-to/mirror/config/signature-sha256-xxxx.yaml
+b. 确认集群升级状态
+~~~
+$ oc get clusterversion
+$ oc get nodes
+$ oc get co
 ~~~
 
 
