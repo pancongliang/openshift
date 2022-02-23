@@ -227,7 +227,8 @@ wrote mirroring manifests to manifests-index/olm/redhat-operator-index-163267238
 
 > **- Prompt**  
 > 
-  >上一步骤（选项B 3.2 e）由于引用了用于传输的本地路径，因此在最后一步中生成的 imageContentSourcePolicy.yaml 不起作用,因此需要手动重新生成。
+  >上一步骤（选项B 3.2 e）由于引用了本地目录，因此在最后一步中生成的 imageContentSourcePolicy.yaml 不起作用,因此需要手动重新生成。
+  >
   >[Bug: oc adm catalog mirror imageContentSourcePolicy.yaml for disconnected cluster confusion](https://bugzilla.redhat.com/show_bug.cgi?id=1977793)
 
 a. 创建imageContentSourcePolicy。
