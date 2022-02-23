@@ -148,9 +148,7 @@ $ oc adm catalog mirror \
     --insecure
 
 Output········
-
-- 保存输出中的文件名称：
-wrote mirroring manifests to manifests-redhat-operator-index-1614211642 
+wrote mirroring manifests to manifests-redhat-operator-index-1614211642  #<-- 保存输出中的路径信息
 ~~~
 
 **- 选项 B: Mirror registry 在断开连接的主机上**
@@ -160,12 +158,9 @@ a. 在可以访问互联网的环境中运行如下命令缓存 image 至本地�
 $ oc adm catalog mirror \
      bastion.ocp4.example.com:5000/olm/redhat-operator-index:v4.6 \ #<-- 修剪过的index image
      file:///local/index  \                                         #<-- 将 image 下载至当前目录中的本地文件
-     -a ${REG_CREDS} --insecure  \
-
+     -a ${REG_CREDS} --insecure
 Output········
-
-- 保存输出中的路径信息：
-   oc adm catalog mirror file://local/index/olm/redhat-operator-index:v4.6 REGISTRY/REPOSITORY
+   oc adm catalog mirror file://local/index/olm/redhat-operator-index:v4.6 REGISTRY/REPOSITORY #<-- 保存输出中的路径信息
 ~~~
 
 b. 复制修剪好的 index image 和本地 v2/ 目录至受限网络 Mirror registry 主机。
@@ -232,6 +227,7 @@ wrote mirroring manifests to manifests-index/olm/redhat-operator-index-163267238
   >[Bug: oc adm catalog mirror imageContentSourcePolicy.yaml for disconnected cluster confusion](https://bugzilla.redhat.com/show_bug.cgi?id=1977793)
 
 a. 创建imageContentSourcePolicy。
+
 -参考 <选项 A: Mirror registry 主机可以访问互联网> 下载image时可直接创建icsp。
 ~~~
 $ ls manifests-redhat-operator-index-1614211642          #<-- 此信息在 3.2 -> A -> a 步骤中可以确认
@@ -247,8 +243,7 @@ $ oc adm catalog mirror  mirror.registry.example.com/olm/redhat-operator-index:v
    mirror.registry.example.com/olm  -a ${REG_CREDS}  --insecure --filter-by-os=linux/amd64 --manifests-only
 Output········
 no digest mapping available for mirror.registry.example.com/olm/redhat-operator-index:v4.6, skip writing to ImageContentSourcePolicy
- # 保存此文件信息
-wrote mirroring manifests to manifests-redhat-operator-index-1632673108
+wrote mirroring manifests to manifests-redhat-operator-index-1632673108  #<-- 保存输出中的路径信息
 
 $ ls  /root/manifests-redhat-operator-index-1632673108
 catalogSource.yaml  imageContentSourcePolicy.yaml  mapping.txt
