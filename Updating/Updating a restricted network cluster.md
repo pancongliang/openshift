@@ -62,7 +62,7 @@ $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \
 ~~~
 
 **2.3 将镜像下载到本地镜像仓库**
-- 可选(A): 本地镜像仓库主机可以访问internet
+**- 可选(A): 本地镜像仓库主机可以访问internet**
 
 a. 通过如下命令，下载image到本地镜像仓库
 ~~~
@@ -85,7 +85,7 @@ spec:
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ~~~
 
-- 可选(B): 离线环境: 完全隔离的网络中使用usb移动镜像
+**- 可选(B): 离线环境: 完全隔离的网络中使用usb移动镜像**
 
 a. 将移动硬盘连接到可访问Internet的主机中
 
