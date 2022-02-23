@@ -14,7 +14,7 @@
 
 a. 下载 pull-secret
 
-[Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
+    [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
 b. 添加/认证本地镜像仓库凭证信息
 ~~~
@@ -63,7 +63,7 @@ $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \
 
 c.将镜像下载到本地镜像仓库
 - 可选(A): 本地镜像仓库主机可以访问internet
-i. 通过如下命令，下载image到本地镜像仓库:
+1). 通过如下命令，下载image到本地镜像仓库:
 ~~~
 $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
     --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
@@ -85,9 +85,9 @@ spec:
 ~~~
 
 - 可选(B): 离线环境: 完全隔离的网络中使用usb移动镜像
-i. 将移动硬盘连接到可访问Internet的主机中
+1). 将移动硬盘连接到可访问Internet的主机中
 
-ii. 可访问Internet的主机中，通过如下命令，下载image到本地目录
+2). 可访问Internet的主机中，通过如下命令，下载image到本地目录
 ~~~
 $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
     --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE}
@@ -107,14 +107,14 @@ spec:
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ~~~
 
-iii. 确认镜像是否下载完成，带 .download 的还没下载完:
+3). 确认镜像是否下载完成，带 .download 的还没下载完:
 ~~~
 ls -ltr /path-to/mirror/v2/openshift/release/blobs
 -rw------- 1 root root  32991334 Jul 13 08:32 sha256:02f2c0460a851814ecfab36b80df694c1746c39b480a6ad5a7e4f26e5880969a
 -rw------- 1 root root 112982468 Jul 13 08:37 sha256:05812bc5e0758d0374f1ece3b4afb139731446062aaf39ae4fc920971000b884.download
 ~~~
 
-iv.将移动硬盘连接至离线仓库主机后，上传image至本地镜像仓库:
+4).将移动硬盘连接至离线仓库主机后，上传image至本地镜像仓库:
 ~~~
 $ oc image mirror  -a ${LOCAL_SECRET_JSON} --from-dir=${REMOVABLE_MEDIA_PATH}/mirror \
       "file://openshift/release:${OCP_RELEASE}*" ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} 
