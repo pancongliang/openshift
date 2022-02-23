@@ -12,7 +12,7 @@ worker02.ocp4.example.com | master | 10.72.36.165
 worker02.ocp4.example.com | master | 10.72.36.166
 bootstrap.ocp4.example.com | master | 10.72.36.169
 
-#### 1.Create the user-provisioned infrastructure (bastion) 
+### 1.Create the user-provisioned infrastructure (bastion) 
 
 **1.1 Setup subscription**
 ~~~
@@ -454,7 +454,7 @@ $ oc adm -a /root/pull-secret release mirror --from=quay.io/openshift-release-de
 $ oc image mirror -a pull-secret --dir=/root/mirror file://openshift/release:4.8.2* docker.registry.example.com:5000/ocp4/openshift4
 ~~~
 
-#### 2. Install OpenShift Container Platform 4
+### 2. Install OpenShift Container Platform 4
 
 **2.1 Create the SSH Key for logging in to the node**
 ~~~
