@@ -297,8 +297,7 @@ $ mv oc kubectl openshift-install /usr/local/bin/
 $ oc version
 ~~~
 
-**1.7 [Self-signed cert] adn create offline mirror registry**
-(https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw)
+**1.7 [Self-signed cert](https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw) and create offline mirror registry**
  
 **a. Create registry directory**
 ~~~
