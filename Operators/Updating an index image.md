@@ -178,19 +178,19 @@ spec:
 
 ### 7. 验证operator是否有可用更新及增加成功
 ~~~
- # 查看 operator:
+- 查看 operator:
 $ oc get packagemanifest -n openshift-marketplace
 NAME                     CATALOG                   AGE
 metering-ocp             RedHat Operator Catalog   4h38m     <-- new add operator
 elasticsearch-operator   RedHat Operator Catalog   4h38m
 cluster-logging          RedHat Operator Catalog   4h38m
 
- # 查看 catalogsource:
+- 查看 catalogsource:
 $ oc get catalogsource -n openshift-marketplace
 NAME                    DISPLAY                   TYPE   PUBLISHER   AGE
 redhat-operator-index   RedHat Operator Catalog   grpc   rh          4h39m
 
- # 验证 elasticsearch-operator 版本:
+- 验证 elasticsearch-operator 版本:
 $ oc get packagemanifest elasticsearch-operator -o yaml -n openshift-marketplace | egrep "currentCSV:"
   - currentCSV: elasticsearch-operator.4.6.0-202103010126.p0
   - currentCSV: elasticsearch-operator.5.0.8-6
@@ -198,7 +198,7 @@ $ oc get packagemanifest elasticsearch-operator -o yaml -n openshift-marketplace
   - currentCSV: elasticsearch-operator.5.1.2-7
   - currentCSV: elasticsearch-operator.5.2.2-21         <-- new add version
 
- # 验证 cluster-logging 版本:
+- 验证 cluster-logging 版本:
 $ oc get packagemanifest cluster-logging -o yaml -n openshift-marketplace | egrep "currentCSV:"
   - currentCSV: clusterlogging.4.6.0-202103010126.p0
   - currentCSV: cluster-logging.5.0.8-7
@@ -206,7 +206,7 @@ $ oc get packagemanifest cluster-logging -o yaml -n openshift-marketplace | egre
   - currentCSV: cluster-logging.5.1.2-7
   - currentCSV: cluster-logging.5.2.2-21                <-- new add version
   - 
- # 验证 metering-ocp版本:
+- 验证 metering-ocp版本:
 $ oc get packagemanifest metering-ocp -o yaml -n openshift-marketplace | egrep "currentCSV:"
   - currentCSV: metering-operator.4.7.0-202110141946
 ~~~
