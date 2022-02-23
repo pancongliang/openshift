@@ -9,6 +9,8 @@
   - 确保所有MCP都在运行且未暂停
   - 下载pull secret文件并添加/认证本地镜像仓库凭证信息
 
+
+
 **1.下载pull-secret并添加/认证本地镜像仓库凭证信息**
 a. 下载 pull-secret
 
