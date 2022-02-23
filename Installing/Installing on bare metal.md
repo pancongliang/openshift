@@ -569,10 +569,10 @@ $ chmod a+r pre/*.ign
 
 a.Install bootstrap:
 ~~~
-- Mount ISO，
-- Boot and confirm the disk name
-- Restart and press the "Tab" key to enter the kernel editing page
-- add install command
+- 1.Mount ISO，
+- 2.Boot and confirm the disk name
+- 3.Restart and press the "Tab" key to enter the kernel editing page
+- 4.enter install command
 
 $ coreos.inst.install_dev=sda coreos.inst.ignition_url=http://10.72.36.160:8080/pre/bootstrap.ign
 ip=10.72.36.169::10.72.37.254:255.255.254.0:bootstrap.ocp4.example.com::none 
@@ -581,6 +581,7 @@ nameserver=10.72.36.160
 - After the restart is complete, access the bootstrap node
 $ ssh core@bootstrap.ocp4.example.com
 $ sudo -i
+
 - Check if it is normal or not
 $ netstat -ntplu |grep 6443
 $ netstat -ntplu |grep 22623
