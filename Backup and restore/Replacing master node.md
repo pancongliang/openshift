@@ -1,6 +1,6 @@
 ## Replacing master node
 
-## - 测试恢复过程如下:
+### - 测试恢复过程如下:
   - 环境ocp4.6，模拟1个master宕机（master02.ocp4-6.example.com 关机），此时集群可用:
   
 
