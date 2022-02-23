@@ -283,6 +283,7 @@ $ systemctl enable haproxy --now
 ~~~
 
 **1.6 Install OC Tool**
+
 [Download OC Tool](https://access.redhat.com/downloads/content/290/ver=4.7/rhel---8/4.7.13/x86_64/product-software)
 ~~~
 - openshift-install
@@ -411,6 +412,7 @@ $ systemctl enable mirror-registry.service --now
 **1.8 Download ocp image to docker registry:**
 
 a. Download pull-secret
+
 [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
 b. Add repository authentication to pull-secret
