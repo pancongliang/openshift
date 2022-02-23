@@ -14,7 +14,7 @@ bootstrap.ocp4.example.com | master | 10.72.36.169
 
 ### 1.Create the user-provisioned infrastructure (bastion) 
 
-**1.1 Setup subscription**
+**1.1 Setup subscription:**
 ~~~
 $ subscription-manager register --username=rhn-support-copan --password='!ckdlsk88' --auto-attach
 
@@ -24,7 +24,7 @@ $ subscription-manager list --available |more
 $ subscription-manager attach --pool=8a85f9833e1404a9013e3cddf99305e6
 ~~~
 
-**1.2 Install the necessary software**
+**1.2 Install the necessary software:**
 ~~~
 $ yum install -y wget net-tools podman bind-utils bind  haproxy git bash-completion vim jq nfs-utils httpd httpd-tools  skopeo httpd-manual
 $ systemctl disable firewalld
@@ -33,7 +33,7 @@ $ systemctl enable httpd --now
 $ reboot 
 ~~~
 
-**1.3 Modify httpd.conf (file server)**
+**1.3 Modify httpd.conf (file server):**
 ~~~
 $ sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf 
 
@@ -47,7 +47,7 @@ $ wget http://10.72.36.160:8080/testfile
 
 **1.4 Setup DNS server:**
 
-a. Modify named.conf
+a. Modify named.conf:
 ~~~
 $ vim /etc/named.conf
 options {
@@ -79,7 +79,7 @@ zone "72.10.in-addr.arpa" IN {         #<-- Add DNS PTR record
 //include "/etc/named.root.key";       #<-- delete
 ~~~
 
-b. Add DNS A/AAAA record
+b. Add DNS A/AAAA record:
 ~~~
 $ vim /var/named/ocp4.example.com.zone
 
@@ -124,7 +124,7 @@ bastion.ocp4.example.com.              IN      A       10.72.36.160
 mirror.registry.example.com.           IN      A       10.74.251.168
 ~~~
 
-c. Add DNS PTR record
+c. Add DNS PTR record:
 ~~~
 $ vim /var/named/74.10.zone
 $TTL 1W
@@ -157,12 +157,12 @@ $TTL 1W
 169.36             IN      PTR     bootstrap.ocp4.example.com.
 ~~~
 
-d. Start/Test DNS
+d. Start/Test DNS:
 ~~~
 $ chown named. /var/named/*.zone
 $ systemctl enable named --now
 
-- 测试解析
+- 测试解析:
 $ vim /etc/resolv.conf  
 nameserver 10.72.36.160
 
@@ -181,7 +181,7 @@ $ nslookup api-int.ocp4.example.com
 $ nslookup 10.72.36.160~169
 ~~~
 
-**1.5 Setup haproxy（load balancer）**
+**1.5 Setup haproxy（load balancer）:**
 
 a. Modify haproxy.cfg
 ~~~
@@ -277,12 +277,12 @@ backend machine-config-server               #<-- api-server pod running node and
         server          master03.ocp4.example.com 10.72.36.163:22623 check
 ~~~
 
-b. Start haproxy
+b. Start haproxy:
 ~~~
 $ systemctl enable haproxy --now
 ~~~
 
-**1.6 Install OC Tool**
+**1.6 Install OC Tool:**
 
 - [Download OC Tool](https://access.redhat.com/downloads/content/290/ver=4.7/rhel---8/4.7.13/x86_64/product-software)
 ~~~
@@ -297,29 +297,29 @@ $ mv oc kubectl openshift-install /usr/local/bin/
 $ oc version
 ~~~
 
-**1.7 Self-signed cert and create offline mirror registry**
+**1.7 Self-signed cert and create offline mirror registry:**
 
 - [View self-signed certificate](https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw)
 
-a. Create registry directory
+a. Create registry directory:
 ~~~
 $ mkdir -p /opt/registry/{auth,certs,data}
 ~~~
 
-b. Set the required environment variables
+b. Set the required environment variables:
 ~~~
 $ CA_CN="Local Red Hat CodeReady Workspaces Signer"
 $ DOMAIN='docker.registry.example.com'
 $ OPENSSL_CNF=/etc/pki/tls/openssl.cnf
 ~~~
 
-c. Generate root ca.key
+c. Generate root ca.key:
 ~~~
 $ mkdir -p /etc/crts/ && cd /etc/crts/
 $ openssl genrsa -out /etc/crts/${DOMAIN}.ca.key 4096
 ~~~
 
-d. Generate root ca.crt
+d. Generate root ca.crt:
 ~~~
 $ openssl req -x509 \
   -new -nodes \
@@ -334,12 +334,12 @@ $ openssl req -x509 \
       <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature'))
 ~~~
 
-e. Generate domain key
+e. Generate domain key:
 ~~~
 $ openssl genrsa -out ${DOMAIN}.key 2048
 ~~~
 
-f. Generate domain cert csr
+f. Generate domain cert csr:
 ~~~
 $ openssl req -new -sha256 \
     -key /etc/crts/${DOMAIN}.key \
@@ -350,7 +350,7 @@ $ openssl req -new -sha256 \
     -out /etc/crts/${DOMAIN}.csr
 ~~~
 
-g. Generate domain crt
+g. Generate domain crt:
 ~~~
 $ openssl x509 \
     -req \
@@ -365,7 +365,7 @@ $ openssl x509 \
 $ openssl x509 -in /etc/crts/${DOMAIN}.cert.crt -text
 ~~~
 
-h. Copy and trust the cert
+h. Copy and trust the cert:
 ~~~
 $ cp /etc/crts/${DOMAIN}ca.crt ${DOMAIN}.crt /etc/pki/ca-trust/source/anchors/
 $ update-ca-trust extract
@@ -373,12 +373,12 @@ $ cp /etc/crts/${DOMAIN}.key ${DOMAIN}.crt /opt/registry/certs/
 $ update-ca-trust
 ~~~
 
-i. Create username and password for offline mirror repository
+i. Create username and password for offline mirror repository:
 ~~~
 $ htpasswd -bBc /opt/registry/auth/htpasswd admin redhat
 ~~~
 
-j. Running docker registry
+j. Running docker registry:
 ~~~
 $ podman run --name mirror-registry -p 5000:5000 -v /opt/registry/data:/var/lib/registry:z -v /opt/registry/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v /opt/registry/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/${DOMAIN}.crt -e REGISTRY_HTTP_TLS_KEY=/certs/${DOMAIN}.key -d docker.io/library/registry:2
 
@@ -392,7 +392,7 @@ $ curl -u admin:redhat -k https://${DOMAIN}:5000/v2/_catalog
 $ podman login https://${DOMAIN}:5000
 ~~~
 
-k.Automatically start docker registry
+k.Automatically start docker registry:
 ~~~
 $ cat << EOF > /etc/systemd/system/mirror-registry.service
 [Unit]
@@ -412,11 +412,11 @@ $ systemctl enable mirror-registry.service --now
 
 **1.8 Download ocp image to docker registry:**
 
-a. Download pull-secret
+a. Download pull-secret:
 
 - [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
-b. Add repository authentication to pull-secret
+b. Add repository authentication to pull-secret:
 ~~~
 $ podman login --authfile /root/pull-secret docker.registry.example.com:5000    
   Username: admin
@@ -424,7 +424,7 @@ $ podman login --authfile /root/pull-secret docker.registry.example.com:5000
   Login Succeeded!
 ~~~
 
-c. Set the required environment variables
+c. Set the required environment variables:
 ~~~
 $ export OCP_RELEASE=4.6.8
 $ export LOCAL_REGISTRY='docker.registry.example.com:5000'
@@ -435,7 +435,7 @@ $ export RELEASE_NAME="ocp-release"
 $ export ARCHITECTURE=x86_64
 ~~~
 
-d. Download ocp image to docker registry
+d. Download ocp image to docker registry:
 ~~~
 $ oc adm -a ${LOCAL_SECRET_JSON} release mirror \
   --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
@@ -461,13 +461,13 @@ $ oc image mirror -a pull-secret --dir=/root/mirror file://openshift/release:4.8
 
 ### 2. Install OpenShift Container Platform 4
 
-**2.1 Create the SSH Key for logging in to the node**
+**2.1 Create the SSH Key for logging in to the node:**
 ~~~
 $ ssh-keygen
 $ cat .ssh/id_rsa.pub
 ~~~
 
-**2.2 Create install-config.yaml**
+**2.2 Create install-config.yaml:**
 
 - [View install-config](https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-bare-metal-config-yaml_installing-restricted-networks-bare-metal)
 ~~~
@@ -544,7 +544,7 @@ imageContentSources:
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ~~~
 
-**2.3 Create kubernetes manifests**
+**2.3 Create kubernetes manifests:**
 ~~~
 $ mkdir /var/www/html/materials/pre
 
@@ -558,13 +558,13 @@ $ vim /var/www/html/materials/pre/manifests/cluster-scheduler-02-config.yml
   masterSchedulable: false    #<----- master does not run custom pods
 ~~~
 
-**2.4 Create ignition configuration files**
+**2.4 Create ignition configuration files:**
 ~~~
 $ openshift-install create ignition-configs --dir pre
 $ chmod a+r pre/*.ign
 ~~~
 
-**2.5 Mount the ISO to create the RHCOS machine**
+**2.5 Mount the ISO to create the RHCOS machine:**
 
 a.Install bootstrap:
 ~~~
@@ -577,11 +577,11 @@ $ coreos.inst.install_dev=sda coreos.inst.ignition_url=http://10.72.36.160:8080/
 ip=10.72.36.169::10.72.37.254:255.255.254.0:bootstrap.ocp4.example.com::none 
 nameserver=10.72.36.160
 
-- After the restart is complete, access the bootstrap node
+- After the restart is complete, access the bootstrap node:
 $ ssh core@bootstrap.ocp4.example.com
 $ sudo -i
 
-- Check if it is normal or not
+- Check if it is normal or not:
 $ netstat -ntplu |grep 6443
 $ netstat -ntplu |grep 22623
 $ podman ps
@@ -603,7 +603,7 @@ ip=10.72.36.163::10.72.37.254:255.255.254.0:master03.ocp4.example.com::none
 nameserver=10.72.36.160
 ~~~
 
-c. Check if master is installed
+c. Check if master is installed:
 ~~~
 $ ssh core@bootstrap.ocp4.example.com
 $ sudo -i
@@ -622,38 +622,38 @@ $ coreos.inst.install_dev=sda coreos.inst.ignition_url=http://10.72.36.160:8080/
 ip=10.72.36.165::10.72.37.254:255.255.254.0:worker02.ocp4.example.com::none 
 nameserver=10.72.36.160
 
-- Wait for the reboot to complete
+- Wait for the reboot to complete:
 ~~~
 
-**2.6 login ocp**
+**2.6 login ocp:**
 ~~~
-- add variable
+- add variable:
 $ vim .bash_profile
 export KUBECONFIG=/var/www/html/materials/pre/auth/kubeconfig
 
-- completion command
+- completion command:
 $ export KUBECONFIG=/var/www/html/materials/pre/auth/kubeconfig
 $ oc completion bash >> /etc/bash_completion.d/oc_completion
 $ oc whoami
 system:admin
 ~~~
 
-**2.7 approval csr，Allow adding worker nodes**
+**2.7 approval csr，Allow adding worker nodes:**
 ~~~
 $ oc get csr
 $ oc adm certificate approve csr-4zmjc
 $ oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
 ~~~
 
-**2.8 Check OCP Cluster**
+**2.8 Check OCP Cluster:**
 ~~~
 $ oc get node
 $ oc get co
 ~~~
 
-**2.9 Modify image-registry storage**
+**2.9 Modify image-registry storage:**
 
-a.Setup NFS
+a.Setup NFS:
 ~~~
 $ mkdir /nfs
 $ mkdir -p /nfs/image
@@ -686,7 +686,7 @@ EOF
 $ oc create -f nfs-pv.yaml
 ~~~
 
-c.Modify image-registry operator
+c.Modify image-registry operator:
 ~~~
 $ oc edit configs.imageregistry.operator.openshift.io
 spec:
@@ -698,7 +698,7 @@ spec:
      claim:
 ~~~
 
-**2.10 Trust the docker repository**
+**2.10 Trust the docker repository:**
 
 a.Create configmap:
 ~~~
@@ -710,7 +710,7 @@ b.Trust repository
 $ oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge
 ~~~
 
-**2.11 Set “samples operator” to specify the docker registry**
+**2.11 Set “samples operator” to specify the docker registry:**
 ~~~
 $ oc patch configs.samples.operator.openshift.io cluster  --patch '[{"op": "replace", "path": "/spec/managementState", "value":"Removed"}]'   --type=json
 
