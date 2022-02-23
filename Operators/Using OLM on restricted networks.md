@@ -20,7 +20,7 @@ $ grpcurl -plaintext localhost:50051 api.Registry/ListPackages > redhat-marketpl
 ~~~
 
 ### 1.先决条件
-**1.1 安装 opm 和 grpcurl 命令行**
+**1.1 安装 opm 和 grpcurl 命令行:**
 ~~~
 - 安装 grpcurl 命令行:
 $ wget https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz
@@ -33,18 +33,18 @@ $ tar -xvf opm-linux.tar.gz
 $ cp ./opm /usr/local/bin; chmod +x /usr/local/bin/opm
 ~~~
 
-**1.2 确保 podman 1.9.3+**
+**1.2 确保 podman 1.9.3+:**
 ~~~
 $ podman --version
 podman version 3.2.3
 ~~~
 
-**1.3 禁用 OperatorHub 默认目录源: true/false**
+**1.3 禁用 OperatorHub 默认目录源:**
 ~~~
 $ oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
 ~~~
 
-**1.4 登录 registry.redhat.io 及 local_registry**
+**1.4 登录 registry.redhat.io 及 local_registry:**
 ~~~
 $ podman login registry.redhat.io
 Username: rhn-support-copan
@@ -57,7 +57,7 @@ Password:
 Login Succeeded!
 ~~~
 
-> **- Prompt** 
+> **- Prompt:** 
 > 
 > 使用 “可选 B: 如果 Mirror registry 在断开连接的主机上” 缓存镜像， 请确保 OC command 高于 4.6.45 版本。
 > 
@@ -67,7 +67,7 @@ Login Succeeded!
 
 ### 2.修剪 index image
 
-**2.1 确认 index image 中的 operator 名称**
+**2.1 确认 index image 中的 operator 名称:**
 ~~~
 - 在 Terminal-2 中，获取 redhat operator index image:
 $ podman run -p 50051:50051 -it registry.redhat.io/redhat/redhat-operator-index:v4.7
@@ -85,7 +85,7 @@ $ cat packages.out | grep -E "elasticsearch-operator|cluster-logging"
   "name": "elasticsearch-operator"
 ~~~
 
-**2.2 使用 opm 修剪 operator hub index image**
+**2.2 使用 opm 修剪 operator hub index image:**
 ~~~
 $ opm index prune \
     -f registry.redhat.io/redhat/redhat-operator-index:v4.6 \          #<-- 要修剪的index image
@@ -98,7 +98,7 @@ $ opm index prune \
     -t mirror.registry.example.com/olm/redhat-operator-index:v4.8
 ~~~
 
-**2.3 确认新生成的 index imag 并上传至 local registry**
+**2.3 确认新生成的 index imag 并上传至 local registry:**
 ~~~
 $ podman images
   REPOSITORY                                                TAG     IMAGE ID      CREATED        SIZE
@@ -112,7 +112,7 @@ $ podman push mirror.registry.example.com/olm/redhat-operator-index:v4.6
 ~~~
 
 ### 3.缓存 operator catalog
-**3.1 将 REG_CREDS 环境变量设置为 registry credentials 文件路径**
+**3.1 将 REG_CREDS 环境变量设置为 registry credentials 文件路径:**
 ~~~
 $ REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json
 $ cat ${REG_CREDS}
@@ -131,7 +131,7 @@ $ cat ${REG_CREDS}
 ~~~
 **3.2 缓存 operator 并生成 manifests 文件**
 
-**- 选项 A: Mirror registry 主机可以访问互联网**
+**- 选项 A: Mirror registry 主机可以访问互联网:**
 
 a.执行以下命令将 operator 缓存至 local registry。
 ~~~
@@ -151,9 +151,9 @@ Output········
 wrote mirroring manifests to manifests-redhat-operator-index-1614211642  #<-- 保存输出中的路径信息
 ~~~
 
-**- 选项 B: Mirror registry 在断开连接的主机上**
+**- 选项 B: Mirror registry 在断开连接的主机上:**
 
-a. 在可以访问互联网的环境中运行如下命令缓存 image 至本地文件中。
+a. 在可以访问互联网的环境中运行如下命令缓存 image 至本地文件中:
 ~~~
 $ oc adm catalog mirror \
      bastion.ocp4.example.com:5000/olm/redhat-operator-index:v4.6 \ #<-- 修剪过的index image
@@ -163,7 +163,7 @@ Output········
    oc adm catalog mirror file://local/index/olm/redhat-operator-index:v4.6 REGISTRY/REPOSITORY #<-- 保存输出中的路径信息
 ~~~
 
-b. 复制修剪好的 index image 和本地 v2/ 目录至受限网络 Mirror registry 主机。
+b. 复制修剪好的 index image 和本地 v2/ 目录至受限网络 Mirror registry 主机:
 ~~~
 - 保存 image 为 operator.tar 文件:
 $ podman images
@@ -176,23 +176,23 @@ $ cp operator.tar /mnt/usb
 $ cp -R -p v2 /mnt/usb
 ~~~
 
-c. 在受限 local registry 主机中导入index image 和本地 v2/ 目录。
+c. 在受限 local registry 主机中导入index image 和本地 v2/ 目录:
 ~~~
-- 导入 operator.tar 文件转移至受限网络 Mirror registry
+- 导入 operator.tar 文件转移至受限网络 Mirror registry:
 $ podman load -i operator.tar
 
-- 修改 tag
+- 修改 tag:
 $ podman tag 0f5747b7b7c7 mirror.registry.example.com/olm/redhat-operator-index:v4.6
 
 - 导入 index image:
 $ podman push mirror.registry.example.com/olm/redhat-operator-index:v4.6
 
-- v2 目录以转移至受限 registry 主机中
+- v2 目录以转移至受限 registry 主机中:
 $ ls /root/v2
 local
 ~~~
 
-d. 将 REG_CREDS 环境变量设置为 local registry 凭据的文件路径。
+d. 将 REG_CREDS 环境变量设置为 local registry 凭据的文件路径:
 ~~~
 $ podman login mirror.registry.example.com
 $ REG_CREDS=${XDG_RUNTIME_DIR}/containers/auth.json
@@ -205,7 +205,7 @@ $ cat ${REG_CREDS}
         }
 ~~~
 
-e. 上传 v2目录至 local registry。
+e. 上传 v2目录至 local registry:
 ~~~
 $ oc adm catalog mirror \
     file://local/index/olm/redhat-operator-index:v4.6 \   #<-- 从步骤 a 的输出中确认
@@ -218,7 +218,7 @@ wrote mirroring manifests to manifests-index/olm/redhat-operator-index-163267238
 ~~~
 
 
-**3.3 创建imageContentSourcePolicy.yaml，执行此步骤会触发 machine config reboot机制，所有节点都会自动重启**
+**3.3 创建imageContentSourcePolicy.yaml，执行此步骤会触发 machine config reboot机制，所有节点都会自动重启:**
 
 > **- Prompt**  
 > 
@@ -226,9 +226,9 @@ wrote mirroring manifests to manifests-index/olm/redhat-operator-index-163267238
   >
   >[Bug: oc adm catalog mirror imageContentSourcePolicy.yaml for disconnected cluster confusion](https://bugzilla.redhat.com/show_bug.cgi?id=1977793)
 
-a. 创建imageContentSourcePolicy。
+a. 创建imageContentSourcePolicy:
 
--参考 <选项 A: Mirror registry 主机可以访问互联网> 下载image时可直接创建icsp。
+-参考 <选项 A: Mirror registry 主机可以访问互联网> 下载image时可直接创建icsp:
 ~~~
 $ ls manifests-redhat-operator-index-1614211642          #<-- 此信息在 3.2 -> A -> a 步骤中可以确认
 catalogsource.yaml  imageContentSourcePolicy.yaml  mapping.txt
@@ -237,7 +237,7 @@ $ oc create -f /root/manifests-redhat-operator-index-1632673108/imageContentSour
 imagecontentsourcepolicy.operator.openshift.io/redhat-operator-index created
 ~~~
 
--参考 <选项 B: Mirror registry 在断开连接的主机上> 下载image时，因icsp路径错误，所以需要手动重新生成manifests文件。
+-参考 <选项 B: Mirror registry 在断开连接的主机上> 下载image时，因icsp路径错误，所以需要手动重新生成manifests文件:
 ~~~
 $ oc adm catalog mirror  mirror.registry.example.com/olm/redhat-operator-index:v4.6 \
    mirror.registry.example.com/olm  -a ${REG_CREDS}  --insecure --filter-by-os=linux/amd64 --manifests-only
@@ -254,7 +254,7 @@ $ oc create -f manifests-redhat-operator-index-1614211642/imageContentSourcePoli
 imagecontentsourcepolicy.operator.openshift.io/redhat-operator-index created
 ~~~
 
-b. 等待机器重启完成。
+b. 等待机器重启完成:
 ~~~
 $ oc get mcp
 NAME     CONFIG                                             UPDATED   UPDATING   DEGRADED   MACHINECOUNT   READYMACHINECOUNT   UPDATEDMACHINECOUNT   DEGRADEDMACHINECOUNT   AGE
