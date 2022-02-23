@@ -686,7 +686,7 @@ EOF
 $ oc create -f nfs-pv.yaml
 ~~~
 
-**c.Modify image-registry operator:**
+c.Modify image-registry operator
 ~~~
 $ oc edit configs.imageregistry.operator.openshift.io
 spec:
