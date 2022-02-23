@@ -46,6 +46,7 @@ $ wget http://10.72.36.160:8080/testfile
 ~~~
 
 **1.4 Setup DNS server:**
+
 **a. Modify named.conf**
 ~~~
 $ vim /etc/named.conf
