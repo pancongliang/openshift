@@ -64,7 +64,6 @@ bootstrap.ocp4.example.com.            IN      A       10.74.252.146
 ; Create entries for the mirror registry hosts.
 bastion.ocp4.example.com.              IN      A       10.74.250.185
 mirror.registry.example.com.           IN      A       10.74.251.168
-harbor.registry.example.com.           IN      A       10.72.37.162
 ~~~
 
 **1.4 Haproxy:**
@@ -72,13 +71,13 @@ harbor.registry.example.com.           IN      A       10.72.37.162
 $ cat /etc/haproxy/haproxy.cfg
  # all frontend
 frontend  default-router-http-traffic              #<-- Default ingress
-    bind 10.74.250.185:80                          #<-- Specify default ingress IP:PORT
+    bind 10.74.250.186:80                          #<-- Specify default ingress IP:PORT
     default_backend default-router-http-traffic
     mode tcp
     option tcplog
  
 frontend  default-router-https-traffic             #<-- Default ingress
-    bind 10.74.250.185:443                         #<-- Specify default ingress IP:PORT
+    bind 10.74.250.186:443                         #<-- Specify default ingress IP:PORT
     default_backend default-router-https-traffic
     mode tcp
     option tcplog
@@ -201,13 +200,13 @@ $ oc apply -f custom-ingress.yaml
 ~~~
 $ oc get po -o wide -n openshift-ingress
 NAME                                     READY   STATUS    RESTARTS   AGE     IP              NODE                      
-router-custom-ingress-5cf4598ccb-lr8wp   1/1     Running   2          39h     10.74.249.22    worker03.ocp4.example.com  #<-- custom ingress
+router-custom-5cf4598ccb-lr8wp           1/1     Running   2          39h     10.74.249.22    worker03.ocp4.example.com  #<-- custom ingress
 router-default-6c8b4d6c7c-4xgzm          1/1     Running   1          2d11h   10.74.255.215   worker02.ocp4.example.com 
 router-default-6c8b4d6c7c-rf6vv          1/1     Running   2          2d11h   10.74.252.87    worker01.ocp4.example.com
 
 $ oc get ingresscontroller -n openshift-ingress-operator
 NAME             AGE
-custom-ingress   39h
+router-custom    39h
 default          37d
 
 $ oc get co 
