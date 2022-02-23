@@ -12,7 +12,7 @@
 
 ### 1.下载pull-secret并添加/认证本地镜像仓库凭证信息
 
-1.1 下载 pull-secret
+**1.1 下载 pull-secret**
 
 - [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
