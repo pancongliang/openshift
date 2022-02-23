@@ -12,11 +12,11 @@
 
 ### 1.下载pull-secret并添加/认证本地镜像仓库凭证信息
 
-**1.1 下载 pull-secret**
+**1.1 下载 pull-secret:**
 
 - [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
-**1.2 添加/认证本地镜像仓库凭证信息**
+**1.2 添加/认证本地镜像仓库凭证信息:**
 ~~~
 $ podman login --authfile /root/pull-secret bastion.ocp4.example.com:5000    
   Username: admin
@@ -26,7 +26,7 @@ $ podman login --authfile /root/pull-secret bastion.ocp4.example.com:5000
 
 ### 2.下载ocp image repository至本地镜像仓库
 
-**2.1 设置所需的环境变量**
+**2.1 设置所需的环境变量:**
 ~~~
 - 定义发布版本:
 $ export OCP_RELEASE=4.8.21
@@ -54,16 +54,16 @@ $ export ARCHITECTURE=x86_64
 $ export REMOVABLE_MEDIA_PATH="/root/mirror"
 ~~~
 
-**2.2 查看image及配置清单**
+**2.2 查看image及配置清单:**
 ~~~
 $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
     --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
     --dry-run
 ~~~
 
-**2.3 将镜像下载到本地镜像仓库**
+**2.3 将镜像下载到本地镜像仓库:**
 
-**- 可选(A): 本地镜像仓库主机可以访问internet**
+**- 可选(A): 本地镜像仓库主机可以访问internet:**
 
 a. 通过如下命令，下载image到本地镜像仓库
 ~~~
@@ -86,11 +86,11 @@ spec:
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ~~~
 
-**- 可选(B): 离线环境: 完全隔离的网络中使用usb移动镜像**
+**- 可选(B): 离线环境: 完全隔离的网络中使用usb移动镜像:**
 
 a. 将移动硬盘连接到可访问Internet的主机中
 
-b. 可访问Internet的主机中，通过如下命令，下载image到本地目录
+b. 可访问Internet的主机中，通过如下命令，下载image到本地目录:
 ~~~
 $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
     --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE}
@@ -123,7 +123,7 @@ $ oc image mirror  -a ${LOCAL_SECRET_JSON} --from-dir=${REMOVABLE_MEDIA_PATH}/mi
       "file://openshift/release:${OCP_RELEASE}*" ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} 
 ~~~
 
-**2.4 复制上一步骤中输出的ImageContentSourcePolicy内容，然后创建ImageContentSourcePolicy(更新icsp后会重启node)**
+**2.4 复制上一步骤中输出的ImageContentSourcePolicy内容，然后创建ImageContentSourcePolicy(更新icsp后会重启node):**
 ~~~
 $ vim icsp.yaml
 apiVersion: operator.openshift.io/v1alpha1
@@ -148,7 +148,7 @@ $ oc get node
 
 ### 3.创建image signature configmap
 
-**3.1 设置所需的环境变量**
+**3.1 设置所需的环境变量:**
 ~~~
 - 将版本添加到OCP_RELEASE_NUMBER环境变量中: 
 $ export OCP_RELEASE_NUMBER=4.8.21
@@ -169,7 +169,7 @@ $ export DIGEST_ENCODED="${DIGEST#*:}"
 $ export SIGNATURE_BASE64=$(curl -s "https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/${DIGEST_ALGO}=${DIGEST_ENCODED}/signature-1" | base64 -w0 && echo)
 ~~~
 
-**3.2 创建configmap**
+**3.2 创建configmap:**
 ~~~
 $ cat >checksum-${OCP_RELEASE_NUMBER}.yaml <<EOF
 apiVersion: v1
@@ -188,14 +188,14 @@ $ oc apply -f checksum-${OCP_RELEASE_NUMBER}.yaml
 
 ### 4.升级受限网络集群
 
-**4.1 升级集群**
+**4.1 升级集群:**
 ~~~
 $ oc adm upgrade --allow-explicit-upgrade \ 
     --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}<sha256_sum_value> 
 
 - sha256_sum_value值确认方法: 
   - 方法1:  https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.8.21/release.txt
-  - 方法2:  创建configmap步骤输出中确认，并把 sha256-xxx 中的 - 改为 : 即可: 
+  - 方法2:  创建configmap步骤输出中确认，并把 sha256-xxx 中的 - 改成 : 即可
   - 方法3:  more /path-to/mirror/config/signature-sha256-xxxx.yaml
 
 - 例如:
@@ -203,7 +203,7 @@ $ oc adm upgrade --allow-explicit-upgrade \
      --to-image  ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@sha256:f7e664bf56c882f934ed02eb05018e2683ddf42135e33eae1e4192948372d5ae
 ~~~
 
-**4.2 确认集群升级状态**
+**4.2 确认集群升级状态:**
 ~~~
 $ oc get clusterversion
 $ oc get nodes
