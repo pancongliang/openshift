@@ -284,7 +284,7 @@ $ systemctl enable haproxy --now
 
 **1.6 Install OC Tool**
 
-[Download OC Tool](https://access.redhat.com/downloads/content/290/ver=4.7/rhel---8/4.7.13/x86_64/product-software)
+- [Download OC Tool](https://access.redhat.com/downloads/content/290/ver=4.7/rhel---8/4.7.13/x86_64/product-software)
 ~~~
 - openshift-install
 $ tar xvf oc-4.7.18-linux.tar.gz
@@ -299,7 +299,7 @@ $ oc version
 
 **1.7 Self-signed cert and create offline mirror registry**
 
-[View self-signed certificate](https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw)
+- [View self-signed certificate](https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw)
 
 a. Create registry directory
 ~~~
@@ -414,7 +414,7 @@ $ systemctl enable mirror-registry.service --now
 
 a. Download pull-secret
 
-[Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
+- [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
 b. Add repository authentication to pull-secret
 ~~~
@@ -469,7 +469,7 @@ $ cat .ssh/id_rsa.pub
 
 **2.2 Create install-config.yaml**
 
-[view install-config](https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-bare-metal-config-yaml_installing-restricted-networks-bare-metal)
+- [View install-config](https://docs.openshift.com/container-platform/4.6/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-bare-metal-config-yaml_installing-restricted-networks-bare-metal)
 ~~~
 $ vim install-config.yaml 
 apiVersion: v1
