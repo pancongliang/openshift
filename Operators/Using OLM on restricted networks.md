@@ -4,7 +4,7 @@
     - 选项 A: Mirror registry 主机可以访问互联网:
     - 选项 B: Mirror registry 在断开连接的主机上:
 
-### - index image source
+### - Operator catalogs
 ~~~
 $ podman run -p50051:50051 -it registry.redhat.io/redhat/redhat-operator-index:v4.6
 $ grpcurl -plaintext localhost:50051 api.Registry/ListPackages > redhat-operator-packages.out
@@ -20,31 +20,31 @@ $ grpcurl -plaintext localhost:50051 api.Registry/ListPackages > redhat-marketpl
 ~~~
 
 ### 1.先决条件
-a.安装 opm 和 grpcurl 命令行
+**1.1 安装 opm 和 grpcurl 命令行**
 ~~~
- # 安装 grpcurl 命令行:
+- 安装 grpcurl 命令行:
 $ wget https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz
 $ tar -xvf grpcurl_1.7.0_linux_x86_64.tar.gz
 $ cp grpcurl /usr/local/bin/; chmod +x /usr/local/bin/grpcurl
 
- # 安装opm（运行环境:rhel8) :
+- 安装opm（运行环境:rhel8) :
 $ wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/latest-4.6/opm-linux.tar.gz
 $ tar -xvf opm-linux.tar.gz
 $ cp ./opm /usr/local/bin; chmod +x /usr/local/bin/opm
 ~~~
 
-b.确保 podman 1.9.3+
+**1.2 确保 podman 1.9.3+**
 ~~~
 $ podman --version
 podman version 3.2.3
 ~~~
 
-c.禁用 OperatorHub 默认目录源: true/false
+**1.3 禁用 OperatorHub 默认目录源: true/false**
 ~~~
 $ oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
 ~~~
 
-d.登录 registry.redhat.io 及 local_registry
+**1.4 登录 registry.redhat.io 及 local_registry**
 ~~~
 $ podman login registry.redhat.io
 Username: rhn-support-copan
@@ -65,19 +65,20 @@ Login Succeeded!
 > [2.Download: CLI](https://access.redhat.com/downloads/content/290/ver=4.6/rhel---8/4.6.45/x86_64/product-software)
 
 ### 2.修剪 index image
+
 **2.1 确认 index image 中的 operator 名称**
 ~~~
- # 在 Terminal-2 中，获取 redhat operator index image:
+- 在 Terminal-2 中，获取 redhat operator index image:
 $ podman run -p 50051:50051 -it registry.redhat.io/redhat/redhat-operator-index:v4.7
   ···mirror.registry.example.com/olm/redhat-operator-index:v4.8-2
   WARN[0004] unable to set termination log path            error="open /dev/termination-log: permission denied"
   INFO[0006] Keeping server open for infinite seconds      database=/database/index.db port=50051
   INFO[0006] serving registry                              database=/database/index.db port=50051
 
- # 在 Terminal-1 中，通过 grpcurl 命令,获取 redhat operator 列表:
+- 在 Terminal-1 中，通过 grpcurl 命令,获取 redhat operator 列表:
 $ grpcurl -plaintext localhost:50051 api.Registry/ListPackages > packages.out
 
- # 生成 package.out 文件之后，停止 Terminal 2 的命令，按 ctrl+c 即可停止，然后在 Terminal-1 中确认 operator：
+- 生成 package.out 文件之后，停止 Terminal 2 的命令，按 ctrl+c 即可停止，然后在 Terminal-1 中确认 operator：
 $ cat packages.out | grep -E "elasticsearch-operator|cluster-logging"
   "name": "cluster-logging"
   "name": "elasticsearch-operator"
@@ -103,7 +104,7 @@ $ podman images
   bastion.ocp4.example.com:5000/olm/redhat-operator-index   v4.6    746fd8e49d32  3 minutes ago  89.1 MB
   mirror.registry.example.com/olm/redhat-operator-index     v4.6    804153c26291  2 minutes ago  138 MB
 
- # 如果要确认新的index image中的operator，可以参考步骤 2 确认。
+- 如果要确认新的index image中的operator，可以参考步骤 2 确认。
 
 $ podman push bastion.ocp4.example.com:5000/olm/redhat-operator-index:v4.6
 $ podman push mirror.registry.example.com/olm/redhat-operator-index:v4.6
@@ -145,7 +146,8 @@ $ oc adm catalog mirror \
     --insecure
 
 Output········
- # 保存输出中的文件名称：
+
+- 保存输出中的文件名称：
 wrote mirroring manifests to manifests-redhat-operator-index-1614211642 
 ~~~
 
@@ -158,13 +160,14 @@ $ oc adm catalog mirror \
      -a ${REG_CREDS} --insecure  \
 
 Output········
- # 保存输出中的路径信息：
+
+- 保存输出中的路径信息：
    oc adm catalog mirror file://local/index/olm/redhat-operator-index:v4.6 REGISTRY/REPOSITORY
 ~~~
 
 b. 复制修剪好的 index image 和本地 v2/ 目录至受限网络 Mirror registry 主机。
 ~~~
- # 保存 image 为 operator.tar 文件:
+- 保存 image 为 operator.tar 文件:
 $ podman images
   REPOSITORY                                               TAG      IMAGE ID      CREATED        SIZE
   bastion.ocp4.example.com:5000/olm/redhat-operator-index  v4.6     0f5747b7b7c7  3 hours ago    128 MB
@@ -177,16 +180,16 @@ $ cp -R -p v2 /mnt/usb
 
 c. 在受限 local registry 主机中导入index image 和本地 v2/ 目录。
 ~~~
- # 导入 operator.tar 文件转移至受限网络 Mirror registry
+- 导入 operator.tar 文件转移至受限网络 Mirror registry
 $ podman load -i operator.tar
 
- # 修改 tag
+- 修改 tag
 $ podman tag 0f5747b7b7c7 mirror.registry.example.com/olm/redhat-operator-index:v4.6
 
- # 导入 index image:
+- 导入 index image:
 $ podman push mirror.registry.example.com/olm/redhat-operator-index:v4.6
 
- # v2 目录以转移至受限 registry 主机中
+- v2 目录以转移至受限 registry 主机中
 $ ls /root/v2
 local
 ~~~
@@ -232,7 +235,7 @@ $ oc create -f /root/manifests-redhat-operator-index-1632673108/imageContentSour
 imagecontentsourcepolicy.operator.openshift.io/redhat-operator-index created
 ~~~
 
-参考 <选项 B: Mirror registry 在断开连接的主机上> 下载image时，因此icsp路径错误，因此需要手动重新生成manifests文件。
+参考 <选项 B: Mirror registry 在断开连接的主机上> 下载image时，因icsp路径错误，所以需要手动重新生成manifests文件。
 ~~~
 $ oc adm catalog mirror  mirror.registry.example.com/olm/redhat-operator-index:v4.6 \
    mirror.registry.example.com/olm  -a ${REG_CREDS}  --insecure --filter-by-os=linux/amd64 --manifests-only
