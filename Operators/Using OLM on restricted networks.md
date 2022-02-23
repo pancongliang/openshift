@@ -130,6 +130,7 @@ $ cat ${REG_CREDS}
         }
 ~~~
 **3.2 缓存 operator 并生成 manifests 文件**
+
 **- 选项 A: Mirror registry 主机可以访问互联网**
 
 a.执行以下命令将 operator 缓存至 local registry。
@@ -153,6 +154,7 @@ wrote mirroring manifests to manifests-redhat-operator-index-1614211642
 ~~~
 
 **- 选项 B: Mirror registry 在断开连接的主机上**
+
 a. 在可以访问互联网的环境中运行如下命令缓存 image 至本地文件中。
 ~~~
 $ oc adm catalog mirror \
@@ -222,9 +224,11 @@ wrote mirroring manifests to manifests-index/olm/redhat-operator-index-163267238
 
 
 **3.3 创建imageContentSourcePolicy.yaml，执行此步骤会触发 machine config reboot机制，所有节点都会自动重启**
+
 > **- Prompt**  
+> 
   >上一步骤（选项B 3.2 e）由于引用了用于传输的本地路径，因此在最后一步中生成的 imageContentSourcePolicy.yaml 不起作用,因此需要手动重新生成。
-  >Bug: [oc adm catalog mirror imageContentSourcePolicy.yaml for disconnected cluster confusion](https://bugzilla.redhat.com/show_bug.cgi?id=1977793)
+  >[Bug: oc adm catalog mirror imageContentSourcePolicy.yaml for disconnected cluster confusion](https://bugzilla.redhat.com/show_bug.cgi?id=1977793)
 
 a. 创建imageContentSourcePolicy。
 参考 <选项 A: Mirror registry 主机可以访问互联网> 下载image时可直接创建icsp。
