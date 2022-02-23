@@ -62,6 +62,7 @@ $ oc adm release mirror -a ${LOCAL_SECRET_JSON} \
 ~~~
 
 **2.3 将镜像下载到本地镜像仓库**
+
 **- 可选(A): 本地镜像仓库主机可以访问internet**
 
 a. 通过如下命令，下载image到本地镜像仓库
