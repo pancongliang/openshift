@@ -227,12 +227,12 @@ wrote mirroring manifests to manifests-index/olm/redhat-operator-index-163267238
 
 > **- Prompt**  
 > 
-  >上一步骤（选项B 3.2 e）由于引用了本地目录，因此在最后一步中生成的 imageContentSourcePolicy.yaml 不起作用,因此需要手动重新生成。
+  >上一步骤（选项B 3.2 e）由于引用了本地目录，因此最后一步中生成的imageContentSourcePolicy不起作用，所以需要手动重新生成。
   >
   >[Bug: oc adm catalog mirror imageContentSourcePolicy.yaml for disconnected cluster confusion](https://bugzilla.redhat.com/show_bug.cgi?id=1977793)
 
 a. 创建imageContentSourcePolicy。
-参考 <选项 A: Mirror registry 主机可以访问互联网> 下载image时可直接创建icsp。
+-参考 <选项 A: Mirror registry 主机可以访问互联网> 下载image时可直接创建icsp。
 ~~~
 $ ls manifests-redhat-operator-index-1614211642          #<-- 此信息在 3.2 -> A -> a 步骤中可以确认
 catalogsource.yaml  imageContentSourcePolicy.yaml  mapping.txt
@@ -241,7 +241,7 @@ $ oc create -f /root/manifests-redhat-operator-index-1632673108/imageContentSour
 imagecontentsourcepolicy.operator.openshift.io/redhat-operator-index created
 ~~~
 
-参考 <选项 B: Mirror registry 在断开连接的主机上> 下载image时，因icsp路径错误，所以需要手动重新生成manifests文件。
+-参考 <选项 B: Mirror registry 在断开连接的主机上> 下载image时，因icsp路径错误，所以需要手动重新生成manifests文件。
 ~~~
 $ oc adm catalog mirror  mirror.registry.example.com/olm/redhat-operator-index:v4.6 \
    mirror.registry.example.com/olm  -a ${REG_CREDS}  --insecure --filter-by-os=linux/amd64 --manifests-only
