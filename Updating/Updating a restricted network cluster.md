@@ -5,8 +5,7 @@
   - 对受限网络环境中的容器registry具有写入权限以push和pull image。容器registry必须与Docker registry API v2兼容
   - 安装oc命令行界面 (CLI) 工具
   - 以具有admin特权的用户身份访问集群
-  - 有一个最近的etcd备份，以防升级失败
-    https://docs.openshift.com/container-platform/4.8/backup_and_restore/disaster_recovery/scenario-2-restoring-cluster-state.html#dr-restoring-cluster-state
+  - 有一个最近的[etcd备份，以防升级失败](https://docs.openshift.com/container-platform/4.8/backup_and_restore/disaster_recovery/scenario-2-restoring-cluster-state.html#dr-restoring-cluster-state)
   - 确保所有MCP都在运行且未pause
   - pull secret
 
@@ -40,15 +39,18 @@ $ export REMOVABLE_MEDIA_PATH="/root/mirror"
 
 **2.查看 mirror 及配置清单:**
 ~~~
-$ oc adm release mirror -a ${LOCAL_SECRET_JSON} --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run
+$ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
+    --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
+    --dry-run
 ~~~
 
 **3.将镜像映射到内部registry**
 **- 可选(A): mirror registry 可以访问 internet**
 a. 通过如下命令，缓存image到 offline mirror registry:
 ~~~
-$ oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
-  --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} 
+$ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
+    --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
+   --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} 
 # Output········
 # To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
 apiVersion: operator.openshift.io/v1alpha1
@@ -140,7 +142,8 @@ $ oc adm upgrade --allow-explicit-upgrade --to-image ${LOCAL_REGISTRY}/${LOCAL_R
 **- 可选(B): offline 环境: 完全隔离的网络中使用usb移动镜像:**
 a.通过如下命令，将image和configuration manifests下载至usb移动设备,并保存ImageContentSourcePolicy输出:
 ~~~
-$ oc adm release mirror -a ${LOCAL_SECRET_JSON} --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE}
+$ oc adm release mirror -a ${LOCAL_SECRET_JSON} \ 
+    --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE}
 # Output········
 # To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
 apiVersion: operator.openshift.io/v1alpha1
@@ -230,13 +233,18 @@ $ oc apply -f checksum-${OCP_RELEASE_NUMBER}.yaml
 
 f. 更新集群:
 ~~~
-$ oc adm upgrade --allow-explicit-upgrade --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}<sha256_sum_value> 
+$ oc adm upgrade --allow-explicit-upgrade \ 
+    --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}<sha256_sum_value> 
 
 - 例如:
-$ oc adm upgrade --allow-explicit-upgrade --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@sha256:f7e664bf56c882f934ed02eb05018e2683ddf42135e33eae1e4192948372d5ae
+$ oc adm upgrade --allow-explicit-upgrade \ 
+     --to-image  ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@sha256:f7e664bf56c882f934ed02eb05018e2683ddf42135e33eae1e4192948372d5ae
 
 - sha256_sum_value值确认方法: 
   - 方法1:  https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.8.21/release.txt
   - 方法2:  a 步骤输出中确认，并把 sha256-xxx 中的 - 改为 : 即可: 
   - 方法3:  more /path-to/mirror/config/signature-sha256-xxxx.yaml
 ~~~
+
+
+[如何在 Openshift 4.x 中升级断开连接的集群:](https://access.redhat.com/solutions/5398761)
