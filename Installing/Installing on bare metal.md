@@ -1,5 +1,4 @@
-# Installing a user-provisioned bare metal cluster on a restricted network
-
+## Installing a user-provisioned bare metal cluster on a restricted network
 
 **Server info**
 Hostname | Role | IP |
