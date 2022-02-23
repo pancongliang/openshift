@@ -1,4 +1,4 @@
-### Installing a user-provisioned bare metal cluster on a restricted network
+## Installing a user-provisioned bare metal cluster on a restricted network
 
 **Server info**
 Hostname | Role | IP |
@@ -39,7 +39,7 @@ $ sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf
 
 $ systemctl restart httpd
 
-- 测试 httpd 功能:**
+- 测试 httpd 功能:
 $ mkdir -p /var/www/html/materials
 $ touch /var/www/html/materials/testfile
 $ wget http://10.72.36.160:8080/testfile
