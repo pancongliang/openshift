@@ -185,6 +185,7 @@ $ nslookup 10.72.36.160~169
 ~~~
 
 **1.5 Setup haproxy（load balancer）**
+
 **a. Modify haproxy.cfg**
 ~~~
 $ cat /dev/null > /etc/haproxy/haproxy.cfg 
@@ -409,9 +410,8 @@ $ systemctl enable mirror-registry.service --now
 ~~~
 
 **1.8 Download ocp image to docker registry:**
-**a. Download pull-secret**
 
-[下载pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
+**a. [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)**
 
 **b. Add repository authentication to pull-secret**
 ~~~
@@ -458,6 +458,7 @@ $ oc image mirror -a pull-secret --dir=/root/mirror file://openshift/release:4.8
 ~~~
 
 #### 2. Install OpenShift Container Platform 4
+
 **2.1 Create the SSH Key for logging in to the node**
 ~~~
 $ ssh-keygen
@@ -561,6 +562,7 @@ $ chmod a+r pre/*.ign
 ~~~
 
 **2.5 Mount the ISO to create the RHCOS machine**
+
 **a.Install bootstrap:**
 ~~~
 - Mount ISO，
@@ -646,6 +648,7 @@ $ oc get co
 ~~~
 
 **2.9 Modify image-registry storage**
+
 **a.Setup NFS**
 ~~~
 $ mkdir /nfs
@@ -692,6 +695,7 @@ spec:
 ~~~
 
 **2.10 Trust the docker repository**
+
 **a.Create configmap:**
 ~~~
 $ oc create configmap registry-config --from-file=mirror.registry.example.com=/etc/pki/ca-trust/source/anchors/mirror.registry.example.com.ca.crt \
