@@ -300,6 +300,7 @@ $ oc version
 **1.7 Self-signed cert and create offline mirror registry**
 
 [View self-signed certificate](https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw)
+
 a. Create registry directory
 ~~~
 $ mkdir -p /opt/registry/{auth,certs,data}
