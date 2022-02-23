@@ -47,7 +47,7 @@ $ wget http://10.72.36.160:8080/testfile
 
 **1.4 Setup DNS server:**
 
-**a. Modify named.conf**
+a. Modify named.conf
 ~~~
 $ vim /etc/named.conf
 options {
@@ -79,7 +79,7 @@ zone "72.10.in-addr.arpa" IN {         #<-- Add DNS PTR record
 //include "/etc/named.root.key";       #<-- delete
 ~~~
 
-**b. Add DNS A/AAAA record**
+b. Add DNS A/AAAA record
 ~~~
 $ vim /var/named/ocp4.example.com.zone
 
@@ -105,8 +105,6 @@ api-int.ocp4.example.com.              IN      A       10.72.36.160
 ;
 ; The wildcard also identifies the load balancer.
 *.apps.ocp4.example.com.               IN      A       10.72.36.160
-*.apps.ocp4-7.example.com.             IN      A       10.72.37.100
-*.apps.ocp4-8.example.com.             IN      A       10.74.251.14
 ;
 ; Create entries for the master hosts.
 master01.ocp4.example.com.             IN      A       10.72.36.161
@@ -124,10 +122,9 @@ bootstrap.ocp4.example.com.            IN      A       10.72.36.169
 ; Create entries for the mirror registry hosts.
 bastion.ocp4.example.com.              IN      A       10.72.36.160
 mirror.registry.example.com.           IN      A       10.74.251.168
-harbor.registry.example.com.           IN      A       10.72.37.162
 ~~~
 
-**c. Add DNS PTR record**
+c. Add DNS PTR record
 ~~~
 $ vim /var/named/74.10.zone
 $TTL 1W
@@ -160,7 +157,7 @@ $TTL 1W
 169.36             IN      PTR     bootstrap.ocp4.example.com.
 ~~~
 
-**d. Start/Test DNS**
+d. Start/Test DNS
 ~~~
 $ chown named. /var/named/*.zone
 $ systemctl enable named --now
