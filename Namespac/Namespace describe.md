@@ -8,12 +8,12 @@ openshift-apiserver-operator-84d7d978c5-dj95w   #<-- 安装和维护 openshift-a
 
 **Namespace：openshift-apiserver**
 ~~~
-apiserver-66575ffdd7-2jdxt                      #<-- 提供 API endponint并负责 Rest API 通信
+apiserver-66575ffdd7-2jdxt                      #<-- 验证和配置 OpenShift 资源的数据，例如project, route, template
 ~~~
 
 **Namespace：openshift-authentication**
 ~~~
-oauth-openshift-6fb548d946-8p4px                #<-- 发行用户可以使用的 Token
+oauth-openshift-6fb548d946-8p4px                #<-- 用户从 OpenShift OAuth Server 请求 token 向 API 验证自己
 ~~~
 
 **Namespace：openshift-authentication-operator**
@@ -72,7 +72,7 @@ console-operator-5c6bf5789-84nsb                #<-- 安装和维护 Web 控制�
 
 **Namespace：openshift-controller-manager**
 ~~~
-controller-manager-dwtpj                        #<-- 检查 OpenShift API 对象的更改(build, deployment 等)
+controller-manager-dwtpj                       #<-- 监视 etcd 以了解 OpenShift 对象（例如project, route, template controller）的更改，然后使用 API 强制执行指定的状态
 ~~~
 
 **Namespace：openshift-controller-manager-operator**
@@ -117,7 +117,7 @@ router-default-79fd86499d-7kjtm                 #<-- 从外部路由以访问 Op
 
 **Namespace：openshift-ingress-canary**
 ~~~
-ingress-canary-2w9gj                            #<-- 按比例将流量分配到每个 Pod
+ingress-canary-2w9gj                            #<-- 验证默认入口控制器的端到端连接，为此，canary控制器创建一个测试应用程序、service 和canary route，一旦canary route被默认入口控制器接纳，canary控制器就会周期性地向canary route发送请求，并验证控制器是否得到响应[1]
 ~~~
 
 **Namespace：openshift-ingress-operator**
@@ -132,7 +132,7 @@ insights-operator-688765dc7b-sf5vp              #<-- 识别与集群相关的问
 
 **Namespace：openshift-kube-apiserver**
 ~~~
-kube-apiserver-master1.ocp4.example.net         #<-- 公开 Kubernetes API 的组件
+kube-apiserver-master1.ocp4.example.net         #<-- 验证和配置 pod、 pods, services, replication controllers的数据。它还为集群的共享状态提供一个 focal
 ~~~
 
 **Namespace： openshift-kube-apiserver-operator**
@@ -142,7 +142,7 @@ kube-apiserver-operator-6f475fdb7d-kqmcb        #<-- 管理和更新 Kubernetes 
 
 **Namespace：openshift-kube-controller-manager**
 ~~~
-kube-controller-manager-master1.ocp4.example.net #<--  通过apiserver监控集群的共享状态，控制使其保持在正常状态
+kube-controller-manager-master1.ocp4.example.net #<--  监视 etcd 以了解对replication, namespace, service account controller 等对象的更改，然后使用 API 强制执行指定的状态。几个这样的进程一次创建一个具有 active leader 的集群
 ~~~
 
 **Namespace：openshift-kube-controller-manager-operator**
@@ -152,7 +152,7 @@ kube-controller-manager-operator-64f9b8f8d4-zfz6p #<-- 管理和更新 Kubernete
 
 **Namespace：openshift-kube-scheduler**
 ~~~
-openshift-kube-scheduler-master1.ocp4.example.net #<-- Pod 会自动查找一个可运行节点，并在节点中选择得分最高的节点启动 Pod
+openshift-kube-scheduler-master1.ocp4.example.net #<-- Kubernetes 调度程序监视没有分配节点的新创建的 Pod，并选择最佳节点来托管 Pod
 ~~~
 
 **Namespace：openshift-kube-scheduler-operator**
@@ -203,6 +203,11 @@ network-check-target-64vmc                        #<-- 测试每个节点的连�
 **Namespace：openshift-network-operator**
 ~~~
 network-operator-597645ff95-djpmh                 #<-- 在 OpenShift 集群上部署和管理集群网络组件，包括 CNI 默认网络提供程序插件
+~~~
+
+**Namespace：openshift-oauth-apiserver**
+~~~
+apiserver-c7d5cd5d9-2q2q8 :   #<-- 验证和配置数据以向 OpenShift 进行身份验证，例如group、user和 OAuth token
 ~~~
 
 **Namespace：openshift-operator-lifecycle-manager**
