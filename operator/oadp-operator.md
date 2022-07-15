@@ -58,6 +58,7 @@ mv velero-${VERSION}-linux-amd64/velero /usr/local/bin/
 ~~~
 
 **安装 MinIO**
+
 a. 通过模板部署 MinIO s3 storage:
 ~~~
 $ oc new-project minio
@@ -100,6 +101,7 @@ $ mc --insecure ls my-minio
 ~~~
 
 **安装minio-client**
+
 a.在 minio-client 项目中云一个 Pod 作为运行 minio-client 的环境
 ~~~
 $ oc new-project minio-client
@@ -225,7 +227,9 @@ oadp-minio-1   aws        ocp-backup/velero   Available   2022-07-12 13:50:24 +0
 ~~~
 
 ## 对应用进行备份和恢复
+
 **备份应用**
+
 a. 针对 sample-backup 项目创建一个名为 nginx-sample-backup 的 backup
 ~~~
 - 无volumes的时候使用如下方法创建backup:
@@ -271,6 +275,7 @@ $ mc ls my-minio/ocp-backup/velero/backups/nginx-sample-backup
 ~~~
 
 **恢复应用**
+
 a.删除 sample-backup 测试应用的项目模拟灾难
 ~~~
 $ oc delete project sample-backup
