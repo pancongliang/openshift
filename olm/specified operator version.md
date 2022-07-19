@@ -60,4 +60,4 @@ $ opm index add \
 ~~~
 
 ### 3. 缓存步骤与其它方法相同
-[offline operator]https://github.com/pancongliang/OpenShift/blob/main/olm/offline%20operator.md
+[offline operator](https://github.com/pancongliang/OpenShift/blob/main/olm/offline%20operator.md)
