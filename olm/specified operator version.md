@@ -59,4 +59,5 @@ $ opm index add \
     --tag harbor.registry.example.bet/olm/redhat-operator-index:v4.10.2
 ~~~
 
-### 3. 缓存步骤与其它方法相同（参考：）
+### 3. 缓存步骤与其它方法相同
+[offline operator]https://github.com/pancongliang/OpenShift/blob/main/olm/offline%20operator.md
