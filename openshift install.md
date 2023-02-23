@@ -3,14 +3,14 @@
 **Server info**
 Hostname | Role | IP |
 --- |--- |--- 
-bastion.ocp4.example.com    | bastion | 10.72.36.200
-docker.registry.example.com | bastion | 10.72.36.200
-master01.ocp4.example.com   | master | 10.72.36.151
-master02.ocp4.example.com   | master | 10.72.36.152
-master03.ocp4.example.com   | master | 10.72.36.153
-worker01.ocp4.example.com   | worker | 10.72.36.154
-worker02.ocp4.example.com   | worker | 10.72.36.155
-bootstrap.ocp4.example.com  | bootstrap | 10.72.36.159
+bastion.ocp4.example.com    | bastion | 10.72.36.200     |rhel8
+docker.registry.example.com | bastion | 10.72.36.200     |rhel8
+master01.ocp4.example.com   | master | 10.72.36.151      |coreos
+master02.ocp4.example.com   | master | 10.72.36.152      |coreos
+master03.ocp4.example.com   | master | 10.72.36.153      |coreos
+worker01.ocp4.example.com   | worker | 10.72.36.154      |coreos
+worker02.ocp4.example.com   | worker | 10.72.36.155      |coreos
+bootstrap.ocp4.example.com  | bootstrap | 10.72.36.159   |coreos
 
 
 ### 1.Create the user-provisioned infrastructure (bastion) 
