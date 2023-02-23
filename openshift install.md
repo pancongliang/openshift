@@ -2,7 +2,7 @@
 
 **Server info**
 Hostname | Role | IP |
---- |--- |--- 
+--- |--- |--- |--- 
 bastion.ocp4.example.com    | bastion | 10.72.36.200     |rhel8
 docker.registry.example.com | bastion | 10.72.36.200     |rhel8
 master01.ocp4.example.com   | master | 10.72.36.151      |coreos
