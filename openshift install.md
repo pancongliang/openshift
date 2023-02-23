@@ -451,7 +451,7 @@ a. Download pull-secret:
 
 b. Add repository authentication to pull-secret:
 ~~~
-$ podman login --authfile /root/copan/pull-secret docker.registry.example.com:5000   
+$ podman login --authfile /root/pull-secret docker.registry.example.com:5000   
   Username: admin
   Password: redhat
   Login Succeeded!
