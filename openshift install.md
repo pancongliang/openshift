@@ -668,8 +668,6 @@ nameserver=10.72.36.200 nameserver=10.72.36.199
 $ vim .bash_profile
 export KUBECONFIG=/var/www/html/materials/pre/auth/kubeconfig
 
-- completion command:
-$ oc completion bash >> /etc/bash_completion.d/oc_completion
 $ oc whoami
 system:admin
 ~~~
@@ -685,6 +683,9 @@ $ oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}
 $ oc get node
 $ oc get mcp
 $ oc get co | grep -v '.True.*False.*False'
+
+- completion command:
+$ oc completion bash >> /etc/bash_completion.d/oc_completion
 ~~~
 
 **2.9 Modify image-registry storage:**
