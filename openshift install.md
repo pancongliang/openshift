@@ -1,7 +1,7 @@
 ## Installing a user-provisioned bare metal cluster on a restricted network
 
 **Server info**
-Hostname | Role | IP |
+Hostname | Role | IP | OS |
 --- |--- |--- |--- 
 bastion.ocp4.example.com    | bastion | 10.72.36.200     |rhel8
 docker.registry.example.com | bastion | 10.72.36.200     |rhel8
