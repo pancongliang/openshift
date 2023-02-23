@@ -477,7 +477,7 @@ $ oc adm -a ${LOCAL_SECRET_JSON} release mirror \
   --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
   --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} 
 ...
-- mirrors:                                      #<-- record image content source
+- mirrors:                                      #<-- record ImageContentSourcePolicies
   - docker.registry.com:5000/ocp4/openshift4
   source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
@@ -521,8 +521,8 @@ platform:
   none: {} 
 fips: false 
 pullSecret: '{"auths":{"docker.registry.example.com:5000": {"auth": "xxxxxx","email": "xxxxx@xxxxx.com"}}}'
-sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC2W5zGDsgPmEqph1piJRl/BO1yETKt7U2kUJFnkJ7VEj62ZubhPI16gTjhvO+kWl1yN6oDo840hVtmHKT799euBI82EyeeGdmgxbq0vFTs36+Np76jhaSsvCo+GLb7Si8j8PFnxEAmZ14byxqLR6XY6YUkQrk9+T6dINziiOHhkdATrOr1qbL/YSjm/nPVjFpV60IGzBOZ47ILJIVSNRLHrC/Pf+vxkRQvfQ9IAwTQDMV1t6vbxI8c+TJ9iI0SFJZvNaHiNVxa4NwBf3t0Uqr8xJhH5pWZFX3oP4RuQECgbvKuefAC3N+Ww5oMsTYgdj1bvs1ofvBT2P6s4EVKzxifcppT413O4fGiy7TEBd5ggeX0UghQ1JVhhF7YBQ9cYat8Ag6zWHd5AZYF5JSh+RFAclGLKdCnluWeNGFHeXTkVQcpMfUFaCiuocxgeS07MnNuwTUXAhBh2X7I1E3Qy0DmcJw8EF3DMvq9PmbM9IavDxcO6i40dMM1bdWDF6wwY60= root@bastion' 
-additionalTrustBundle: | 
+sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC2W5zGDsgPmEqph1piJRl/BO1yETKt7U2kUJFnkJ7VEj62ZubhPI16gTjhvO+kWl1yN6oDo840hVtmHKT799euBI82EyeeGdmgxbq0vFTs36+Np76jhaSsvCo+GLb7Si8j8PFnxEAmZ14byxqLR6XY6YUkQrk9+T6dINziiOHhkdATrOr1qbL/YSjm/nPVjFpV60IGzBOZ47ILJIVSNRLHrC/Pf+vxkRQvfQ9IAwTQDMV1t6vbxI8c+TJ9iI0SFJZvNaHiNVxa4NwBf3t0Uqr8xJhH5pWZFX3oP4RuQECgbvKuefAC3N+Ww5oMsTYgdj1bvs1ofvBT2P6s4EVKzxifcppT413O4fGiy7TEBd5ggeX0UghQ1JVhhF7YBQ9cYat8Ag6zWHd5AZYF5JSh+RFAclGLKdCnluWeNGFHeXTkVQcpMfUFaCiuocxgeS07MnNuwTUXAhBh2X7I1E3Qy0DmcJw8EF3DMvq9PmbM9IavDxcO6i40dMM1bdWDF6wwY60= root@bastion'      #<-- bastion server(cat .ssh/id_rsa.pub)
+additionalTrustBundle: |         #<--- Registry's root ca certificate(cat /etc/crts/docker.registry.example.com.ca.crt)
   -----BEGIN CERTIFICATE-----
   MIIFGDCCAwCgAwIBAgIUMOHuyhyVNF3K3pB8jfcFMNDwEaYwDQYJKoZIhvcNAQEL
   BQAwNDEyMDAGA1UEAwwpTG9jYWwgUmVkIEhhdCBDb2RlUmVhZHkgV29ya3NwYWNl
@@ -553,7 +553,7 @@ additionalTrustBundle: |
   0JaAkROB5kLYL6cmfJwMeAPQJo2iI6COGOb6gLIoOe4BXzGEklIgdHIWj0TEvGC1
   5dnZNuPpqP/oxMwv
   -----END CERTIFICATE-----
-imageContentSources:
+imageContentSources:      #<-- ImageContentSourcePolicies output in step 1.8-d
 - mirrors:
   - docker.registry.example.com:5000/ocp4/openshift4
   source: quay.io/openshift-release-dev/ocp-release
@@ -588,6 +588,7 @@ $ chmod a+r pre/*.ign
 ~~~
 
 **2.5 Mount the ISO to create the RHCOS machine:**
+
 a.Download RHCOS.iso
 
 > **IMPORTANT**
