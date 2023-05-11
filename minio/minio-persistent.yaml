@@ -25,7 +25,6 @@ objects:
     to:
       kind: Service
       name: ${MINIO_SERVICE_NAME}
-
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
