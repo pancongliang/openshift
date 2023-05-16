@@ -110,7 +110,7 @@ $ mc --insecure ls my-minio
 [2022-01-07 09:29:26 UTC]     0B ocp-bucket/
 ~~~
 
-**Common MinIO commands**
+**Minio commands**
 ~~~
 - View MinIO configuration
 $ mc alias ls my-minio
