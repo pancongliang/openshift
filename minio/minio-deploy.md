@@ -8,7 +8,7 @@ $ oc new-project minio
 
 a (optional). ephemeral data.
 ~~~
-$ oc process -f https://raw.githubusercontent.com/liuxiaoyu-git/minio-ocp/master/minio.yaml | oc apply -n minio -f -
+$ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/minio/minio-ephemeral.yaml | oc apply -n minio -f -
 ~~~
 
 b (optional). persistent data.
