@@ -1,17 +1,17 @@
 
-**1.Create minio project**
+**1. Create minio project**
 ~~~
 $ oc new-project minio
 ~~~
 
-**2.Create minio resource**
+**2. Create minio resource**
 
-Optional(a). ephemeral data.
+a (optional). ephemeral data.
 ~~~
 $ oc process -f https://raw.githubusercontent.com/liuxiaoyu-git/minio-ocp/master/minio.yaml | oc apply -n minio -f -
 ~~~
 
-Optional(b). persistent data.
+b (optional). persistent data.
 ~~~
 # Create pv
 $ cat << EOF | oc apply -f -
@@ -53,7 +53,7 @@ $ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/mi
 ~~~
 
 
-**3.Check the status of deployed resources and confirm the Route address**
+**3. Check the status of deployed resources and confirm the Route address**
 ~~~
 $ oc get pod -n minio
 NAME             READY   STATUS      RESTARTS   AGE
@@ -62,15 +62,15 @@ minio-1-r4nns    1/1     Running     0          9m42s
 $ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='https://{.spec.host}')
 ~~~
 
-**4.Install the Minio client**
+**4. Install the Minio client**
 
-Optional(a). Install the Minio client on the basion machine and use the route address to access.
+a (optional). Install the Minio client on the basion machine and use the route address to access.
 ~~~
 $ curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc
 $ chmod +x mc && mv mc /usr/bin
 ~~~
 
-Optional(b). Install the Minio client in the pod and use the service address to access.
+b (optional).  Install the Minio client in the pod and use the service address to access.
 ~~~
 $ oc new-project minio-client
 $ oc apply -f - << EOF
@@ -97,9 +97,9 @@ $ oc -n minio-client rsh minio-client
 ~ # chmod +x mc
 ~~~
 
-**5.Access Minio and create bucket**
+**5. Access Minio and create bucket**
 
-a.Access Minio(Default account password: minio/minio123)
+a. Access Minio(Default account password: minio/minio123)
 ~~~
 # Use the route address in the bastion machine to access minio
 $ mc --insecure alias set my-minio ${MINIO_ADDR} minio minio123
@@ -108,7 +108,7 @@ $ mc --insecure alias set my-minio ${MINIO_ADDR} minio minio123
 $ mc --insecure alias set my-minio ${MINIO_ADDR} minio minio123
 ~~~
 
-b.Create bucket.
+b. Create bucket.
 ~~~
 # Create bucket
 $ mc --insecure mb my-minio/ocp-bucket
