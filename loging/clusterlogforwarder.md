@@ -26,13 +26,14 @@ $ oc create -f https://raw.githubusercontent.com/openshift/verification-tests/ma
 $ oc create -f https://raw.githubusercontent.com/openshift/verification-tests/master/testdata/logging/clusterlogforwarder/fluentd/insecure/deployment.yaml 
 $ oc expose deployment/fluentdserver
 
-
 $ oc new-project fluentd-aosqe-2
 $ oc create -f https://raw.githubusercontent.com/openshift/verification-tests/master/testdata/logging/clusterlogforwarder/fluentd/insecure/configmap.yaml 
 $ oc create -f https://raw.githubusercontent.com/openshift/verification-tests/master/testdata/logging/clusterlogforwarder/fluentd/insecure/deployment.yaml 
 $ oc expose deployment/fluentdserver
+~~~
 
 **4.Create a ClusterLogForwarder**
+~~~
 $ cat << EOF | oc apply -f -
 apiVersion: "logging.openshift.io/v1"
 kind: ClusterLogForwarder
