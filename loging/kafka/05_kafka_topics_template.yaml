@@ -1,0 +1,24 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: amq-consumer
+  annotations:
+    description: "Deploy AMQ "
+    tags: "amq-aosqe"
+objects:
+- apiVersion: kafka.strimzi.io/v1beta2
+  kind: KafkaTopic
+  metadata:
+    name: ${KAFKA_TOPIC}
+    labels:
+      strimzi.io/cluster: my-cluster
+  spec:
+    partitions: 1
+    replicas: 1
+    config:
+      retention.ms: 300000
+      segment.bytes: 1073741824
+parameters:
+  - name: KAFKA_TOPIC
+    value: "topic-logging-app"
+
