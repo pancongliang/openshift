@@ -105,7 +105,6 @@ sh-4.4# du -sh *
 ~~~
 
 7. After the buffer status is full, the log is not forwarded
-# fluentd 1/2
 ~~~
 /fluentd/log $ date
 Tue Jul 18 10:39:46 UTC 2023
