@@ -39,14 +39,14 @@ spec:
         authentication: 
           type: tls
     storage:
-      class: ocs-storagecluster-ceph-rbd
-      size: 4Gi
+      class: nfs-client
+      size: 40Gi
       type: persistent-claim
   zookeeper:
     replicas: 1
     storage:
-      class: ocs-storagecluster-ceph-rbd
-      size: 4Gi
+      class: nfs-client
+      size: 40Gi
       type: persistent-claim
   entityOperator:
     topicOperator:
