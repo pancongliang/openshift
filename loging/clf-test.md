@@ -1,4 +1,7 @@
+# When there are multiple log-aggregators, simulate the failure of 1 log-aggregator to see if the vector can continue to forward logs
 env: openshift 4.12 openshift logging5.7
+
+
 1.Kafka can receive logs normally
 ~~~
 $ oc get clusterlogforwarders instance -o yaml
