@@ -16,7 +16,7 @@ objects:
     partitions: 1
     replicas: 1
     config:
-      segment.bytes: 107374182400
+      segment.bytes: 10737418240
       retention.ms: 604800000
       retention.bytes: 107374182400
 parameters:
