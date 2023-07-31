@@ -125,16 +125,16 @@ sh-4.4$ bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files /var/lib/kafk
 ~~~
 $ oc delete po collector-2wmrv collector-h8qcr collector-hf72n collector-mkbtz collector-p658v collector-vjhp5
 
+$ oc logs stdout-app-688fd45fc4-mdd8k -n copan-test | grep '123456789' |wc -l 
+2200
+$ oc logs hello-world-f6568fcf7-mzx7n -n copan-test | grep 'hello world' |wc -l   
+2200
+
 $ oc rsh -n kafka-1 my-cluster-kafka-0
 sh-4.4$ bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files /var/lib/kafka/data/kafka-log0/topic-logging-app-0/00000000000000000000.log --deep-iteration --print-data-log |grep '123456789' |wc -l
 2200
 sh-4.4$  bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files /var/lib/kafka/data/kafka-log0/topic-logging-app-0/00000000000000000000.log --deep-iteration --print-data-log |grep 'hello world' |wc -l
 1200
-
-$ oc logs stdout-app-688fd45fc4-mdd8k -n copan-test | grep '123456789' |wc -l 
-2200
-$ oc logs hello-world-f6568fcf7-mzx7n -n copan-test | grep 'hello world' |wc -l   
-2200
 ~~~
 
 5.Recover the elasticsearch pod, wait for 15 minutes and still not forward the logs.
