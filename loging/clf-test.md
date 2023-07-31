@@ -188,7 +188,7 @@ sh-4.4$ bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files /var/lib/kafk
 3200
 ~~~
 
-7.Set the elasticsearch pod copy to 0, test the application log generated during the failure of one log-aggregator, and check whether other healthy log-aggregators can accept the log.
+7.Set the elasticsearch pod copy to 0, test the application log generated during the failure of one log-aggregator, and check whether other healthy log-aggregators can receive the log.
 ~~~
 $ oc scale --replicas 0 -n openshift-operators-redhat deployments/elasticsearch-operator
 $ oc scale --replicas 0 -n openshift-logging deployments/elasticsearch-cdm-8qonknn5-1
