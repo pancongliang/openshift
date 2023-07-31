@@ -16,9 +16,9 @@ objects:
     partitions: 1
     replicas: 1
     config:
-      segment.bytes: -1
+      segment.bytes: 107374182400
       retention.ms: 604800000
-      retention.bytes: -1
+      retention.bytes: 107374182400
 parameters:
   - name: KAFKA_TOPIC
     value: "topic-logging-app"
