@@ -10,7 +10,6 @@ master02.ocp4.example.com   | master | 10.74.254.155
 master03.ocp4.example.com   | master | 10.74.253.133
 worker01.ocp4.example.com   | worker | 10.74.251.58
 worker02.ocp4.example.com   | worker | 10.74.253.49
-worker03.ocp4.example.com   | worker/rhel | 10.74.251.9
 bootstrap.ocp4.example.com  | bootstrap | 10.74.255.118
 
 ### 1.Create the user-provisioned infrastructure (bastion) 
@@ -25,7 +24,7 @@ $ subscription-manager list --available |more
 $ subscription-manager attach --pool=8a85f9a07db4828b017dc5184e5f0863
 ~~~
 
-**1.2 Install the necessary software:**
+**1.2 Install rpm:**
 ~~~
 $ yum install -y wget net-tools podman bind-utils bind  haproxy git bash-completion vim jq nfs-utils httpd httpd-tools  skopeo httpd-manual
 $ systemctl disable firewalld
@@ -46,18 +45,13 @@ $ cat > /etc/httpd/conf.d/base.conf <<EOF
 EOF
 
 $ systemctl restart httpd
-
-- 测试 httpd 功能:
-$ mkdir -p /var/www/html/materials
-$ touch /var/www/html/materials/testfile
-$ wget http://10.74.251.171:8080/testfile
 ~~~
 
 **1.4 Setup DNS server:**
 
 a. Modify named.conf:
 ~~~
-$ vim /etc/named.conf
+cat << 'EOF' > /etc/named.conf
 options {
         listen-on port 53 { any; };
         listen-on-v6 port 53 { ::1; };
@@ -124,11 +118,12 @@ zone "." IN {
 
 include "/etc/named.rfc1912.zones";
 //include "/etc/named.root.key";
+EOF
 ~~~
 
 b. Add DNS A/AAAA record:
 ~~~
-$ vim /var/named/example.com.zone
+cat << 'EOF' > /var/named/example.com.zone
 $TTL 1W
 @       IN      SOA     ns1.example.com.        root (
                         201907070      ; serial
@@ -159,19 +154,18 @@ master03.ocp4.example.com.             IN      A       10.74.253.133
 ; Create entries for the worker hosts.
 worker01.ocp4.example.com.             IN      A       10.74.251.58
 worker02.ocp4.example.com.             IN      A       10.74.249.234
-worker03.ocp4.example.com.             IN      A       10.74.251.9
 ;
 ; Create an entry for the bootstrap host.
 bootstrap.ocp4.example.com.            IN      A       10.74.255.118
 ;
 ; Create entries for the mirror registry hosts.
 docker.registry.example.com.           IN      A       10.74.251.171
-mirror.registry.example.com.           IN      A       10.74.251.171
+EOF
 ~~~
 
 c. Add DNS PTR record:
 ~~~
-$ vim /var/named/74.10.zone
+cat << 'EOF' > /var/named/74.10.zone
 $TTL 1W
 @       IN      SOA     ns1.example.com.        root (
                         2019070700      ; serial
@@ -196,10 +190,10 @@ $TTL 1W
 ; Create entries for the worker hosts.
 58.251             IN      PTR     worker01.ocp4.example.com.
 234.249            IN      PTR     worker02.ocp4.example.com.
-9.251              IN      PTR     worker03.ocp4.example.com.
 ;
 ; Create an entry for the bootstrap host.
 118.255            IN      PTR     bootstrap.ocp4.example.com.
+EOF
 ~~~
 
 d. Start/Test DNS:
@@ -207,36 +201,15 @@ d. Start/Test DNS:
 $ chown named. /var/named/*.zone
 $ systemctl enable named --now
 
-- 测试解析:
-$ vim /etc/resolv.conf  
-nameserver 10.74.251.171
-
-$ vim /etc/sysconfig/network-scripts/ifcfg-ens3 
-DNS1=10.74.251.171
-
-$ nslookup bootstrap.ocp4.example.com
-$ nslookup master01.ocp4.example.com
-$ nslookup master02.ocp4.example.com
-$ nslookup master03.ocp4.example.com
-$ nslookup worker01.ocp4.example.com
-$ nslookup worker02.ocp4.example.com
-$ nslookup api.ocp4.example.com
-$ nslookup api-int.ocp4.example.com
-$ nslookup 10.74.251.171
-$ nslookup 10.74.251.61
-$ nslookup 10.74.254.155
-$ nslookup 10.74.253.133
-$ nslookup 10.74.251.58
-$ nslookup 10.74.253.49
-$ nslookup 10.74.255.118
+echo 'nameserver 10.74.251.171' > /etc/resolv.conf
+echo 'DNS1 10.74.251.171' >> /etc/sysconfig/network-scripts/ifcfg-ens3
 ~~~
 
 **1.5 Setup haproxy（load balancer）:**
 
 a. Modify haproxy.cfg
 ~~~
-$ cat /dev/null > /etc/haproxy/haproxy.cfg 
-$ vim /etc/haproxy/haproxy.cfg 
+cat << EOF > /etc/haproxy/haproxy.cfg 
 global
   log         127.0.0.1 local2
   pidfile     /var/run/haproxy.pid
@@ -294,7 +267,6 @@ listen default-ingress-router-80
   balance source
   server     worker01.ocp4.example.com 10.74.251.58:80 check inter 1s
   server     worker02.ocp4.example.com 10.74.249.234:80 check inter 1s
-  server     worker03.ocp4.example.com 10.74.251.9:80 check inter 1s
 
 listen default-ingress-router-443
   bind 10.74.251.171:443
@@ -302,7 +274,7 @@ listen default-ingress-router-443
   balance source
   server     worker01.ocp4.example.com 10.74.251.58:443 check inter 1s
   server     worker02.ocp4.example.com 10.74.249.234:443 check inter 1s
-  server     worker03.ocp4.example.com 10.74.251.9:443 check inter 1s
+EOF
 ~~~
 
 b. Start haproxy:
@@ -310,9 +282,7 @@ b. Start haproxy:
 $ systemctl enable haproxy --now
 ~~~
 
-**1.6 Install oc  CLI/openshift install tools:**
-
-- [Download oc CLI/openshift install tools](https://access.redhat.com/downloads/content/290/ver=4.10/rhel---8/4.10.13/x86_64/product-software)
+**1.6 Install oc-install-tool:**
 ~~~
 - openshift-install:
 $ curl https://access.redhat.com/downloads/content/290/ver=4.10/rhel---8/4.10.13/x86_64/product-software/openshift-install-linux-4.10.13.tar.gz
@@ -336,11 +306,11 @@ $ sudo mv ./oc-mirror /usr/local/bin/
 - butane tools:
 $ curl https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane --output butane
 $ chmod a+x butane && mv butane /usr/local/bin/
+
+ls /usr/local/bin/
 ~~~
 
 **1.7 Self-signed cert and create offline mirror registry:**
-
-- [View self-signed certificate](https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw)
 
 a. Create registry directory:
 ~~~
@@ -349,25 +319,27 @@ $ mkdir -p /opt/registry/{auth,certs,data}
 
 b. Set the required environment variables:
 ~~~
-$ CA_CN="Local Red Hat Signer"
-$ DOMAIN='docker.registry.example.com'
-$ OPENSSL_CNF=/etc/pki/tls/openssl.cnf
+CA_CN="Local Red Hat Signer"
+OPENSSL_CNF=/etc/pki/tls/openssl.cnf
+REGISTRY_DOMAIN='docker.registry.example.com'
+REGISTRY_ID=admin
+REGISTRY_PW=redhat
 ~~~
 
 c. Generate root ca.key:
 ~~~
 $ mkdir -p /etc/crts/ && cd /etc/crts/
-$ openssl genrsa -out /etc/crts/${DOMAIN}.ca.key 4096
+$ openssl genrsa -out /etc/crts/${REGISTRY_DOMAIN}.ca.key 4096
 ~~~
 
 d. Generate root ca.crt:
 ~~~
 $ openssl req -x509 \
   -new -nodes \
-  -key /etc/crts/${DOMAIN}.ca.key \
+  -key /etc/crts/${REGISTRY_DOMAIN}.ca.key \
   -sha256 \
   -days 36500 \
-  -out /etc/crts/${DOMAIN}.ca.crt \
+  -out /etc/crts/${REGISTRY_DOMAIN}.ca.crt \
   -subj /CN="${CA_CN}" \
   -reqexts SAN \
   -extensions SAN \
@@ -377,18 +349,18 @@ $ openssl req -x509 \
 
 e. Generate domain key:
 ~~~
-$ openssl genrsa -out ${DOMAIN}.key 2048
+$ openssl genrsa -out ${REGISTRY_DOMAIN}.key 2048
 ~~~
 
 f. Generate domain cert csr:
 ~~~
 $ openssl req -new -sha256 \
-    -key /etc/crts/${DOMAIN}.key \
-    -subj "/O=Local Red Hat CodeReady Workspaces/CN=${DOMAIN}" \
+    -key /etc/crts/${REGISTRY_DOMAIN}.key \
+    -subj "/O=Local Red Hat CodeReady Workspaces/CN=${REGISTRY_DOMAIN}" \
     -reqexts SAN \
     -config <(cat ${OPENSSL_CNF} \
-        <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
-    -out /etc/crts/${DOMAIN}.csr
+        <(printf "\n[SAN]\nsubjectAltName=DNS:${REGISTRY_DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
+    -out /etc/crts/${REGISTRY_DOMAIN}.csr
 ~~~
 
 g. Generate domain crt:
@@ -396,58 +368,51 @@ g. Generate domain crt:
 $ openssl x509 \
     -req \
     -sha256 \
-    -extfile <(printf "subjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
+    -extfile <(printf "subjectAltName=DNS:${REGISTRY_DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
     -days 365 \
-    -in /etc/crts/${DOMAIN}.csr \
-    -CA /etc/crts/${DOMAIN}.ca.crt \
-    -CAkey /etc/crts/${DOMAIN}.ca.key \
-    -CAcreateserial -out /etc/crts/${DOMAIN}.crt
+    -in /etc/crts/${REGISTRY_DOMAIN}.csr \
+    -CA /etc/crts/${REGISTRY_DOMAIN}.ca.crt \
+    -CAkey /etc/crts/${REGISTRY_DOMAIN}.ca.key \
+    -CAcreateserial -out /etc/crts/${REGISTRY_DOMAIN}.crt
     
-$ openssl x509 -in /etc/crts/${DOMAIN}.ca.crt -text
+$ openssl x509 -in /etc/crts/${REGISTRY_DOMAIN}.ca.crt -text
 ~~~
 
 h. Copy and trust the cert:
 ~~~
-$ cp /etc/crts/${DOMAIN}.ca.crt ${DOMAIN}.crt /etc/pki/ca-trust/source/anchors/
+$ cp /etc/crts/${REGISTRY_DOMAIN}.ca.crt ${REGISTRY_DOMAIN}.crt /etc/pki/ca-trust/source/anchors/
 $ update-ca-trust extract
-$ cp /etc/crts/${DOMAIN}.key ${DOMAIN}.crt /opt/registry/certs/
+$ cp /etc/crts/${REGISTRY_DOMAIN}.key ${REGISTRY_DOMAIN}.crt /opt/registry/certs/
 $ update-ca-trust
 ~~~
 
 i. Create username and password for offline mirror repository:
 ~~~
-$ htpasswd -bBc /opt/registry/auth/htpasswd admin redhat
+$ htpasswd -bBc /opt/registry/auth/htpasswd $REGISTRY_ID $REGISTRY_PW
 ~~~
 
 j. Running docker registry:
 ~~~
-$ podman run \
+podman run \
     --name mirror-registry \
     -p 5000:5000 \
     -e "REGISTRY_AUTH=htpasswd" \
     -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
     -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
-    -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/${DOMAIN}.crt \
-    -e REGISTRY_HTTP_TLS_KEY=/certs/${DOMAIN}.key \
+    -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/${REGISTRY_DOMAIN}.crt \
+    -e REGISTRY_HTTP_TLS_KEY=/certs/${REGISTRY_DOMAIN}.key \
     -e REGISTRY_STORAGE_DELETE_ENABLED=true \
     -v /opt/registry/data:/var/lib/registry:z \
     -v /opt/registry/auth:/auth:z \
     -v /opt/registry/certs:/certs:z \
     -d docker.io/library/registry:2
 
-$ podman ps
-  CONTAINER ID  IMAGE                         COMMAND               CREATED         STATUS             PORTS                   NAMES
-  8a80baf5ee9e  docker.io/library/registry:2  /entrypoint.sh /e...  33 seconds ago  Up 33 seconds ago  0.0.0.0:5000->5000/tcp  mirror-registry
- 
-$ curl -u admin:redhat -k https://${DOMAIN}:5000/v2/_catalog
-  {"repositories":[]}
-
-$ podman login ${DOMAIN}:5000
+podman login -u $REGISTRY_ID -p $REGISTRY_PW ${REGISTRY_DOMAIN}:5000
 ~~~
 
 k.Automatically start docker registry:
 ~~~
-$ cat << EOF > /etc/systemd/system/mirror-registry.service
+cat << EOF > /etc/systemd/system/mirror-registry.service
 [Unit]
 Description= registry service
 After=network.target
@@ -460,28 +425,23 @@ ExecStop=/usr/bin/podman stop -t 10 mirror-registry
 WantedBy=multi-user.target
 EOF
 
-$ systemctl enable mirror-registry.service --now
+systemctl enable mirror-registry.service --now
+
+curl -u $REGISTRY_ID:$REGISTRY_PW -k https://${REGISTRY_DOMAIN}:5000/v2/_catalog
 ~~~
 
 **1.8 Download ocp image to docker registry:**
 
-a. Download pull-secret:
-
-- [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
 b. Add repository authentication to pull-secret:
 ~~~
-$ podman login --authfile /root/pull-secret docker.registry.example.com:5000   
-$ podman login --authfile /root/pull-secret mirror.registry.example.com:8443 
-  Username: admin
-  Password: redhat
-  Login Succeeded!
+podman login -u $REGISTRY_ID -p --authfile /root/pull-secret {REGISTRY_DOMAIN}:5000   
 ~~~
 
 c. Set the required environment variables:
 ~~~
 $ export OCP_RELEASE=4.10.20
-$ export LOCAL_REGISTRY='docker.registry.example.com:5000'
+$ export REGISTRY_DOMAIN='docker.registry.example.com:5000'
 $ export LOCAL_REPOSITORY='ocp4/openshift4'
 $ export PRODUCT_REPO='openshift-release-dev' 
 $ export LOCAL_SECRET_JSON='/root/pull-secret'
@@ -497,37 +457,11 @@ $ oc adm -a ${LOCAL_SECRET_JSON} release mirror \
   --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
   --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
   --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} 
-...
-- mirrors:                                      #<-- record image content source
-  - docker.registry.example.com:5000/ocp4/openshift4
-  source: quay.io/openshift-release-dev/ocp-release
-- mirrors:
-  - docker.registry.example.com:5000/ocp4/openshift4
-  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
-~~~
-
-Optional: Mirror repositories in restricted networks.
-~~~
-- Use “dry-run” parameter to get only “image Content Sources”, but not download images:
-$ oc adm -a ${LOCAL_SECRET_JSON} release mirror \
-     --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
-     --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
-     --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} --dry-run
-
-- Download image to directory:
-$ oc adm -a /root/pull-secret release mirror --from=quay.io/openshift-release-dev/ocp-release:4.10.14-x86_64 --to-dir=/root/mirror
-
-- Move the directory to the registry host on the restricted network, and then sync to the restricted network registry:
-$ oc image mirror -a pull-secret --dir=/root/mirror file://openshift/release:4.10.14* docker.registry.example.com:5000/ocp4/openshift4
 ~~~
 
 ### 2. Install OpenShift Container Platform 4
 
 **2.1 Create the SSH Key for logging in to the node:**
-~~~
-$ ssh-keygen
-$ cat .ssh/id_rsa.pub
-~~~
 
 **2.2 Create install-config.yaml:**
 ~~~
@@ -590,8 +524,6 @@ $ sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' /var/www/html/m
 **2.4 Create and modify ignition configuration files:**
 ~~~
 $ openshift-install create ignition-configs --dir /var/www/html/materials/pre
-$ chmod a+r pre/*.ign
-
 $ cp /var/www/html/materials/pre/bootstrap.ign /var/www/html/materials/pre/bootstrapbk.ign
 $ for i in {01..03}; do cp /var/www/html/materials/pre/master.ign /var/www/html/materials/pre/master$i.ign; done
 $ for i in {01..02}; do cp /var/www/html/materials/pre/worker.ign /var/www/html/materials/pre/worker$i.ign; done
@@ -607,39 +539,76 @@ $ chmod a+r /var/www/html/materials/pre/*.ign
 b.Set bootstrap/master/worker server ip
 ~~~
 $ cat > /var/www/html/materials/bootstrap.sh <<EOF 
-nmcli con mod 'Wired connection 1' ipv4.addresses 10.72.36.159/23 ipv4.gateway 10.74.255.254 ipv4.dns 10.74.251.171 ipv4.method manual connection.autoconnect yes
+nmcli con mod 'Wired connection 1' ipv4.addresses 10.72.36.159/21 ipv4.gateway 10.74.255.254 ipv4.dns 10.74.251.171 ipv4.method manual connection.autoconnect yes
 sudo systemctl restart NetworkManager
 sudo sleep 10
 EOF
 
 $ chmod 777 /var/www/html/materials/bootstrap-set-ip-1.sh
-
-$ scp /var/www/html/materials/bootstrap-set-ip-1.sh core@bootstrap.ocp4.example.com
-$ ssh core@bootstrap.ocp4.example.com sudo sh bootstrap-set-ip-1.sh
 ~~~
 
-# master01-set-ip-1.sh.sh
+# master01-set-ip-1.sh
 ~~~
-$ cat > /var/www/html/materials/master01-set-ip-1.sh.sh <<EOF 
-nmcli con mod 'Wired connection 1' ipv4.addresses 10.74.251.61/23 ipv4.gateway 10.74.255.254 ipv4.dns 10.74.251.171 ipv4.method manual connection.autoconnect yes
+$ cat > /var/www/html/materials/master01-set-ip-1.sh <<EOF 
+nmcli con mod 'Wired connection 1' ipv4.addresses 10.74.251.61/21 ipv4.gateway 10.74.255.254 ipv4.dns 10.74.251.171 ipv4.method manual connection.autoconnect yes
 sudo systemctl restart NetworkManager
-sudo sleep 10
 EOF
 
 $ chmod 777 /var/www/html/materials/master01-set-ip-1.sh
-
-$ scp /var/www/html/materials/master01-set-ip-1 core@bootstrap.ocp4.example.com
-$ ssh core@bootstrap.ocp4.example.com sudo sh master01-set-ip-1
-
 ~~~
 
 
-sudo coreos-installer install --ignition-url=http://10.72.36.200:8080/pre/bootstrap.ign --insecure-ignition /dev/vda --copy-network
+# master02-set-ip-1.sh
+~~~
+$ cat > /var/www/html/materials/master02-set-ip-1.sh <<EOF 
+nmcli con mod 'Wired connection 1' ipv4.addresses 10.74.254.155/21 ipv4.gateway 10.74.255.254 ipv4.dns 10.74.251.171 ipv4.method manual connection.autoconnect yes
+sudo systemctl restart NetworkManager
+EOF
+
+$ chmod 777 /var/www/html/materials/master02-set-ip-1.sh
+~~~
+
+# master03-set-ip-1.sh
+~~~
+$ cat > /var/www/html/materials/master03-set-ip-1.sh <<EOF 
+nmcli con mod 'Wired connection 1' ipv4.addresses 10.74.253.133/21 ipv4.gateway 10.74.255.254 ipv4.dns 10.74.251.171 ipv4.method manual connection.autoconnect yes
+sudo systemctl restart NetworkManager
+EOF
+
+$ chmod 777 /var/www/html/materials/master03-set-ip-1.sh
+~~~
+
+# worker01-set-ip-1.sh
+~~~
+$ cat > /var/www/html/materials/master02-set-ip-1.sh <<EOF 
+nmcli con mod 'Wired connection 1' ipv4.addresses 10.74.251.58/21 ipv4.gateway 10.74.255.254 ipv4.dns 10.74.251.171 ipv4.method manual connection.autoconnect yes
+sudo systemctl restart NetworkManager
+EOF
+
+$ chmod 777 /var/www/html/materials/worker01-set-ip-1.sh
+~~~
+
+
+# worker02-set-ip-1.sh
+~~~
+$ cat > /var/www/html/materials/master02-set-ip-1.sh <<EOF 
+nmcli con mod 'Wired connection 1' ipv4.addresses 10.74.253.49/21 ipv4.gateway 10.74.255.254 ipv4.dns 10.74.251.171 ipv4.method manual connection.autoconnect yes
+sudo systemctl restart NetworkManager
+EOF
+
+$ chmod 777 /var/www/html/materials/worker01-set-ip-1.sh
+~~~
+
 
 - node(bootstrap/master/worker)
 ~~~
 $ sudo -i
-$ curl http://10.72.36.200:8080/bootstrap.sh | bash
+$ curl http://10.74.251.171:8080/bootstrap-set-ip-1.sh | bash
+$ curl http://10.74.251.171:8080/master01-set-ip-1.sh | bash
+$ curl http://10.74.251.171:8080/master02-set-ip-1.sh | bash
+$ curl http://10.74.251.171:8080/master03-set-ip-1.sh | bash
+$ curl http://10.74.251.171:8080/worker01-set-ip-1.sh | bash
+$ curl http://10.74.251.171:8080/worker02-set-ip-1.sh | bash
 ~~~
 
 - 单网卡:
@@ -705,9 +674,6 @@ nameserver=10.74.251.171 nameserver=10.74.251.204
 ~~~
 - kubeconfig login:
 $ echo export KUBECONFIG=/var/www/html/materials/pre/auth/kubeconfig >> /root/.bash_profile
-
-- Save the file either as $XDG_RUNTIME_DIR/containers/auth.json.
-$ echo PROMPT_COMMAND='podman login -u admin -p redhat docker.registry.example.com:5000; cat /root/pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json'
 $ echo export LANG=“en_US.UTF-8” >> ~/.bash_profile
 $ source ~/.bash_profile
 
@@ -719,31 +685,15 @@ system:admin
 $ source ~/.bash_profile
 ~~~
 
-**2.7 approval csr，Allow adding worker nodes:**
-~~~
-$ oc get csr
-$ oc get csr -o name | xargs oc adm certificate approve
-~~~
-
-**2.8 Check OCP Cluster:**
-~~~
-$ oc get node
-$ oc get mcp
-$ oc get co | grep -v '.True.*False.*False'
-~~~
-
-**2.9 Modify image-registry storage:**
 
 a.Setup NFS:
 ~~~
 $ mkdir /nfs
 $ mkdir /nfs/image-registry
-$ mkdir /nfs/pv001 pv002 pv003 pv004 pv005 pv006 pv007 pv008 pv009
 $ useradd nfsnobody
 $ chown -R nfsnobody.nfsnobody /nfs
 $ chmod -R 777 /nfs
-$ vim /etc/exports
-/nfs    **(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)
+echo '/nfs    **(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)' >> /etc/exports
 $ systemctl enable nfs-server --now
 ~~~
 
