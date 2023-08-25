@@ -24,7 +24,7 @@ ls -ltr /usr/local/bin/
 
 # Disable firewalld
 systemctl disable firewalld
-systemctl status firewalld
+systemctl status firewalld |grep Active -B1
 
 # Disable SELinux
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
