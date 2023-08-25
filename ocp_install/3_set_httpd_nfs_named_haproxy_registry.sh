@@ -8,7 +8,7 @@ sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf
 cat << EOF > /etc/httpd/conf.d/base.conf
 <VirtualHost *:8080>
    ServerName bastion
-   DocumentRoot /var/www/html/materials/
+   DocumentRoot $HTTPD_PATH
 </VirtualHost>
 EOF
 
