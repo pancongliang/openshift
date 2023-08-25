@@ -69,6 +69,8 @@ export IP_PART=$(echo "$BASTION_IP" | cut -d. -f2-3)
 export REVERSED_IP_PART=$(echo "$IP_PART" | awk -F'.' '{print $2"."$1}')
 export REVERSE_ZONE="$REVERSED_IP_PART.in-addr.arpa"
 export REVERSE_ZONE_FILE_NAME="$REVERSED_IP_PART.zone"
+export FORWARD_ZONE="$BASE_DOMAIN"
+export FORWARD_ZONE_FILE_NAME="$BASE_DOMAIN.zone"
 
 # Function to generate duplicate IP address
 export DNS_IP="$BASTION_IP"
