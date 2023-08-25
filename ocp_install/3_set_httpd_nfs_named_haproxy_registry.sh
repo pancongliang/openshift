@@ -1,6 +1,11 @@
 3_Set_httpd_named_haproxy_registry.sh
 #!/bin/bash
 
+### rerun variable ### 
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/1_specify_hostname_and_ip_variables.sh
+source 1_specify_hostname_and_ip_variables.sh
+rm -rf 1_specify_hostname_and_ip_variables.sh.1
+
 ### Set httpd configuration ### 
 sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf
 
