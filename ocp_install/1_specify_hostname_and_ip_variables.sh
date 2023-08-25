@@ -44,6 +44,8 @@ export DNS_FORWARDER_IP="10.75.5.25"
 export NODE_DISK_PARTITION="sda"
 export NODE_NETWORK_INTERFACE="ens3"
 
+# Httpd Path
+export HTTPD_PATH="/var/www/html/materials/"
 ###No need to change###
 
 # Function to generate reversed DNS
