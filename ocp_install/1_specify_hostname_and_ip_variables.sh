@@ -42,7 +42,7 @@ export DNS_FORWARDER_IP="10.75.5.25"
 
 # Node disk/interface
 export NODE_DISK_PARTITION="sda"
-export NODE_NETWORK_INTERFACE="ens3"
+export NODE_NETWORK_WIRED_CONNECTION="'Wired connection 1'"    # nmcli con show
 
 # Httpd Path
 export HTTPD_PATH="/var/www/html/materials/"
