@@ -24,6 +24,7 @@ ls -ltr /usr/local/bin/
 
 # Disable firewalld
 systemctl disable firewalld
+systemctl stop firewalld
 systemctl status firewalld |grep Active -B1
 
 # Disable SELinux
