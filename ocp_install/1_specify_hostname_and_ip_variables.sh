@@ -52,7 +52,7 @@ generate_reverse_dns() {
   echo "$reversed_dns"
 }
 
-export # Generate reversed DNS for each IP and store as variables
+# Generate reversed DNS for each IP and store as variables
 export BASTION_REVERSE_DNS=$(generate_reverse_dns "$BASTION_IP")
 export REGISTRY_REVERSE_DNS=$(generate_reverse_dns "$REGISTRY_IP")
 export MASTER01_REVERSE_DNS=$(generate_reverse_dns "$MASTER01_IP")
@@ -67,8 +67,8 @@ export API_INT_REVERSE_DNS=$(generate_reverse_dns "$API_INT_IP")
 # Function to generate reversed_ip_par/zone name
 export IP_PART=$(echo "$BASTION_IP" | cut -d. -f2-3)
 export REVERSED_IP_PART=$(echo "$IP_PART" | awk -F'.' '{print $2"."$1}')
-export REVERSE_ZONE="${REVERSED_IP_PART}.in-addr.arpa"
-export REVERSE_ZONE_FILE_NAME="${REVERSED_IP_PART}.zone"
+export REVERSE_ZONE="$REVERSED_IP_PART.in-addr.arpa"
+export REVERSE_ZONE_FILE_NAME="$REVERSED_IP_PART.zone"
 
 # Function to generate duplicate IP address
 export DNS_IP="$BASTION_IP"
