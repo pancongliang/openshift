@@ -7,7 +7,6 @@ export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"              # OVNKubernetes or OpenShiftSDN
 export ID_RSA_PUB="/root/.ssh/id_rsa.pub"
-export OCP_INSTALL_DIR="/var/www/html/materials/pre"
 
 # OpenShift API/APPS Domain variable
 export APPS_HOSTNAME="*.apps.ocp4.example.com"
@@ -44,10 +43,6 @@ export DNS_FORWARDER_IP="10.75.5.25"
 export NODE_DISK_PARTITION="sda"
 export NODE_NETWORK_WIRED_CONNECTION="'Wired connection 1'"    # nmcli con show
 
-# Httpd Path
-export HTTPD_PATH="/var/www/html/materials/"
-
-
 ###No need to change###
 
 # Function to generate reversed DNS
@@ -82,4 +77,6 @@ export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
 
-source 1_specify_hostname_and_ip_variables.sh
+# Httpd and ocp install dir(If the variable is changed, the ignition file may not be downloaded)
+export HTTPD_PATH="/var/www/html/materials/"             
+export OCP_INSTALL_DIR="/var/www/html/materials/pre"
