@@ -32,7 +32,7 @@ export BOOTSTRAP_IP="10.74.255.118"
 export REGISTRY_HOSTNAME="docker.registry.example.com"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="redhat"
-export LOCAL_SECRET_JSON="/root/pull-secret"
+export LOCAL_SECRET_JSON="/root/pull-secret"   # download https://console.redhat.com/openshift/install/metal/installer-provisioned
 
 # Network variable
 export GATEWAY_IP="21"
