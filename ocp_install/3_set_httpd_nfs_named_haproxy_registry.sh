@@ -170,7 +170,7 @@ EOF
 
 # Restart DNS
 chown named. /var/named/*.zone
-echo "nameserver $BASTION_IP" > /etc/resolv.conf
+echo "nameserver $BASTION_IP" >> /etc/resolv.conf
 systemctl enable named --now
 
 ### Set haproxy_cfg ###
@@ -335,6 +335,7 @@ systemctl enable mirror-registry.service --now
 # check service
 cat /etc/httpd/conf/httpd.conf | grep Listen
 cat /etc/exports
+cat /etc/resolv.conf
 systemctl status httpd |grep Active -B2
 systemctl status nfs-server |grep Active -B2
 systemctl status named |grep Active -B2
