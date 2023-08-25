@@ -5,7 +5,7 @@ export REGISTRY_CA="$(cat /etc/crts/${REGISTRY_HOSTNAME}.bk.ca.crt)"
 export REGISTRY_ID_PW=$(echo -n "$REGISTRY_ID:$REGISTRY_PW" | base64)
 export ID_RSA_PUB=$(cat $ID_RSA_PUB)
 
-cat << EOF > /root/test/install-config.yaml 
+cat << EOF > $OCP_INSTALL_YAML/install-config.yaml 
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
 compute: 
@@ -43,7 +43,7 @@ EOF
 
 # Create kubernetes manifests:**
 mkdir $INSTALL_DIR
-cp install-config.yaml $INSTALL_DIR
+cp $OCP_INSTALL_YAML/install-config.yaml $INSTALL_DIR
 openshift-install create manifests --dir $INSTALL_DIR/
 sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' $INSTALL_DIR/manifests/cluster-scheduler-02-config.yml
 
