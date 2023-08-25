@@ -1,11 +1,6 @@
 3_Set_httpd_named_haproxy_registry.sh
 #!/bin/bash
 
-### rerun variable ### 
-wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/1_specify_hostname_and_ip_variables.sh
-source 1_specify_hostname_and_ip_variables.sh
-rm -rf 1_specify_hostname_and_ip_variables.sh.1
-
 ### Set httpd configuration ### 
 sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf
 
@@ -336,6 +331,7 @@ systemctl enable mirror-registry.service --now
 cat /etc/httpd/conf/httpd.conf | grep Listen
 cat /etc/exports
 cat /etc/resolv.conf
+ls -ltr /var/named/{'$BASE_DOMAIN.zone','$REVERSED_IP_PART.zone'}
 systemctl status httpd |grep Active -B2
 systemctl status nfs-server |grep Active -B2
 systemctl status named |grep Active -B2
