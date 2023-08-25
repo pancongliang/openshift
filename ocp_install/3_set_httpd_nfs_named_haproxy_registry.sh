@@ -15,6 +15,16 @@ EOF
 # Enable and start httpd
 systemctl enable httpd --now
 
+### Set nfs ###
+mkdir /nfs
+mkdir /nfs/image-registry
+useradd nfsnobody
+chown -R nfsnobody.nfsnobody /nfs
+chmod -R 777 /nfs
+echo '/nfs    **(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)' >> /etc/exports
+
+systemctl enable nfs-server --now
+
 ###  Apply named.conf configuration ### 
 cat << EOF > /etc/named.conf
 options {
@@ -317,4 +327,12 @@ EOF
 
 systemctl enable mirror-registry.service --now
 
+# check service 
+systemctl status httpd 
+systemctl status nfs-server
+systemctl status named
+systemctl status haproxy
+systemctl status mirror-registry.service
+
+# authfile
 podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile /root/pull-secret {REGISTRY_HOSTNAM}:5000
