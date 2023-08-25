@@ -46,6 +46,8 @@ export NODE_NETWORK_INTERFACE="ens3"
 
 # Httpd Path
 export HTTPD_PATH="/var/www/html/materials/"
+
+
 ###No need to change###
 
 # Function to generate reversed DNS
