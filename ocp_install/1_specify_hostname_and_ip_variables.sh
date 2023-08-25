@@ -64,7 +64,7 @@ export API_INT_REVERSE_DNS=$(generate_reverse_dns "$API_INT_IP")
 
 # Function to generate reversed_ip_par/zone name
 export IP_PART=$(echo "$BASTION_IP" | cut -d. -f2-3)
-export REVERSED_IP_PART=$(echo "$ip_part" | awk -F'.' '{print $2"."$1}')
+export REVERSED_IP_PART=$(echo "$IP_PART" | awk -F'.' '{print $2"."$1}')
 export REVERSE_ZONE="${REVERSED_IP_PART}.in-addr.arpa"
 export REVERSE_ZONE_FILE_NAME="${REVERSED_IP_PART}.zone"
 
