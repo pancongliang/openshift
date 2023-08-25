@@ -40,6 +40,9 @@ export GATEWAY_IP="21"
 export NETMASK="10.74.255.254"
 export DNS_FORWARDER_IP="10.75.5.25"
 
+# Node disk/interface
+export NODE_DISK_PARTITION="sda"
+export NODE_NETWORK_INTERFACE="ens3"
 
 ###No need to change###
 
