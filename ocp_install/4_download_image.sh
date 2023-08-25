@@ -5,4 +5,6 @@ oc adm -a ${LOCAL_SECRET_JSON} release mirror \
   --to=${LREGISTRY_HOSTNAM}:5000/${LOCAL_REPOSITORY} \
   --to-release-image=${LREGISTRY_HOSTNAM}:5000/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} 
 
+sudo sleep 60
+
 curl -u $REGISTRY_ID:$REGISTRY_PW -k https://${REGISTRY_HOSTNAM}:5000/v2/_catalog
