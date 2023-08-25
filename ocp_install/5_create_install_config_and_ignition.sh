@@ -44,7 +44,7 @@ EOF
 # Create kubernetes manifests:**
 mkdir $INSTALL_DIR
 cp install-config.yaml $INSTALL_DIR
-openshift-install create manifests --dir $INSTALL_DIR
+openshift-install create manifests --dir $INSTALL_DIR/
 sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' $INSTALL_DIR/manifests/cluster-scheduler-02-config.yml
 
 # Create and modify ignition configuration files
