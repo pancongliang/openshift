@@ -332,11 +332,13 @@ EOF
 
 systemctl enable mirror-registry.service --now
 
-# check service 
-systemctl status httpd |grep Active -B1
-systemctl status nfs-server |grep Active -B1
-systemctl status named |grep Active -B1
-systemctl status haproxy |grep Active -B1
-systemctl status mirror-registry.service |grep Active -B1
+# check service
+cat /etc/httpd/conf/httpd.conf | grep Listen
+cat /etc/exports
+systemctl status httpd |grep Active -B2
+systemctl status nfs-server |grep Active -B2
+systemctl status named |grep Active -B2
+systemctl status haproxy |grep Active -B2
+systemctl status mirror-registry.service |grep Active -B2
 podman ps |grep mirror-registry
 podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile /root/pull-secret {REGISTRY_HOSTNAM}:5000
