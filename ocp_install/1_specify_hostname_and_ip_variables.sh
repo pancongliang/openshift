@@ -82,3 +82,4 @@ export APPS_IP="$BASTION_IP"
 # Httpd and ocp install dir(If the variable is changed, the ignition file may not be downloaded)
 export HTTPD_PATH="/var/www/html/materials/"             
 export OCP_INSTALL_DIR="/var/www/html/materials/pre"
+export OCP_INSTALL_YAML="/root/"
