@@ -28,6 +28,6 @@ systemctl stop firewalld
 systemctl status firewalld |grep Active -B2
 
 # Disable SELinux
-sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
 sudo setenforce 0
+sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
 sestatus
