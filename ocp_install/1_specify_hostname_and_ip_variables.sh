@@ -74,3 +74,5 @@ export REGISTRY_IP="$BASTION_IP"
 export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
+
+source 1_specify_hostname_and_ip_variables.sh
