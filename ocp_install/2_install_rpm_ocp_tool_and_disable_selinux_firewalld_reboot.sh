@@ -20,13 +20,15 @@ chmod +x oc-mirror && mv oc-mirror /usr/local/bin/
 curl https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane --output butane
 chmod a+x butane && mv butane /usr/local/bin/
 
-ls /usr/local/bin/
+ls -ltr /usr/local/bin/
 
 # Disable firewalld
 systemctl disable firewalld
+systemctl status firewalld
 
 # Disable SELinux
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
+cat /etc/selinux/config |grep 'SELINUX=disabled'
 
 # Reboot the system
 reboot
