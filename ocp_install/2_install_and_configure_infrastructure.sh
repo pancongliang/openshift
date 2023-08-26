@@ -175,7 +175,7 @@ cat << EOF >  /var/named/$REVERSE_ZONE
 ;
 ; The api identifies the IP of your load balancer.
 $API_REVERSE_DNS                IN      PTR     $API_HOSTNAME.
-$API_INT_REVERSE_DNS            IN      PTR     $API_INT_HOSTNAM
+$API_INT_REVERSE_DNS            IN      PTR     $API_INT_HOSTNAME.
 ;
 ; Create entries for the master hosts.
 $MASTER01_REVERSE_DNS           IN      PTR     $MASTER01_HOSTNAME.
