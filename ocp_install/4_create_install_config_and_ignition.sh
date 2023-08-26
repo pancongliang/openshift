@@ -42,20 +42,20 @@ imageContentSources:
 EOF
 
 # Create kubernetes manifests:**
-mkdir $INSTALL_DIR
-cp $OCP_INSTALL_YAML/install-config.yaml $INSTALL_DIR
-openshift-install create manifests --dir $INSTALL_DIR/
-sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' $INSTALL_DIR/manifests/cluster-scheduler-02-config.yml
+mkdir $OCP_INSTALL_DIR
+cp $OCP_INSTALL_YAML/install-config.yaml $OCP_INSTALL_DIR
+openshift-install create manifests --dir $OCP_INSTALL_DIR/
+sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' $OCP_INSTALL_DIR/manifests/cluster-scheduler-02-config.yml
 
 # Create and modify ignition configuration files
-openshift-install create ignition-configs --dir $INSTALL_DIR
-cp $INSTALL_DIR/bootstrap.ign $INSTALL_DIR/bootstrapbk.ign
-for i in {01..03}; do cp $INSTALL_DIR/master.ign $INSTALL_DIR/master$i.ign; done
-for i in {01..02}; do cp $INSTALL_DIR/worker.ign $INSTALL_DIR/worker$i.ign; done
-sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,bootstrap.ocp4.example.com"},"mode": 420}]}}/' $INSTALL_DIR/bootstrapbk.ign
-sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,master01.ocp4.example.com"},"mode": 420}]}}/' $INSTALL_DIR/master01.ign
-sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,master02.ocp4.example.com"},"mode": 420}]}}/' $INSTALL_DIR/master02.ign
-sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,master03.ocp4.example.com"},"mode": 420}]}}/' $INSTALL_DIR/master03.ign
-sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,worker01.ocp4.example.com"},"mode": 420}]}}/' $INSTALL_DIR/worker01.ign
-sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,worker02.ocp4.example.com"},"mode": 420}]}}/' $INSTALL_DIR/worker02.ign
-chmod a+r $INSTALL_DIR/*.ign
+openshift-install create ignition-configs --dir $OCP_INSTALL_DIR
+cp $OCP_INSTALL_DIR/bootstrap.ign $OCP_INSTALL_DIR/bootstrapbk.ign
+for i in {01..03}; do cp $OCP_INSTALL_DIR/master.ign $OCP_INSTALL_DIR/master$i.ign; done
+for i in {01..02}; do cp $OCP_INSTALL_DIR/worker.ign $OCP_INSTALL_DIR/worker$i.ign; done
+sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,bootstrap.ocp4.example.com"},"mode": 420}]}}/' $OCP_INSTALL_DIR/bootstrapbk.ign
+sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,master01.ocp4.example.com"},"mode": 420}]}}/' $OCP_INSTALL_DIR/master01.ign
+sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,master02.ocp4.example.com"},"mode": 420}]}}/' $OCP_INSTALL_DIR/master02.ign
+sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,master03.ocp4.example.com"},"mode": 420}]}}/' $OCP_INSTALL_DIR/master03.ign
+sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,worker01.ocp4.example.com"},"mode": 420}]}}/' $OCP_INSTALL_DIR/worker01.ign
+sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,worker02.ocp4.example.com"},"mode": 420}]}}/' $OCP_INSTALL_DIR/worker02.ign
+chmod a+r $OCP_INSTALL_DIR/*.ign
