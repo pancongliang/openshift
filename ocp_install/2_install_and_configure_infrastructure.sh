@@ -1,3 +1,4 @@
+
 # Install required packages
 yum install -y wget net-tools podman bind-utils bind haproxy git bash-completion vim jq nfs-utils httpd httpd-tools skopeo httpd-manual
 
@@ -21,7 +22,15 @@ chmod a+x butane && mv butane /usr/local/bin/
 systemctl disable firewalld
 systemctl stop firewalld
 
-# Disable SELinux
+# SELinux
+SELINUX=$(getenforce)
+echo $SELINUX
+
+if [ $SELINUX = 'Enforcing' ]; then
+  sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config
+  reboot
+fi
+
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
 setenforce 0
 
