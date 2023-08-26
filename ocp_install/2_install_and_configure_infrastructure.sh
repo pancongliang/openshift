@@ -370,4 +370,4 @@ systemctl status named |grep Active -B2
 systemctl status haproxy |grep Active -B2
 systemctl status mirror-registry.service |grep Active -B2
 podman ps |grep mirror-registry
-podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile /root/pull-secret {REGISTRY_HOSTNAME}:5000
+podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile /root/pull-secret ${REGISTRY_HOSTNAME}:5000
