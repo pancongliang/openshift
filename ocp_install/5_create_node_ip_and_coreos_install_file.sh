@@ -60,4 +60,3 @@ sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8
 EOF
 
 ls $OCP_INSTALL_DIR/ pwd
-ls $OCP_INSTALL_DIR/
