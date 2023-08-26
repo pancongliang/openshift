@@ -22,9 +22,8 @@ systemctl disable firewalld
 systemctl stop firewalld
 
 # Disable SELinux
-setenforce 0
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config
-sestatus
+setenforce 0
 
 ### Set httpd configuration ### 
 sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf
@@ -360,6 +359,7 @@ oc mirror version
 butane -V
 cat /etc/httpd/conf/httpd.conf | grep Listen
 cat /etc/selinux/config | grep SELINUX
+sestatus
 cat /etc/exports
 cat /etc/resolv.conf
 ls -ltr /var/named/{'$BASE_DOMAIN.zone','$REVERSED_IP_PART.zone'}
