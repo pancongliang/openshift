@@ -1,32 +1,38 @@
 #!/bin/bash
 cat << EOF > $OCP_INSTALL_DIR/bootstrap-set-ip-1.sh
 nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $BOOTSTRAP_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-sudo systemctl restart NetworkManager
+nmcli con down 'Wired connection 1'
+nmcli con up 'Wired connection 1'
 EOF
 
 cat << EOF > $OCP_INSTALL_DIR/master01-set-ip-1.sh
 nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $MASTER01_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-sudo systemctl restart NetworkManager
+nmcli con down 'Wired connection 1'
+nmcli con up 'Wired connection 1'
 EOF
 
 cat << EOF > $OCP_INSTALL_DIR/master02-set-ip-1.sh
 nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $MASTER02_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-sudo systemctl restart NetworkManager
+nmcli con down 'Wired connection 1'
+nmcli con up 'Wired connection 1'
 EOF
 
 cat << EOF > $OCP_INSTALL_DIR/master03-set-ip-1.sh
 nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $MASTER03_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-sudo systemctl restart NetworkManager
+nmcli con down 'Wired connection 1'
+nmcli con up 'Wired connection 1'
 EOF
 
 cat << EOF > $OCP_INSTALL_DIR/worker01-set-ip-1.sh
 nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $WORKER01_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-sudo systemctl restart NetworkManager
+nmcli con down 'Wired connection 1'
+nmcli con up 'Wired connection 1'
 EOF
 
 cat << EOF > $OCP_INSTALL_DIR/worker02-set-ip-1.sh
 nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $WORKER02_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-sudo systemctl restart NetworkManager
+nmcli con down 'Wired connection 1'
+nmcli con up 'Wired connection 1'
 EOF
 
 cat << EOF > $OCP_INSTALL_DIR/bootstrap-install-2.sh
