@@ -29,27 +29,27 @@ nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $WORKER02_IP/$NETMAS
 sudo systemctl restart NetworkManager
 EOF
 
-cat << EOF > $OCP_INSTALL_DIR/bootstrap-installer-2.sh
+cat << EOF > $OCP_INSTALL_DIR/bootstrap-install-2.sh
 sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/bootstrapbk.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
 EOF
 
-cat << EOF > $OCP_INSTALL_DIR/master01-installer-2.sh
+cat << EOF > $OCP_INSTALL_DIR/master01-install-2.sh
 sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/master01.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
 EOF
 
-cat << EOF > $OCP_INSTALL_DIR/master02-installer-2.sh
+cat << EOF > $OCP_INSTALL_DIR/master02-install-2.sh
 sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/master02.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
 EOF
 
-cat << EOF > $OCP_INSTALL_DIR/master03-installer-2.sh
+cat << EOF > $OCP_INSTALL_DIR/master03-install-2.sh
 sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/master03.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
 EOF
 
-cat << EOF > $OCP_INSTALL_DIR/worker01-installer-2.sh
+cat << EOF > $OCP_INSTALL_DIR/worker01-install-2.sh
 sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/worker01.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
 EOF
 
-cat << EOF > $OCP_INSTALL_DIR/worker02-installer-2.sh
+cat << EOF > $OCP_INSTALL_DIR/worker02-install-2.sh
 sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/worker02.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
 EOF
 
