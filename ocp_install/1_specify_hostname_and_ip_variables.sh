@@ -85,3 +85,9 @@ export FORWARD_ZONE_FILE_NAME="$BASE_DOMAIN.zone"
 export HTTPD_PATH="/var/www/html/materials/"             
 export OCP_INSTALL_DIR="/var/www/html/materials/pre"
 export OCP_INSTALL_YAML="/root/"
+
+# Download ocp image
+export LOCAL_REPOSITORY="ocp4/openshift4"
+export PRODUCT_REPO="openshift-release-dev" 
+export RELEASE_NAME="ocp-release"
+export ARCHITECTURE="x86_64"
