@@ -268,65 +268,65 @@ systemctl enable haproxy --now
 mkdir -p /opt/registry/{auth,certs,data}
 mkdir -p /etc/crts/ && cd /etc/crts/
 
-# Generate root ca.key:
-openssl genrsa -out /etc/crts/${REGISTRY_HOSTNAM}.ca.key 4096
+# Generate root ca.key
+openssl genrsa -out /etc/crts/${REGISTRY_HOSTNAME}.ca.key 4096
 
-# Generate root ca.crt:
+# Generate root ca.crt
 openssl req -x509 \
   -new -nodes \
-  -key /etc/crts/${REGISTRY_HOSTNAM}.ca.key \
+  -key /etc/crts/${REGISTRY_HOSTNAME}.ca.key \
   -sha256 \
   -days 36500 \
-  -out /etc/crts/${REGISTRY_HOSTNAM}.ca.crt \
-  -subj /CN=Local Red Hat Signer \
+  -out /etc/crts/${REGISTRY_HOSTNAME}.ca.crt \
+  -subj /CN="Local Red Hat Signer" \
   -reqexts SAN \
   -extensions SAN \
   -config <(cat /etc/pki/tls/openssl.cnf \
       <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature'))
 
-# Generate domain key:
-openssl genrsa -out ${REGISTRY_HOSTNAM}.key 2048
+# Generate domain key
+openssl genrsa -out ${REGISTRY_HOSTNAME}.key 2048
 
-# Generate domain cert csr:
+# Generate domain cert csr
 openssl req -new -sha256 \
-    -key /etc/crts/${REGISTRY_HOSTNAM}.key \
-    -subj "/O=Local Red Hat CodeReady Workspaces/CN=${REGISTRY_HOSTNAM}" \
+    -key /etc/crts/${REGISTRY_HOSTNAME}.key \
+    -subj "/O=Local Red Hat CodeReady Workspaces/CN=${REGISTRY_HOSTNAME}" \
     -reqexts SAN \
     -config <(cat /etc/pki/tls/openssl.cnf \
-        <(printf "\n[SAN]\nsubjectAltName=DNS:${REGISTRY_HOSTNAM}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
-    -out /etc/crts/${REGISTRY_HOSTNAM}.csr
+        <(printf "\n[SAN]\nsubjectAltName=DNS:${REGISTRY_HOSTNAME}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
+    -out /etc/crts/${REGISTRY_HOSTNAME}.csr
 
-# Generate domain crt:
+# Generate domain crt
 openssl x509 \
     -req \
     -sha256 \
-    -extfile <(printf "subjectAltName=DNS:${REGISTRY_HOSTNAM}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
+    -extfile <(printf "subjectAltName=DNS:${REGISTRY_HOSTNAME}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
     -days 36500 \
-    -in /etc/crts/${REGISTRY_HOSTNAM}.csr \
-    -CA /etc/crts/${REGISTRY_HOSTNAM}.ca.crt \
-    -CAkey /etc/crts/${REGISTRY_HOSTNAM}.ca.key \
-    -CAcreateserial -out /etc/crts/${REGISTRY_HOSTNAM}.crt
+    -in /etc/crts/${REGISTRY_HOSTNAME}.csr \
+    -CA /etc/crts/${REGISTRY_HOSTNAME}.ca.crt \
+    -CAkey /etc/crts/${REGISTRY_HOSTNAME}.ca.key \
+    -CAcreateserial -out /etc/crts/${REGISTRY_HOSTNAME}.crt
     
-openssl x509 -in /etc/crts/${REGISTRY_HOSTNAM}.ca.crt -text
+openssl x509 -in /etc/crts/${REGISTRY_HOSTNAME}.ca.crt -text
 
-# Copy and trust the cert:
-cp /etc/crts/${REGISTRY_HOSTNAM}.ca.crt ${REGISTRY_HOSTNAM}.crt /etc/pki/ca-trust/source/anchors/
+# Copy and trust the cert
+cp /etc/crts/${REGISTRY_HOSTNAME}.ca.crt ${REGISTRY_HOSTNAME}.crt /etc/pki/ca-trust/source/anchors/
 update-ca-trust extract
-cp /etc/crts/${REGISTRY_HOSTNAM}.key ${REGISTRY_HOSTNAM}.crt /opt/registry/certs/
+cp /etc/crts/${REGISTRY_HOSTNAME}.key ${REGISTRY_HOSTNAME}.crt /opt/registry/certs/
 update-ca-trust
 
 # Create username and password for offline mirror repository:
 htpasswd -bBc /opt/registry/auth/htpasswd $REGISTRY_ID $REGISTRY_PW
 
-# Running docker registry:
+# Running docker registry
 podman run \
     --name mirror-registry \
     -p 5000:5000 \
     -e "REGISTRY_AUTH=htpasswd" \
     -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
     -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
-    -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/${REGISTRY_HOSTNAM}.crt \
-    -e REGISTRY_HTTP_TLS_KEY=/certs/${REGISTRY_HOSTNAM}.key \
+    -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/${REGISTRY_HOSTNAME}.crt \
+    -e REGISTRY_HTTP_TLS_KEY=/certs/${REGISTRY_HOSTNAME}.key \
     -e REGISTRY_STORAGE_DELETE_ENABLED=true \
     -v /opt/registry/data:/var/lib/registry:z \
     -v /opt/registry/auth:/auth:z \
@@ -370,4 +370,4 @@ systemctl status named |grep Active -B2
 systemctl status haproxy |grep Active -B2
 systemctl status mirror-registry.service |grep Active -B2
 podman ps |grep mirror-registry
-podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile /root/pull-secret {REGISTRY_HOSTNAM}:5000
+podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile /root/pull-secret {REGISTRY_HOSTNAME}:5000
