@@ -45,6 +45,15 @@ export NODE_NETWORK_WIRED_CONNECTION="'Wired connection 1'"    # nmcli con show
 
 ###No need to change###
 
+# Function to generate duplicate IP address
+export DNS_IP="$BASTION_IP"
+export REGISTRY_IP="$BASTION_IP"
+export API_IP="$BASTION_IP"
+export API_INT_IP="$BASTION_IP"
+export APPS_IP="$BASTION_IP"
+
+sleep 1
+
 # Function to generate reversed DNS
 generate_reverse_dns() {
   local ip="$1"
@@ -66,18 +75,12 @@ export API_INT_REVERSE_DNS=$(generate_reverse_dns "$API_INT_IP")
 
 # Function to generate reversed_ip_par/zone name
 export IP_PART=$(echo "$BASTION_IP" | cut -d. -f1-2)
+
 export REVERSED_IP_PART=$(echo "$IP_PART" | awk -F'.' '{print $2"."$1}')
 export REVERSE_ZONE="$REVERSED_IP_PART.in-addr.arpa"
 export REVERSE_ZONE_FILE_NAME="$REVERSED_IP_PART.zone"
 export FORWARD_ZONE="$BASE_DOMAIN"
 export FORWARD_ZONE_FILE_NAME="$BASE_DOMAIN.zone"
-
-# Function to generate duplicate IP address
-export DNS_IP="$BASTION_IP"
-export REGISTRY_IP="$BASTION_IP"
-export API_IP="$BASTION_IP"
-export API_INT_IP="$BASTION_IP"
-export APPS_IP="$BASTION_IP"
 
 # Httpd and ocp install dir(If the variable is changed, the ignition file may not be downloaded)
 export HTTPD_PATH="/var/www/html/materials/"             
