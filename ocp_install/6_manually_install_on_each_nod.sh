@@ -19,4 +19,4 @@ curl http://$BASTION_IP:8080/pre/worker02-set-ip-1.sh
 curl http://$BASTION_IP:8080/pre/worker02-installer-2.sh
 EOF
 
-ls $INSTALL_DIR/
+cat 6_manually_install_on_each_nod.sh
