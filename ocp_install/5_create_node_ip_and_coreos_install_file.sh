@@ -53,5 +53,5 @@ cat << EOF > $OCP_INSTALL_DIR/worker02-installer-2.sh
 sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/worker02.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
 EOF
 
-ls $OCP_INSTALL_DIR/ | pwd
+ls $OCP_INSTALL_DIR/ pwd
 ls $OCP_INSTALL_DIR/
