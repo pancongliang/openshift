@@ -35,8 +35,8 @@ export REGISTRY_PW="redhat"
 export LOCAL_SECRET_JSON="/root/pull-secret"   # download https://console.redhat.com/openshift/install/metal/installer-provisioned
 
 # Network variable
-export GATEWAY_IP="21"
-export NETMASK="10.74.255.254"
+export GATEWAY_IP="10.74.255.254"
+export NETMASK="21"
 export DNS_FORWARDER_IP="10.75.5.25"
 
 # Node disk/interface
