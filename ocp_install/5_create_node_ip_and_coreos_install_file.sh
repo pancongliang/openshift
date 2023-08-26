@@ -19,7 +19,7 @@ nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $MASTER03_IP/$NETMAS
 sudo systemctl restart NetworkManager
 EOF
 
-cat << EOF > $OCP_INSTALL_DIR/master02-set-ip-1.sh
+cat << EOF > $OCP_INSTALL_DIR/worker01-set-ip-1.sh
 nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $WORKER01_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
 sudo systemctl restart NetworkManager
 EOF
