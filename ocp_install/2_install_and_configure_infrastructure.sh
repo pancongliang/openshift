@@ -3,15 +3,15 @@ yum install -y wget net-tools podman bind-utils bind haproxy git bash-completion
 
 # openshift-install:
 wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_RELEASE/openshift-install-linux.tar.gz
-tar xvf openshift-install-linux.tar.gz -C /usr/local/bin/
+tar xvf openshift-install-linux.tar.gz -C /usr/local/bin/ && rm -rf openshift-install-linux.tar.gz
 
 # oc CLI tools:
 wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz
-tar xvf openshift-client-linux.tar.gz -C /usr/local/bin/ && rm -rf /usr/local/bin/README.md
+tar xvf openshift-client-linux.tar.gz -C /usr/local/bin/ && rm -rf /usr/local/bin/README.md && rm -rf openshift-client-linux.tar.gz
 
 # oc-mirror tools:
 curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
-tar -xvf oc-mirror.tar.gz -C /usr/local/bin/ && chmod a+x /usr/local/bin/oc-mirror
+tar -xvf oc-mirror.tar.gz -C /usr/local/bin/ && chmod a+x /usr/local/bin/oc-mirror && rm -rf oc-mirror.tar.gz
 
 # butane tools:
 wegt https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane
