@@ -1,5 +1,5 @@
 #!/bin/bash
-cat << EOF > 7_manually_install_on_each_nod.sh
+cat << EOF > 6_manually_install_on_each_nod.sh
 curl http://$BASTION_IP:8080/pre/bootstrap-set-ip-1.sh
 curl http://$BASTION_IP:8080/pre/bootstrap-installer-2.sh
 
