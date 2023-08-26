@@ -160,7 +160,7 @@ $REGISTRY_HOSTNAME.             IN      A       $REGISTRY_IP
 EOF
 
 # Add DNS PTR record
-cat << EOF >  /var/named/$REVERSE_ZONE
+cat << EOF >  /var/named/$REVERSE_ZONE_FILE_NAME
 \$TTL 1W
 @       IN      SOA     ns1.$BASE_DOMAIN.        root (
                         2019070700      ; serial
