@@ -1,22 +1,22 @@
 #!/bin/bash
 echo ====== Generate a defined install-config file ======
 # Define variables
-REGISTRY_CA_FILE="/etc/crts/$REGISTRY_HOSTNAME.$BASE_DOMAIN.ca.crt"
+REGISTRY_CA_FILE="${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt"
 
 # Backup and format the registry CA certificate
-cp "$REGISTRY_CA_FILE" "$REGISTRY_CA_FILE.bak"
-sed -i 's/^/  /' "$REGISTRY_CA_FILE.bak"
+cp "${REGISTRY_CA_FILE}" "${REGISTRY_CA_FILE.bak}"
+sed -i 's/^/  /' "${REGISTRY_CA_FILE.bak}"
 
 # Define variables
-export REGISTRY_CA="$(cat $REGISTRY_CA_FILE.bak)"
-export REGISTRY_ID_PW=$(echo -n "$REGISTRY_ID:$REGISTRY_PW" | base64)
-export ID_RSA_PUB=$(cat "$ID_RSA_PUB_FILE")
+export REGISTRY_CA="$(cat ${REGISTRY_CA_FILE.bak})"
+export REGISTRY_ID_PW=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
+export ID_RSA_PUB=$(cat "${ID_RSA_PUB_FILE}")
 
 # Generate a defined install-config file
-rm -rf $HTTPD_PATH/install-config.yaml
+rm -rf ${HTTPD_PATH}/install-config.yaml
 cat << EOF > $HTTPD_PATH/install-config.yaml 
 apiVersion: v1
-baseDomain: $BASE_DOMAIN
+baseDomain: ${BASE_DOMAIN}
 compute: 
 - hyperthreading: Enabled 
   name: worker
@@ -26,21 +26,21 @@ controlPlane:
   name: master
   replicas: 3 
 metadata:
-  name: $CLUSTER_NAME
+  name: ${CLUSTER_NAME}
 networking:
   clusterNetwork:
-  - cidr: $POD_CIDR
-    hostPrefix: $HOST_PREFIX
-  networkType: $NETWORK_TYPE
+  - cidr: ${POD_CIDR}
+    hostPrefix: ${HOST_PREFIX}
+  networkType: ${NETWORK_TYPE}
   serviceNetwork: 
-  - $SERVICE_CIDR
+  - ${SERVICE_CIDR}
 platform:
   none: {} 
 fips: false
-pullSecret: '{"auths":{"${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000": {"auth": "$REGISTRY_ID_PW","email": "xxx@xxx.com"}}}' 
-sshKey: '$ID_RSA_PUB'
+pullSecret: '{"auths":{"${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000": {"auth": "${REGISTRY_ID_PW}","email": "xxx@xxx.com"}}}' 
+sshKey: '${ID_RSA_PUB}'
 additionalTrustBundle: | 
-$REGISTRY_CA
+${REGISTRY_CA}
 imageContentSources:
 - mirrors:
   - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000/${LOCAL_REPOSITORY}
@@ -57,26 +57,26 @@ echo "Generated install-config files."
 
 echo ====== Generate a manifests ======
 # Create installation directory
-rm -rf "$OCP_INSTALL_DIR"
-mkdir -p "$OCP_INSTALL_DIR"
+rm -rf "${IGNITION_PATH}"
+mkdir -p "${IGNITION_PATH}"
 
 # Copy install-config.yaml to installation directory
-cp "$HTTPD_PATH/install-config.yaml" "$OCP_INSTALL_DIR"
+cp "$HTTPD_PATH/install-config.yaml" "${IGNITION_PATH}"
 
 # Generate manifests
-openshift-install create manifests --dir "$OCP_INSTALL_DIR"
+openshift-install create manifests --dir "${IGNITION_PATH}"
 
 
 echo ====== Disable master node scheduling ======
 # Verify the initial value
-initial_value=$(grep "mastersSchedulable: true" "$OCP_INSTALL_DIR/manifests/cluster-scheduler-02-config.yml")
+initial_value=$(grep "mastersSchedulable: true" "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml")
 if [ -n "$initial_value" ]; then
     echo "Initial value found: $initial_value"    
     # Modify the file using sed
-    sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "$OCP_INSTALL_DIR/manifests/cluster-scheduler-02-config.yml"
+    sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml"
 
     # Verify the modification
-    modified_value=$(grep "mastersSchedulable: false" "$OCP_INSTALL_DIR/manifests/cluster-scheduler-02-config.yml")
+    modified_value=$(grep "mastersSchedulable: false" "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml")
     if [ -n "$modified_value" ]; then
         echo "Master node scheduling disabled successful: $modified_value"
     else
@@ -86,7 +86,7 @@ fi
 
 echo ====== Generate a ignition file ======
 # Generate and modify ignition configuration files
-openshift-install create ignition-configs --dir "$OCP_INSTALL_DIR"
+openshift-install create ignition-configs --dir "${IGNITION_PATH}"
 
 
 echo ====== Generate an ignition file containing the node hostname ======
@@ -95,19 +95,19 @@ hosts=("$BOOTSTRAP_HOSTNAME" "$MASTER01_HOSTNAME" "$MASTER02_HOSTNAME" "$MASTER0
 
 # Copy ignition files with modified names
 for host in "${hosts[@]}"; do
-    cp "${OCP_INSTALL_DIR}/bootstrap.ign" "${OCP_INSTALL_DIR}/${host}bk.ign"
-    cp "${OCP_INSTALL_DIR}/master.ign" "${OCP_INSTALL_DIR}/${host}.ign"
-    cp "${OCP_INSTALL_DIR}/worker.ign" "${OCP_INSTALL_DIR}/${host}.ign"
+    cp "${IGNITION_PATH}/bootstrap.ign" "${IGNITION_PATH}/${host}bk.ign"
+    cp "${IGNITION_PATH}/master.ign" "${IGNITION_PATH}/${host}.ign"
+    cp "${IGNITION_PATH}/worker.ign" "${IGNITION_PATH}/${host}.ign"
 done
 
 # Modify ignition files
 for host in "${hosts[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:'"${host}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode": 420}]}}/' "${OCP_INSTALL_DIR}/${host}.ign"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:'"${host}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode": 420}]}}/' "${IGNITION_PATH}/${host}.ign"
 done
 
 # Verify if the ignition files were generated successfully
 for host in "${hosts[@]}"; do
-    if [ ! -f "${OCP_INSTALL_DIR}/${host}.ign" ]; then
+    if [ ! -f "${IGNITION_PATH}/${host}.ign" ]; then
         echo "Failed to generate ignition file for ${host}"
         exit 1
     fi
@@ -116,14 +116,14 @@ echo "Successfully generated ignition files containing node hostnames"
 
 echo ====== Set permissions for ignition files ======
 # Set permissions for ignition files
-chmod a+r "$OCP_INSTALL_DIR"/*.ign
+chmod a+r "${IGNITION_PATH}"/*.ign
 
 echo "====== Change permissions of ignition files ======"
 # Change permissions of ignition files
-chmod a+r "$OCP_INSTALL_DIR"/*.ign
+chmod a+r "${IGNITION_PATH}"/*.ign
 
 # Verify if permissions were changed successfully
-ignition_files=("$OCP_INSTALL_DIR"/*.ign)
+ignition_files=("${IGNITION_PATH}"/*.ign)
 success=true
 for file in "${ignition_files[@]}"; do
     if [ ! -r "$file" ]; then
@@ -141,4 +141,4 @@ fi
 
 echo "====== Generated Ignition files ======"
 # Display generated files
-ls -l "$OCP_INSTALL_DIR"/*.ign
+ls -l "${IGNITION_PATH}"/*.ign
