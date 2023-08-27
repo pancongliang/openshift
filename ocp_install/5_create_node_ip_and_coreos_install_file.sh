@@ -1,62 +1,54 @@
 #!/bin/bash
-cat << EOF > $OCP_INSTALL_DIR/bootstrap-set-ip-1.sh
-nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $BOOTSTRAP_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-nmcli con down 'Wired connection 1'
-nmcli con up 'Wired connection 1'
+
+# Function to generate setup script for a node
+generate_setup_script() {
+    local HOSTNAME=$1
+    local IP_ADDRESS=$2
+
+    # Generate a setup script for the node
+    cat << EOF > ${IGNITION_PATH}/set-${HOSTNAME}.sh
+#!/bin/bash
+# Configure network settings
+nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_IP} ipv4.method manual connection.autoconnect yes
+nmcli con down ${NET_IF_NAME}
+nmcli con up ${NET_IF_NAME}
+
+# Install CoreOS using Ignition
+sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/${HOSTNAME}.ign --insecure-ignition --firstboot-args 'rd.neednet=1' --copy-network
 EOF
 
-cat << EOF > $OCP_INSTALL_DIR/master01-set-ip-1.sh
-nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $MASTER01_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-nmcli con down 'Wired connection 1'
-nmcli con up 'Wired connection 1'
-EOF
+    # Make the script executable
+    chmod +x ${IGNITION_PATH}/set-${HOSTNAME}.sh
+}
 
-cat << EOF > $OCP_INSTALL_DIR/master02-set-ip-1.sh
-nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $MASTER02_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-nmcli con down 'Wired connection 1'
-nmcli con up 'Wired connection 1'
-EOF
+# Generate setup scripts for each node
+generate_setup_script ${BOOTSTRAP_HOSTNAME} ${BOOTSTRAP_IP}
+generate_setup_script ${MASTER01_HOSTNAME} ${MASTER01_IP}
+generate_setup_script ${MASTER02_HOSTNAME} ${MASTER02_IP}
+generate_setup_script ${MASTER03_HOSTNAME} ${MASTER03_IP}
+generate_setup_script ${WORKER01_HOSTNAME} ${WORKER01_IP}
+generate_setup_script ${WORKER02_HOSTNAME} ${WORKER02_IP}
 
-cat << EOF > $OCP_INSTALL_DIR/master03-set-ip-1.sh
-nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $MASTER03_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-nmcli con down 'Wired connection 1'
-nmcli con up 'Wired connection 1'
-EOF
+# Check if files were generated successfully
+generated_files=("set-${BOOTSTRAP_HOSTNAME}.sh"
+                 "set-${MASTER01_HOSTNAME}.sh"
+                 "set-${MASTER02_HOSTNAME}.sh"
+                 "set-${MASTER03_HOSTNAME}.sh"
+                 "set-${WORKER01_HOSTNAME}.sh"
+                 "set-${WORKER02_HOSTNAME}.sh")
 
-cat << EOF > $OCP_INSTALL_DIR/worker01-set-ip-1.sh
-nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $WORKER01_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-nmcli con down 'Wired connection 1'
-nmcli con up 'Wired connection 1'
-EOF
+success=true
 
-cat << EOF > $OCP_INSTALL_DIR/worker02-set-ip-1.sh
-nmcli con mod $NODE_NETWORK_WIRED_CONNECTION ipv4.addresses $WORKER02_IP/$NETMASK ipv4.gateway $GATEWAY_IP ipv4.dns $DNS_IP ipv4.method manual connection.autoconnect yes
-nmcli con down 'Wired connection 1'
-nmcli con up 'Wired connection 1'
-EOF
+for file in "${generated_files[@]}"; do
+    if [ ! -f "${IGNITION_PATH}/${file}" ]; then
+        echo "Error: ${file} CoreOS configuration file generated failed."
+        success=false
+    fi
+done
 
-cat << EOF > $OCP_INSTALL_DIR/bootstrap-install-2.sh
-sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/bootstrapbk.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
-EOF
+if [ "${success}" = true ]; then
+    echo "CoreOS configuration file generated successfully."
+fi
 
-cat << EOF > $OCP_INSTALL_DIR/master01-install-2.sh
-sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/master01.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
-EOF
-
-cat << EOF > $OCP_INSTALL_DIR/master02-install-2.sh
-sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/master02.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
-EOF
-
-cat << EOF > $OCP_INSTALL_DIR/master03-install-2.sh
-sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/master03.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
-EOF
-
-cat << EOF > $OCP_INSTALL_DIR/worker01-install-2.sh
-sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/worker01.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
-EOF
-
-cat << EOF > $OCP_INSTALL_DIR/worker02-install-2.sh
-sudo coreos-installer install --copy-network --ignition-url=http://$BASTION_IP:8080/pre/worker02.ign /dev/$NODE_DISK_PARTITION --insecure-ignition
-EOF
-
-ls $OCP_INSTALL_DIR/ pwd
+# Display generated files
+ls -l "${IGNITION_PATH}"/*.sh
