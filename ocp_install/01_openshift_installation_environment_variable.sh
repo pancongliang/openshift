@@ -7,7 +7,7 @@ export OCP_RELEASE="4.10.20"
 #######  OpenShift install-config.yaml ####### 
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
-export ID_RSA_PUB="/root/.ssh/id_rsa.pub"
+export ID_RSA_PUB_FILE="/root/.ssh/id_rsa.pub"
 export NETWORK_TYPE="OVNKubernetes"              # OVNKubernetes or OpenShiftSDN
 export POD_CIDR="10.128.0.0/14"                  # Generally use the default value
 export HOST_PREFIX="23"                          # Generally use the default value
