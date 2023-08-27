@@ -1,3 +1,5 @@
+echo ====== Prepare autoconfiguration files for CoreOS ======
+
 #!/bin/bash
 
 # Function to generate setup script for a node
