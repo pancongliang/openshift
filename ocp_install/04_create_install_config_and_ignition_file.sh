@@ -35,17 +35,17 @@ networking:
   - $SERVICE_CIDR
 platform:
   none: {} 
-fips: false 
-pullSecret: '{"auths":{"$REGISTRY_HOSTNAME.$BASE_DOMAIN:5000": {"auth": "$REGISTRY_ID_PW","email": "xxx@xxx.com"}}}'
+fips: $FIPS
+pullSecret: '{"auths":{"${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000": {"auth": "$REGISTRY_ID_PW","email": "xxx@xxx.com"}}}' 
 sshKey: '$ID_RSA_PUB'
 additionalTrustBundle: | 
 $REGISTRY_CA
 imageContentSources:
 - mirrors:
-  - $REGISTRY_HOSTNAME.$BASE_DOMAIN:5000/$LOCAL_REPOSITORY
+  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000/${LOCAL_REPOSITORY}
   source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
-  - $REGISTRY_HOSTNAME.$BASE_DOMAIN:5000/$LOCAL_REPOSITORY
+  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000/${LOCAL_REPOSITORY}
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 EOF
 
