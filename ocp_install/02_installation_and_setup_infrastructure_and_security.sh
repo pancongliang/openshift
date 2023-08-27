@@ -89,16 +89,16 @@ update_httpd_listen_port() {
 create_virtual_host_config() {
     cat << EOF > /etc/httpd/conf.d/base.conf
 <VirtualHost *:8080>
-   ServerName $BASTION_HOSTNAME
-   DocumentRoot $HTTPD_PATH
+   ServerName ${BASTION_HOSTNAME}
+   DocumentRoot ${HTTPD_PATH}
 </VirtualHost>
 EOF
 }
 
 # Check if virtual host configuration is valid
 check_virtual_host_configuration() {
-    expected_server_name="$BASTION_HOSTNAME"
-    expected_document_root="$HTTPD_PATH"
+    expected_server_name="${BASTION_HOSTNAME}"
+    expected_document_root="${HTTPD_PATH}"
     virtual_host_config="/etc/httpd/conf.d/base.conf"
     if grep -q "ServerName $expected_server_name" "$virtual_host_config" && \
        grep -q "DocumentRoot $expected_document_root" "$virtual_host_config"; then
@@ -153,7 +153,8 @@ done
 
 echo ====== Setup nfs services ======
 # Create directories
-mkdir -p $NFS_DIR/$IMAGE_REGISTRY_PV
+rm -rf ${NFS_DIR}
+mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV}
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" &>/dev/null; then
@@ -164,11 +165,11 @@ else
 fi
 
 # Change ownership and permissions
-chown -R nfsnobody.nfsnobody $NFS_DIR
-chmod -R 777 $NFS_DIR
+chown -R nfsnobody.nfsnobody ${NFS_DIR}
+chmod -R 777 ${NFS_DIR}
 
 # Add NFS export configuration
-export_config_line="$NFS_DIR    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
+export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
     echo "NFS export configuration already exists."
 else
@@ -222,7 +223,7 @@ options {
         secroots-file   "/var/named/data/named.secroots";
         recursing-file  "/var/named/data/named.recursing";
         allow-query     { any; };
-        forwarders      { $DNS_FORWARDER_IP; };
+        forwarders      { ${DNS_FORWARDER_IP}; };
 
         /* 
          - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
@@ -252,15 +253,15 @@ options {
         //include "/etc/crypto-policies/back-ends/bind.config";
 };
 
-zone "$BASE_DOMAIN" IN {
+zone "${BASE_DOMAIN}" IN {
         type master;
-        file "$BASE_DOMAIN.zone";
+        file "${BASE_DOMAIN}.zone";
         allow-query { any; };
 };
 
-zone "$REVERSE_ZONE" IN {
+zone "${REVERSE_ZONE}" IN {
         type master;
-        file "$REVERSE_ZONE_FILE_NAME";
+        file "${REVERSE_ZONE_FILE_NAME}";
         allow-query { any; };
 };
 
@@ -282,76 +283,76 @@ EOF
 echo "Named service configuration is completed."
 
 # Create forward zone file
-cat << EOF >  /var/named/$BASE_DOMAIN.zone
+cat << EOF >  /var/named/${BASE_DOMAIN}.zone
 \$TTL 1W
-@       IN      SOA     ns1.$BASE_DOMAIN.        root (
+@       IN      SOA     ns1.${BASE_DOMAIN}.        root (
                         201907070      ; serial
                         3H              ; refresh (3 hours)
                         30M             ; retry (30 minutes)
                         2W              ; expiry (2 weeks)
                         1W )            ; minimum (1 week)
-        IN      NS      ns1.$BASE_DOMAIN.
+        IN      NS      ns1.${BASE_DOMAIN}.
 ;
 ;
-ns1     IN      A       $BASTION_IP
+ns1     IN      A       ${BASTION_IP}
 ;
-helper  IN      A       $BASTION_IP
-helper.ocp4     IN      A       $BASTION_IP
+helper  IN      A       ${BASTION_IP}
+helper.ocp4     IN      A       ${BASTION_IP}
 ;
 ; The api identifies the IP of your load balancer.
-api.$CLUSTER_NAME.$BASE_DOMAIN.                            IN      A       $API_IP
-api-int.$CLUSTER_NAME.$BASE_DOMAIN.                        IN      A       $API_INT_IP
+api.${CLUSTER_NAME}.${BASE_DOMAIN}.                            IN      A       ${API_IP}
+api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.                        IN      A       ${API_INT_IP}
 ;
 ; The wildcard also identifies the load balancer.
-*.apps.$CLUSTER_NAME.$BASE_DOMAIN.                         IN      A       $APPS_IP
+*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}.                         IN      A       ${APPS_IP}
 ;
 ; Create entries for the master hosts.
-$MASTER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.             IN      A       $MASTER01_IP
-$MASTER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.             IN      A       $MASTER02_IP
-$MASTER03_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.             IN      A       $MASTER03_IP
+${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${MASTER01_IP}
+${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${MASTER02_IP}
+${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${MASTER03_IP}
 ;
 ; Create entries for the worker hosts.
-$WORKER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.             IN      A       $WORKER01_IP
-$WORKER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.             IN      A       $WORKER02_IP
+${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${WORKER01_IP}
+${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${WORKER02_IP}
 ;
 ; Create an entry for the bootstrap host.
-$BOOTSTRAP_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.            IN      A       $BOOTSTRAP_IP
+${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.          IN      A       ${BOOTSTRAP_IP}
 ;
 ; Create entries for the mirror registry hosts.
-$REGISTRY_HOSTNAME.$BASE_DOMAIN.                           IN      A       $REGISTRY_IP
+${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.                           IN      A       ${REGISTRY_IP}
 EOF
 echo "Forward zone file created."
 
 # Create reverse zone file
-cat << EOF >  /var/named/$REVERSE_ZONE_FILE_NAME
+cat << EOF >  /var/named/${REVERSE_ZONE_FILE_NAME}
 \$TTL 1W
-@       IN      SOA     ns1.$BASE_DOMAIN.        root (
+@       IN      SOA     ns1.${BASE_DOMAIN}.        root (
                         2019070700      ; serial
                         3H              ; refresh (3 hours)
                         30M             ; retry (30 minutes)
                         2W              ; expiry (2 weeks)
                         1W )            ; minimum (1 week)
-        IN      NS      ns1.$BASE_DOMAIN.
+        IN      NS      ns1.${BASE_DOMAIN}.
 ;
 ; The syntax is "last octet" and the host must have an FQDN
 ; with a trailing dot.
 ;
 ; The api identifies the IP of your load balancer.
-$API_REVERSE_IP                IN      PTR     api.$CLUSTER_NAME.$BASE_DOMAIN.
-$API_INT_REVERSE_IP            IN      PTR     api-int.$CLUSTER_NAME.$BASE_DOMAIN.
+${API_REVERSE_IP}                IN      PTR     api.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${API_INT_REVERSE_IP}            IN      PTR     api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ;
 ; Create entries for the master hosts.
-$MASTER01_REVERSE_IP           IN      PTR     $MASTER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.
-$MASTER02_REVERSE_IP           IN      PTR     $MASTER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.
-$MASTER03_REVERSE_IP           IN      PTR     $MASTER03_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.
+${MASTER01_REVERSE_IP}           IN      PTR     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${MASTER02_REVERSE_IP}           IN      PTR     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${MASTER03_REVERSE_IP}           IN      PTR     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ;
 ; Create entries for the worker hosts.
-$WORKER01_REVERSE_IP           IN      PTR     $WORKER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.
-$WORKER02_REVERSE_IP           IN      PTR     $WORKER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.
-$WORKER02_REVERSE_IP           IN      PTR     $WORKER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.
+${WORKER01_REVERSE_IP}           IN      PTR     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${WORKER02_REVERSE_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${WORKER02_REVERSE_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ;
 ; Create an entry for the bootstrap host.
-$BOOTSTRAP_REVERSE_IP          IN      PTR     $BOOTSTRAP_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN.
+${BOOTSTRAP_REVERSE_IP}          IN      PTR     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 EOF
 echo "Reverse zone file created."
 
@@ -375,14 +376,14 @@ else
 fi
 
 # Check forward zone file
-if named-checkzone $BASE_DOMAIN /var/named/$BASE_DOMAIN.zone &>/dev/null; then
+if named-checkzone ${BASE_DOMAIN} /var/named/${BASE_DOMAIN}.zone &>/dev/null; then
     echo "Forward zone file is valid."
 else
     echo "Error: Forward zone file is invalid."
 fi
 
 # Check reverse zone file
-if named-checkzone $REVERSE_ZONE_FILE_NAME /var/named/$REVERSE_ZONE_FILE_NAME &>/dev/null; then
+if named-checkzone ${REVERSE_ZONE_FILE_NAME} /var/named/${REVERSE_ZONE_FILE_NAME} &>/dev/null; then
     echo "Reverse zone file is valid."
 else
     echo "Error: Reverse zone file is invalid."
@@ -420,21 +421,21 @@ done
 
 # List of hostnames and IP addresses to check
 hostnames=(
-    "api.$CLUSTER_NAME.$BASE_DOMAIN"
-    "api-int.$CLUSTER_NAME.$BASE_DOMAIN"
-    "$MASTER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN"
-    "$MASTER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN"
-    "$MASTER03_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN"
-    "$WORKER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN"
-    "$WORKER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN"
-    "$MASTER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN"
-    "$BASTION_IP"
-    "$MASTER01_IP"
-    "$MASTER02_IP"
-    "$MASTER03_IP"
-    "$WORKER01_IP"
-    "$WORKER02_IP"
-    "$BOOTSTRAP_IP"
+    "api.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${BASTION_IP}"
+    "${MASTER01_IP}"
+    "${MASTER02_IP}"
+    "${MASTER03_IP}"
+    "${WORKER01_IP}"
+    "${WORKER02_IP}"
+    "${BOOTSTRAP_IP}"
 )
 
 # Loop through hostnames and perform nslookup
@@ -501,34 +502,34 @@ frontend stats
   stats uri /stats
 
 listen api-server-6443 
-  bind $BASTION_IP:6443
+  bind ${BASTION_IP}:6443
   mode tcp
-  server     $BOOTSTRAP_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $BOOTSTRAP_IP:6443 check inter 1s backup
-  server     $MASTER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $MASTER01_IP:6443 check inter 1s
-  server     $MASTER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $MASTER02_IP:6443 check inter 1s
-  server     $MASTER03_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $MASTER03_IP:6443 check inter 1s
+  server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 check inter 1s backup
+  server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 check inter 1s
+  server     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:6443 check inter 1s
+  server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 check inter 1s
 
 listen machine-config-server-22623 
-  bind $BASTION_IP:22623
+  bind ${BASTION_IP}:22623
   mode tcp
-  server     $BOOTSTRAP_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $BOOTSTRAP_IP:22623 check inter 1s backup
-  server     $MASTER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $MASTER01_IP:22623 check inter 1s
-  server     $MASTER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $MASTER02_IP:22623 check inter 1s
-  server     $MASTER03_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $MASTER03_IP:22623 check inter 1s
+  server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:22623 check inter 1s backup
+  server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:22623 check inter 1s
+  server     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:22623 check inter 1s
+  server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:22623 check inter 1s
 
 listen default-ingress-router-80
-  bind $BASTION_IP:80
+  bind ${BASTION_IP}:80
   mode tcp
   balance source
-  server     $WORKER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $WORKER01_IP:80 check inter 1s
-  server     $WORKER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $WORKER02_IP:80 check inter 1s
+  server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:80 check inter 1s
+  server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check inter 1s
 
 listen default-ingress-router-443
-  bind $BASTION_IP:443
+  bind ${BASTION_IP}:443
   mode tcp
   balance source
-  server     $WORKER01_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $WORKER01_IP:443 check inter 1s
-  server     $WORKER02_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN $WORKER02_IP:443 check inter 1s
+  server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check inter 1s
+  server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
 EOF
 echo "Haproxy service configuration is completed."
 
