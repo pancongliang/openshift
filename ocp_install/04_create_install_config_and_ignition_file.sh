@@ -54,8 +54,9 @@ rm -rf "$REGISTRY_CA_FILE.bak"
 
 echo "Generated install-config files."
 
-echo ====== Generate a ignition file ======
+echo ====== Generate a manifests ======
 # Create installation directory
+rm -rf "$OCP_INSTALL_DIR"
 mkdir -p "$OCP_INSTALL_DIR"
 
 # Copy install-config.yaml to installation directory
@@ -63,8 +64,25 @@ cp "$HTTPD_PATH/install-config.yaml" "$OCP_INSTALL_DIR"
 
 # Generate manifests
 openshift-install create manifests --dir "$OCP_INSTALL_DIR"
-sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "$OCP_INSTALL_DIR/manifests/cluster-scheduler-02-config.yml"
 
+# Disable master node scheduling
+# Verify the initial value
+initial_value=$(grep "mastersSchedulable: true" "$OCP_INSTALL_DIR/manifests/cluster-scheduler-02-config.yml")
+if [ -n "$initial_value" ]; then
+    echo "Initial value found: $initial_value"    
+    # Modify the file using sed
+    sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "$OCP_INSTALL_DIR/manifests/cluster-scheduler-02-config.yml"
+
+    # Verify the modification
+    modified_value=$(grep "mastersSchedulable: false" "$OCP_INSTALL_DIR/manifests/cluster-scheduler-02-config.yml")
+    if [ -n "$modified_value" ]; then
+        echo "Master node scheduling disabled successful: $modified_value"
+    else
+        echo "Master node scheduling disabled failed."
+    fi
+fi
+
+echo ====== Generate a ignition file ======
 # Generate and modify ignition configuration files
 openshift-install create ignition-configs --dir "$OCP_INSTALL_DIR"
 echo "Generated Ignition files:"
