@@ -49,6 +49,9 @@ imageContentSources:
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 EOF
 
+# Delete certificate
+rm -rf "$REGISTRY_CA_FILE.bak"
+
 echo "Generated install-config files."
 
 echo ====== Generate a ignition file ======
