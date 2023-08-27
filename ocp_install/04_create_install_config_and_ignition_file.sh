@@ -13,6 +13,7 @@ export REGISTRY_ID_PW=$(echo -n "$REGISTRY_ID:$REGISTRY_PW" | base64)
 export ID_RSA_PUB=$(cat "$ID_RSA_PUB_FILE")
 
 # Generate a defined install-config file
+rm -rf $HTTPD_PATH/install-config.yaml
 cat << EOF > $HTTPD_PATH/install-config.yaml 
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
@@ -65,7 +66,8 @@ cp "$HTTPD_PATH/install-config.yaml" "$OCP_INSTALL_DIR"
 # Generate manifests
 openshift-install create manifests --dir "$OCP_INSTALL_DIR"
 
-# Disable master node scheduling
+
+echo ====== Disable master node scheduling ======
 # Verify the initial value
 initial_value=$(grep "mastersSchedulable: true" "$OCP_INSTALL_DIR/manifests/cluster-scheduler-02-config.yml")
 if [ -n "$initial_value" ]; then
@@ -85,28 +87,58 @@ fi
 echo ====== Generate a ignition file ======
 # Generate and modify ignition configuration files
 openshift-install create ignition-configs --dir "$OCP_INSTALL_DIR"
-echo "Generated Ignition files:"
 
 
-echo ====== Generate an ignition file containing the hostname ======
-# Function to modify ignition file
-modify_ignition() {
-    local hostname="$1"
-    local source="$2"
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:'"$hostname.$CLUSTER_NAME.$BASE_DOMAIN"'"},"mode":420}]}}/' "$OCP_INSTALL_DIR/$source.ign"
-}
+echo ====== Generate an ignition file containing the node hostname ======
+# Array of hostnames to process
+hosts=("$BOOTSTRAP_HOSTNAME" "$MASTER01_HOSTNAME" "$MASTER02_HOSTNAME" "$MASTER03_HOSTNAME" "$WORKER01_HOSTNAME" "$WORKER02_HOSTNAME")
 
-# Modify ignition files for different nodes
-modify_ignition "$BOOTSTRAP_HOSTNAME" "bootstrap"
-modify_ignition "$MASTER01_HOSTNAME" "master"
-modify_ignition "$MASTER02_HOSTNAME" "master"
-modify_ignition "$MASTER03_HOSTNAME" "master"
-modify_ignition "$WORKER01_HOSTNAME" "worker"
-modify_ignition "$WORKER02_HOSTNAME" "worker"
+# Copy ignition files with modified names
+for host in "${hosts[@]}"; do
+    cp "${OCP_INSTALL_DIR}/bootstrap.ign" "${OCP_INSTALL_DIR}/${host}bk.ign"
+    cp "${OCP_INSTALL_DIR}/master.ign" "${OCP_INSTALL_DIR}/${host}.ign"
+    cp "${OCP_INSTALL_DIR}/worker.ign" "${OCP_INSTALL_DIR}/${host}.ign"
+done
 
+# Modify ignition files
+for host in "${hosts[@]}"; do
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:'"${host}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode": 420}]}}/' "${OCP_INSTALL_DIR}/${host}.ign"
+done
+
+# Verify if the ignition files were generated successfully
+for host in "${hosts[@]}"; do
+    if [ ! -f "${OCP_INSTALL_DIR}/${host}.ign" ]; then
+        echo "Failed to generate ignition file for ${host}"
+        exit 1
+    fi
+done
+echo "Successfully generated ignition files containing node hostnames"
+
+echo ====== Set permissions for ignition files ======
 # Set permissions for ignition files
 chmod a+r "$OCP_INSTALL_DIR"/*.ign
 
+echo "====== Change permissions of ignition files ======"
+# Change permissions of ignition files
+chmod a+r "$OCP_INSTALL_DIR"/*.ign
+
+# Verify if permissions were changed successfully
+ignition_files=("$OCP_INSTALL_DIR"/*.ign)
+success=true
+for file in "${ignition_files[@]}"; do
+    if [ ! -r "$file" ]; then
+        echo "Failed to change permissions for $file"
+        success=false
+        break
+    fi
+done
+
+if [ "$success" = true ]; then
+    echo "Successfully changed permissions of ignition files"
+else
+    echo "Failed to change permissions of ignition files"
+fi
+
+echo "====== Generated Ignition files ======"
 # Display generated files
-echo "Generated Ignition files:"
 ls -l "$OCP_INSTALL_DIR"/*.ign
