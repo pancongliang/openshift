@@ -35,7 +35,7 @@ networking:
   - $SERVICE_CIDR
 platform:
   none: {} 
-fips: $FIPS
+fips: false
 pullSecret: '{"auths":{"${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000": {"auth": "$REGISTRY_ID_PW","email": "xxx@xxx.com"}}}' 
 sshKey: '$ID_RSA_PUB'
 additionalTrustBundle: | 
