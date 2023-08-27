@@ -102,11 +102,13 @@ export OCP_INSTALL_YAML="/root"
 
 
 echo ====== Check all variables ======
+# Define variables
+missing_variables=()
+
 # Define a function to check if a variable is set
 check_variable() {
     if [ -z "${!1}" ]; then
-        echo "Variable $1 is not set."
-        exit 1
+        missing_variables+=("$1")
     fi
 }
 
@@ -115,7 +117,7 @@ check_all_variables() {
     check_variable "OCP_RELEASE"
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
-    check_variable "ID_RSA_PUB"
+    check_variable "ID_RSA_PUB_FILE"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
@@ -180,5 +182,15 @@ check_all_variables() {
 
 # Call the function to check all variables
 check_all_variables
+
+# Display missing variables, if any
+if [ ${#missing_variables[@]} -gt 0 ]; then
+    echo "Missing or unset variables:"
+    for var in "${missing_variables[@]}"; do
+        echo "- $var"
+    done
+else
+    echo "All variables are set."
+fi
 
 #######################################################
