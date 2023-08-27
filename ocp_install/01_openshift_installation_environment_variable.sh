@@ -12,7 +12,6 @@ export NETWORK_TYPE="OVNKubernetes"              # OVNKubernetes or OpenShiftSDN
 export POD_CIDR="10.128.0.0/14"                  # Generally use the default value
 export HOST_PREFIX="23"                          # Generally use the default value
 export SERVICE_CIDR="172.30.0.0/16"              # Generally use the default value
-export FIPS=“false”                              # Generally use the default value
 
 #######  OpenShift infrastructure network ####### 
 export GATEWAY_IP="10.74.255.254"
@@ -122,7 +121,6 @@ check_all_variables() {
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
     check_variable "SERVICE_CIDR"
-    check_variable "FIPS"
     check_variable "GATEWAY_IP"
     check_variable "NETMASK"
     check_variable "DNS_FORWARDER_IP"
