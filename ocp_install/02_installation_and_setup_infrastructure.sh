@@ -37,10 +37,6 @@ for package in "${packages[@]}"; do
     check_package_installed "$package" || all_packages_installed=false
 done
 
-if $all_packages_installed; then
-
-fi
-
 # Add an empty line after the task
 echo
 
@@ -210,8 +206,8 @@ echo
 PRINT_TASK "[Setup nfs services]"
 
 # Create directories
-rm -rf ${NFS_DIR}
-mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV}
+rm -rf ${NFS_PATH}
+mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV}
 echo "ok: [Create nfs directories.]"
 
 # Add nfsnobody user if not exists
@@ -223,12 +219,12 @@ else
 fi
 
 # Change ownership and permissions
-chown -R nfsnobody.nfsnobody ${NFS_DIR}
-chmod -R 777 ${NFS_DIR}
+chown -R nfsnobody.nfsnobody ${NFS_PATH}
+chmod -R 777 ${NFS_PATH}
 echo "Changed: [Changed ownership and permissions.]"
 
 # Add NFS export configuration
-export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
+export_config_line="${NFS_PATH}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
     echo "warning: [NFS export configuration already exists.]"
 else
@@ -501,7 +497,7 @@ hostnames=(
     "${WORKER01_IP}"
     "${WORKER02_IP}"
     "${BOOTSTRAP_IP}"
-    "www.baidu.com"
+    "${NSLOOKUP_PUBLIC}"
 )
 
 # Loop through hostnames and perform nslookup
