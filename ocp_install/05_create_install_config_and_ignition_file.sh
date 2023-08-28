@@ -15,7 +15,7 @@ print_task() {
 #######################################################
 
 # Task: Generate a defined install-config file
-PRINT_TASK "[Generate a defined install-config file]"
+PRINT_TASK "[Task: Generate a defined install-config file]"
 
 # Define variables
 REGISTRY_CA_FILE="${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt"
@@ -78,7 +78,7 @@ echo
 #######################################################
 
 # Task:  Generate a manifests
-PRINT_TASK "[Generate a manifests]"
+PRINT_TASK "[Task: Generate a manifests]"
 # Create installation directory
 rm -rf "${IGNITION_PATH}"
 mkdir -p "${IGNITION_PATH}"
@@ -94,7 +94,7 @@ echo
 #######################################################
 
 # Task:  Disable master node scheduling
-PRINT_TASK "[Disable master node scheduling]"
+PRINT_TASK "[Task: Disable master node scheduling]"
 
 # Verify the initial value
 initial_value=$(grep "mastersSchedulable: true" "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml")
@@ -117,7 +117,7 @@ echo
 #######################################################
 
 # Task: Generate a ignition file
-PRINT_TASK "[Generate a ignition file]"
+PRINT_TASK "[Task: Generate a ignition file]"
 
 # Generate and modify ignition configuration files
 openshift-install create ignition-configs --dir "${IGNITION_PATH}"
@@ -130,7 +130,7 @@ echo
 #######################################################
 
 # Task: Generate an ignition file containing the node hostname
-PRINT_TASK "[Generate an ignition file containing the node hostname]"
+PRINT_TASK "[Task: Generate an ignition file containing the node hostname]"
 
 # Copy ignition files with appropriate hostnames
 cp "${IGNITION_PATH}/bootstrap.ign" "${IGNITION_PATH}/${BOOTSTRAP_HOSTNAME}-bak.ign"
@@ -221,7 +221,7 @@ echo
 #######################################################
 
 # Task: Set ignition file permissions and display generated files
-PRINT_TASK "[ignition file permissions and display generated files]"
+PRINT_TASK "[Task: ignition file permissions and display generated files]"
 
 # Set correct permissions and list files
 chmod a+r "${IGNITION_PATH}"/*.ign
