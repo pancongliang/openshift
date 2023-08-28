@@ -15,6 +15,8 @@ nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gatewa
 nmcli con down ${NET_IF_NAME}
 nmcli con up ${NET_IF_NAME}
 
+sudo sleep 10
+
 # Install CoreOS using Ignition
 sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/${HOSTNAME}.ign --insecure-ignition --firstboot-args 'rd.neednet=1' --copy-network
 EOF
