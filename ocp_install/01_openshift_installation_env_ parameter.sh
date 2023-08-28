@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#######################################################
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=45  # Adjust this to your desired maximum length
@@ -12,11 +10,10 @@ PRINT_TASK() {
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
 
-############# Variable needs to be change ##############
-
 # Task: Set environment variables
 PRINT_TASK "[Set environment variables]"
 
+#### Set the necessary variables ####
 # OpenShift version
 export OCP_RELEASE="4.10.20"
 
@@ -24,10 +21,7 @@ export OCP_RELEASE="4.10.20"
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export ID_RSA_PUB_FILE="/root/.ssh/id_rsa.pub"
-export NETWORK_TYPE="OVNKubernetes"              # OVNKubernetes or OpenShiftSDN
-export POD_CIDR="10.128.0.0/14"                  # Generally use the default value
-export HOST_PREFIX="23"                          # Generally use the default value
-export SERVICE_CIDR="172.30.0.0/16"              # Generally use the default value
+export NETWORK_TYPE="OVNKubernetes"
 
 # OpenShift infrastructure network
 export GATEWAY_IP="10.74.255.254"
@@ -52,32 +46,30 @@ export BOOTSTRAP_IP="10.74.255.118"
 
 # OpenShift Coreos install dev/Net ifname
 export COREOS_INSTALL_DEV="/dev/sda"
-export NET_IF_NAME="'Wired connection 1'"    # nmcli con show
+export NET_IF_NAME="'Wired connection 1'" 
 
 # Registry and mirror variable
 export REGISTRY_HOSTNAME="docker.registry"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="redhat"
-export PULL_SECRET="/root/pull-secret"                # Download https://console.redhat.com/openshift/install/metal/installer-provisioned
-export REGISTRY_CERT_PATH="/etc/certs"
-export REGISTRY_INSTALL_PATH="/opt/registry"          # Store registry auth/certs/data
+export PULL_SECRET="/root/pull-secret"                # Download pull-secret https://console.redhat.com/openshift/install/metal/installer-provisioned
+export REGISTRY_CERT_PATH="/etc/certs"                # No need to manually create dir
+export REGISTRY_INSTALL_PATH="/opt/registry"          # No need to manually create dir
 
 # NFS directory is used to create image-registry pod pv
-export NFS_PATH="/nfs"
-export IMAGE_REGISTRY_PV="image-registry"
+export NFS_PATH="/nfs"                                # No need to manually create dir
+export IMAGE_REGISTRY_PV="image-registry"             # No need to manually create dir
 
 # Httpd and ocp ignition dir
-export HTTPD_PATH="/var/www/html/materials"
-export IGNITION_PATH="${HTTPD_PATH}/pre"
+export HTTPD_PATH="/var/www/html/materials"           # No need to manually create dir
+export IGNITION_PATH="${HTTPD_PATH}/pre"              # No need to manually create dir
 
-################## No need to change ##################
 
-# Create the directory if it doesn't exist
-mkdir -p ${REGISTRY_CERT_PATH}
-mkdir -p ${REGISTRY_INSTALL_PATH}
-mkdir -p ${NFS_PATH}
-mkdir -p ${HTTPD_PATH}
-mkdir -p ${IGNITION_PATH}
+### More change options ###
+# OpenShift install-config
+export POD_CIDR="10.128.0.0/14"                       # Generally use the default value
+export HOST_PREFIX="23"                               # Generally use the default value
+export SERVICE_CIDR="172.30.0.0/16"                   # Generally use the default value
 
 # Download ocp image
 export LOCAL_REPOSITORY="ocp4/openshift4"
@@ -85,14 +77,21 @@ export PRODUCT_REPO="openshift-release-dev"
 export RELEASE_NAME="ocp-release"
 export ARCHITECTURE="x86_64"
 
+
+### Do not change the following parameters ###
+# Create the directory if it doesn't exist
+mkdir -p ${REGISTRY_CERT_PATH}
+mkdir -p ${REGISTRY_INSTALL_PATH}
+mkdir -p ${NFS_PATH}
+mkdir -p ${HTTPD_PATH}
+mkdir -p ${IGNITION_PATH}
+
 # Function to generate duplicate IP address
 export DNS_IP="$BASTION_IP"
 export REGISTRY_IP="$BASTION_IP"
 export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
-
-sleep 1
 
 # Function to generate reversed DNS, Generate reversed DNS for each IP and store as variables
 generate_reverse_ip() {
@@ -120,9 +119,8 @@ export REVERSE_ZONE_FILE_NAME="$REVERSED_IP_PART.zone"
 export FORWARD_ZONE="$BASE_DOMAIN"
 export FORWARD_ZONE_FILE_NAME="$BASE_DOMAIN.zone"
 
-#######################################################
 
-# Check all variables
+### Check all variables ####
 # Define variables
 missing_variables=()
 
