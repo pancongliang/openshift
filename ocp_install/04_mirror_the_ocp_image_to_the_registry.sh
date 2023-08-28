@@ -1,6 +1,17 @@
 #!/bin/bash
 #######################################################
 
+echo ====== Registry login authentication file ======
+# Login to the registry
+podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000"
+
+# Check the return code of the podman login command
+if [ $? -eq 0 ]; then
+    echo "Successfully logged in to the registry."
+else
+    echo "Failed to log in to the registry."
+fi
+
 echo ====== Mirror the ocp image to the registry ======
 # Execute oc adm release mirror command
 oc adm -a ${{PULL_SECRET}} release mirror \
