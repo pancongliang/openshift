@@ -130,7 +130,7 @@ update_httpd_listen_port() {
     if [ "$listen_port" != "8080" ]; then
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
         systemctl restart httpd
-        echo "ok: [Apache HTTP Server's listen port has been changed to 8080.]"
+        echo "ok: [Apache HTTP Server's listen port has been changed to 8080]"
     fi
 }
 
@@ -169,7 +169,7 @@ check_virtual_host_configuration
 # Enable and start httpd service
 systemctl enable httpd
 systemctl start httpd
-echo "in progress: Restarting httpd service....]"
+echo "in progress: Restarting httpd service...]"
 sleep 10
 
 # Check if a service is enabled and running
@@ -177,15 +177,15 @@ check_service() {
     service_name=$1
 
     if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is enabled.]"
+        echo "ok: [$service_name service is enabled]"
     else
-        echo "failed: $service_name service is not enabled.]"
+        echo "failed: $service_name service is not enabled]"
     fi
 
     if systemctl is-active "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is running.]"
+        echo "ok: [$service_name service is running]"
     else
-        echo "failed: [$service_name service is not running.]"
+        echo "failed: [$service_name service is not running]"
     fi
 }
 
@@ -208,34 +208,34 @@ PRINT_TASK "[Setup nfs services]"
 # Create directories
 rm -rf ${NFS_PATH}
 mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV}
-echo "ok: [Create nfs directories.]"
+echo "ok: [Create nfs directories]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" &>/dev/null; then
-    echo "warning: [nfsnobody user exists.]"
+    echo "warning: [nfsnobody user exists]"
 else
     useradd nfsnobody
-    echo "ok: [nfsnobody user added.]"
+    echo "ok: [nfsnobody user added]"
 fi
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_PATH}
 chmod -R 777 ${NFS_PATH}
-echo "Changed: [Changed ownership and permissions.]"
+echo "Changed: [Changed ownership and permissions]"
 
 # Add NFS export configuration
 export_config_line="${NFS_PATH}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "warning: [NFS export configuration already exists.]"
+    echo "warning: [NFS export configuration already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo "ok: [NFS export configuration added.]"
+    echo "ok: [NFS export configuration added]"
 fi
 
 # Enable and start nfs-server service
 systemctl enable nfs-server
 systemctl restart nfs-server
-echo "In progress: Restarting nfs-server service....]"
+echo "In progress: Restarting nfs-server service...]"
 sleep 10
 
 # Check if a service is enabled and running
@@ -243,15 +243,15 @@ check_service() {
     service_name=$1
 
     if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is enabled.]"
+        echo "ok: [$service_name service is enabled]"
     else
-        echo "failed: [$service_name service is not enabled.]"
+        echo "failed: [$service_name service is not enabled]"
     fi
 
     if systemctl is-active "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is running.]"
+        echo "ok: [$service_name service is running]"
     else
-        echo "faild: [$service_name service is not running.]"
+        echo "faild: [$service_name service is not running]"
     fi
 }
 
@@ -421,37 +421,37 @@ echo "ok: [Change ownership /var/named/*.zone."
 if named-checkconf &>/dev/null; then
     echo "ok: [Setup named service configuration, named configuration is valid."
 else
-    echo "failed: [Setup named service configuration, Named configuration is invalid.]"
+    echo "failed: [Setup named service configuration, Named configuration is invalid]"
 fi
 
 # Check forward zone file
 if named-checkzone ${BASE_DOMAIN} /var/named/${BASE_DOMAIN}.zone &>/dev/null; then
-    echo "ok: [Add DNS forwarder IP.]"
-    echo "ok: [Create forward zone file, forward zone file is valid.]"
+    echo "ok: [Add DNS forwarder IP]"
+    echo "ok: [Create forward zone file, forward zone file is valid]"
 else
-    echo "failed: [Create forward zone file, Forward zone file is invalid.]"
+    echo "failed: [Create forward zone file, Forward zone file is invalid]"
 fi
 
 # Check reverse zone file
 if named-checkzone ${REVERSE_ZONE_FILE_NAME} /var/named/${REVERSE_ZONE_FILE_NAME} &>/dev/null; then
-    echo "ok: [Create reverse zone file，reverse zone file is valid.]"
+    echo "ok: [Create reverse zone file，reverse zone file is valid]"
 else
-    echo "failed: [Create reverse zone file，reverse zone file is invalid.]"
+    echo "failed: [Create reverse zone file，reverse zone file is invalid]"
 fi
 
 # Check if the same DNS IP exists in resolv.conf, if not, add it.
 if ! grep -q "nameserver ${DNS_SERVER}" /etc/resolv.conf; then
     # Add the DNS server configuration
     echo "nameserver ${DNS_SERVER}" >> /etc/resolv.conf
-    echo "ok: [Add DNS IP to /etc/resolv.conf.]"
+    echo "ok: [Add DNS IP to /etc/resolv.conf]"
 else
-    echo "warning: [DNS IP already exists in /etc/resolv.conf.]"
+    echo "warning: [DNS IP already exists in /etc/resolv.conf]"
 fi
 
 # Enable and start named service
 systemctl enable named
 systemctl restart named
-echo "In progress: Restarting named service....]"
+echo "In progress: Restarting named service...]"
 sleep 10
 
 
@@ -460,13 +460,13 @@ check_service() {
     service_name=$1
 
     if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is enabled.]"
+        echo "ok: [$service_name service is enabled]"
     else
-        echo "failed: [$service_name service is not enabled.]"
+        echo "failed: [$service_name service is not enabled]"
     fi
 
     if systemctl is-active "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is running.]"
+        echo "ok: [$service_name service is running]"
     else
         echo "failed: $service_name service is not running."
     fi
@@ -514,7 +514,7 @@ done
 
 # Display results
 if [ "$all_successful" = true ]; then
-    echo "ok: [Resolve all Domain/IP addresses.]"
+    echo "ok: [Resolve all Domain/IP addresses]"
 else
     echo "failed: [DNS resolution failed for the following hostnames:]"
     for failed_hostname in "${failed_hostnames[@]}"; do
@@ -606,9 +606,9 @@ CONFIG_FILE="/etc/haproxy/haproxy.cfg"
 check_haproxy_config() {
     haproxy -c -f "$CONFIG_FILE"
     if [ $? -eq 0 ]; then
-        echo "ok: [Setup Haproxy service configuration, HAProxy configuration is valid.]"
+        echo "ok: [Setup Haproxy service configuration, HAProxy configuration is valid]"
     else
-        echo "failed: [Setup Haproxy service configuration,HAProxy configuration is invalid.]"
+        echo "failed: [Setup Haproxy service configuration,HAProxy configuration is invalid]"
     fi
 }
 
@@ -618,7 +618,7 @@ check_haproxy_config
 # Enable and start HAProxy service
 systemctl enable haproxy
 systemctl start haproxy
-echo "In progress: Restarting haproxy service....]"
+echo "In progress: Restarting haproxy service...]"
 sleep 5
 
 # Check if a service is enabled and running
@@ -626,15 +626,15 @@ check_service() {
     service_name=$1
 
     if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is enabled.]"
+        echo "ok: [$service_name service is enabled]"
     else
-        echo "failed: [$service_name service is not enabled.]"
+        echo "failed: [$service_name service is not enabled]"
     fi
 
     if systemctl is-active "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is running.]"
+        echo "ok: [$service_name service is running]"
     else
-        echo "failed: [$service_name service is not running.]"
+        echo "failed: [$service_name service is not running]"
     fi
 }
 
