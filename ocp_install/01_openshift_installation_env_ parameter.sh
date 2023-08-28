@@ -53,7 +53,7 @@ export NFS_PATH="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
 
 ####### Httpd and ocp ignition dir #######
-export HTTPD_PATH="/var/www/html/materials"          #         
+export HTTPD_PATH="/var/www/html/materials"
 export IGNITION_PATH="${HTTPD_PATH}/pre"
 
 #######################################################
