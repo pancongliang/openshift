@@ -1,8 +1,21 @@
 
 #!/bin/bash
-#######################################################
 
-echo ====== Install infrastructure rpm ======
+# Function to print a task with uniform length
+PRINT_TASK() {
+    max_length=45  # Adjust this to your desired maximum length
+    task_title="$1"
+    title_length=${#task_title}
+    stars=$((max_length - title_length))
+
+    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+}
+
+######
+
+# Task: Install infrastructure rpm
+PRINT_TASK "[Install infrastructure rpm]"
+
 # Install infrastructure rpm
 packages=("wget" "net-tools" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "httpd-manual")
 yum install -y vim &>/dev/null
@@ -12,27 +25,28 @@ yum install -y "${packages[@]}" &>/dev/null
 check_package_installed() {
     package_name=$1
     if rpm -q "$package_name" &>/dev/null; then
-        echo "$package_name is installed successfully."
+        echo "ok: [$package_name is installed successfully.]"
     else
-        echo "Error: $package_name installation failed."
+        echo "failed: [$package_name installation failed.]"
     fi
 }
 
-# Check and display package installation status
-all_packages_installed=true
-for package in "${packages[@]}"; do
-    check_package_installed "$package" || all_packages_installed=false
-done
+# Add an empty line after the task
+echo
 
-if $all_packages_installed; then
-    echo "All packages are installed successfully."
-fi
-
-#######################################################
+######
 
 
+# Task: Install openshift tool
+PRINT_TASK "[Install openshift tool]"
 
-echo ====== Install openshift tool ======
+# Delete openshift tool
+rm -rf /usr/local/bin/butane
+rm -rf /usr/local/bin/kubectl
+rm -rf /usr/local/bin/oc
+rm -rf /usr/local/bin/oc-mirror
+rm -rf /usr/local/bin/openshift-install
+
 # Install openshift tool
 wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_RELEASE/openshift-install-linux.tar.gz
 tar xvf openshift-install-linux.tar.gz -C /usr/local/bin/ && rm -rf openshift-install-linux.tar.gz
@@ -40,10 +54,10 @@ tar xvf openshift-install-linux.tar.gz -C /usr/local/bin/ && rm -rf openshift-in
 wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz
 tar xvf openshift-client-linux.tar.gz -C /usr/local/bin/ && rm -rf /usr/local/bin/README.md && rm -rf openshift-client-linux.tar.gz
 
-curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
+wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
 tar -xvf oc-mirror.tar.gz -C /usr/local/bin/ && chmod a+x /usr/local/bin/oc-mirror && rm -rf oc-mirror.tar.gz
 
-wegt https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane
+wget https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane
 chmod a+x butane && mv butane /usr/local/bin/
 
 # Check if a command is available
@@ -51,13 +65,11 @@ check_command() {
     if command -v "$1" &>/dev/null; then
         help_output=$("$1" --help | grep -q "help")
         if [[ $? -eq 0 ]]; then
-            echo "$1 command is installed successfully."
+            echo "ok: [$1 command is installed successfully.]"
         else
-            echo "$1 command installation failed."
+            echo "failed: [$1 command installation failed.]"
+            return 1
         fi
-    else
-        echo "$1 command installation failed."
-        return 1
     fi
 }
 
@@ -69,11 +81,13 @@ for cmd in "${commands[@]}"; do
     check_command "$cmd"
 done
 
-#######################################################
+# Add an empty line after the task
+echo
 
+######
 
-
-echo ====== Setup and check httpd services ======
+# Task: Setup and check httpd services
+PRINT_TASK "[Setup and check httpd services]"
 
 # Update httpd listen port
 update_httpd_listen_port() {
@@ -81,7 +95,7 @@ update_httpd_listen_port() {
     if [ "$listen_port" != "8080" ]; then
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
         systemctl restart httpd
-        echo "Apache HTTP Server's listen port has been changed to 8080."
+        echo "ok: [Apache HTTP Server's listen port has been changed to 8080.]"
     fi
 }
 
@@ -102,9 +116,9 @@ check_virtual_host_configuration() {
     virtual_host_config="/etc/httpd/conf.d/base.conf"
     if grep -q "ServerName $expected_server_name" "$virtual_host_config" && \
        grep -q "DocumentRoot $expected_document_root" "$virtual_host_config"; then
-        echo "Virtual host configuration is valid."
+        echo "ok: [Create virtual host configuration successfully.]"
     else
-        echo "Error: Virtual host configuration is not valid."
+        echo "failed: Create virtual host configuration failed."
     fi
 }
 
@@ -117,25 +131,26 @@ create_virtual_host_config
 # Check virtual host configuration
 check_virtual_host_configuration
 
-# Enable and start HAProxy service
+# Enable and start httpd service
 systemctl enable httpd
 systemctl start httpd
-sleep 5
+echo "in progress: Restarting httpd service....]"
+sleep 10
 
 # Check if a service is enabled and running
 check_service() {
     service_name=$1
 
     if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "$service_name service is enabled."
+        echo "ok: [$service_name service is enabled.]"
     else
-        echo "Error: $service_name service is not enabled."
+        echo "failed: $service_name service is not enabled.]"
     fi
 
     if systemctl is-active "$service_name" &>/dev/null; then
-        echo "$service_name service is running."
+        echo "ok: [$service_name service is running.]"
     else
-        echo "Error: $service_name service is not running."
+        echo "failed: [$service_name service is not running.]"
     fi
 }
 
@@ -147,54 +162,61 @@ for service in "${services[@]}"; do
     check_service "$service"
 done
 
-#######################################################
+# Add an empty line after the task
+echo
 
+######
 
+# Task: Setup nfs services
+PRINT_TASK "[Setup nfs services]"
 
-echo ====== Setup nfs services ======
 # Create directories
 rm -rf ${NFS_DIR}
 mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV}
+echo "ok: [Create nfs directories.]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" &>/dev/null; then
-    echo "nfsnobody user exists."
+    echo "warning: [nfsnobody user exists.]"
 else
     useradd nfsnobody
-    echo "nfsnobody user added."
+    echo "ok: [nfsnobody user added.]"
 fi
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_DIR}
 chmod -R 777 ${NFS_DIR}
+echo "Changed: [Changed ownership and permissions.]"
 
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "NFS export configuration already exists."
+    echo "warning: [NFS export configuration already exists.]"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo "NFS export configuration added."
+    echo "ok: [NFS export configuration added.]"
 fi
 
 # Enable and start nfs-server service
 systemctl enable nfs-server
 systemctl restart nfs-server
+echo "In progress: Restarting nfs-server service....]"
+sleep 10
 
 # Check if a service is enabled and running
 check_service() {
     service_name=$1
 
     if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "$service_name service is enabled."
+        echo "ok: [$service_name service is enabled.]"
     else
-        echo "Error: $service_name service is not enabled."
+        echo "failed: [$service_name service is not enabled.]"
     fi
 
     if systemctl is-active "$service_name" &>/dev/null; then
-        echo "$service_name service is running."
+        echo "ok: [$service_name service is running.]"
     else
-        echo "Error: $service_name service is not running."
+        echo "faild: [$service_name service is not running.]"
     fi
 }
 
@@ -206,11 +228,14 @@ for service in "${services[@]}"; do
     check_service "$service"
 done
 
+# Add an empty line after the task
+echo
+######
 
 
-#######################################################
-#!/bin/bash
-echo ====== Setup named services ======
+# Task: Setup named services
+PRINT_TASK "[Setup named services]"
+
 # Setup named services configuration
 cat << EOF > /etc/named.conf
 options {
@@ -280,7 +305,6 @@ zone "." IN {
 include "/etc/named.rfc1912.zones";
 //include "/etc/named.root.key";
 EOF
-echo "Named service configuration is completed."
 
 # Create forward zone file
 cat << EOF >  /var/named/${BASE_DOMAIN}.zone
@@ -321,7 +345,6 @@ ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.          IN      A       $
 ; Create entries for the mirror registry hosts.
 ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.                           IN      A       ${REGISTRY_IP}
 EOF
-echo "Forward zone file created."
 
 # Create reverse zone file
 cat << EOF >  /var/named/${REVERSE_ZONE_FILE_NAME}
@@ -354,60 +377,62 @@ ${WORKER02_REVERSE_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_
 ; Create an entry for the bootstrap host.
 ${BOOTSTRAP_REVERSE_IP}          IN      PTR     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 EOF
-echo "Reverse zone file created."
-
-# Check if the DNS server is already configured in resolv.conf
-if ! grep -q "nameserver $DNS_SERVER" /etc/resolv.conf; then
-    # Add the DNS server configuration
-    echo "nameserver $DNS_SERVER" >> /etc/resolv.conf
-    echo "Added DNS server configuration to /etc/resolv.conf."
-else
-    echo "DNS server configuration already exists in /etc/resolv.conf."
-fi
 
 # Change ownership
 chown named. /var/named/*.zone
 
 # Check named configuration file
 if named-checkconf &>/dev/null; then
-    echo "Named configuration is valid."
+    echo "ok: [Setup named service configuration, named configuration is valid."
 else
-    echo "Error: Named configuration is invalid."
+    echo "failed: [Setup named service configuration, Named configuration is invalid.]"
 fi
 
 # Check forward zone file
 if named-checkzone ${BASE_DOMAIN} /var/named/${BASE_DOMAIN}.zone &>/dev/null; then
-    echo "Forward zone file is valid."
+    echo "ok: [Add DNS forwarder IP.]"
+    echo "ok: [Create forward zone file, forward zone file is valid.]"
 else
-    echo "Error: Forward zone file is invalid."
+    echo "failed: [Create forward zone file, Forward zone file is invalid.]"
 fi
 
 # Check reverse zone file
 if named-checkzone ${REVERSE_ZONE_FILE_NAME} /var/named/${REVERSE_ZONE_FILE_NAME} &>/dev/null; then
-    echo "Reverse zone file is valid."
+    echo "ok: [Create reverse zone file，reverse zone file is valid.]"
 else
-    echo "Error: Reverse zone file is invalid."
+    echo "failed: [Create reverse zone file，reverse zone file is invalid.]"
+fi
+
+# Check if the same DNS IP exists in resolv.conf, if not, add it.
+if ! grep -q "nameserver ${DNS_SERVER}" /etc/resolv.conf; then
+    # Add the DNS server configuration
+    echo "nameserver ${DNS_SERVER}" >> /etc/resolv.conf
+    echo "ok: [Add DNS IP to /etc/resolv.conf.]"
+else
+    echo "warning: [DNS IP already exists in /etc/resolv.conf.]"
 fi
 
 # Enable and start named service
 systemctl enable named
 systemctl restart named
-sleep 5
+echo "In progress: Restarting named service....]"
+sleep 10
+
 
 # Check if a service is enabled and running
 check_service() {
     service_name=$1
 
     if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "$service_name service is enabled."
+        echo "ok: [$service_name service is enabled.]"
     else
-        echo "Error: $service_name service is not enabled."
+        echo "failed: [$service_name service is not enabled.]"
     fi
 
     if systemctl is-active "$service_name" &>/dev/null; then
-        echo "$service_name service is running."
+        echo "ok: [$service_name service is running.]"
     else
-        echo "Error: $service_name service is not running."
+        echo "failed: $service_name service is not running."
     fi
 }
 
@@ -436,6 +461,7 @@ hostnames=(
     "${WORKER01_IP}"
     "${WORKER02_IP}"
     "${BOOTSTRAP_IP}"
+    "www.baidu.com"
 )
 
 # Loop through hostnames and perform nslookup
@@ -452,18 +478,23 @@ done
 
 # Display results
 if [ "$all_successful" = true ]; then
-    echo "All DNS resolutions were successful."
+    echo "ok: [Resolve all Domain/IP addresses.]"
 else
-    echo "DNS resolution failed for the following hostnames:"
+    echo "failed: [DNS resolution failed for the following hostnames:]"
     for failed_hostname in "${failed_hostnames[@]}"; do
         echo "$failed_hostname"
     done
 fi
 
-#######################################################
+# Add an empty line after the task
+echo
+
+######
 
 
-echo ====== Setup haproxy services ======
+# Task: Setup haproxy services
+PRINT_TASK "[Setup haproxy services]"
+
 # Setup haproxy services configuration
 cat << EOF > /etc/haproxy/haproxy.cfg 
 global
@@ -531,7 +562,6 @@ listen default-ingress-router-443
   server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check inter 1s
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
 EOF
-echo "Haproxy service configuration is completed."
 
 # Path to HAProxy configuration file
 CONFIG_FILE="/etc/haproxy/haproxy.cfg"
@@ -540,9 +570,9 @@ CONFIG_FILE="/etc/haproxy/haproxy.cfg"
 check_haproxy_config() {
     haproxy -c -f "$CONFIG_FILE"
     if [ $? -eq 0 ]; then
-        echo "HAProxy configuration is valid."
+        echo "ok: [Setup Haproxy service configuration, HAProxy configuration is valid.]"
     else
-        echo "HAProxy configuration is invalid."
+        echo "failed: [Setup Haproxy service configuration,HAProxy configuration is invalid.]"
     fi
 }
 
@@ -552,6 +582,7 @@ check_haproxy_config
 # Enable and start HAProxy service
 systemctl enable haproxy
 systemctl start haproxy
+echo "In progress: Restarting haproxy service....]"
 sleep 5
 
 # Check if a service is enabled and running
@@ -559,15 +590,15 @@ check_service() {
     service_name=$1
 
     if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "$service_name service is enabled."
+        echo "ok: [$service_name service is enabled.]"
     else
-        echo "Error: $service_name service is not enabled."
+        echo "failed: [$service_name service is not enabled.]"
     fi
 
     if systemctl is-active "$service_name" &>/dev/null; then
-        echo "$service_name service is running."
+        echo "ok: [$service_name service is running.]"
     else
-        echo "Error: $service_name service is not running."
+        echo "failed: [$service_name service is not running.]"
     fi
 }
 
