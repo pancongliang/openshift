@@ -14,7 +14,7 @@ PRINT_TASK() {
 ######
 
 # Task: Install infrastructure rpm
-PRINT_TASK "[Task: Install infrastructure rpm]"
+PRINT_TASK "[TASK: Install infrastructure rpm]"
 
 # Install infrastructure rpm
 packages=("wget" "net-tools" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "httpd-manual")
@@ -44,7 +44,7 @@ echo
 
 
 # Task: Install openshift tool
-PRINT_TASK "[Task: Install openshift tool]"
+PRINT_TASK "[TASK: Install openshift tool]"
 
 # Delete openshift tool
 files=(
@@ -122,7 +122,7 @@ echo
 ######
 
 # Task: Setup and check httpd services
-PRINT_TASK "[Task: Setup and check httpd services]"
+PRINT_TASK "[TASK: Setup and check httpd services]"
 
 # Update httpd listen port
 update_httpd_listen_port() {
@@ -203,7 +203,7 @@ echo
 ######
 
 # Task: Setup nfs services
-PRINT_TASK "[Task: Setup nfs services]"
+PRINT_TASK "[TASK: Setup nfs services]"
 
 # Create directories
 rm -rf ${NFS_PATH}
@@ -269,7 +269,7 @@ echo
 
 
 # Task: Setup named services
-PRINT_TASK "[Task: Setup named services]"
+PRINT_TASK "[TASK: Setup named services]"
 
 # Setup named services configuration
 cat << EOF > /etc/named.conf
@@ -529,7 +529,7 @@ echo
 
 
 # Task: Setup HAproxy services
-PRINT_TASK "[Task: Setup HAproxy services]"
+PRINT_TASK "[TASK: Setup HAproxy services]"
 
 # Setup haproxy services configuration
 cat << EOF > /etc/haproxy/haproxy.cfg 
