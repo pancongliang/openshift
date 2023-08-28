@@ -11,7 +11,7 @@ PRINT_TASK() {
 }
 
 # Task: Set environment variables
-PRINT_TASK "[Set environment variables]"
+PRINT_TASK "[Task: Set environment variables]"
 
 #### Set the necessary variables ####
 # OpenShift version
