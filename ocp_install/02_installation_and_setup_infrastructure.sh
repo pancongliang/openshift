@@ -419,7 +419,7 @@ echo "ok: [Change ownership /var/named/*.zone."
 
 # Check named configuration file
 if named-checkconf &>/dev/null; then
-    echo "ok: [Setup named service configuration, named configuration is valid."
+    echo "ok: [Setup named service configuration, named configuration is valid]"
 else
     echo "failed: [Setup named service configuration, Named configuration is invalid]"
 fi
