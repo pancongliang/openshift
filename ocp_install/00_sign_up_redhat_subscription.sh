@@ -10,6 +10,6 @@ echo -e "\r"
 
 subscription-manager register --force --user ${SUB_USER} --password ${SUB_PASSWD}
 subscription-manager refresh
-subscription-manager list --available --matches '*OpenShift Container Platform,*' | grep "Pool ID"
+subscription-manager list --available --matches '*OpenShift Container Platform*' | grep "Pool ID"
 read -p "Please input the Pool ID you got:" POOL_ID
 subscription-manager attach --pool=${POOL_ID}
