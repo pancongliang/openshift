@@ -191,6 +191,7 @@ check_all_variables() {
     check_variable "REVERSE_ZONE_FILE_NAME"
     check_variable "FORWARD_ZONE"
     check_variable "FORWARD_ZONE_FILE_NAME"
+    check_variable "NSLOOKUP_PUBLIC"
     check_variable "LOCAL_REPOSITORY"
     check_variable "PRODUCT_REPO"
     check_variable "RELEASE_NAME"
