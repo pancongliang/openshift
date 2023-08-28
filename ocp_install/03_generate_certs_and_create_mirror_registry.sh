@@ -1,7 +1,7 @@
 #!/bin/bash
 #######################################################
 
-echo ====== Check if there is an existing certificate ======
+# Check if there is an existing certificate
 # Define the certificate file paths
 certificate_paths=(
     "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt
@@ -136,7 +136,7 @@ check_container_exists() {
 # Call the function to check if the container exists
 check_container_exists
 
-echo ====== Run registry container ======
+echo ====== Create mirror registry container ======
 podman run \
     --name mirror-registry \
     -p 5000:5000 \
