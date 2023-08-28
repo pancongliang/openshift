@@ -48,14 +48,14 @@ PRINT_TASK "[Install openshift tool]"
 
 # Delete openshift tool
 files=(
-    "/usr/local/bin/butane1"
-    "/usr/local/bin/kubectl"
-    "/usr/local/bin/oc"
-    "/usr/local/bin/oc-mirror"
-    "/usr/local/bin/openshift-install*"
-    "/usr/local/bin/openshift-install-linux.tar.gz"
-    "/usr/local/bin/openshift-client-linux.tar.gz"
-    "/usr/local/bin/oc-mirror.tar.gz"
+    "/usr/local/bin/butane1*"
+    "/usr/local/bin/kubectl*"
+    "/usr/local/bin/oc*"
+    "/usr/local/bin/oc-mirror*"
+    "/usr/local/bin/openshift-install**"
+    "/usr/local/bin/openshift-install-linux.tar.gz*"
+    "/usr/local/bin/openshift-client-linux.tar.gz*"
+    "/usr/local/bin/oc-mirror.tar.gz*"
 )
 
 for file in "${files[@]}"; do
