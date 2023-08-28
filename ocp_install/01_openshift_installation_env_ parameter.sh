@@ -119,6 +119,8 @@ export REVERSE_ZONE_FILE_NAME="$REVERSED_IP_PART.zone"
 export FORWARD_ZONE="$BASE_DOMAIN"
 export FORWARD_ZONE_FILE_NAME="$BASE_DOMAIN.zone"
 
+# Nslookup public network
+export NSLOOKUP_PUBLIC="redhat.com"
 
 ### Check all variables ####
 # Define variables
