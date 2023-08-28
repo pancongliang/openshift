@@ -1,10 +1,26 @@
 #!/bin/bash
-###### Variable needs to be change ######
 
-#######  OpenShift version ####### 
+#######################################################
+
+# Function to print a task with uniform length
+PRINT_TASK() {
+    max_length=45  # Adjust this to your desired maximum length
+    task_title="$1"
+    title_length=${#task_title}
+    stars=$((max_length - title_length))
+
+    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+}
+
+############# Variable needs to be change ##############
+
+# Task: Set environment variables
+PRINT_TASK "[Set environment variables]"
+
+# OpenShift version
 export OCP_RELEASE="4.10.20"
 
-#######  OpenShift install-config ####### 
+# OpenShift install-config
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export ID_RSA_PUB_FILE="/root/.ssh/id_rsa.pub"
@@ -12,15 +28,13 @@ export NETWORK_TYPE="OVNKubernetes"              # OVNKubernetes or OpenShiftSDN
 export POD_CIDR="10.128.0.0/14"                  # Generally use the default value
 export HOST_PREFIX="23"                          # Generally use the default value
 export SERVICE_CIDR="172.30.0.0/16"              # Generally use the default value
-export SERVICE_CIDR="172.30.0.0/16"
 
-
-#######  OpenShift infrastructure network ####### 
+# OpenShift infrastructure network
 export GATEWAY_IP="10.74.255.254"
 export NETMASK="21"
 export DNS_FORWARDER_IP="10.75.5.25"
 
-#######  OpenShift Node Hostname/IP variable ####### 
+# OpenShift Node Hostname/IP variable
 export BASTION_HOSTNAME="bastion"
 export BOOTSTRAP_HOSTNAME="bootstrap"
 export MASTER01_HOSTNAME="master01"
@@ -36,11 +50,11 @@ export WORKER01_IP="10.74.251.58"
 export WORKER02_IP="10.74.253.49"
 export BOOTSTRAP_IP="10.74.255.118"
 
-#######  OpenShift Node disk/interface ####### 
+# OpenShift Coreos install dev/Net ifname
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'"    # nmcli con show
 
-#######  Registry and mirror variable ####### 
+# Registry and mirror variable
 export REGISTRY_HOSTNAME="docker.registry"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="redhat"
@@ -48,31 +62,30 @@ export PULL_SECRET="/root/pull-secret"                # Download https://console
 export REGISTRY_CERT_PATH="/etc/certs"
 export REGISTRY_INSTALL_PATH="/opt/registry"          # Store registry auth/certs/data
 
-#######  NFS directory is used to create image-registry pod pv ####### 
+# NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
 
-####### Httpd and ocp ignition dir #######
+# Httpd and ocp ignition dir
 export HTTPD_PATH="/var/www/html/materials"
 export IGNITION_PATH="${HTTPD_PATH}/pre"
 
-#######################################################
-####### No need to change #######
+################## No need to change ##################
 
-####### Create the directory if it doesn't exist #######
+# Create the directory if it doesn't exist
 mkdir -p ${REGISTRY_CERT_PATH}
 mkdir -p ${REGISTRY_INSTALL_PATH}
 mkdir -p ${NFS_PATH}
 mkdir -p ${HTTPD_PATH}
 mkdir -p ${IGNITION_PATH}
 
-####### Download ocp image #######
+# Download ocp image
 export LOCAL_REPOSITORY="ocp4/openshift4"
 export PRODUCT_REPO="openshift-release-dev" 
 export RELEASE_NAME="ocp-release"
 export ARCHITECTURE="x86_64"
 
-####### Function to generate duplicate IP address #######
+# Function to generate duplicate IP address
 export DNS_IP="$BASTION_IP"
 export REGISTRY_IP="$BASTION_IP"
 export API_IP="$BASTION_IP"
@@ -81,7 +94,7 @@ export APPS_IP="$BASTION_IP"
 
 sleep 1
 
-####### Function to generate reversed DNS, Generate reversed DNS for each IP and store as variables #######
+# Function to generate reversed DNS, Generate reversed DNS for each IP and store as variables
 generate_reverse_ip() {
   local ip="$1"
   reversed_dns=$(echo "$ip" | awk -F'.' '{print $4"."$3}')
@@ -99,7 +112,7 @@ export BOOTSTRAP_REVERSE_IP=$(generate_reverse_ip "$BOOTSTRAP_IP")
 export API_REVERSE_IP=$(generate_reverse_ip "$API_IP")
 export API_INT_REVERSE_IP=$(generate_reverse_ip "$API_INT_IP")
 
-####### Function to generate reversed_ip_par/zone name #######
+# Function to generate reversed_ip_par/zone name
 export IP_PART=$(echo "$BASTION_IP" | cut -d. -f1-2)
 export REVERSED_IP_PART=$(echo "$IP_PART" | awk -F'.' '{print $2"."$1}')
 export REVERSE_ZONE="$REVERSED_IP_PART.in-addr.arpa"
@@ -109,7 +122,7 @@ export FORWARD_ZONE_FILE_NAME="$BASE_DOMAIN.zone"
 
 #######################################################
 
-echo ====== Check all variables ======
+# Check all variables
 # Define variables
 missing_variables=()
 
