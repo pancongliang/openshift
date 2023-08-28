@@ -184,8 +184,7 @@ check_all_variables() {
     check_variable "ARCHITECTURE"
     check_variable "HTTPD_PATH"
     check_variable "IGNITION_PATH"
-    # If all variables are set, display a success message
-    echo "All variables are set."    
+    # If all variables are set, display a success message  
 }
 
 # Call the function to check all variables
