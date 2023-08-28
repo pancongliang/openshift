@@ -25,11 +25,21 @@ yum install -y "${packages[@]}" &>/dev/null
 check_package_installed() {
     package_name=$1
     if rpm -q "$package_name" &>/dev/null; then
-        echo "ok: [$package_name is installed successfully.]"
+        echo "ok: ["install $package_name rpm"]"
     else
-        echo "failed: [$package_name installation failed.]"
+        echo "failed: ["install $package_name rpm"]"
     fi
 }
+
+# Check and display package installation status
+all_packages_installed=true
+for package in "${packages[@]}"; do
+    check_package_installed "$package" || all_packages_installed=false
+done
+
+if $all_packages_installed; then
+
+fi
 
 # Add an empty line after the task
 echo
@@ -41,44 +51,73 @@ echo
 PRINT_TASK "[Install openshift tool]"
 
 # Delete openshift tool
-rm -rf /usr/local/bin/butane
-rm -rf /usr/local/bin/kubectl
-rm -rf /usr/local/bin/oc
-rm -rf /usr/local/bin/oc-mirror
-rm -rf /usr/local/bin/openshift-install
+files=(
+    "/usr/local/bin/butane1"
+    "/usr/local/bin/kubectl"
+    "/usr/local/bin/oc"
+    "/usr/local/bin/oc-mirror"
+    "/usr/local/bin/openshift-install*"
+    "/usr/local/bin/openshift-install-linux.tar.gz"
+    "/usr/local/bin/openshift-client-linux.tar.gz"
+    "/usr/local/bin/oc-mirror.tar.gz"
+)
 
-# Install openshift tool
-wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_RELEASE/openshift-install-linux.tar.gz
-tar xvf openshift-install-linux.tar.gz -C /usr/local/bin/ && rm -rf openshift-install-linux.tar.gz
+for file in "${files[@]}"; do
+    rm -rf $file 2>/dev/null
+done
 
-wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz
-tar xvf openshift-client-linux.tar.gz -C /usr/local/bin/ && rm -rf /usr/local/bin/README.md && rm -rf openshift-client-linux.tar.gz
+# Define variables
+DOWNLOAD_DIR="/usr/local/bin"
 
-wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
-tar -xvf oc-mirror.tar.gz -C /usr/local/bin/ && chmod a+x /usr/local/bin/oc-mirror && rm -rf oc-mirror.tar.gz
-
-wget https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane
-chmod a+x butane && mv butane /usr/local/bin/
-
-# Check if a command is available
-check_command() {
-    if command -v "$1" &>/dev/null; then
-        help_output=$("$1" --help | grep -q "help")
-        if [[ $? -eq 0 ]]; then
-            echo "ok: [$1 command is installed successfully.]"
-        else
-            echo "failed: [$1 command installation failed.]"
-            return 1
-        fi
+# Function to download and install .tar.gz tools
+install_tar_gz() {
+    local tool_name="$1"
+    local tool_url="$2"
+    
+    wget -P "$DOWNLOAD_DIR" "$tool_url" &> /dev/null
+    
+    if [ $? -eq 0 ]; then
+        echo "ok: ["download $tool_name tool"]"
+        tar xvf "$DOWNLOAD_DIR/$(basename $tool_url)" &> /dev/null
+        rm -f "$DOWNLOAD_DIR/$(basename $tool_url)"
+    else
+        echo "failed: ["download $tool_name tool"]"
     fi
 }
 
-# List of commands to check
-commands=("openshift-install" "oc" "oc-mirror" "butane")
+# Function to download and install binary files
+install_binary() {
+    local tool_name="$1"
+    local tool_url="$2"
+    
+    wget -P "$DOWNLOAD_DIR" "$tool_url" &> /dev/null
+    
+    if [ $? -eq 0 ]; then
+        echo "ok: ["download $tool_name tool"]"
+        chmod a+x "$DOWNLOAD_DIR/$(basename $tool_url)" &> /dev/null
+    else
+        echo "failed: ["download $tool_name tool"]"
+    fi
+}
 
-# Check availability of commands and their help output
+# Install .tar.gz tools
+install_tar_gz "openshift-install" "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE}/openshift-install-linux.tar.gz"
+install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
+install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
+
+# Install binary files
+install_binary "butane" "https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane"
+
+# Define the list of commands to check
+commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
+
+# Iterate through the list of commands for checking
 for cmd in "${commands[@]}"; do
-    check_command "$cmd"
+    if command -v "$cmd" >/dev/null 2>&1; then
+        echo "ok: ["install $cmd tool"]"
+    else
+        echo "failed: ["install $cmd tool"]"
+    fi
 done
 
 # Add an empty line after the task
@@ -116,9 +155,9 @@ check_virtual_host_configuration() {
     virtual_host_config="/etc/httpd/conf.d/base.conf"
     if grep -q "ServerName $expected_server_name" "$virtual_host_config" && \
        grep -q "DocumentRoot $expected_document_root" "$virtual_host_config"; then
-        echo "ok: [Create virtual host configuration successfully.]"
+        echo "ok: ["create virtual host configuration"]"
     else
-        echo "failed: Create virtual host configuration failed."
+        echo "failed: ["create virtual host configuration"]"
     fi
 }
 
@@ -380,6 +419,7 @@ EOF
 
 # Change ownership
 chown named. /var/named/*.zone
+echo "ok: [Change ownership /var/named/*.zone."
 
 # Check named configuration file
 if named-checkconf &>/dev/null; then
@@ -492,8 +532,8 @@ echo
 ######
 
 
-# Task: Setup haproxy services
-PRINT_TASK "[Setup haproxy services]"
+# Task: Setup HAproxy services
+PRINT_TASK "[Setup HAproxy services]"
 
 # Setup haproxy services configuration
 cat << EOF > /etc/haproxy/haproxy.cfg 
