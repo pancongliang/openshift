@@ -206,11 +206,11 @@ check_all_variables
 # Display missing variables, if any
 if [ ${#missing_variables[@]} -gt 0 ]; then
     echo "Missing or unset variables:"
-    for var in "${missing_variables[@]}"; do
+    for var in "failed: [${missing_variables[@]}]"; do
         echo "- $var"
     done
 else
-    echo "All variables are set."
+    echo "ok: [All variables are set.]"
 fi
 
 #######################################################
