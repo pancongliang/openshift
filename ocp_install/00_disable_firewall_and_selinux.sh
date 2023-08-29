@@ -34,6 +34,8 @@ for service in "${services[@]}"; do
     fi
 done
 
+# Add an empty line after the task
+echo
 ######
 
 # Task: Change SELinux security policy
