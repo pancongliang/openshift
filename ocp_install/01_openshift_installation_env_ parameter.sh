@@ -56,6 +56,7 @@ export PULL_SECRET="/root/pull-secret"                # Download pull-secret htt
 export REGISTRY_CERT_PATH="/etc/certs"                # No need to manually create dir
 export REGISTRY_INSTALL_PATH="/opt/registry"          # No need to manually create dir
 
+### more parameters ###
 # NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"                                # No need to manually create dir
 export IMAGE_REGISTRY_PV="image-registry"             # No need to manually create dir
@@ -64,7 +65,6 @@ export IMAGE_REGISTRY_PV="image-registry"             # No need to manually crea
 export HTTPD_PATH="/var/www/html/materials"           # No need to manually create dir
 export IGNITION_PATH="${HTTPD_PATH}/pre"              # No need to manually create dir
 
-### More change options ###
 # OpenShift install-config
 export POD_CIDR="10.128.0.0/14"                       # Generally use the default value
 export HOST_PREFIX="23"                               # Generally use the default value
@@ -76,8 +76,15 @@ export PRODUCT_REPO="openshift-release-dev"
 export RELEASE_NAME="ocp-release"
 export ARCHITECTURE="x86_64"
 
-
 ### Do not change the following parameters ###
+# Function to generate duplicate IP address()
+export ID_RSA_PUB_FILE="${SSH_KEY_PATH}/id_rsa.pub"
+export DNS_IP="$BASTION_IP"
+export REGISTRY_IP="$BASTION_IP"
+export API_IP="$BASTION_IP"
+export API_INT_IP="$BASTION_IP"
+export APPS_IP="$BASTION_IP"
+
 # Create directories
 run_command() {
     $1
@@ -96,16 +103,6 @@ run_command "mkdir -p ${REGISTRY_INSTALL_PATH}" "creating registry install direc
 run_command "mkdir -p ${NFS_PATH}" "creating NFS directory"
 run_command "mkdir -p ${HTTPD_PATH}" "creating HTTPD directory"
 run_command "mkdir -p ${IGNITION_PATH}" "creating Ignition directory"
-
-# id_rsa.pub path
-export ID_RSA_PUB_FILE="${SSH_KEY_PATH}/id_rsa.pub"
-
-# Function to generate duplicate IP address
-export DNS_IP="$BASTION_IP"
-export REGISTRY_IP="$BASTION_IP"
-export API_IP="$BASTION_IP"
-export API_INT_IP="$BASTION_IP"
-export APPS_IP="$BASTION_IP"
 
 # Function to generate reversed DNS, Generate reversed DNS for each IP and store as variables
 generate_reverse_ip() {
