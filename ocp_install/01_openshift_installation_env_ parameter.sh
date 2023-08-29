@@ -77,13 +77,15 @@ export RELEASE_NAME="ocp-release"
 export ARCHITECTURE="x86_64"
 
 ### Do not change the following parameters ###
-# Function to generate duplicate IP address()
+# Function to generate duplicate parameters
 export ID_RSA_PUB_FILE="${SSH_KEY_PATH}/id_rsa.pub"
 export DNS_IP="$BASTION_IP"
 export REGISTRY_IP="$BASTION_IP"
 export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
+export NFS_SERVER_IP="$BASTION_IP"
+
 
 # Create directories
 run_command() {
@@ -188,6 +190,7 @@ check_all_variables() {
     check_variable "API_IP"
     check_variable "API_INT_IP"
     check_variable "APPS_IP"
+    check_variable "NFS_SERVER_IP"
     check_variable "BASTION_REVERSE_IP"
     check_variable "REGISTRY_REVERSE_IP"
     check_variable "MASTER01_REVERSE_IP"
