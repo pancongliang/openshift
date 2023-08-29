@@ -229,5 +229,3 @@ if [ ${#missing_variables[@]} -gt 0 ]; then
 else
     echo "ok: [all variables are set (including reverse address)]"
 fi
-
-#######################################################
