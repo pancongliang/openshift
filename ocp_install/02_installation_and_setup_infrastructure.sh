@@ -39,53 +39,53 @@ echo
 # Task: Install openshift tool
 PRINT_TASK "[TASK: Install openshift tool]"
 
+#!/bin/bash
+
 # Delete openshift tool
 files=(
-    "/usr/local/bin/butane1*"
-    "/usr/local/bin/kubectl*"
-    "/usr/local/bin/oc*"
-    "/usr/local/bin/oc-mirror*"
-    "/usr/local/bin/openshift-install**"
-    "/usr/local/bin/openshift-install-linux.tar.gz*"
-    "/usr/local/bin/openshift-client-linux.tar.gz*"
-    "/usr/local/bin/oc-mirror.tar.gz*"
+    "/usr/local/bin/butane"
+    "/usr/local/bin/kubectl"
+    "/usr/local/bin/oc"
+    "/usr/local/bin/oc-mirror"
+    "/usr/local/bin/openshift-install"
+    "/usr/local/bin/openshift-install-linux.tar.gz"
+    "/usr/local/bin/openshift-client-linux.tar.gz"
+    "/usr/local/bin/oc-mirror.tar.gz"
 )
 
 for file in "${files[@]}"; do
     rm -rf $file 2>/dev/null
 done
 
-# Define variables
-DOWNLOAD_DIR="/usr/local/bin"
-
 # Function to download and install .tar.gz tools
 install_tar_gz() {
     local tool_name="$1"
-    local tool_url="$2"
-    
-    wget -P "$DOWNLOAD_DIR" "$tool_url" &> /dev/null
-    
+    local tool_url="$2"  
+    # Download the tool
+    wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
     if [ $? -eq 0 ]; then
-        echo "ok: ["download $tool_name tool"]"
-        tar xvf "$DOWNLOAD_DIR/$(basename $tool_url)" &> /dev/null
-        rm -f "$DOWNLOAD_DIR/$(basename $tool_url)"
+        echo "ok: [download $tool_name tool]"        
+        # Extract the downloaded tool
+        tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
+        # Remove the downloaded .tar.gz file
+        rm -f "/usr/local/bin/$(basename $tool_url)"
     else
-        echo "failed: ["download $tool_name tool"]"
+        echo "failed: [download $tool_name tool]"
     fi
 }
 
 # Function to download and install binary files
 install_binary() {
     local tool_name="$1"
-    local tool_url="$2"
-    
-    wget -P "$DOWNLOAD_DIR" "$tool_url" &> /dev/null
-    
+    local tool_url="$2"    
+    # Download the binary tool
+    wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
     if [ $? -eq 0 ]; then
-        echo "ok: ["download $tool_name tool"]"
-        chmod a+x "$DOWNLOAD_DIR/$(basename $tool_url)" &> /dev/null
+        echo "ok: [download $tool_name tool]"        
+        # Add execute permissions to the downloaded binary
+        chmod a+x "/usr/local/bin/$(basename $tool_url)" &> /dev/null
     else
-        echo "failed: ["download $tool_name tool"]"
+        echo "failed: [download $tool_name tool]"
     fi
 }
 
@@ -103,9 +103,9 @@ commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
 # Iterate through the list of commands for checking
 for cmd in "${commands[@]}"; do
     if command -v "$cmd" >/dev/null 2>&1; then
-        echo "ok: ["install $cmd tool"]"
+        echo "ok: [install $cmd tool]"
     else
-        echo "failed: ["install $cmd tool"]"
+        echo "failed: [install $cmd tool]"
     fi
 done
 
