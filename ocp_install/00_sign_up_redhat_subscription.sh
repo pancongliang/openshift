@@ -1,7 +1,22 @@
 #!/bin/bash
+
 #######################################################
 
-echo ====== Sign up for a Red Hat Subscription ======
+# Function to print a task with uniform length
+print_task() {
+    max_length=45  # Adjust this to your desired maximum length
+    task_title="$1"
+    title_length=${#task_title}
+    stars=$((max_length - title_length))
+
+    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+}
+
+#######################################################
+
+# Task: Sign up for a Red Hat Subscription
+PRINT_TASK "[TASK: Sign up for a Red Hat Subscription]"
+
 read -p "Please input the OpenShift Version (for example 4.5.12):" OCP_VER
 read -s -p "Please input the Red Hat Subscribe UserName:" SUB_USER
 echo -e "\r"
