@@ -20,7 +20,7 @@ export OCP_RELEASE="4.10.20"
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
-export SSH_KEY_PATH="/root/.ssh"                        # No need to manually create dir
+export SSH_KEY_PATH="/root/.ssh"                      # No need to manually create dir
 export NETWORK_TYPE="OVNKubernetes"
 
 # OpenShift infrastructure network
@@ -78,14 +78,24 @@ export ARCHITECTURE="x86_64"
 
 
 ### Do not change the following parameters ###
-# Create the directory if it doesn't exist
-mkdir -p ${SSH_KEY_PATH}
-mkdir -p ${REGISTRY_CERT_PATH}
-mkdir -p ${REGISTRY_INSTALL_PATH}
-mkdir -p ${NFS_PATH}
-mkdir -p ${HTTPD_PATH}
-mkdir -p ${IGNITION_PATH}
-
+# Create directories
+run_command() {
+    $1
+    if [ $? -eq 0 ]; then
+        echo "ok: [$2]"
+        return 0
+    else
+        echo "failed: [$2]"
+        return 1
+    fi
+}
+# Create directories
+run_command "mkdir -p ${SSH_KEY_PATH}" "creating SSH key directory"
+run_command "mkdir -p ${REGISTRY_CERT_PATH}" "creating registry certificate directory"
+run_command "mkdir -p ${REGISTRY_INSTALL_PATH}" "creating registry install directory"
+run_command "mkdir -p ${NFS_PATH}" "creating NFS directory"
+run_command "mkdir -p ${HTTPD_PATH}" "creating HTTPD directory"
+run_command "mkdir -p ${IGNITION_PATH}" "creating Ignition directory"
 
 # id_rsa.pub path
 export ID_RSA_PUB_FILE="${SSH_KEY_PATH}/id_rsa.pub"
@@ -122,6 +132,7 @@ export REVERSE_ZONE="$REVERSED_IP_PART.in-addr.arpa"
 export REVERSE_ZONE_FILE_NAME="$REVERSED_IP_PART.zone"
 export FORWARD_ZONE="$BASE_DOMAIN"
 export FORWARD_ZONE_FILE_NAME="$BASE_DOMAIN.zone"
+
 
 # Nslookup public network
 export NSLOOKUP_PUBLIC="redhat.com"
@@ -216,7 +227,7 @@ if [ ${#missing_variables[@]} -gt 0 ]; then
         echo "- $var"
     done
 else
-    echo "ok: [All variables are set.]"
+    echo "ok: [all variables are set (including reverse address)]"
 fi
 
 #######################################################
