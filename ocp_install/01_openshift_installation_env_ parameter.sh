@@ -20,7 +20,7 @@ export OCP_RELEASE="4.10.20"
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
-export ID_RSA_PUB_FILE="/root/.ssh/id_rsa.pub"
+export SSH_KEY_PATH="/root/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
 
 # OpenShift infrastructure network
@@ -64,7 +64,6 @@ export IMAGE_REGISTRY_PV="image-registry"             # No need to manually crea
 export HTTPD_PATH="/var/www/html/materials"           # No need to manually create dir
 export IGNITION_PATH="${HTTPD_PATH}/pre"              # No need to manually create dir
 
-
 ### More change options ###
 # OpenShift install-config
 export POD_CIDR="10.128.0.0/14"                       # Generally use the default value
@@ -80,11 +79,16 @@ export ARCHITECTURE="x86_64"
 
 ### Do not change the following parameters ###
 # Create the directory if it doesn't exist
+mkdir -p ${SSH_KEY_PATH}
 mkdir -p ${REGISTRY_CERT_PATH}
 mkdir -p ${REGISTRY_INSTALL_PATH}
 mkdir -p ${NFS_PATH}
 mkdir -p ${HTTPD_PATH}
 mkdir -p ${IGNITION_PATH}
+
+
+# id_rsa.pub path
+export ID_RSA_PUB_FILE="${SSH_KEY_PATH}/id_rsa.pub"
 
 # Function to generate duplicate IP address
 export DNS_IP="$BASTION_IP"
@@ -138,6 +142,7 @@ check_all_variables() {
     check_variable "OCP_RELEASE"
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
+    check_variable "SSH_KEY_PATH"
     check_variable "ID_RSA_PUB_FILE"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
