@@ -16,25 +16,18 @@ PRINT_TASK() {
 # Task: Install infrastructure rpm
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
-# Install infrastructure rpm
-packages=("wget" "net-tools" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "httpd-manual")
-yum install -y vim &>/dev/null
-yum install -y "${packages[@]}" &>/dev/null
+# List of RPM packages to install
+packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "httpd-manual")
 
-# Check if a package is installed
-check_package_installed() {
-    package_name=$1
-    if rpm -q "$package_name" &>/dev/null; then
-        echo "ok: ["install $package_name rpm"]"
-    else
-        echo "failed: ["install $package_name rpm"]"
-    fi
-}
+# Install the RPM package and return the execution result
 
-# Check and display package installation status
-all_packages_installed=true
 for package in "${packages[@]}"; do
-    check_package_installed "$package" || all_packages_installed=false
+    yum install -y "$package" &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "ok: [install $package package]"
+    else
+        echo "failed: [install $package package]"
+    fi
 done
 
 # Add an empty line after the task
