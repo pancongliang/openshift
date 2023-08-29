@@ -3,7 +3,7 @@
 
 # Function to print a task with uniform length
 PRINT_TASK() {
-    max_length=45  # Adjust this to your desired maximum length
+    max_length=90  # Adjust this to your desired maximum length
     task_title="$1"
     title_length=${#task_title}
     stars=$((max_length - title_length))
