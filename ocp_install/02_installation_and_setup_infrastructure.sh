@@ -10,8 +10,7 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-
-######
+######################################################
 
 # Task: Install infrastructure rpm
 PRINT_TASK "[TASK: Install infrastructure rpm]"
@@ -20,7 +19,6 @@ PRINT_TASK "[TASK: Install infrastructure rpm]"
 packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "httpd-manual")
 
 # Install the RPM package and return the execution result
-
 for package in "${packages[@]}"; do
     yum install -y "$package" &>/dev/null
     if [ $? -eq 0 ]; then
@@ -33,13 +31,10 @@ done
 # Add an empty line after the task
 echo
 
-######
-
+######################################################
 
 # Task: Install openshift tool
 PRINT_TASK "[TASK: Install openshift tool]"
-
-#!/bin/bash
 
 # Delete openshift tool
 files=(
@@ -52,10 +47,11 @@ files=(
     "/usr/local/bin/openshift-client-linux.tar.gz"
     "/usr/local/bin/oc-mirror.tar.gz"
 )
-
 for file in "${files[@]}"; do
     rm -rf $file 2>/dev/null
 done
+
+###
 
 # Function to download and install .tar.gz tools
 install_tar_gz() {
@@ -100,6 +96,8 @@ install_binary "butane" "https://mirror.openshift.com/pub/openshift-v4/clients/b
 # Define the list of commands to check
 commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
 
+###
+
 # Iterate through the list of commands for checking
 for cmd in "${commands[@]}"; do
     if command -v "$cmd" >/dev/null 2>&1; then
@@ -112,23 +110,27 @@ done
 # Add an empty line after the task
 echo
 
-######
+######################################################
 
 # Task: Setup and check httpd services
 PRINT_TASK "[TASK: Setup and check httpd services]"
 
 # Update httpd listen port
 update_httpd_listen_port() {
+    # Get the current listen port from httpd.conf
     listen_port=$(grep -v "#" /etc/httpd/conf/httpd.conf | grep -i 'Listen' | awk '{print $2}')
+    
+    # Check if listen port is not 8080
     if [ "$listen_port" != "8080" ]; then
+        # Change listen port to 8080
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
-        systemctl restart httpd
-        echo "ok: [Apache HTTP Server's listen port has been changed to 8080]"
+        echo "ok: [http listen port has been changed to 8080]"
     fi
 }
 
 # Create virtual host configuration
 create_virtual_host_config() {
+    # Create a virtual host configuration file
     cat << EOF > /etc/httpd/conf.d/base.conf
 <VirtualHost *:8080>
    ServerName ${BASTION_HOSTNAME}
@@ -139,14 +141,19 @@ EOF
 
 # Check if virtual host configuration is valid
 check_virtual_host_configuration() {
+    # Define expected values for server name and document root
     expected_server_name="${BASTION_HOSTNAME}"
     expected_document_root="${HTTPD_PATH}"
+    
+    # Path to virtual host configuration file
     virtual_host_config="/etc/httpd/conf.d/base.conf"
+    
+    # Check if expected values are present in the config
     if grep -q "ServerName $expected_server_name" "$virtual_host_config" && \
        grep -q "DocumentRoot $expected_document_root" "$virtual_host_config"; then
-        echo "ok: ["create virtual host configuration"]"
+        echo "ok: [create virtual host configuration]"
     else
-        echo "failed: ["create virtual host configuration"]"
+        echo "failed: [create virtual host configuration]"
     fi
 }
 
@@ -159,49 +166,74 @@ create_virtual_host_config
 # Check virtual host configuration
 check_virtual_host_configuration
 
-# Enable and start httpd service
-systemctl enable httpd
-systemctl start httpd
-echo "in progress: Restarting httpd service...]"
+###
+# Enable and Restart httpd service
+# List of services to handle
+services=("httpd")
+
+# Loop through each service in the list
+for service in "${services[@]}"; do
+    # Restart the service
+    systemctl restart "$service" &>/dev/null
+    restart_status=$?
+
+    # Enable the service
+    systemctl enable "$service" &>/dev/null
+    enable_status=$?
+
+    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
+        echo "ok: [$service service is restarted and enabled]"
+    else
+        echo "failed: [$service service is not restarted or enabled]"
+    fi
+done
+
+# Wait for the service to restart
 sleep 10
 
-# Check if a service is enabled and running
-check_service() {
-    service_name=$1
+###
 
-    if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is enabled]"
+# Function to execute a command and check its status
+run_command() {
+    $1
+    if [ $? -eq 0 ]; then
+        echo "ok: [$2]"
+        return 0
     else
-        echo "failed: $service_name service is not enabled]"
-    fi
-
-    if systemctl is-active "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is running]"
-    else
-        echo "failed: [$service_name service is not running]"
+        echo "failed: [$2]"
+        return 1
     fi
 }
 
-# List of services to check
-services=("httpd")
+# Test httpd configuration
+run_command "touch ${HTTPD_PATH}/httpd-test" "creating test file"
+run_command "wget -q http://${BASTION_IP}:8080/httpd-test" "downloading test file"
+wget_status=$?
+run_command "rm -rf httpd-test ${HTTPD_PATH}/httpd-test" "removing test files"
 
-# Check status of all services
-for service in "${services[@]}"; do
-    check_service "$service"
-done
+# Check if testing httpd configuration was successful
+if [ $wget_status -eq 0 ]; then
+    echo "ok: [Testing httpd configuration]"
+else
+    echo "failed: [Testing httpd configuration]"
+fi
 
 # Add an empty line after the task
 echo
 
-######
+######################################################
 
 # Task: Setup nfs services
 PRINT_TASK "[TASK: Setup nfs services]"
 
-# Create directories
+# Create NFS directories
 rm -rf ${NFS_PATH}
 mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV}
-echo "ok: [Create nfs directories]"
+if [ $? -eq 0 ]; then
+    echo "ok: [nfs directories created successfully]"
+else
+    echo "failed: [failed to create NFS directories]"
+fi
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" &>/dev/null; then
@@ -213,48 +245,80 @@ fi
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_PATH}
+if [ $? -eq 0 ]; then
+    echo "ok: [changed ownership of NFS directories]"
+else
+    echo "failed: [failed to change ownership of NFS directories]"
+fi
+
 chmod -R 777 ${NFS_PATH}
-echo "Changed: [Changed ownership and permissions]"
+if [ $? -eq 0 ]; then
+    echo "ok: [changed permissions of NFS directories]"
+else
+    echo "failed: [failed to change permissions of NFS directories]"
+fi
 
 # Add NFS export configuration
 export_config_line="${NFS_PATH}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "warning: [NFS export configuration already exists]"
+    echo "warning: [nfs export configuration already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo "ok: [NFS export configuration added]"
+    echo "ok: [nfs export configuration added]"
 fi
 
-# Enable and start nfs-server service
-systemctl enable nfs-server
-systemctl restart nfs-server
-echo "In progress: Restarting nfs-server service...]"
+###
+# Enable and Restart nfs-server service
+# List of services to handle
+services=("nfs-server")
+
+# Loop through each service in the list
+for service in "${services[@]}"; do
+    # Restart the service
+    systemctl restart "$service" &>/dev/null
+    restart_status=$?
+
+    # Enable the service
+    systemctl enable "$service" &>/dev/null
+    enable_status=$?
+
+    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
+        echo "ok: [$service service is restarted and enabled]"
+    else
+        echo "failed: [$service service is not restarted or enabled]"
+    fi
+done
+
+# Wait for the service to restart
 sleep 10
 
-# Check if a service is enabled and running
-check_service() {
-    service_name=$1
+###
 
-    if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is enabled]"
-    else
-        echo "failed: [$service_name service is not enabled]"
-    fi
+# Function to check if NFS share is accessible
+check_nfs_access() {
+    mount_point="/mnt/nfs_test"
+    
+    # Create the mount point if it doesn't exist
+    mkdir -p $mount_point
+    
+    # Attempt to mount the NFS share
+    mount -t nfs ${NFS_SERVER_IP}:${NFS_PATH} $mount_point
 
-    if systemctl is-active "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is running]"
+    if [ $? -eq 0 ]; then
+        echo "ok: [nfs share is accessible]"
+        # Unmount the NFS share
+        umount $mount_point
+        rmdir $mount_point
+        return 0
     else
-        echo "faild: [$service_name service is not running]"
+        echo "failed: [nfs share is not accessible]"
+        rmdir $mount_point
+        return 1
     fi
 }
 
-# List of services to check
-services=("nfs-server")
-
-# Check status of all services
-for service in "${services[@]}"; do
-    check_service "$service"
-done
+# Call the function to check NFS access
+check_nfs_access
 
 # Add an empty line after the task
 echo
