@@ -1,5 +1,21 @@
 #!/bin/bash
+
 #######################################################
+
+# Function to print a task with uniform length
+PRINT_TASK() {
+    max_length=90  # Adjust this to your desired maximum length
+    task_title="$1"
+    title_length=${#task_title}
+    stars=$((max_length - title_length))
+
+    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+}
+
+#######################################################
+
+# Task: Sign up for a Red Hat Subscription
+PRINT_TASK "[TASK: Generate a self-signed certs and install mirror-registry]"
 
 # Check if there is an existing certificate
 # Define the certificate file paths
