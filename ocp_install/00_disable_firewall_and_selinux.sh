@@ -51,32 +51,21 @@ else
 fi
 
 
-
-检查/etc/selinux/config中的selinux permanent security policy
-如果是Enforcing则更改为permissive，更改完成后提示"OK: [selinux permanent security policy is $permanent_status]"
-如果是disabled 则无需更改直接提示"OK: [selinux permanent security policy is $permanent_status]"
-如果更改失败则提示"Failed: [selinux permanent security policy is $permanent_status (expected Permissive or Disabled)]"
-
+# Read the SELinux configuration
+permanent_status=$(grep "^SELINUX=" /etc/selinux/config | cut -d= -f2)
+# Check if the permanent status is Enforcing
+if [[ $permanent_status == "enforcing" ]]; then
+    # Change SELinux to permissive
+    sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
+    permanent_status="permissive"
+    echo "OK: SELinux permanent security policy changed to $permanent_status"
+elif [[ $permanent_status == "disabled" ]]; then
+    echo "OK: SELinux permanent security policy is $permanent_status"
+else
+    echo "Failed: SELinux permanent security policy is $permanent_status (expected Permissive or Disabled)"
+fi
 # Check if SELinux is enforcing and update config if needed
 if [ "$SELINUX" = "Enforcing" ]; then
   sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config
 fi
 
-# Temporarily set SELinux to permissive
-setenforce 0 &>/dev/null
-
-# Check current SELinux status (temporary)
-temporary_status=$(getenforce)
-echo "Current SELinux status (temporary): $temporary_status"
-
-# Check permanent SELinux status
-config_file_status=$(grep -E "^SELINUX=" /etc/selinux/config | awk -F= '{print $2}')
-echo "Permanent SELinux status: $config_file_status"
-
-# Check if both temporary and permanent statuses are not permissive or disabled
-if [ "$temporary_status" != "Permissive" -a "$temporary_status" != "Disabled" ] || \
-   [ "$config_file_status" != "permissive" -a "$config_file_status" != "disabled" ]; then
-    echo "Error: SELinux should be set to 'permissive' or 'disabled'."
-fi
-
-#######################################################
