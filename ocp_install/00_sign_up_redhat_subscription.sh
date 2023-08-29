@@ -4,7 +4,7 @@
 
 # Function to print a task with uniform length
 PRINT_TASK() {
-    max_length=45  # Adjust this to your desired maximum length
+    max_length=90  # Adjust this to your desired maximum length
     task_title="$1"
     title_length=${#task_title}
     stars=$((max_length - title_length))
@@ -17,14 +17,17 @@ PRINT_TASK() {
 # Task: Sign up for a Red Hat Subscription
 PRINT_TASK "[TASK: Sign up for a Red Hat Subscription]"
 
-read -p "Please input the OpenShift Version (for example 4.5.12):" OCP_VER
-read -s -p "Please input the Red Hat Subscribe UserName:" SUB_USER
+# Prompt for Red Hat Subscribe UserName
+read -p "Please input the Red Hat Subscribe UserName: " USER
+# Prompt for Red Hat Subscribe Password securely (hidden input)
+read -s -p "Please input the Red Hat Subscribe Password: " PASSWD
+# Move to a new line after password input
 echo -e "\r"
-read -s -p "Please input the Red Hat Subscribe Password:" SUB_PASSWD
-echo -e "\r"
-
-subscription-manager register --force --user ${SUB_USER} --password ${SUB_PASSWD}
-subscription-manager refresh
-subscription-manager list --available --matches '*OpenShift Container Platform*' | grep "Pool ID"
-read -p "Please input the Pool ID you got:" POOL_ID
-subscription-manager attach --pool=${POOL_ID}
+# Register with subscription-manager
+subscription-manager register --force --user ${USER} --password ${PASSWD}
+# Refresh subscriptions
+subscription-manager refresh 
+# Find the desired Pool ID for OpenShift
+POOL_ID=$(subscription-manager list --available --matches '*OpenShift Container Platform*' | grep "Pool ID" | tail -n 1 | awk -F: '{print $2}' | tr -d ' ')
+# Attach to the chosen Pool
+subscription-manager attach --pool="$POOL_ID"
