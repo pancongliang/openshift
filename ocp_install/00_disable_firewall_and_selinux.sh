@@ -53,9 +53,9 @@ if [[ $permanent_status == "enforcing" ]]; then
     permanent_status="permissive"
     echo "OK: SELinux permanent security policy changed to $permanent_status"
 elif [[ $permanent_status == "disabled" ]]; then
-    echo "OK: SELinux permanent security policy is $permanent_status"
+    echo "OK: [SELinux permanent security policy is $permanent_status]"
 else
-    echo "Failed: SELinux permanent security policy is $permanent_status (expected Permissive or Disabled)"
+    echo "Failed: [SELinux permanent security policy is $permanent_status (expected Permissive or Disabled)]"
 fi
 
 
