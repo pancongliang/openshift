@@ -849,6 +849,3 @@ for service in "${services[@]}"; do
         echo "failed: [$service service is not restarted or enabled]"
     fi
 done
-
-# Wait for the service to restart
-sleep 10
