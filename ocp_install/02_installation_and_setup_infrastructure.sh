@@ -583,7 +583,7 @@ EOF
 convert_to_reverse_ip() {
     local ip="$1"
     IFS='.' read -ra octets <<< "$ip"
-    reverse_ip="${octets[3]}.${octets[2]}.${octets[1]}.${octets[0]}"
+    reverse_ip="${octets[3]}.${octets[2]}}"
     echo "$reverse_ip"
 }
 
