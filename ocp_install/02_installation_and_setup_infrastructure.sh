@@ -793,16 +793,16 @@ else
 fi
 
 
-# Step 2: Check haproxy configuration/Dns file 
+# Step 2: Check haproxy configuration
 # ----------------------------------------
 # Path to HAProxy configuration file
 CONFIG_FILE="/etc/haproxy/haproxy.cfg"
 
 # Check HAProxy configuration syntax
 check_haproxy_config() {
-    haproxy -c -f "$CONFIG_FILE"
+    haproxy -c -f "$CONFIG_FILE" &>/dev/null
     if [ $? -eq 0 ]; then
-        echo "ok: [ haproxy configuration is valid]"
+        echo "ok: [haproxy configuration is valid]"
     else
         echo "failed: [haproxy configuration is invalid]"
     fi
