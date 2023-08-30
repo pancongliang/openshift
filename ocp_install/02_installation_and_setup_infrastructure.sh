@@ -624,9 +624,9 @@ fi
 sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
 sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
 if [ $? -eq 0 ]; then
-    echo "ok: [Added DNS_SERVER_IP to /etc/resolv.conf successfully]"
+    echo "ok: [added DNS_SERVER_IP to /etc/resolv.conf successfully]"
 else
-    echo "Failed: [Adding DNS_SERVER_IP to /etc/resolv.conf failed]"
+    echo "failed: [adding DNS_SERVER_IP to /etc/resolv.conf failed]"
 fi
 
 
@@ -815,7 +815,7 @@ check_haproxy_config
 # Step 3: Enable and Restart haproxy service
 # ----------------------------------------
 # List of services to handle
-services=("named")
+services=("haproxy")
 
 # Loop through each service in the list
 for service in "${services[@]}"; do
