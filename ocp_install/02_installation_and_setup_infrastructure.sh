@@ -1,6 +1,6 @@
 
 #!/bin/bash
-
+# === Function to print a task with uniform length ===
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=90  # Adjust this to your desired maximum length
@@ -10,9 +10,10 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-######################################################
+# ====================================================
 
-# Task: Install infrastructure rpm
+
+# === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
 # List of RPM packages to install
@@ -30,12 +31,17 @@ done
 
 # Add an empty line after the task
 echo
+# ========================================
 
-######################################################
 
-# Task: Install openshift tool
+
+
+
+# === Task: Install openshift tool ===
 PRINT_TASK "[TASK: Install openshift tool]"
 
+# Step 1: Delete openshift tool
+# ----------------------------------------
 # Delete openshift tool
 files=(
     "/usr/local/bin/butane"
@@ -51,8 +57,9 @@ for file in "${files[@]}"; do
     rm -rf $file 2>/dev/null
 done
 
-###
 
+# Step 2: Function to download and install tool
+# ----------------------------------------
 # Function to download and install .tar.gz tools
 install_tar_gz() {
     local tool_name="$1"
@@ -96,8 +103,9 @@ install_binary "butane" "https://mirror.openshift.com/pub/openshift-v4/clients/b
 # Define the list of commands to check
 commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
 
-###
 
+# Step 3: Checking
+# ----------------------------------------
 # Iterate through the list of commands for checking
 for cmd in "${commands[@]}"; do
     if command -v "$cmd" >/dev/null 2>&1; then
@@ -110,11 +118,14 @@ done
 # Add an empty line after the task
 echo
 
-######################################################
 
-# Task: Setup and check httpd services
+
+
+
+# === Task: Setup and check httpd services ===
 PRINT_TASK "[TASK: Setup and check httpd services]"
-
+# Step 1: Update httpd listen port
+# ----------------------------------------
 # Update httpd listen port
 update_httpd_listen_port() {
     # Get the current listen port from httpd.conf
@@ -128,6 +139,8 @@ update_httpd_listen_port() {
     fi
 }
 
+# Step 2: Create virtual host configuration and checking
+# ----------------------------------------
 # Create virtual host configuration
 create_virtual_host_config() {
     # Create a virtual host configuration file
@@ -166,8 +179,9 @@ create_virtual_host_config
 # Check virtual host configuration
 check_virtual_host_configuration
 
-###
-# Enable and Restart httpd service
+
+# Step 3: Enable and Restart httpd service
+# ----------------------------------------
 # List of services to handle
 services=("httpd")
 
@@ -191,8 +205,9 @@ done
 # Wait for the service to restart
 sleep 10
 
-###
 
+# Step 4: Test
+# ----------------------------------------
 # Function to execute a command and check its status
 run_command() {
     $1
@@ -221,11 +236,15 @@ fi
 # Add an empty line after the task
 echo
 
-######################################################
 
-# Task: Setup nfs services
+
+
+
+# === Task: Setup nfs services ===
 PRINT_TASK "[TASK: Setup nfs services]"
 
+# Step 1: Create directory /user and change permissions and add NFS export
+# ----------------------------------------
 # Create NFS directories
 rm -rf ${NFS_PATH}
 mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV}
@@ -267,8 +286,10 @@ else
     echo "ok: [nfs export configuration added]"
 fi
 
-###
-# Enable and Restart nfs-server service
+
+
+# Step 2: Enable and Restart nfs-server service
+# ----------------------------------------
 # List of services to handle
 services=("nfs-server")
 
@@ -292,8 +313,9 @@ done
 # Wait for the service to restart
 sleep 10
 
-###
 
+# Step 3: Test
+# ----------------------------------------
 # Function to check if NFS share is accessible
 check_nfs_access() {
     mount_point="/mnt/nfs_test"
@@ -322,84 +344,112 @@ check_nfs_access
 
 # Add an empty line after the task
 echo
-######
 
 
-# Task: Setup named services
+
+
+
+# === Task: Setup named services ===
 PRINT_TASK "[TASK: Setup named services]"
+# Step 1: Generate DNS zone name/zone file name
+# ----------------------------------------
+# Generate reverse DNS zone name and reverse zone file name
+# Construct forward DNS zone name and zone file name
+FORWARD_ZONE_NAME="${BASE_DOMAIN}"
+FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
 
-# Setup named services configuration
+# Check if the forward DNS zone name and zone file name are generated successfully
+if [ -n "$FORWARD_ZONE_NAME" ] && [ -n "$FORWARD_ZONE_FILE" ]; then
+    echo "ok: [Generated forward DNS zone name $FORWARD_ZONE_NAME successfully]"
+    echo "ok: [Generated forward zone file name $FORWARD_ZONE_FILE successfully]"
+else
+    echo "failed: [Failed to generate forward DNS zone name or forward zone file name]"
+fi
+
+# Generate reverse DNS zone name and reverse zone file name 
+# Extract the last two octets from the IP address
+IFS='.' read -ra octets <<< "$DNS_SERVER_IP"
+OCTET3="${octets[2]}"
+OCTET4="${octets[3]}"
+
+# Construct reverse DNS zone name and zone file name
+REVERSE_ZONE_NAME="${OCTET4}.${OCTET3}.in-addr.arpa"
+REVERSE_ZONE_FILE="${OCTET4}.${OCTET3}.zone"
+
+# Check if the reverse DNS zone name and zone file name are generated successfully
+if [ -n "$REVERSE_ZONE_NAME" ] && [ -n "$REVERSE_ZONE_FILE" ]; then
+    echo "ok: [Generated reverse DNS zone name $REVERSE_ZONE_NAME successfully]"
+    echo "ok: [Generated reverse zone file name $REVERSE_ZONE_FILE successfully]"
+else
+    echo "failed: [Failed to generate reverse DNS zone name or reverse zone file name]"
+fi
+
+
+# Step 2: Generate named service configuration file
+# ----------------------------------------
 cat << EOF > /etc/named.conf
 options {
-        listen-on port 53 { any; };
-        listen-on-v6 port 53 { ::1; };
-        directory       "/var/named";
-        dump-file       "/var/named/data/cache_dump.db";
-        statistics-file "/var/named/data/named_stats.txt";
-        memstatistics-file "/var/named/data/named_mem_stats.txt";
-        secroots-file   "/var/named/data/named.secroots";
-        recursing-file  "/var/named/data/named.recursing";
-        allow-query     { any; };
-        forwarders      { ${DNS_FORWARDER_IP}; };
+    listen-on port 53 { any; };
+    listen-on-v6 port 53 { ::1; };
+    directory       "/var/named";
+    dump-file       "/var/named/data/cache_dump.db";
+    statistics-file "/var/named/data/named_stats.txt";
+    memstatistics-file "/var/named/data/named_mem_stats.txt";
+    secroots-file   "/var/named/data/named.secroots";
+    recursing-file  "/var/named/data/named.recursing";
+    allow-query     { any; };
+    forwarders      { ${DNS_FORWARDER_IP}; };
 
-        /* 
-         - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
-         - If you are building a RECURSIVE (caching) DNS server, you need to enable 
-           recursion. 
-         - If your recursive DNS server has a public IP address, you MUST enable access 
-           control to limit queries to your legitimate users. Failing to do so will
-           cause your server to become part of large scale DNS amplification 
-           attacks. Implementing BCP38 within your network would greatly
-           reduce such attack surface 
-        */
-        recursion yes;
-        # mod
-        # allow-query-cache { none; };
-        #recursion no;
-        # mod
-
-        dnssec-enable yes;
-        dnssec-validation yes;
-
-        managed-keys-directory "/var/named/dynamic";
-
-        pid-file "/run/named/named.pid";
-        session-keyfile "/run/named/session.key";
-
-        /* https://fedoraproject.org/wiki/Changes/CryptoPolicy */
-        //include "/etc/crypto-policies/back-ends/bind.config";
+    recursion yes;
+    dnssec-enable yes;
+    dnssec-validation yes;
+    managed-keys-directory "/var/named/dynamic";
+    pid-file "/run/named/named.pid";
+    session-keyfile "/run/named/session.key";
 };
 
-zone "${BASE_DOMAIN}" IN {
-        type master;
-        file "${BASE_DOMAIN}.zone";
-        allow-query { any; };
+zone "${FORWARD_ZONE_NAME}" IN {
+    type master;
+    file "${FORWARD_ZONE_FILE}";
+    allow-query { any; };
 };
 
-zone "${REVERSE_ZONE}" IN {
-        type master;
-        file "${REVERSE_ZONE_FILE_NAME}";
-        allow-query { any; };
+zone "${REVERSE_ZONE_NAME}" IN {
+    type master;
+    file "${REVERSE_ZONE_FILE}";
+    allow-query { any; };
 };
 
 logging {
-        channel default_debug {
-                file "data/named.run";
-                severity dynamic;
-        };
+    channel default_debug {
+        file "data/named.run";
+        severity dynamic;
+    };
 };
 
 zone "." IN {
-        type hint;
-        file "named.ca";
+    type hint;
+    file "named.ca";
 };
 
 include "/etc/named.rfc1912.zones";
-//include "/etc/named.root.key";
 EOF
 
+# Check if the named configuration file was generated successfully
+if [ -f "/etc/named.conf" ]; then
+    echo "ok: [Named configuration file generated successfully]"
+else
+    echo "failed: [Failed to generate named configuration file]"
+fi
+
+
+# Step 2: Generate forward zone file
+# ----------------------------------------
+# Clean up: Delete duplicate file
+rm -f /var/named/${FORWARD_ZONE_FILE}
+
 # Create forward zone file
-cat << EOF >  /var/named/${BASE_DOMAIN}.zone
+cat << EOF > "${forward_zone_input_file}"
 \$TTL 1W
 @       IN      SOA     ns1.${BASE_DOMAIN}.        root (
                         201907070      ; serial
@@ -410,10 +460,10 @@ cat << EOF >  /var/named/${BASE_DOMAIN}.zone
         IN      NS      ns1.${BASE_DOMAIN}.
 ;
 ;
-ns1     IN      A       ${BASTION_IP}
+ns1     IN      A       ${DNS_SERVER_IP}
 ;
-helper  IN      A       ${BASTION_IP}
-helper.ocp4     IN      A       ${BASTION_IP}
+helper  IN      A       ${DNS_SERVER_IP}
+helper.ocp4     IN      A       ${DNS_SERVER_IP}
 ;
 ; The api identifies the IP of your load balancer.
 api.${CLUSTER_NAME}.${BASE_DOMAIN}.                            IN      A       ${API_IP}
@@ -438,8 +488,58 @@ ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.          IN      A       $
 ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.                           IN      A       ${REGISTRY_IP}
 EOF
 
-# Create reverse zone file
-cat << EOF >  /var/named/${REVERSE_ZONE_FILE_NAME}
+# Specify the paths and filenames
+forward_zone_input_file="/var/named/forward_zone_input_file"
+forward_zone_output_file="/var/named/${FORWARD_ZONE_FILE}"
+
+# Function to add zero padding to IP address octets
+add_zero_padding() {
+    local ip="$1"
+    padded_ip=$(echo "$ip" | awk -F'.' '{printf "%03d.%03d.%03d.%03d", $1, $2, $3, $4}')
+    echo "$padded_ip"
+}
+
+# Use the function "add_zero_padding" to process the input file and create a formatted output file
+while IFS= read -r line; do
+    if [[ $line =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+        ip=$(echo "$line" | awk '{print $1}')
+        # Call the function to add zero padding to IP
+        padded_ip=$(add_zero_padding "$ip") 
+        hostname_entry=$(echo "$line" | awk '{print $4}')
+        # Generate formatted line
+        formatted_line="${padded_ip}   IN   A   ${hostname_entry}"
+        # Append formatted line to output file
+        echo "$formatted_line" >> "$forward_zone_output_file" 
+    else
+        # If not an IP line, copy the line as-is
+        echo "$line" >> "$forward_zone_output_file" 
+    fi
+done < "$forward_zone_input_file"
+
+# Clean up: Delete input file
+rm -f "$forward_zone_input_file"
+
+# Check if the output file exists
+if [ -f "$forward_zone_output_file" ]; then
+    echo "ok: [forward DNS zone file generated: $forward_zone_output_file]"
+else
+    echo "failed: [forward DNS zone file generation failed]"
+fi
+
+
+# Step 3: Create reverse zone file
+# ----------------------------------------
+# Clean up: Delete duplicate file
+rm -f /var/named/${REVERSE_ZONE_FILE}
+
+# Input file containing the original reverse DNS zone configuration
+reverse_zone_input_file="/var/named/reverse_zone_input_file"
+
+# Output file for the formatted reverse DNS zone configuration
+reverse_zone_output_file="/var/named/${REVERSE_ZONE_FILE}"
+
+# Create the input file with initial content
+cat << EOF > "$reverse_zone_input_file"
 \$TTL 1W
 @       IN      SOA     ns1.${BASE_DOMAIN}.        root (
                         2019070700      ; serial
@@ -453,27 +553,66 @@ cat << EOF >  /var/named/${REVERSE_ZONE_FILE_NAME}
 ; with a trailing dot.
 ;
 ; The api identifies the IP of your load balancer.
-${API_REVERSE_IP}                IN      PTR     api.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${API_INT_REVERSE_IP}            IN      PTR     api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${API_IP}                IN      PTR     api.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${API_INT_IP}            IN      PTR     api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ;
 ; Create entries for the master hosts.
-${MASTER01_REVERSE_IP}           IN      PTR     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${MASTER02_REVERSE_IP}           IN      PTR     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${MASTER03_REVERSE_IP}           IN      PTR     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${MASTER01_IP}           IN      PTR     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${MASTER02_IP}           IN      PTR     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${MASTER03_IP}           IN      PTR     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ;
 ; Create entries for the worker hosts.
-${WORKER01_REVERSE_IP}           IN      PTR     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${WORKER02_REVERSE_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${WORKER02_REVERSE_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${WORKER01_IP}           IN      PTR     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${WORKER02_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${WORKER02_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ;
 ; Create an entry for the bootstrap host.
-${BOOTSTRAP_REVERSE_IP}          IN      PTR     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${BOOTSTRAP_IP}          IN      PTR     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 EOF
 
-# Change ownership
-chown named. /var/named/*.zone
-echo "ok: [Change ownership /var/named/*.zone."
+# Function to generate IP address conversion to reverse format
+convert_to_reverse_ip() {
+    local ip="$1"
+    IFS='.' read -ra octets <<< "$ip"
+    reverse_ip="${octets[3]}.${octets[2]}.${octets[1]}.${octets[0]}"
+    echo "$reverse_ip"
+}
 
+# Clear output file
+> "$reverse_zone_output_file" 
+
+# Use the function "convert_to_reverse_ip" to convert IP addresses, and format the output
+while IFS= read -r line; do
+    if [[ $line == *PTR* ]]; then
+        # Extract IP and PTR from the line
+        ip=$(echo "$line" | awk '{print $1}')
+        ptr=$(echo "$line" | awk '{print $4}')
+
+        # Convert IP to reverse format
+        reversed_ip=$(convert_to_reverse_ip "$ip")
+
+        # Format the output with appropriate spacing
+        formatted_line=$(printf "%-23s IN PTR     %-40s\n" "$reversed_ip" "$ptr")
+        echo "$formatted_line" >> "$reverse_zone_output_file"
+    else
+        # If not a PTR line, keep the line unchanged
+        echo "$line" >> "$reverse_zone_output_file"
+    fi
+done < "$reverse_zone_input_file"
+
+# Clean up: Delete input file
+rm -f "$reverse_zone_input_file"
+
+# Verify if the reverse DNS zone file was generated successfully
+if [ -f "$reverse_zone_output_file" ]; then
+    echo "ok: [reverse DNS zone file generated: $reverse_zone_output_file]"
+else
+    echo "failed: [reverse DNS zone file generation]"
+fi
+
+
+# Step 4: Check named configuration/Dns file 
+# ----------------------------------------
 # Check named configuration file
 if named-checkconf &>/dev/null; then
     echo "ok: [Setup named service configuration, named configuration is valid]"
@@ -482,61 +621,64 @@ else
 fi
 
 # Check forward zone file
-if named-checkzone ${BASE_DOMAIN} /var/named/${BASE_DOMAIN}.zone &>/dev/null; then
-    echo "ok: [Add DNS forwarder IP]"
-    echo "ok: [Create forward zone file, forward zone file is valid]"
+if named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} &>/dev/null; then
+    echo "ok: [forward zone file is valid]"
 else
-    echo "failed: [Create forward zone file, Forward zone file is invalid]"
+    echo "failed: [forward zone file is invalid]"
 fi
 
 # Check reverse zone file
-if named-checkzone ${REVERSE_ZONE_FILE_NAME} /var/named/${REVERSE_ZONE_FILE_NAME} &>/dev/null; then
-    echo "ok: [Create reverse zone file，reverse zone file is valid]"
+if named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} &>/dev/null; then
+    echo "ok: [reverse zone file is valid]"
 else
-    echo "failed: [Create reverse zone file，reverse zone file is invalid]"
+    echo "failed: [reverse zone file is invalid]"
 fi
 
+
+# Step 5: Add dns ip to resolv.conf and change zone permissions
+# ----------------------------------------
 # Check if the same DNS IP exists in resolv.conf, if not, add it.
-if ! grep -q "nameserver ${DNS_SERVER}" /etc/resolv.conf; then
+if ! grep -q "nameserver ${DNS_SERVER_IP}" /etc/resolv.conf; then
     # Add the DNS server configuration
-    echo "nameserver ${DNS_SERVER}" >> /etc/resolv.conf
+    echo "nameserver ${DNS_SERVER_IP}" >> /etc/resolv.conf
     echo "ok: [Add DNS IP to /etc/resolv.conf]"
 else
     echo "warning: [DNS IP already exists in /etc/resolv.conf]"
 fi
 
-# Enable and start named service
-systemctl enable named
-systemctl restart named
-echo "In progress: Restarting named service...]"
+# Change ownership
+chown named. /var/named/*.zone
+echo "ok: [Change ownership /var/named/*.zone."
+
+
+# Step 6: Enable and Restart named service
+# ----------------------------------------
+# List of services to handle
+services=("named")
+
+# Loop through each service in the list
+for service in "${services[@]}"; do
+    # Restart the service
+    systemctl restart "$service" &>/dev/null
+    restart_status=$?
+
+    # Enable the service
+    systemctl enable "$service" &>/dev/null
+    enable_status=$?
+
+    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
+        echo "ok: [$service service is restarted and enabled]"
+    else
+        echo "failed: [$service service is not restarted or enabled]"
+    fi
+done
+
+# Wait for the service to restart
 sleep 10
 
 
-# Check if a service is enabled and running
-check_service() {
-    service_name=$1
-
-    if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is enabled]"
-    else
-        echo "failed: [$service_name service is not enabled]"
-    fi
-
-    if systemctl is-active "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is running]"
-    else
-        echo "failed: $service_name service is not running."
-    fi
-}
-
-# List of services to check
-services=("named")
-
-# Check status of all services
-for service in "${services[@]}"; do
-    check_service "$service"
-done
-
+# Step 7: Test nslookup
+# ----------------------------------------
 # List of hostnames and IP addresses to check
 hostnames=(
     "api.${CLUSTER_NAME}.${BASE_DOMAIN}"
@@ -582,12 +724,13 @@ fi
 # Add an empty line after the task
 echo
 
-######
 
 
-# Task: Setup HAproxy services
+# === Task: Setup HAproxy services ===
 PRINT_TASK "[TASK: Setup HAproxy services]"
 
+# Step 1: Generate haproxy service configuration file
+# ----------------------------------------
 # Setup haproxy services configuration
 cat << EOF > /etc/haproxy/haproxy.cfg 
 global
@@ -626,7 +769,7 @@ frontend stats
   stats uri /stats
 
 listen api-server-6443 
-  bind ${BASTION_IP}:6443
+  bind ${LB_IP}:6443
   mode tcp
   server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 check inter 1s backup
   server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 check inter 1s
@@ -634,7 +777,7 @@ listen api-server-6443
   server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 check inter 1s
 
 listen machine-config-server-22623 
-  bind ${BASTION_IP}:22623
+  bind ${LB_IP}:22623
   mode tcp
   server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:22623 check inter 1s backup
   server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:22623 check inter 1s
@@ -642,20 +785,23 @@ listen machine-config-server-22623
   server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:22623 check inter 1s
 
 listen default-ingress-router-80
-  bind ${BASTION_IP}:80
+  bind ${LB_IP}:80
   mode tcp
   balance source
   server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:80 check inter 1s
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check inter 1s
 
 listen default-ingress-router-443
-  bind ${BASTION_IP}:443
+  bind ${LB_IP}:443
   mode tcp
   balance source
   server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check inter 1s
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
 EOF
 
+
+# Step 2: Check haproxy configuration/Dns file 
+# ----------------------------------------
 # Path to HAProxy configuration file
 CONFIG_FILE="/etc/haproxy/haproxy.cfg"
 
@@ -672,33 +818,28 @@ check_haproxy_config() {
 # Call the function to check HAProxy configuration
 check_haproxy_config
 
-# Enable and start HAProxy service
-systemctl enable haproxy
-systemctl start haproxy
-echo "In progress: Restarting haproxy service...]"
-sleep 5
 
-# Check if a service is enabled and running
-check_service() {
-    service_name=$1
+# Step 3: Enable and Restart haproxy service
+# ----------------------------------------
+# List of services to handle
+services=("named")
 
-    if systemctl is-enabled "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is enabled]"
-    else
-        echo "failed: [$service_name service is not enabled]"
-    fi
-
-    if systemctl is-active "$service_name" &>/dev/null; then
-        echo "ok: [$service_name service is running]"
-    else
-        echo "failed: [$service_name service is not running]"
-    fi
-}
-
-# List of services to check
-services=("haproxy")
-
-# Check status of all services
+# Loop through each service in the list
 for service in "${services[@]}"; do
-    check_service "$service"
+    # Restart the service
+    systemctl restart "$service" &>/dev/null
+    restart_status=$?
+
+    # Enable the service
+    systemctl enable "$service" &>/dev/null
+    enable_status=$?
+
+    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
+        echo "ok: [$service service is restarted and enabled]"
+    else
+        echo "failed: [$service service is not restarted or enabled]"
+    fi
 done
+
+# Wait for the service to restart
+sleep 10
