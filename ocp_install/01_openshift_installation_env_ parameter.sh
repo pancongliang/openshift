@@ -79,13 +79,12 @@ export ARCHITECTURE="x86_64"
 ### Do not change the following parameters ###
 # Function to generate duplicate parameters
 export ID_RSA_PUB_FILE="${SSH_KEY_PATH}/id_rsa.pub"
-export DNS_IP="$BASTION_IP"
+export NFS_SERVER_IP="$BASTION_IP"
+export DNS_SERVER_IP="$BASTION_IP"
 export REGISTRY_IP="$BASTION_IP"
 export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
-export NFS_SERVER_IP="$BASTION_IP"
-
 
 # Create directories
 run_command() {
@@ -106,31 +105,13 @@ run_command "mkdir -p ${NFS_PATH}" "creating NFS directory"
 run_command "mkdir -p ${HTTPD_PATH}" "creating HTTPD directory"
 run_command "mkdir -p ${IGNITION_PATH}" "creating Ignition directory"
 
-# Function to generate reversed DNS, Generate reversed DNS for each IP and store as variables
-generate_reverse_ip() {
-  local ip="$1"
-  reversed_dns=$(echo "$ip" | awk -F'.' '{print $4"."$3}')
-  echo "$reversed_dns"
-}
-
-export BASTION_REVERSE_IP=$(generate_reverse_ip "$BASTION_IP")
-export REGISTRY_REVERSE_IP=$(generate_reverse_ip "$REGISTRY_IP")
-export MASTER01_REVERSE_IP=$(generate_reverse_ip "$MASTER01_IP")
-export MASTER02_REVERSE_IP=$(generate_reverse_ip "$MASTER02_IP")
-export MASTER03_REVERSE_IP=$(generate_reverse_ip "$MASTER03_IP")
-export WORKER01_REVERSE_IP=$(generate_reverse_ip "$WORKER01_IP")
-export WORKER02_REVERSE_IP=$(generate_reverse_ip "$WORKER02_IP")
-export BOOTSTRAP_REVERSE_IP=$(generate_reverse_ip "$BOOTSTRAP_IP")
-export API_REVERSE_IP=$(generate_reverse_ip "$API_IP")
-export API_INT_REVERSE_IP=$(generate_reverse_ip "$API_INT_IP")
-
 # Function to generate reversed_ip_par/zone name
 export IP_PART=$(echo "$BASTION_IP" | cut -d. -f1-2)
 export REVERSED_IP_PART=$(echo "$IP_PART" | awk -F'.' '{print $2"."$1}')
-export REVERSE_ZONE="$REVERSED_IP_PART.in-addr.arpa"
-export REVERSE_ZONE_FILE_NAME="$REVERSED_IP_PART.zone"
-export FORWARD_ZONE="$BASE_DOMAIN"
-export FORWARD_ZONE_FILE_NAME="$BASE_DOMAIN.zone"
+export REVERSE_ZONE_NAME="$REVERSED_IP_PART.in-addr.arpa"
+export REVERSE_ZONE_FILE="$REVERSED_IP_PART.zone"
+export FORWARD_ZONE_NAME="$BASE_DOMAIN"
+export FORWARD_ZONE_FILE="$BASE_DOMAIN.zone"
 
 
 # Nslookup public network
@@ -185,28 +166,18 @@ check_all_variables() {
     check_variable "REGISTRY_INSTALL_PATH"
     check_variable "NFS_PATH"
     check_variable "IMAGE_REGISTRY_PV"
-    check_variable "DNS_IP"
+    check_variable "DNS_SERVER_IP"
     check_variable "REGISTRY_IP"
     check_variable "API_IP"
     check_variable "API_INT_IP"
     check_variable "APPS_IP"
     check_variable "NFS_SERVER_IP"
-    check_variable "BASTION_REVERSE_IP"
-    check_variable "REGISTRY_REVERSE_IP"
-    check_variable "MASTER01_REVERSE_IP"
-    check_variable "MASTER02_REVERSE_IP"
-    check_variable "MASTER03_REVERSE_IP"
-    check_variable "WORKER01_REVERSE_IP"
-    check_variable "WORKER02_REVERSE_IP"
-    check_variable "BOOTSTRAP_REVERSE_IP"
-    check_variable "API_REVERSE_IP"
-    check_variable "API_INT_REVERSE_IP"
     check_variable "IP_PART"
     check_variable "REVERSED_IP_PART"
-    check_variable "REVERSE_ZONE"
-    check_variable "REVERSE_ZONE_FILE_NAME"
-    check_variable "FORWARD_ZONE"
-    check_variable "FORWARD_ZONE_FILE_NAME"
+    check_variable "REVERSE_ZONE_NAME"
+    check_variable "REVERSE_ZONE_FILE"
+    check_variable "FORWARD_ZONE_NAME"
+    check_variable "FORWARD_ZONE_FILE"
     check_variable "NSLOOKUP_PUBLIC"
     check_variable "LOCAL_REPOSITORY"
     check_variable "PRODUCT_REPO"
@@ -227,6 +198,5 @@ if [ ${#missing_variables[@]} -gt 0 ]; then
         echo "- $var"
     done
 else
-    echo "ok: [generate reverse address]"
     echo "ok: [all variables are set]"
 fi
