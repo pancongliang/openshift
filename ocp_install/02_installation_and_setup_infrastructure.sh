@@ -203,9 +203,9 @@ for service in "${services[@]}"; do
     enable_status=$?
 
     if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [$service service is restarted and enabled]"
+        echo "ok: [$service service was restarted and enabled successfully]"
     else
-        echo "failed: [$service service is not restarted or enabled]"
+        echo "failed: [$service service restart or enable failed]"
     fi
 done
 
@@ -310,9 +310,9 @@ for service in "${services[@]}"; do
     enable_status=$?
 
     if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [$service service is restarted and enabled]"
+        echo "ok: [$service service was restarted and enabled successfully]"
     else
-        echo "failed: [$service service is not restarted or enabled]"
+        echo "failed: [$service service restart or enable failed]"
     fi
 done
 
@@ -504,7 +504,7 @@ EOF
 
 # Verify if the output file was generated successfully
 if [ -f "/var/named/${FORWARD_ZONE_FILE}" ]; then
-    echo "ok: [forward DNS zone file generated: "/var/named/${FORWARD_ZONE_FILE}"]"
+    echo "ok: [fgenerated forward DNS zone file /var/named/${FORWARD_ZONE_FILE} successfully]"
 else
     echo "failed: [forward DNS zone file generation failed]"
 fi
@@ -588,7 +588,7 @@ rm -f "$reverse_zone_input_file"
 
 # Verify if the reverse DNS zone file was generated successfully
 if [ -f "$reverse_zone_output_file" ]; then
-    echo "ok: [reverse DNS zone file generated: $reverse_zone_output_file]"
+    echo "ok: [generated reverse DNS zone file $reverse_zone_output_file successfully]"
 else
     echo "failed: [reverse DNS zone file generation failed]"
 fi
@@ -632,7 +632,7 @@ fi
 
 # Change ownership
 chown named. /var/named/*.zone
-echo "ok: [Change ownership /var/named/*.zone."
+echo "ok: [change ownership /var/named/*.zone successfully]"
 
 
 # Step 6: Enable and Restart named service
@@ -651,9 +651,9 @@ for service in "${services[@]}"; do
     enable_status=$?
 
     if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [$service service is restarted and enabled]"
+        echo "ok: [$service service was restarted and enabled successfully]"
     else
-        echo "failed: [$service service is not restarted or enabled]"
+        echo "failed: [$service service restart or enable failed]"
     fi
 done
 
@@ -828,8 +828,8 @@ for service in "${services[@]}"; do
     enable_status=$?
 
     if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [$service service is restarted and enabled]"
+        echo "ok: [$service service was restarted and enabled successfully]"
     else
-        echo "failed: [$service service is not restarted or enabled]"
+        echo "failed: [$service service restart or enable failed]"
     fi
 done
