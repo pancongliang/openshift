@@ -28,7 +28,6 @@ for package in "${packages[@]}"; do
     fi
 done
 
-Install $package successfully
 # Add an empty line after the task
 echo
 # ========================================
