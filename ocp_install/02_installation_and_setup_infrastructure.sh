@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # === Function to print a task with uniform length ===
 # Function to print a task with uniform length
@@ -23,12 +22,13 @@ packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" 
 for package in "${packages[@]}"; do
     yum install -y "$package" &>/dev/null
     if [ $? -eq 0 ]; then
-        echo "ok: [install $package package]"
+        echo "ok: [$package package installed successfully]"
     else
-        echo "failed: [install $package package]"
+        echo "failed: [$package package installation failed]"
     fi
 done
 
+Install $package successfully
 # Add an empty line after the task
 echo
 # ========================================
@@ -67,13 +67,13 @@ install_tar_gz() {
     # Download the tool
     wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
     if [ $? -eq 0 ]; then
-        echo "ok: [download $tool_name tool]"        
+        echo "ok: [download $tool_name tool successfully]"        
         # Extract the downloaded tool
         tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
         # Remove the downloaded .tar.gz file
         rm -f "/usr/local/bin/$(basename $tool_url)"
     else
-        echo "failed: [download $tool_name tool]"
+        echo "failed: [download $tool_name tool failed]"
     fi
 }
 
@@ -84,11 +84,11 @@ install_binary() {
     # Download the binary tool
     wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
     if [ $? -eq 0 ]; then
-        echo "ok: [download $tool_name tool]"        
+        echo "ok: [download $tool_name tool successfully]"        
         # Add execute permissions to the downloaded binary
         chmod a+x "/usr/local/bin/$(basename $tool_url)" &> /dev/null
     else
-        echo "failed: [download $tool_name tool]"
+        echo "failed: [download $tool_name tool failed]"
     fi
 }
 
@@ -109,16 +109,14 @@ commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
 # Iterate through the list of commands for checking
 for cmd in "${commands[@]}"; do
     if command -v "$cmd" >/dev/null 2>&1; then
-        echo "ok: [install $cmd tool]"
+        echo "ok: [$cmd tool installed successfully]"
     else
-        echo "failed: [install $cmd tool]"
+        echo "failed: [$cmd tool installation failed]"
     fi
 done
 
 # Add an empty line after the task
 echo
-
-
 
 
 
@@ -136,6 +134,8 @@ update_httpd_listen_port() {
         # Change listen port to 8080
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
         echo "ok: [http listen port has been changed to 8080]"
+    else
+        echo "ok: [http listen port is already 8080, no changes needed]"
     fi
 }
 
@@ -164,9 +164,9 @@ check_virtual_host_configuration() {
     # Check if expected values are present in the config
     if grep -q "ServerName $expected_server_name" "$virtual_host_config" && \
        grep -q "DocumentRoot $expected_document_root" "$virtual_host_config"; then
-        echo "ok: [create virtual host configuration]"
+        echo "ok: [create virtual host configuration successfully]"
     else
-        echo "failed: [create virtual host configuration]"
+        echo "failed: [create virtual host configuration failed]"
     fi
 }
 
@@ -182,9 +182,9 @@ check_virtual_host_configuration
 # Create http dir
 mkdir -p ${HTTPD_PATH}
 if [ $? -eq 0 ]; then
-    echo "ok: [http directories created successfully]"
+    echo "ok: [http ${HTTPD_PATH} directories created successfully]"
 else
-    echo "failed: [failed to create http directories]"
+    echo "failed: [http ${HTTPD_PATH} directories creation failed]"
 fi
 
 
@@ -229,16 +229,16 @@ run_command() {
 }
 
 # Test httpd configuration
-run_command "touch ${HTTPD_PATH}/httpd-test" "creating test file"
-run_command "wget -q http://${BASTION_IP}:8080/httpd-test" "downloading test file"
+run_command "touch ${HTTPD_PATH}/httpd-test" "successfully created test file"
+run_command "wget -q http://${BASTION_IP}:8080/httpd-test" "download test file successfully"
 wget_status=$?
-run_command "rm -rf httpd-test ${HTTPD_PATH}/httpd-test" "removing test files"
+run_command "rm -rf httpd-test ${HTTPD_PATH}/httpd-test" "successfully deleted the test file"
 
-# Check if testing httpd configuration was successful
+# Check if testing httpd configuration was successfully
 if [ $wget_status -eq 0 ]; then
-    echo "ok: [Testing httpd configuration]"
+    echo "ok: [test httpd download function successfully]"
 else
-    echo "failed: [Testing httpd configuration]"
+    echo "failed: [test httpd download functionality failed]"
 fi
 
 # Add an empty line after the task
@@ -267,22 +267,22 @@ if id "nfsnobody" &>/dev/null; then
     echo "info: [nfsnobody user exists]"
 else
     useradd nfsnobody
-    echo "ok: [nfsnobody user added]"
+    echo "ok: [nfsnobody user added successfully]"
 fi
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_PATH}
 if [ $? -eq 0 ]; then
-    echo "ok: [changed ownership of NFS directories]"
+    echo "ok: [changing ownership of NFS directory successfully]"
 else
     echo "failed: [failed to change ownership of NFS directories]"
 fi
 
 chmod -R 777 ${NFS_PATH}
 if [ $? -eq 0 ]; then
-    echo "ok: [changed permissions of NFS directories]"
+    echo "ok: [changed NFS directory permissions successfully]"
 else
-    echo "failed: [failed to change permissions of NFS directories]"
+    echo "failed: [changing NFS directory permissions failed]"
 fi
 
 # Add NFS export configuration
@@ -291,7 +291,7 @@ if grep -q "$export_config_line" "/etc/exports"; then
     echo "info: [nfs export configuration already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo "ok: [nfs export configuration added]"
+    echo "ok: [add nfs export configuration successfully]"
 fi
 
 
@@ -334,13 +334,13 @@ check_nfs_access() {
     mount -t nfs ${NFS_SERVER_IP}:${NFS_PATH} $mount_point
 
     if [ $? -eq 0 ]; then
-        echo "ok: [nfs share is accessible]"
+        echo "ok: [test mounts the nfs shared directory successfully]"
         # Unmount the NFS share
         umount $mount_point
         rmdir $mount_point
         return 0
     else
-        echo "failed: [nfs share is not accessible]"
+        echo "failed: [test mount nfs shared directory failed]"
         rmdir $mount_point
         return 1
     fi
@@ -367,10 +367,10 @@ FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
 
 # Check if the forward DNS zone name and zone file name are generated successfully
 if [ -n "$FORWARD_ZONE_NAME" ] && [ -n "$FORWARD_ZONE_FILE" ]; then
-    echo "ok: [Generated forward DNS zone name $FORWARD_ZONE_NAME successfully]"
-    echo "ok: [Generated forward zone file name $FORWARD_ZONE_FILE successfully]"
+    echo "ok: [generated forward DNS zone name $FORWARD_ZONE_NAME successfully]"
+    echo "ok: [generated forward zone file name $FORWARD_ZONE_FILE successfully]"
 else
-    echo "failed: [Failed to generate forward DNS zone name or forward zone file name]"
+    echo "failed: [failed to generate forward DNS zone name or forward zone file name]"
 fi
 
 # Generate reverse DNS zone name and reverse zone file name 
@@ -385,10 +385,10 @@ REVERSE_ZONE_FILE="${OCTET1}.${OCTET0}.zone"
 
 # Check if the reverse DNS zone name and zone file name are generated successfully
 if [ -n "$REVERSE_ZONE_NAME" ] && [ -n "$REVERSE_ZONE_FILE" ]; then
-    echo "ok: [Generated reverse DNS zone name $REVERSE_ZONE_NAME successfully]"
-    echo "ok: [Generated reverse zone file name $REVERSE_ZONE_FILE successfully]"
+    echo "ok: [generated reverse DNS zone name $REVERSE_ZONE_NAME successfully]"
+    echo "ok: [generated reverse zone file name $REVERSE_ZONE_FILE successfully]"
 else
-    echo "failed: [Failed to generate reverse DNS zone name or reverse zone file name]"
+    echo "failed: [failed to generate reverse DNS zone name or reverse zone file name]"
 fi
 
 
@@ -444,9 +444,9 @@ EOF
 
 # Check if the named configuration file was generated successfully
 if [ -f "/etc/named.conf" ]; then
-    echo "ok: [Named configuration file generated successfully]"
+    echo "ok: [named configuration file generated successfully]"
 else
-    echo "failed: [Failed to generate named configuration file]"
+    echo "failed: [failed to generate named configuration file]"
 fi
 
 
@@ -615,7 +615,7 @@ rm -f "$reverse_zone_input_file"
 if [ -f "$reverse_zone_output_file" ]; then
     echo "ok: [reverse DNS zone file generated: $reverse_zone_output_file]"
 else
-    echo "failed: [reverse DNS zone file generation]"
+    echo "failed: [reverse DNS zone file generation failed]"
 fi
 
 
@@ -623,9 +623,9 @@ fi
 # ----------------------------------------
 # Check named configuration file
 if named-checkconf &>/dev/null; then
-    echo "ok: [Setup named service configuration, named configuration is valid]"
+    echo "ok: [named configuration is valid]"
 else
-    echo "failed: [Setup named service configuration, Named configuration is invalid]"
+    echo "failed: [Named configuration is invalid]"
 fi
 
 # Check forward zone file
@@ -722,9 +722,9 @@ done
 
 # Display results
 if [ "$all_successful" = true ]; then
-    echo "ok: [Resolve all Domain/IP addresses]"
+    echo "ok: [successful resolution of all domain names/IP addresses]"
 else
-    echo "failed: [DNS resolution failed for the following hostnames:]"
+    echo "failed: [DNS resolution failed for the following Domain/IP:]"
     for failed_hostname in "${failed_hostnames[@]}"; do
         echo "$failed_hostname"
     done
@@ -737,9 +737,11 @@ echo
 
 # === Task: Setup HAproxy services ===
 PRINT_TASK "[TASK: Setup HAproxy services]"
-
 # Step 1: Generate haproxy service configuration file
 # ----------------------------------------
+# Specify the path and filename for the haproxy configuration file
+haproxy_config_file="/etc/haproxy/haproxy.cfg"
+
 # Setup haproxy services configuration
 cat << EOF > /etc/haproxy/haproxy.cfg 
 global
@@ -808,6 +810,13 @@ listen default-ingress-router-443
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
 EOF
 
+# Verify if the haproxy configuration file was generated successfully
+if [ -f "$haproxy_config_file" ]; then
+    echo "ok: [haproxy configuration file generated: $haproxy_config_file]"
+else
+    echo "failed: [haproxy configuration file generation failed]"
+fi
+
 
 # Step 2: Check haproxy configuration/Dns file 
 # ----------------------------------------
@@ -818,9 +827,9 @@ CONFIG_FILE="/etc/haproxy/haproxy.cfg"
 check_haproxy_config() {
     haproxy -c -f "$CONFIG_FILE"
     if [ $? -eq 0 ]; then
-        echo "ok: [Setup Haproxy service configuration, HAProxy configuration is valid]"
+        echo "ok: [ haproxy configuration is valid]"
     else
-        echo "failed: [Setup Haproxy service configuration,HAProxy configuration is invalid]"
+        echo "failed: [haproxy configuration is invalid]"
     fi
 }
 
