@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# === Function to print a task with uniform length ===
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=90  # Adjust this to your desired maximum length
@@ -9,10 +9,10 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
+# ====================================================
 
-######
 
-# Task: Disable and stop firewalld service
+# === Task: Disable and stop firewalld service ===
 PRINT_TASK "[TASK: Disable and stop firewalld service]"
 
 # List of services to handle
@@ -36,9 +36,12 @@ done
 
 # Add an empty line after the task
 echo
-######
 
-# Task: Change SELinux security policy
+
+
+
+
+# === Task: Change SELinux security policy ===
 PRINT_TASK "[TASK: Change SELinux security policy]"
 
 # Read the SELinux configuration
