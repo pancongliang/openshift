@@ -85,34 +85,7 @@ export REGISTRY_IP="$BASTION_IP"
 export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
-
-# Create directories
-run_command() {
-    $1
-    if [ $? -eq 0 ]; then
-        echo "ok: [$2]"
-        return 0
-    else
-        echo "failed: [$2]"
-        return 1
-    fi
-}
-# Create directories
-run_command "mkdir -p ${SSH_KEY_PATH}" "creating SSH key directory"
-run_command "mkdir -p ${REGISTRY_CERT_PATH}" "creating registry certificate directory"
-run_command "mkdir -p ${REGISTRY_INSTALL_PATH}" "creating registry install directory"
-run_command "mkdir -p ${NFS_PATH}" "creating NFS directory"
-run_command "mkdir -p ${HTTPD_PATH}" "creating HTTPD directory"
-run_command "mkdir -p ${IGNITION_PATH}" "creating Ignition directory"
-
-# Function to generate reversed_ip_par/zone name
-export IP_PART=$(echo "$BASTION_IP" | cut -d. -f1-2)
-export REVERSED_IP_PART=$(echo "$IP_PART" | awk -F'.' '{print $2"."$1}')
-export REVERSE_ZONE_NAME="$REVERSED_IP_PART.in-addr.arpa"
-export REVERSE_ZONE_FILE="$REVERSED_IP_PART.zone"
-export FORWARD_ZONE_NAME="$BASE_DOMAIN"
-export FORWARD_ZONE_FILE="$BASE_DOMAIN.zone"
-
+export LB_IP="$BASTION_IP"
 
 # Nslookup public network
 export NSLOOKUP_PUBLIC="redhat.com"
@@ -167,17 +140,12 @@ check_all_variables() {
     check_variable "NFS_PATH"
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "DNS_SERVER_IP"
+    check_variable "LB_IP"
     check_variable "REGISTRY_IP"
     check_variable "API_IP"
     check_variable "API_INT_IP"
     check_variable "APPS_IP"
     check_variable "NFS_SERVER_IP"
-    check_variable "IP_PART"
-    check_variable "REVERSED_IP_PART"
-    check_variable "REVERSE_ZONE_NAME"
-    check_variable "REVERSE_ZONE_FILE"
-    check_variable "FORWARD_ZONE_NAME"
-    check_variable "FORWARD_ZONE_FILE"
     check_variable "NSLOOKUP_PUBLIC"
     check_variable "LOCAL_REPOSITORY"
     check_variable "PRODUCT_REPO"
