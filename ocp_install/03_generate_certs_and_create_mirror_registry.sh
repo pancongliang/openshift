@@ -1,7 +1,5 @@
-#!/bin/bash
-
-#######################################################
-
+!/bin/bash
+# === Function to print a task with uniform length ===
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=90  # Adjust this to your desired maximum length
@@ -11,40 +9,48 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
+# ====================================================
 
-#######################################################
 
-# Task: Sign up for a Red Hat Subscription
+# === Task: Generate a self-signed certs and install mirror-registry ===
 PRINT_TASK "[TASK: Generate a self-signed certs and install mirror-registry]"
 
-# Check if there is an existing certificate
-# Define the certificate file paths
-certificate_paths=(
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.crt
+
+# Step 1: Delete existing file
+# ----------------------------------------
+# Check if there is an existing file
+# Define the file paths
+file_paths=(
+    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt"
+    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.crt"
+    "${REGISTRY_INSTALL_PATH}"
+    "${REGISTRY_CERT_PATH}"
 )
 
-# Check if any certificate file already exists
-existing_cert=false
-for path in "${certificate_paths[@]}"; do
+# Check if any file already exists
+existing_file=false
+for path in "${file_paths[@]}"; do
     if [ -f "$path" ]; then
-        existing_cert=true
+        existing_file=true
         break
     fi
 done
 
-if [ "$existing_cert" = true ]; then
-    # delete existing certificates
-    rm -f "${certificate_paths[@]}"
+if [ "$existing_file" = true ]; then
+    # Delete existing files
+    for path in "${file_paths[@]}"; do
+        if [ -f "$path" ]; then
+            rm -f "$path"
+            echo "ok: [deleted: $path]"
+        fi
+    done
 fi
 
 echo ====== Create certificate ======
-# Create directories for registry setup
-rm -rf ${REGISTRY_INSTALL_PATH}/*
+# Create directories for registry install
 mkdir -p ${REGISTRY_INSTALL_PATH}/{auth,certs,data}
 
-# Create directory for certificate generation and navigate to it
-rm -rf ${REGISTRY_CERT_PATH}
+# Generate a directory for creating certificates
 mkdir -p ${REGISTRY_CERT_PATH}
 
 # Generate a root certificate private key
@@ -237,5 +243,3 @@ else
     echo "Failed to log in to the registry."
 fi
 
-
-#######################################################
