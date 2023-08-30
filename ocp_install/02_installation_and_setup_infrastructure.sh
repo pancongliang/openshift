@@ -264,7 +264,7 @@ fi
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" &>/dev/null; then
-    echo "warning: [nfsnobody user exists]"
+    echo "info: [nfsnobody user exists]"
 else
     useradd nfsnobody
     echo "ok: [nfsnobody user added]"
@@ -288,7 +288,7 @@ fi
 # Add NFS export configuration
 export_config_line="${NFS_PATH}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "warning: [nfs export configuration already exists]"
+    echo "info: [nfs export configuration already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
     echo "ok: [nfs export configuration added]"
@@ -376,12 +376,12 @@ fi
 # Generate reverse DNS zone name and reverse zone file name 
 # Extract the last two octets from the IP address
 IFS='.' read -ra octets <<< "$DNS_SERVER_IP"
-OCTET3="${octets[2]}"
-OCTET4="${octets[3]}"
+OCTET0="${octets[0]}"
+OCTET1="${octets[1]}"
 
 # Construct reverse DNS zone name and zone file name
-REVERSE_ZONE_NAME="${OCTET4}.${OCTET3}.in-addr.arpa"
-REVERSE_ZONE_FILE="${OCTET4}.${OCTET3}.zone"
+REVERSE_ZONE_NAME="${OCTET1}.${OCTET0}.in-addr.arpa"
+REVERSE_ZONE_FILE="${OCTET1}.${OCTET0}.zone"
 
 # Check if the reverse DNS zone name and zone file name are generated successfully
 if [ -n "$REVERSE_ZONE_NAME" ] && [ -n "$REVERSE_ZONE_FILE" ]; then
@@ -455,6 +455,12 @@ fi
 # Clean up: Delete duplicate file
 rm -f /var/named/${FORWARD_ZONE_FILE}
 
+# Input file containing the original forward DNS zone configuration
+forward_zone_input_file="/var/named/forward_zone_input_file"
+
+# Output file for the formatted forward DNS zone configuration
+forward_zone_output_file="/var/named/${FORWARD_ZONE_FILE}"
+
 # Create forward zone file
 cat << EOF > "${forward_zone_input_file}"
 \$TTL 1W
@@ -494,10 +500,6 @@ ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.          IN      A       $
 ; Create entries for the mirror registry hosts.
 ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.                           IN      A       ${REGISTRY_IP}
 EOF
-
-# Specify the paths and filenames
-forward_zone_input_file="/var/named/forward_zone_input_file"
-forward_zone_output_file="/var/named/${FORWARD_ZONE_FILE}"
 
 # Function to add zero padding to IP address octets
 add_zero_padding() {
@@ -644,14 +646,15 @@ fi
 
 # Step 5: Add dns ip to resolv.conf and change zone permissions
 # ----------------------------------------
-# Check if the same DNS IP exists in resolv.conf, if not, add it.
-if ! grep -q "nameserver ${DNS_SERVER_IP}" /etc/resolv.conf; then
-    # Add the DNS server configuration
-    echo "nameserver ${DNS_SERVER_IP}" >> /etc/resolv.conf
-    echo "ok: [Add DNS IP to /etc/resolv.conf]"
+# Add dns ip to resolv.conf
+sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
+sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
+if [ $? -eq 0 ]; then
+    echo "ok: [Added DNS_SERVER_IP to /etc/resolv.conf successfully]"
 else
-    echo "warning: [DNS IP already exists in /etc/resolv.conf]"
+    echo "Failed: [Adding DNS_SERVER_IP to /etc/resolv.conf failed]"
 fi
+
 
 # Change ownership
 chown named. /var/named/*.zone
