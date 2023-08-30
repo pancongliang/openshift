@@ -455,14 +455,15 @@ fi
 # Clean up: Delete duplicate file
 rm -f /var/named/${FORWARD_ZONE_FILE}
 
-# Input file containing the original forward DNS zone configuration
-forward_zone_input_file="/var/named/forward_zone_input_file"
-
-# Output file for the formatted forward DNS zone configuration
-forward_zone_output_file="/var/named/${FORWARD_ZONE_FILE}"
-
 # Create forward zone file
-cat << EOF > "${forward_zone_input_file}"
+# Function to format and align DNS entries
+format_dns_entry() {
+    domain="$1"
+    ip="$2"
+    printf "%-40s IN  A      %s\n" "$domain" "$ip"
+}
+
+cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 \$TTL 1W
 @       IN      SOA     ns1.${BASE_DOMAIN}.        root (
                         201907070      ; serial
@@ -479,58 +480,32 @@ helper  IN      A       ${DNS_SERVER_IP}
 helper.ocp4     IN      A       ${DNS_SERVER_IP}
 ;
 ; The api identifies the IP of your load balancer.
-api.${CLUSTER_NAME}.${BASE_DOMAIN}.                            IN      A       ${API_IP}
-api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.                        IN      A       ${API_INT_IP}
+;
+$(format_dns_entry "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
+$(format_dns_entry "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
 ;
 ; The wildcard also identifies the load balancer.
-*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}.                         IN      A       ${APPS_IP}
+$(format_dns_entry "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
 ;
 ; Create entries for the master hosts.
-${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${MASTER01_IP}
-${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${MASTER02_IP}
-${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${MASTER03_IP}
+$(format_dns_entry "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
+$(format_dns_entry "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
+$(format_dns_entry "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
 ;
 ; Create entries for the worker hosts.
-${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${WORKER01_IP}
-${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.           IN      A       ${WORKER02_IP}
+$(format_dns_entry "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
+$(format_dns_entry "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
 ;
 ; Create an entry for the bootstrap host.
-${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.          IN      A       ${BOOTSTRAP_IP}
+$(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
 ;
 ; Create entries for the mirror registry hosts.
-${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.                           IN      A       ${REGISTRY_IP}
+$(format_dns_entry "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}." "${REGISTRY_IP}")
 EOF
 
-# Function to add zero padding to IP address octets
-add_zero_padding() {
-    local ip="$1"
-    padded_ip=$(echo "$ip" | awk -F'.' '{printf "%03d.%03d.%03d.%03d", $1, $2, $3, $4}')
-    echo "$padded_ip"
-}
-
-# Use the function "add_zero_padding" to process the input file and create a formatted output file
-while IFS= read -r line; do
-    if [[ $line =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-        ip=$(echo "$line" | awk '{print $1}')
-        # Call the function to add zero padding to IP
-        padded_ip=$(add_zero_padding "$ip") 
-        hostname_entry=$(echo "$line" | awk '{print $4}')
-        # Generate formatted line
-        formatted_line="${padded_ip}   IN   A   ${hostname_entry}"
-        # Append formatted line to output file
-        echo "$formatted_line" >> "$forward_zone_output_file" 
-    else
-        # If not an IP line, copy the line as-is
-        echo "$line" >> "$forward_zone_output_file" 
-    fi
-done < "$forward_zone_input_file"
-
-# Clean up: Delete input file
-rm -f "$forward_zone_input_file"
-
-# Check if the output file exists
-if [ -f "$forward_zone_output_file" ]; then
-    echo "ok: [forward DNS zone file generated: $forward_zone_output_file]"
+# Verify if the output file was generated successfully
+if [ -f "/var/named/${FORWARD_ZONE_FILE}" ]; then
+    echo "ok: [forward DNS zone file generated: "/var/named/${FORWARD_ZONE_FILE}"]"
 else
     echo "failed: [forward DNS zone file generation failed]"
 fi
@@ -538,6 +513,7 @@ fi
 
 # Step 3: Create reverse zone file
 # ----------------------------------------
+#!/bin/bash
 # Clean up: Delete duplicate file
 rm -f /var/named/${REVERSE_ZONE_FILE}
 
@@ -600,7 +576,7 @@ while IFS= read -r line; do
         reversed_ip=$(convert_to_reverse_ip "$ip")
 
         # Format the output with appropriate spacing
-        formatted_line=$(printf "%-23s IN PTR     %-40s\n" "$reversed_ip" "$ptr")
+        formatted_line=$(printf "%-19s IN  PTR      %-40s\n" "$reversed_ip" "$ptr")
         echo "$formatted_line" >> "$reverse_zone_output_file"
     else
         # If not a PTR line, keep the line unchanged
