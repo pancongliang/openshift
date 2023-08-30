@@ -139,7 +139,7 @@ update_httpd_listen_port() {
     fi
 }
 
-# Step 2: Create virtual host configuration and checking
+# Step 2: Create virtual host configuration and http dir
 # ----------------------------------------
 # Create virtual host configuration
 create_virtual_host_config() {
@@ -178,6 +178,14 @@ create_virtual_host_config
 
 # Check virtual host configuration
 check_virtual_host_configuration
+
+# Create http dir
+mkdir -p ${HTTPD_PATH}
+if [ $? -eq 0 ]; then
+    echo "ok: [http directories created successfully]"
+else
+    echo "failed: [failed to create http directories]"
+fi
 
 
 # Step 3: Enable and Restart httpd service
@@ -285,7 +293,6 @@ else
     echo "$export_config_line" >> "/etc/exports"
     echo "ok: [nfs export configuration added]"
 fi
-
 
 
 # Step 2: Enable and Restart nfs-server service
