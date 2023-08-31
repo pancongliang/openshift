@@ -48,27 +48,26 @@ export BOOTSTRAP_IP="10.74.255.118"
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
-# Registry and mirror variable
-export REGISTRY_HOSTNAME="docker.registry"
+# Mirror-Registry and mirror variable
+export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="admin"
-export REGISTRY_PW="redhat"
+export REGISTRY_PW="password"                           # 8 characters or more
 export PULL_SECRET="/root/pull-secret"                # Download pull-secret https://console.redhat.com/openshift/install/metal/installer-provisioned
-export REGISTRY_CERT_PATH="/etc/certs"                # No need to manually create dir
-export REGISTRY_INSTALL_PATH="/opt/registry"          # No need to manually create dir
+export REGISTRY_INSTALL_PATH="/opt/registry"
 
 ### more parameters ###
 # NFS directory is used to create image-registry pod pv
-export NFS_PATH="/nfs"                                # No need to manually create dir
-export IMAGE_REGISTRY_PV="image-registry"             # No need to manually create dir
+export NFS_PATH="/nfs"
+export IMAGE_REGISTRY_PV="image-registry"
 
 # Httpd and ocp ignition dir
-export HTTPD_PATH="/var/www/html/materials"           # No need to manually create dir
-export IGNITION_PATH="${HTTPD_PATH}/pre"              # No need to manually create dir
+export HTTPD_PATH="/var/www/html/materials"
+export IGNITION_PATH="${HTTPD_PATH}/pre"
 
 # OpenShift install-config
-export POD_CIDR="10.128.0.0/14"                       # Generally use the default value
-export HOST_PREFIX="23"                               # Generally use the default value
-export SERVICE_CIDR="172.30.0.0/16"                   # Generally use the default value
+export POD_CIDR="10.128.0.0/14"
+export HOST_PREFIX="23"
+export SERVICE_CIDR="172.30.0.0/16"
 
 # Download ocp image
 export LOCAL_REPOSITORY="ocp4/openshift4"
@@ -135,7 +134,6 @@ check_all_variables() {
     check_variable "REGISTRY_ID"
     check_variable "REGISTRY_PW"
     check_variable "PULL_SECRET"
-    check_variable "REGISTRY_CERT_PATH"  
     check_variable "REGISTRY_INSTALL_PATH"
     check_variable "NFS_PATH"
     check_variable "IMAGE_REGISTRY_PV"
