@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 # === Function to print a task with uniform length ===
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -12,161 +12,140 @@ PRINT_TASK() {
 # ====================================================
 
 
-# === Task: Generate a self-signed certificate ===
-PRINT_TASK "[TASK: Generate a self-signed certificate]"
+# === Task: Prompt for required variables ===
+export REGISTRY_DOMAIN="docker.registry.example.com"
+export USER="admin"
+export PASSWD="passwd"                      # 6 characters or more
+export REGISTRY_INSTALL_PATH="/var/mirror-registry"
 
 
-# Step 1: Delete existing file
-# ----------------------------------------
-# Check if there is an existing file
-# Define the file paths
-file_paths=(
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt"
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.crt"
-    "${REGISTRY_INSTALL_PATH}"
-    "${REGISTRY_CERT_PATH}"
-)
+# Delete existing registry/file
+${REGISTRY_INSTALL_PATH}/mirror-registry uninstall -v \
+   --autoApprove --ssh-key ~/.ssh/id_rsa.pub \
+   --quayRoot ${REGISTRY_INSTALL_PATH}
 
-# Check if any file already exists
-existing_file=false
-for path in "${file_paths[@]}"; do
-    if [ -f "$path" ]; then
-        existing_file=true
-        break
-    fi
-done
-
-if [ "$existing_file" = true ]; then
-    # Delete existing files
-    for path in "${file_paths[@]}"; do
-        if [ -f "$path" ]; then
-            rm -f "$path"
-            echo "ok: [deleted: $path]"
-        fi
-    done
-fi
+rm -rf /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN}.ca.crt &>/dev/null
+rm -rf /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN}.crt &>/dev/null
+rm -rf ${REGISTRY_INSTALL_PATH} &>/dev/null
 
 
 
 # Function to check command success and display appropriate message
 check_command_result() {
     if [ $? -eq 0 ]; then
-        echo "$1 ok"
+        echo "ok: $1"
     else
-        echo "$1 failed"
+        echo "failed: $1"
     fi
 }
 
-echo ====== Create certificate ======
+
+# === Task: Generate a self-signed certificate ===
+PRINT_TASK "[TASK: Generate a self-signed certificate]"
+
 # Generate a directory for creating certificates
-mkdir -p ${REGISTRY_CERT_PATH}
-check_command_result "[generated certificate directory]"
+mkdir -p ${REGISTRY_CERT_PATH} &>/dev/null
+check_command_result "[created directory for certificates: ${REGISTRY_CERT_PATH}]"
 
 # Generate the root Certificate Authority (CA) key
-openssl genrsa -out ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.key 4096
-check_command_result "[generated root certificate authority (CA) key]"
+openssl genrsa -out ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.ca.key 4096 &>/dev/null
+check_command_result "[generated root certificate authority key]"
 
 # Generate the root CA certificate
 openssl req -x509 \
   -new -nodes \
-  -key ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.key \
+  -key ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.ca.key \
   -sha256 -days 36500 \
-  -out ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt \
+  -out ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.ca.crt \
   -subj /CN="Local Red Hat Signer" \
   -reqexts SAN \
   -extensions SAN \
   -config <(cat /etc/pki/tls/openssl.cnf \
-      <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature'))
+      <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature')) &>/dev/null
 check_command_result "[generate the root CA certificate]"
 
 # Generate the domain key
-openssl genrsa -out ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.key 2048
+openssl genrsa -out ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.key 2048 &>/dev/null
 check_command_result "[generate the domain key]"
 
-# Generate the certificate signing request for the domain(CSR)
+# Generate a certificate signing request (CSR) for the domain
 openssl req -new -sha256 \
-    -key ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.key \
-    -subj "/O=Local Red Hat CodeReady Workspaces/CN=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}" \
+    -key ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.key \
+    -subj "/O=Local Red Hat CodeReady Workspaces/CN=${REGISTRY_DOMAIN}" \
     -reqexts SAN \
     -config <(cat /etc/pki/tls/openssl.cnf \
-        <(printf "\n[SAN]\nsubjectAltName=DNS:${REGISTRY_HOSTNAME}.${BASE_DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
-    -out ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.csr
+        <(printf "\n[SAN]\nsubjectAltName=DNS:${REGISTRY_DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
+    -out ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.csr &>/dev/null
 check_command_result "[generate the certificate signing request for the domain(CSR)]"
 
-# Generate the domain certificate(CRT)
+# Generate the domain certificate (CRT)
 openssl x509 -req -sha256 \
-    -extfile <(printf "subjectAltName=DNS:${REGISTRY_HOSTNAME}.${BASE_DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
+    -extfile <(printf "subjectAltName=DNS:${REGISTRY_DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
     -days 36500 \
-    -in ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.csr \
-    -CA ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt \
-    -CAkey ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.key \
-    -CAcreateserial -out ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.crt
+    -in ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.csr \
+    -CA ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.ca.crt \
+    -CAkey ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.ca.key \
+    -CAcreateserial -out ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.crt &>/dev/null
 check_command_result "[generate the domain certificate(CRT)]"
 
 
 
-
-
-# === Task: Install docker-registry ===
-PRINT_TASK "[TASK: Install mirror-registry]"
+# === Task: Install Registry ===
+PRINT_TASK "[TASK: Install registry]"
 
 # Created directories for registry installation
-mkdir -p ${REGISTRY_INSTALL_PATH}/{auth,certs,data}
-check_command_result "[create directories for registry installation]"
+mkdir -p ${REGISTRY_INSTALL_PATH}/{auth,certs,data} &>/dev/null
+check_command_result "[create directories for registry installation ${REGISTRY_INSTALL_PATH}]"
 
 # Copying root and domain certificates to trust source
-cp ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.crt /etc/pki/ca-trust/source/anchors/
+cp "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.ca.crt" "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.crt" /etc/pki/ca-trust/source/anchors/ &>/dev/null
 check_command_result "[copying root and domain certificates to trust source]"
 
 # Copy certificate and key to the specified path
-cp ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.key ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.crt ${REGISTRY_INSTALL_PATH}/certs/
+cp "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.key" "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN}.crt" ${REGISTRY_INSTALL_PATH}/certs/ &>/dev/null
 check_command_result "[copy certificate and key to ${REGISTRY_INSTALL_PATH}/certs/]"
 
 # Update trust settings with new certificates
-update-ca-trust
+update-ca-trust &>/dev/null
 check_command_result "[updating trust settings with new certificates]"
 
 # Create user using htpasswd identity provider
-htpasswd -bBc ${REGISTRY_INSTALL_PATH}/auth/htpasswd "$REGISTRY_ID" "$REGISTRY_PW"
-check_command_result "[create $REGISTRY_ID user using htpasswd identity provider]"
+htpasswd -bBc ${REGISTRY_INSTALL_PATH}/auth/htpasswd "${USER}" "${PASSWD}" &>/dev/null
+check_command_result "[create ${USER} user using htpasswd identity provider]" 
 
+# Delete the container with the same name
+podman stop $CONTAINER_NAME &>/dev/null
+podman rm $CONTAINER_NAME &>/dev/null
 
-# Check if there is a "mirror-registry" container with the same name
-CONTAINER_NAME="registry"
-
-# Check if the container exists
-if podman inspect $CONTAINER_NAME > /dev/null 2>&1; then
-    # Stop and remove the container
-    podman stop $CONTAINER_NAME
-    podman rm $CONTAINER_NAME
-    echo "Container '$CONTAINER_NAME' stopped and removed successfully"
-else
-    echo "Container '$CONTAINER_NAME' does not exist"
-fi
-
-
+#  Generate registry container
 podman run \
     --name ${CONTAINER_NAME} \
     -p 5000:5000 \
     -e REGISTRY_AUTH="htpasswd" \
     -e REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm" \
     -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
-    -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.crt \
-    -e REGISTRY_HTTP_TLS_KEY=/certs/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.key \
+    -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/${REGISTRY_DOMAIN}.crt \
+    -e REGISTRY_HTTP_TLS_KEY=/certs/${REGISTRY_DOMAIN}.key \
     -e REGISTRY_STORAGE_DELETE_ENABLED=true \
     -v ${REGISTRY_INSTALL_PATH}/data:/var/lib/registry:z \
     -v ${REGISTRY_INSTALL_PATH}/auth:/auth:z \
     -v ${REGISTRY_INSTALL_PATH}/certs:/certs:z \
-    -d docker.io/library/registry:2
-check_command_result "[starting $CONTAINER_NAME container...]"
+    -d docker.io/library/registry:2 &>/dev/null
+
 sudo sleep 60
 
 # Check if container is running
-podman ps | grep -q "${CONTAINER_NAME}"; then
-check_command_result "[start the ${CONTAINER_NAME} container]"
+container_info=$(podman inspect -f '{{.State.Status}}' $CONTAINER_NAME 2>/dev/null)
+if [ "$container_info" == "running" ]; then
+    echo "ok: [container '$CONTAINER_NAME' is running]"
+else
+    echo "failed: [container '$CONTAINER_NAME' is not running]"
+fi
 
 
 # Generating a systemd unit file for the registry service
+rm -rf /etc/systemd/system/${CONTAINER_NAME}.service
+
 cat << EOF > /etc/systemd/system/${CONTAINER_NAME}.service
 [Unit]
 Description= ${CONTAINER_NAME} service
@@ -182,11 +161,11 @@ EOF
 check_command_result "[generating a systemd unit file for the ${CONTAINER_NAME} service]"
 
 # Enable and start registry service
-systemctl enable ${CONTAINER_NAME}.service
-check_command_result "[change the systemd ${CONTAINER_NAME} service to enabled]"
+systemctl enable ${CONTAINER_NAME}.service &>/dev/null
+check_command_result "[change the systemd ${CONTAINER_NAME} service to enable]"
 systemctl start ${CONTAINER_NAME}.service
 check_command_result "[restart the systemd ${CONTAINER_NAME} service]"
 
-
-
-
+# loggin registry
+podman login -u ${USER} -p ${PASSWD} https://${REGISTRY_DOMAIN}:5000 &>/dev/null
+check_command_result "[login ${CONTAINER_NAME}: https://${REGISTRY_DOMAIN}:5000]"
