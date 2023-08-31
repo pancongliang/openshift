@@ -138,6 +138,10 @@ update_httpd_listen_port() {
     fi
 }
 
+# Call the function to update listen port
+update_httpd_listen_port
+
+
 # Step 2: Create virtual host configuration and http dir
 # ----------------------------------------
 # Create virtual host configuration
@@ -151,6 +155,10 @@ create_virtual_host_config() {
 EOF
 }
 
+# Create virtual host configuration
+create_virtual_host_config
+
+##### 有问题 #####
 # Check if virtual host configuration is valid
 check_virtual_host_configuration() {
     # Define expected values for server name and document root
@@ -168,12 +176,6 @@ check_virtual_host_configuration() {
         echo "failed: [create virtual host configuration failed]"
     fi
 }
-
-# Call the function to update listen port
-update_httpd_listen_port
-
-# Create virtual host configuration
-create_virtual_host_config
 
 # Check virtual host configuration
 check_virtual_host_configuration
@@ -228,17 +230,17 @@ run_command() {
 }
 
 # Test httpd configuration
-run_command "touch ${HTTPD_PATH}/httpd-test" "successfully created test file"
-run_command "wget -q http://${BASTION_IP}:8080/httpd-test" "download test file successfully"
-wget_status=$?
-run_command "rm -rf httpd-test ${HTTPD_PATH}/httpd-test" "successfully deleted the test file"
+run_command "touch ${HTTPD_PATH}/httpd-test" "create httpd test file"
+run_command "wget -q http://${BASTION_IP}:8080/httpd-test" "test httpd download function"
+#wget_status=$?
+run_command "rm -rf httpd-test ${HTTPD_PATH}/httpd-test" "delete the httpd test file"
 
 # Check if testing httpd configuration was successfully
-if [ $wget_status -eq 0 ]; then
-    echo "ok: [test httpd download function successfully]"
-else
-    echo "failed: [test httpd download functionality failed]"
-fi
+# if [ $wget_status -eq 0 ]; then
+#     echo "ok: [test httpd download function successfully]"
+# else
+#     echo "failed: [test httpd download functionality failed]"
+# fi
 
 # Add an empty line after the task
 echo
