@@ -76,6 +76,11 @@ install_tar_gz() {
     fi
 }
 
+# Install .tar.gz tools
+install_tar_gz "openshift-install" "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE}/openshift-install-linux.tar.gz"
+install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
+install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
+
 # Function to download and install binary files
 install_binary() {
     local tool_name="$1"
@@ -90,11 +95,6 @@ install_binary() {
         echo "failed: [download $tool_name tool failed]"
     fi
 }
-
-# Install .tar.gz tools
-install_tar_gz "openshift-install" "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE}/openshift-install-linux.tar.gz"
-install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
-install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
 
 # Install binary files
 install_binary "butane" "https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane"
@@ -158,7 +158,7 @@ EOF
 # Create virtual host configuration
 create_virtual_host_config
 
-##### 有问题 #####
+
 # Check if virtual host configuration is valid
 check_virtual_host_configuration() {
     # Define expected values for server name and document root
