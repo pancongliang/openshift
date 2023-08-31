@@ -99,12 +99,12 @@ install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64
 # Install binary files
 install_binary "butane" "https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane"
 
-# Define the list of commands to check
-commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
-
 
 # Step 3: Checking
 # ----------------------------------------
+# Define the list of commands to check
+commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
+
 # Iterate through the list of commands for checking
 for cmd in "${commands[@]}"; do
     if command -v "$cmd" >/dev/null 2>&1; then
