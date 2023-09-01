@@ -12,12 +12,6 @@ PRINT_TASK() {
 # ====================================================
 
 
-# === Task: Prompt for required variables ===
-export REGISTRY_DOMAIN="mirror.registry.example.com"
-export USER="root"
-export PASSWD="password"                      # 8 characters or more
-export REGISTRY_INSTALL_PATH="/var/registry"
-
 # === Task: Delete existing duplicate data ===
 PRINT_TASK "[TASK: Delete existing duplicate data]"
 
@@ -80,7 +74,7 @@ mirror_registry_command "[extract the downloaded mirror-registry package]"
 cd ${REGISTRY_INSTALL_PATH}
 ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname ${REGISTRY_DOMAIN} --quayRoot ${REGISTRY_INSTALL_PATH}/ \
-     --initUser ${USER} --initPassword ${PASSWD} &>/dev/null
+     --initREGISTRY_ID ${REGISTRY_ID} --initPassword ${REGISTRY_PW} &>/dev/null
 mirror_registry_command "[installing mirror-registry...]"
 
 # Wait for the installation to complete
@@ -100,5 +94,13 @@ update-ca-trust
 mirror_registry_command "[trust the rootCA certificate]"
 
 # loggin registry
-podman login -u ${USER} -p ${PASSWD} https://${REGISTRY_DOMAIN}:8443 &>/dev/null
+podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_DOMAIN}:8443 &>/dev/null
 mirror_registry_command  "[test login https://${REGISTRY_DOMAIN}:8443]"
+
+
+# === Task: Prompt for required variables ===
+# export REGISTRY_DOMAIN="mirror.registry.example.com"
+# export REGISTRY_ID="root"
+# export REGISTRY_PW="password"                      # 8 characters or more
+# export REGISTRY_INSTALL_PATH="/var/registry"
+
