@@ -265,7 +265,7 @@ fi
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" &>/dev/null; then
-    echo "info: [nfsnobody user exists]"
+    echo "skipping: [nfsnobody user exists]"
 else
     useradd nfsnobody
     echo "ok: [nfsnobody user added successfully]"
@@ -289,7 +289,7 @@ fi
 # Add NFS export configuration
 export_config_line="${NFS_PATH}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "info: [nfs export configuration already exists]"
+    echo "skipping: [nfs export configuration already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
     echo "ok: [add nfs export configuration successfully]"
