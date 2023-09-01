@@ -20,7 +20,7 @@ export OCP_RELEASE="4.10.20"
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
-export SSH_KEY_PATH="～/.ssh"                      # No need to manually create dir
+export SSH_KEY_PATH="～/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
 
 # OpenShift infrastructure network
@@ -51,7 +51,7 @@ export NET_IF_NAME="'Wired connection 1'"
 # Mirror-Registry and mirror variable
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="root"
-export REGISTRY_PW="password"                           # 8 characters or more
+export REGISTRY_PW="password"                         # 8 characters or more
 export PULL_SECRET="/root/pull-secret"                # Download pull-secret https://console.redhat.com/openshift/install/metal/installer-provisioned
 export REGISTRY_INSTALL_PATH="/opt/registry"
 
