@@ -24,7 +24,7 @@ PRINT_TASK "[TASK: Delete existing duplicate data]"
 # Check if there is an active mirror registry pod
 if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH}    
+    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null   
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [uninstall the mirror registry]"
@@ -37,7 +37,7 @@ fi
 
 # Delete existing duplicate data
 files=(
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN}.ca.crt"
+    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN}.ca.pem"
     "${REGISTRY_INSTALL_PATH}"
 )
 for file in "${files[@]}"; do
@@ -80,7 +80,7 @@ mirror_registry_command "[extract the downloaded mirror-registry package]"
 cd ${REGISTRY_INSTALL_PATH}
 ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname ${REGISTRY_DOMAIN} --quayRoot ${REGISTRY_INSTALL_PATH}/ \
-     --initUser ${USER} --initPassword ${PASSWD}
+     --initUser ${USER} --initPassword ${PASSWD} &>/dev/null
 mirror_registry_command "[installing mirror-registry...]"
 
 # Wait for the installation to complete
