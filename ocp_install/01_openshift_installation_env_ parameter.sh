@@ -50,7 +50,7 @@ export NET_IF_NAME="'Wired connection 1'"
 
 # Mirror-Registry and mirror variable
 export REGISTRY_HOSTNAME="mirror.registry"
-export REGISTRY_ID="admin"
+export REGISTRY_ID="root"
 export REGISTRY_PW="password"                           # 8 characters or more
 export PULL_SECRET="/root/pull-secret"                # Download pull-secret https://console.redhat.com/openshift/install/metal/installer-provisioned
 export REGISTRY_INSTALL_PATH="/opt/registry"
