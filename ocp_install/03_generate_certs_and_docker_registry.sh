@@ -88,7 +88,7 @@ cd ~
 sleep 6
 
 # Get the status and number of containers for quay-pod
-podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)'
+podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
 mirror_registry_command "[mirror registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
