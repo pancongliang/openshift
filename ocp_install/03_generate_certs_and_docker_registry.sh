@@ -31,7 +31,7 @@ fi
 
 # Delete existing duplicate data
 files=(
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN}.ca.pem"
+    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem"
     "${REGISTRY_INSTALL_PATH}"
 )
 for file in "${files[@]}"; do
@@ -73,7 +73,7 @@ mirror_registry_command "[extract the downloaded mirror-registry package]"
 # Install mirror-registry
 cd ${REGISTRY_INSTALL_PATH}
 ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
-     --quayHostname ${REGISTRY_DOMAIN} --quayRoot ${REGISTRY_INSTALL_PATH}/ \
+     --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} --quayRoot ${REGISTRY_INSTALL_PATH}/ \
      --initREGISTRY_ID ${REGISTRY_ID} --initPassword ${REGISTRY_PW} &>/dev/null
 mirror_registry_command "[installing mirror-registry...]"
 
@@ -86,16 +86,16 @@ podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/
 mirror_registry_command "[mirror registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
-cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN}.ca.pem
-mirror_registry_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN}.ca.pem]"
+cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
+mirror_registry_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
 
 # Trust the rootCA certificate
 update-ca-trust
 mirror_registry_command "[trust the rootCA certificate]"
 
 # loggin registry
-podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_DOMAIN}:8443 &>/dev/null
-mirror_registry_command  "[test login https://${REGISTRY_DOMAIN}:8443]"
+podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 &>/dev/null
+mirror_registry_command  "[test login https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
 
 # === Task: Prompt for required variables ===
