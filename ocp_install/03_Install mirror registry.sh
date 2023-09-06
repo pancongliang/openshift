@@ -40,8 +40,6 @@ for file in "${files[@]}"; do
         if [ $? -eq 0 ]; then
             echo "ok: [delete existing duplicate data: $file]"
         fi
-    else
-        echo "skipping: [delete existing duplicate data]"
     fi
 done
 
@@ -74,7 +72,7 @@ mirror_registry_command "[extract the downloaded mirror-registry package]"
 cd ${REGISTRY_INSTALL_PATH}
 ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} --quayRoot ${REGISTRY_INSTALL_PATH}/ \
-     --initREGISTRY_ID ${REGISTRY_ID} --initPassword ${REGISTRY_PW} &>/dev/null
+     --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} &>/dev/null
 mirror_registry_command "[installing mirror-registry...]"
 
 # Wait for the installation to complete
