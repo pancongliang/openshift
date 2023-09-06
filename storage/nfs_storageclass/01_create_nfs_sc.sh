@@ -63,6 +63,25 @@ else
     echo "ok: [add nfs export configuration]"
 fi
 
+# List of services to handle
+services=("nfs-server")
+
+# Loop through each service in the list
+for service in "${services[@]}"; do
+    # Restart the service
+    systemctl restart "$service" &>/dev/null
+    restart_status=$?
+
+    # Enable the service
+    systemctl enable "$service" &>/dev/null
+    enable_status=$?
+
+    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
+        echo "ok: [restart and enable $service service]"
+    else
+        echo "failed: [restart and enable $service service]"
+    fi
+done
 
 
 # === Task: Install NFS storage class ===
