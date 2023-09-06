@@ -20,7 +20,7 @@ export OCP_RELEASE="4.10.20"
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
-export SSH_KEY_PATH="～/.ssh"
+export SSH_KEY_PATH="/root/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
 
 # OpenShift infrastructure network
