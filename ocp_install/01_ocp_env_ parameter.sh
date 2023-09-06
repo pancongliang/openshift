@@ -77,7 +77,6 @@ export ARCHITECTURE="x86_64"
 
 ### Do not change the following parameters ###
 # Function to generate duplicate parameters
-export ID_RSA_PUB_FILE="${SSH_KEY_PATH}/id_rsa.pub"
 export NFS_SERVER_IP="$BASTION_IP"
 export DNS_SERVER_IP="$BASTION_IP"
 export REGISTRY_IP="$BASTION_IP"
@@ -106,7 +105,6 @@ check_all_variables() {
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
-    check_variable "ID_RSA_PUB_FILE"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
