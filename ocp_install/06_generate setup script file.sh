@@ -1,18 +1,14 @@
 #!/bin/bash
-
-#######################################################
-
+# === Function to print a task with uniform length ===
 # Function to print a task with uniform length
 PRINT_TASK() {
-    max_length=45  # Adjust this to your desired maximum length
+    max_length=90  # Adjust this to your desired maximum length
     task_title="$1"
     title_length=${#task_title}
     stars=$((max_length - title_length))
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-
-#######################################################
 
 # Task: Generate setup script file
 PRINT_TASK "[TASK: Generate setup script file]"
@@ -37,7 +33,7 @@ generate_setup_script() {
     cat << EOF > "${IGNITION_PATH}/set-${HOSTNAME}.sh"
 #!/bin/bash
 # Configure network settings
-nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_IP} ipv4.method manual connection.autoconnect yes
+nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_SERVER_IP} ipv4.method manual connection.autoconnect yes
 nmcli con down ${NET_IF_NAME}
 nmcli con up ${NET_IF_NAME}
 
