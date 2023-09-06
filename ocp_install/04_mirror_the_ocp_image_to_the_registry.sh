@@ -28,8 +28,8 @@ fi
 # Execute oc adm release mirror command
 oc adm -a ${{PULL_SECRET}} release mirror \
   --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
-  --to=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000/${LOCAL_REPOSITORY} \
-  --to-release-image=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} 
+  --to=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/${LOCAL_REPOSITORY} \
+  --to-release-image=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE} 
   
 # Check the return code of the oc adm release mirror command
 if [ $? -eq 0 ]; then
