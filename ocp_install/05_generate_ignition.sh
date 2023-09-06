@@ -138,36 +138,28 @@ echo
 PRINT_TASK "[TASK: Generate an ignition file containing the node hostname]"
 
 # Copy ignition files with appropriate hostnames
-BOOTSTRAP_HOSTNAME="${BOOTSTRAP_HOSTNAME}"
 MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
 WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}")
 
-
-cp "${IGNITION_PATH}/bootstrap.ign" "${IGNITION_PATH}/${BOOTSTRAP_HOSTNAME}-bak.ign"
-run_command "[copy and customize the bootstrap.ign file name: ${BOOTSTRAP_HOSTNAME}-bak.ign]"
-
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    cp "${IGNITION_PATH}/master.ign" "${IGNITION_PATH}/${MASTER_HOSTNAME}.ign"
-    run_command "[copy and customize the master.ign file name: ${MASTER_HOSTNAME}.ign]"
+    cp "${IGNITION_PATH}/master.ign" "${IGNITION_PATH}/append-${MASTER_HOSTNAME}.ign"
+    run_command "[copy and customize the master.ign file name: append-${MASTER_HOSTNAME}.ign]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    cp "${IGNITION_PATH}/worker.ign" "${IGNITION_PATH}/${WORKER_HOSTNAME}.ign"
-    run_command "[copy and customize the worker.ign file name: ${WORKER_HOSTNAME}.ign]"
+    cp "${IGNITION_PATH}/worker.ign" "${IGNITION_PATH}/append-${WORKER_HOSTNAME}.ign"
+    run_command "[copy and customize the worker.ign file name: append-${WORKER_HOSTNAME}.ign]"
 done
 
 # Update hostname in ignition files
-sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/${BOOTSTRAP_HOSTNAME}.ign"
-run_command "[add the appropriate hostname field to the ${BOOTSTRAP_HOSTNAME}.ign file]"
-
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/${MASTER_HOSTNAME}.ign"
-    run_command "[add the appropriate hostname field to the ${MASTER_HOSTNAME}.ign file]"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/append-${MASTER_HOSTNAME}.ign"
+    run_command "[add the appropriate hostname field to the append-${MASTER_HOSTNAME}.ign file]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/${WORKER_HOSTNAME}.ign"
-    run_command "[add the appropriate hostname field to the ${WORKER_HOSTNAME}.ign file]"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/append-${WORKER_HOSTNAME}.ign"
+    run_command "[add the appropriate hostname field to the append-${WORKER_HOSTNAME}.ign file]"
 done
 
 # Set correct permissions
