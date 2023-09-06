@@ -50,7 +50,7 @@ echo
 PRINT_TASK "[TASK: Install mirror registry]"
 
 # Function to check command success and display appropriate message
-mirror_registry_command() {
+run_command() {
     if [ $? -eq 0 ]; then
         echo "ok: $1"
     else
@@ -60,40 +60,40 @@ mirror_registry_command() {
 
 # Create installation directory
 mkdir -p ${REGISTRY_INSTALL_PATH}
-mirror_registry_command "[create installation directory]"
+run_command "[create installation directory]"
 sleep 3
 
 # Download mirror-registry
 wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
-mirror_registry_command "[download mirror-registry package]"
+run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
 tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
-mirror_registry_command "[extract the downloaded mirror-registry package]"
+run_command "[extract the downloaded mirror-registry package]"
 
 # Install mirror-registry
 cd ${REGISTRY_INSTALL_PATH}
 ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} --quayRoot ${REGISTRY_INSTALL_PATH}/ \
      --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} &>/dev/null
-mirror_registry_command "[installing mirror-registry...]"
+run_command "[installing mirror-registry...]"
 
 # Wait for the installation to complete
-cd ~
+cd - &>/dev/null
 sleep 6
 
 # Get the status and number of containers for quay-pod
 podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
-mirror_registry_command "[mirror registry Pod is running]"
+run_command "[mirror registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
 cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
-mirror_registry_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
+run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
 
 # Trust the rootCA certificate
 update-ca-trust
-mirror_registry_command "[trust the rootCA certificate]"
+run_command "[trust the rootCA certificate]"
 
 # loggin registry
 podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 &>/dev/null
-mirror_registry_command  "[test login https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
+run_command  "[test login https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
