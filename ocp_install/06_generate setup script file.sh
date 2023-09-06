@@ -26,6 +26,7 @@ run_command() {
     fi
 }
 
+rm -rf ${IGNITION_PATH}/*.sh
 
 # Function to generate setup script for a node
 generate_setup_script() {
@@ -64,5 +65,5 @@ generate_setup_script "${WORKER02_HOSTNAME}" "${WORKER02_IP}"
 
 
 # Make the script executable
-chmod +x ${IGNITION_PATH}/set-${HOSTNAME}.sh
+chmod +x ${IGNITION_PATH}/*.sh
 run_command "[change ignition file permissions]"
