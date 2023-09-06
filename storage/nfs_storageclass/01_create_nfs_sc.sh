@@ -55,7 +55,7 @@ chmod -R 777 ${NFS_DIR}
 run_command "[change NFS directory permissions]"
 
 # Add NFS export configuration
-export_config_line="${NFS_PATH}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
+export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
     echo "skipping: [nfs export configuration already exists]"
 else
@@ -180,7 +180,7 @@ spec:
               value: nfs-storage-provisioner
             - name: NFS_SERVER
               value: $NFS_SERVER_IP
-            - name: NFS_PATH_PATH
+            - name: NFS_DIR_PATH
               value: $NFS_DIR
       volumes:
         - name: nfs-client-root
