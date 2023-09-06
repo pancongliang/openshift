@@ -17,20 +17,40 @@ PRINT_TASK() {
 # Task: Generate a defined install-config file
 PRINT_TASK "[TASK: Generate a defined install-config file]"
 
-# Define variables
-REGISTRY_CA_FILE="${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt"
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
 
 # Backup and format the registry CA certificate
-cp "${REGISTRY_CA_FILE}" "${REGISTRY_CA_FILE.bak}"
+cp "${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt" "${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt.bak"
+run_command "[backup registry CA certificate]"
+
 sed -i 's/^/  /' "${REGISTRY_CA_FILE.bak}"
+run_command "[format registry ca certificate]"
+
+
+# Create ssh-key for accessing CoreOS
+rm -rf ${SSH_KEY_PATH}
+mkdir -p ${SSH_KEY_PATH}
+run_command "[create ${SSH_KEY_PATH} directory]"
+
+ssh-keygen -N '' -f ${SSH_PRI_FILE}		
+run_command "[create ssh-key for accessing coreos]"
+
 
 # Define variables
-export REGISTRY_CA="$(cat ${REGISTRY_CA_FILE.bak})"
-export REGISTRY_ID_PW=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
-export ID_RSA_PUB=$(cat "${ID_RSA_PUB_FILE}")
+export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt.bak)"
+export REGISTRY_AUTH=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
+export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
 rm -rf ${HTTPD_PATH}/install-config.yaml
+
 cat << EOF > $HTTPD_PATH/install-config.yaml 
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
@@ -54,10 +74,10 @@ networking:
 platform:
   none: {} 
 fips: false
-pullSecret: '{"auths":{"${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000": {"auth": "${REGISTRY_ID_PW}","email": "xxx@xxx.com"}}}' 
-sshKey: '${ID_RSA_PUB}'
+pullSecret: '{"auths":{"${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000": {"auth": "${REGISTRY_AUTH}","email": "xxx@xxx.com"}}}' 
+sshKey: '${SSH_PUB_STR}'
 additionalTrustBundle: | 
-${REGISTRY_CA}
+${REGISTRY_CA_CERT_FORMAT}
 imageContentSources:
 - mirrors:
   - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000/${LOCAL_REPOSITORY}
@@ -66,163 +86,95 @@ imageContentSources:
   - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000/${LOCAL_REPOSITORY}
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 EOF
+run_command "[create install-config.yaml fole]"
 
 # Delete certificate
-rm -rf "$REGISTRY_CA_FILE.bak"
-
-echo "Generated install-config files."
+rm -rf "${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt.bak"
+run_command "[delete ${REGISTRY_CERT_PATH}/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.crt.bak file]"
 
 # Add an empty line after the task
 echo
 
-#######################################################
+
+
 
 # Task:  Generate a manifests
 PRINT_TASK "[TASK: Generate a manifests]"
+
 # Create installation directory
 rm -rf "${IGNITION_PATH}"
 mkdir -p "${IGNITION_PATH}"
+run_command "[create installation directory: ${IGNITION_PATH}]"
 
 # Copy install-config.yaml to installation directory
 cp "$HTTPD_PATH/install-config.yaml" "${IGNITION_PATH}"
+run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
 openshift-install create manifests --dir "${IGNITION_PATH}"
+run_command "[generate manifests]"
 
-# Add an empty line after the task
-echo
-#######################################################
-
-# Task:  Disable master node scheduling
-PRINT_TASK "[TASK: Disable master node scheduling]"
-
-# Verify the initial value
-initial_value=$(grep "mastersSchedulable: true" "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml")
-if [ -n "$initial_value" ]; then
-    echo "Initial value found: $initial_value"    
-    # Modify the file using sed
-    sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml"
-
-    # Verify the modification
-    modified_value=$(grep "mastersSchedulable: false" "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml")
-    if [ -n "$modified_value" ]; then
-        echo "Master node scheduling disabled successful: $modified_value"
-    else
-        echo "Master node scheduling disabled failed."
-    fi
+# Check if the file contains "mastersSchedulable: true"
+if grep -q "mastersSchedulable: true" "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml"; then
+  # Replace "mastersSchedulable: true" with "mastersSchedulable: false"
+  sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml""
+  echo "'ok: [disable the master node from scheduling custom pods]"
+else
+  echo "'failed: mastersSchedulable: true' not found, no changes made"
 fi
 
 # Add an empty line after the task
 echo
-#######################################################
 
-# Task: Generate a ignition file
-PRINT_TASK "[TASK: Generate a ignition file]"
+
+
+
+
+# Task: Generate default ignition file
+PRINT_TASK "[TASK: Generate default ignition file]"
 
 # Generate and modify ignition configuration files
 openshift-install create ignition-configs --dir "${IGNITION_PATH}"
-
-# Set correct permissions
-chmod a+r "${IGNITION_PATH}"/*.ign
+run_command "[generate default ignition file]"
 
 # Add an empty line after the task
 echo
-#######################################################
 
 # Task: Generate an ignition file containing the node hostname
 PRINT_TASK "[TASK: Generate an ignition file containing the node hostname]"
 
 # Copy ignition files with appropriate hostnames
+BOOTSTRAP_HOSTNAME="${BOOTSTRAP_HOSTNAME}"
+MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
+WORKER_HOSTNAMES=("${WORKER01_HOSTNAME" "${WORKER01_HOSTNAME}")
+
 cp "${IGNITION_PATH}/bootstrap.ign" "${IGNITION_PATH}/${BOOTSTRAP_HOSTNAME}-bak.ign"
+run_command "[copy and customize the bootstrap.ign file name: ${BOOTSTRAP_HOSTNAME}-bak.ign]"
 
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
     cp "${IGNITION_PATH}/master.ign" "${IGNITION_PATH}/${MASTER_HOSTNAME}.ign"
+    run_command "[copy and customize the master.ign file name: ${MASTER_HOSTNAME}.ign]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
     cp "${IGNITION_PATH}/worker.ign" "${IGNITION_PATH}/${WORKER_HOSTNAME}.ign"
+    run_command "[copy and customize the worker.ign file name: ${WORKER_HOSTNAME}.ign]"
 done
 
 # Update hostname in ignition files
 sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}'"}"},"mode":420}]}}/' "${IGNITION_PATH}/${BOOTSTRAP_HOSTNAME}.ign"
+run_command "[add the appropriate hostname field to the ${BOOTSTRAP_HOSTNAME}.ign file]"
 
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
     sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}'"}"},"mode":420}]}}/' "${IGNITION_PATH}/${MASTER_HOSTNAME}.ign"
+    run_command "[add the appropriate hostname field to the ${MASTER_HOSTNAME}.ign file]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
     sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}'"}"},"mode":420}]}}/' "${IGNITION_PATH}/${WORKER_HOSTNAME}.ign"
+    run_command "[add the appropriate hostname field to the ${MASTER_HOSTNAME}.ign file]"
 done
 
 # Set correct permissions
 chmod a+r "${IGNITION_PATH}"/*.ign
-
-
-# ====== Validation script section ====== #
-# Check if the ignition file is copied
-check_files_generated() {
-    if [ -f "${IGNITION_PATH}/${BOOTSTRAP_HOSTNAME}-bak.ign" ]; then
-        for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-            if [ ! -f "${IGNITION_PATH}/${MASTER_HOSTNAME}.ign" ]; then
-                echo "Master ignition file for ${MASTER_HOSTNAME} was not generated."
-                exit 1
-            fi
-        done
-        for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-            if [ ! -f "${IGNITION_PATH}/${WORKER_HOSTNAME}.ign" ]; then
-                echo "Worker ignition file for ${WORKER_HOSTNAME} was not generated."
-                exit 1
-            fi
-        done
-        if [ ! -f "${IGNITION_PATH}/${BOOTSTRAP_HOSTNAME}-bak.ign" ]; then
-            echo "Bootstrap ignition file was not generated."
-            exit 1
-        fi
-    else
-        echo "Bootstrap ignition file was not generated."
-        exit 1
-    fi
-    echo "All ignition files have been successfully generated."
-}
-
-check_sed_changes() {
-    # Check Bootstrap file's sed changes
-    bootstrap_changes=$(grep -c "\"storage\":{\"files\":\[{\"path\":\"/etc/hostname\",\"contents\":{\"source\":\"data:${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}\"}" "${IGNITION_PATH}/${BOOTSTRAP_HOSTNAME}.ign")
-    if [ "$bootstrap_changes" -eq 0 ]; then
-        echo "Hostname changes for Bootstrap ignition file were not applied."
-        exit 1
-    fi
-
-    # Check sed changes for Master files
-    for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-        master_changes=$(grep -c "\"storage\":{\"files\":\[{\"path\":\"/etc/hostname\",\"contents\":{\"source\":\"data:${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}\"}" "${IGNITION_PATH}/${MASTER_HOSTNAME}.ign")
-        if [ "$master_changes" -eq 0 ]; then
-            echo "Hostname changes for Master ignition file (${MASTER_HOSTNAME}) were not applied."
-            exit 1
-        fi
-    done
-
-    # Check sed changes for Worker files
-    for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-        worker_changes=$(grep -c "\"storage\":{\"files\":\[{\"path\":\"/etc/hostname\",\"contents\":{\"source\":\"data:${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}\"}" "${IGNITION_PATH}/${WORKER_HOSTNAME}.ign")
-        if [ "$worker_changes" -eq 0 ]; then
-            echo "Hostname changes for Worker ignition file (${WORKER_HOSTNAME}) were not applied."
-            exit 1
-        fi
-    done
-    echo "All ignition custom hostname changes have been successfully applied."
-}
-
-check_files_generated
-check_sed_changes
-
-# Add an empty line after the task
-echo
-#######################################################
-
-# Task: Set ignition file permissions and display generated files
-PRINT_TASK "[TASK: ignition file permissions and display generated files]"
-
-# Set correct permissions and list files
-chmod a+r "${IGNITION_PATH}"/*.ign
-ls -l "${IGNITION_PATH}"/*.ign
+run_command "[change ignition file permissions]"
