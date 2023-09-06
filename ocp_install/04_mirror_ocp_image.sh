@@ -1,8 +1,8 @@
 #!/bin/bash
-
+# === Function to print a task with uniform length ===
 # Function to print a task with uniform length
 PRINT_TASK() {
-    max_length=45  # Adjust this to your desired maximum length
+    max_length=90  # Adjust this to your desired maximum length
     task_title="$1"
     title_length=${#task_title}
     stars=$((max_length - title_length))
@@ -10,13 +10,13 @@ PRINT_TASK() {
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
 
-######
+
 
 # Task: Mirror ocp image to mirror-registry
 PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
 
 # Login to the registry
-podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000"
+podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443"
 
 # Check the return code of the podman login command
 if [ $? -eq 0 ]; then
