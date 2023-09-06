@@ -18,7 +18,7 @@ PRINT_TASK "[TASK: Delete existing duplicate data]"
 # Check if there is an active mirror registry pod
 if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null   
+    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [uninstall the mirror registry]"
@@ -94,11 +94,3 @@ mirror_registry_command "[trust the rootCA certificate]"
 # loggin registry
 podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 &>/dev/null
 mirror_registry_command  "[test login https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
-
-
-# === Task: Prompt for required variables ===
-# export REGISTRY_DOMAIN="mirror.registry.example.com"
-# export REGISTRY_ID="root"
-# export REGISTRY_PW="password"                      # 8 characters or more
-# export REGISTRY_INSTALL_PATH="/var/registry"
-
