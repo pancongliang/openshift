@@ -74,16 +74,16 @@ networking:
 platform:
   none: {} 
 fips: false
-pullSecret: '{"auths":{"${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000": {"auth": "${REGISTRY_AUTH}","email": "xxx@xxx.com"}}}' 
+pullSecret: '{"auths":{"${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443": {"auth": "${REGISTRY_AUTH}","email": "xxx@xxx.com"}}}' 
 sshKey: '${SSH_PUB_STR}'
 additionalTrustBundle: | 
 ${REGISTRY_CA_CERT_FORMAT}
 imageContentSources:
 - mirrors:
-  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000/${LOCAL_REPOSITORY}
+  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/${LOCAL_REPOSITORY}
   source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
-  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:5000/${LOCAL_REPOSITORY}
+  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/${LOCAL_REPOSITORY}
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 EOF
 run_command "[create install-config.yaml fole]"
