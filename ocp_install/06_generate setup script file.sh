@@ -40,7 +40,7 @@ nmcli con up ${NET_IF_NAME}
 sudo sleep 10
 
 # Install CoreOS using Ignition
-sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/${HOSTNAME}.ign --insecure-ignition --firstboot-args 'rd.neednet=1' --copy-network
+sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/append-${HOSTNAME}.ign --insecure-ignition --firstboot-args 'rd.neednet=1' --copy-network
 EOF
 
     # Check if the setup script file was successfully generated
