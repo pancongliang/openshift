@@ -22,9 +22,9 @@ packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" 
 for package in "${packages[@]}"; do
     yum install -y "$package" &>/dev/null
     if [ $? -eq 0 ]; then
-        echo "ok: [$package package installed successfully]"
+        echo "ok: [install $package package]"
     else
-        echo "failed: [$package package installation failed]"
+        echo "failed: [install $package package]"
     fi
 done
 
@@ -66,13 +66,13 @@ install_tar_gz() {
     # Download the tool
     wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
     if [ $? -eq 0 ]; then
-        echo "ok: [download $tool_name tool successfully]"        
+        echo "ok: [download $tool_name tool]"        
         # Extract the downloaded tool
         tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
         # Remove the downloaded .tar.gz file
         rm -f "/usr/local/bin/$(basename $tool_url)"
     else
-        echo "failed: [download $tool_name tool failed]"
+        echo "failed: [download $tool_name tool]"
     fi
 }
 
@@ -88,11 +88,11 @@ install_binary() {
     # Download the binary tool
     wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
     if [ $? -eq 0 ]; then
-        echo "ok: [download $tool_name tool successfully]"        
+        echo "ok: [download $tool_name tool]"        
         # Add execute permissions to the downloaded binary
         chmod a+x "/usr/local/bin/$(basename $tool_url)" &> /dev/null
     else
-        echo "failed: [download $tool_name tool failed]"
+        echo "failed: [download $tool_name tool]"
     fi
 }
 
@@ -108,9 +108,9 @@ commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
 # Iterate through the list of commands for checking
 for cmd in "${commands[@]}"; do
     if command -v "$cmd" >/dev/null 2>&1; then
-        echo "ok: [$cmd tool installed successfully]"
+        echo "ok: [install $cmd tool]"
     else
-        echo "failed: [$cmd tool installation failed]"
+        echo "failed: [install $cmd tool]"
     fi
 done
 
@@ -132,9 +132,9 @@ update_httpd_listen_port() {
     if [ "$listen_port" != "8080" ]; then
         # Change listen port to 8080
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
-        echo "ok: [http listen port has been changed to 8080]"
+        echo "ok: [change http listening port to 8080]"
     else
-        echo "ok: [http listen port is already 8080, no changes needed]"
+        echo "skipping: [http listen port is already 8080]"
     fi
 }
 
@@ -171,9 +171,9 @@ check_virtual_host_configuration() {
     # Check if expected values are present in the config
     if grep -q "ServerName $expected_server_name" "$virtual_host_config" && \
        grep -q "DocumentRoot $expected_document_root" "$virtual_host_config"; then
-        echo "ok: [create virtual host configuration successfully]"
+        echo "ok: [create virtual host configuration]"
     else
-        echo "failed: [create virtual host configuration failed]"
+        echo "failed: [create virtual host configuration]"
     fi
 }
 
@@ -183,9 +183,9 @@ check_virtual_host_configuration
 # Create http dir
 mkdir -p ${HTTPD_PATH}
 if [ $? -eq 0 ]; then
-    echo "ok: [http ${HTTPD_PATH} directories created successfully]"
+    echo "ok: [create http: ${HTTPD_PATH} director]"
 else
-    echo "failed: [http ${HTTPD_PATH} directories creation failed]"
+    echo "failed: [create http: ${HTTPD_PATH} director]"
 fi
 
 
@@ -205,9 +205,9 @@ for service in "${services[@]}"; do
     enable_status=$?
 
     if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [$service service was restarted and enabled successfully]"
+        echo "ok: [restart and enable $service service]"
     else
-        echo "failed: [$service service restart or enable failed]"
+        echo "failed: [restart and enable $service service]"
     fi
 done
 
@@ -232,15 +232,7 @@ run_command() {
 # Test httpd configuration
 run_command "touch ${HTTPD_PATH}/httpd-test" "create httpd test file"
 run_command "wget -q http://${BASTION_IP}:8080/httpd-test" "test httpd download function"
-#wget_status=$?
 run_command "rm -rf httpd-test ${HTTPD_PATH}/httpd-test" "delete the httpd test file"
-
-# Check if testing httpd configuration was successfully
-# if [ $wget_status -eq 0 ]; then
-#     echo "ok: [test httpd download function successfully]"
-# else
-#     echo "failed: [test httpd download functionality failed]"
-# fi
 
 # Add an empty line after the task
 echo
@@ -258,9 +250,9 @@ PRINT_TASK "[TASK: Setup nfs services]"
 rm -rf ${NFS_PATH}
 mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV}
 if [ $? -eq 0 ]; then
-    echo "ok: [nfs directories created successfully]"
+    echo "ok: [create nfs director: ${NFS_PATH}]"
 else
-    echo "failed: [failed to create NFS directories]"
+    echo "failed: [create nfs director: ${NFS_PATH}]"
 fi
 
 # Add nfsnobody user if not exists
@@ -268,22 +260,22 @@ if id "nfsnobody" &>/dev/null; then
     echo "skipping: [nfsnobody user exists]"
 else
     useradd nfsnobody
-    echo "ok: [nfsnobody user added successfully]"
+    echo "ok: [add nfsnobody user]"
 fi
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_PATH}
 if [ $? -eq 0 ]; then
-    echo "ok: [changing ownership of NFS directory successfully]"
+    echo "ok: [changing ownership of an NFS directory]"
 else
-    echo "failed: [failed to change ownership of NFS directories]"
+    echo "failed: [changing ownership of an NFS directory]"
 fi
 
 chmod -R 777 ${NFS_PATH}
 if [ $? -eq 0 ]; then
-    echo "ok: [changed NFS directory permissions successfully]"
+    echo "ok: [change NFS directory permissions]"
 else
-    echo "failed: [changing NFS directory permissions failed]"
+    echo "failed: [change NFS directory permissions]"
 fi
 
 # Add NFS export configuration
@@ -292,7 +284,7 @@ if grep -q "$export_config_line" "/etc/exports"; then
     echo "skipping: [nfs export configuration already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo "ok: [add nfs export configuration successfully]"
+    echo "ok: [add nfs export configuration]"
 fi
 
 
@@ -312,9 +304,9 @@ for service in "${services[@]}"; do
     enable_status=$?
 
     if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [$service service was restarted and enabled successfully]"
+        echo "ok: [restart and enable $service service]"
     else
-        echo "failed: [$service service restart or enable failed]"
+        echo "failed: [restart and enable $service service]"
     fi
 done
 
@@ -335,13 +327,13 @@ check_nfs_access() {
     mount -t nfs ${NFS_SERVER_IP}:${NFS_PATH} $mount_point
 
     if [ $? -eq 0 ]; then
-        echo "ok: [test mounts the nfs shared directory successfully]"
+        echo "ok: [test mounts the nfs shared directory]"
         # Unmount the NFS share
         umount $mount_point
         rmdir $mount_point
         return 0
     else
-        echo "failed: [test mount nfs shared directory failed]"
+        echo "failed: [test mount nfs shared directory]"
         rmdir $mount_point
         return 1
     fi
@@ -368,10 +360,10 @@ FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
 
 # Check if the forward DNS zone name and zone file name are generated successfully
 if [ -n "$FORWARD_ZONE_NAME" ] && [ -n "$FORWARD_ZONE_FILE" ]; then
-    echo "ok: [generated forward DNS zone name $FORWARD_ZONE_NAME successfully]"
-    echo "ok: [generated forward zone file name $FORWARD_ZONE_FILE successfully]"
+    echo "ok: [generate forward DNS zone name $FORWARD_ZONE_NAME]"
+    echo "ok: [generate forward zone file name $FORWARD_ZONE_FILE]"
 else
-    echo "failed: [failed to generate forward DNS zone name or forward zone file name]"
+    echo "failed: [generate forward DNS zone name or forward zone file name]"
 fi
 
 # Generate reverse DNS zone name and reverse zone file name 
@@ -386,10 +378,10 @@ REVERSE_ZONE_FILE="${OCTET1}.${OCTET0}.zone"
 
 # Check if the reverse DNS zone name and zone file name are generated successfully
 if [ -n "$REVERSE_ZONE_NAME" ] && [ -n "$REVERSE_ZONE_FILE" ]; then
-    echo "ok: [generated reverse DNS zone name $REVERSE_ZONE_NAME successfully]"
-    echo "ok: [generated reverse zone file name $REVERSE_ZONE_FILE successfully]"
+    echo "ok: [generate reverse DNS zone name $REVERSE_ZONE_NAME]"
+    echo "ok: [generate reverse zone file name $REVERSE_ZONE_FILE]"
 else
-    echo "failed: [failed to generate reverse DNS zone name or reverse zone file name]"
+    echo "failed: [generate reverse DNS zone name or reverse zone file name]"
 fi
 
 
@@ -445,9 +437,9 @@ EOF
 
 # Check if the named configuration file was generated successfully
 if [ -f "/etc/named.conf" ]; then
-    echo "ok: [named configuration file generated successfully]"
+    echo "ok: [generate named configuration file]"
 else
-    echo "failed: [failed to generate named configuration file]"
+    echo "failed: [generate named configuration file]"
 fi
 
 
@@ -506,9 +498,9 @@ EOF
 
 # Verify if the output file was generated successfully
 if [ -f "/var/named/${FORWARD_ZONE_FILE}" ]; then
-    echo "ok: [fgenerated forward DNS zone file /var/named/${FORWARD_ZONE_FILE} successfully]"
+    echo "ok: [generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}"
 else
-    echo "failed: [forward DNS zone file generation failed]"
+    echo "failed: [generate forward DNS zone file]"
 fi
 
 
@@ -590,9 +582,9 @@ rm -f "$reverse_zone_input_file"
 
 # Verify if the reverse DNS zone file was generated successfully
 if [ -f "$reverse_zone_output_file" ]; then
-    echo "ok: [generated reverse DNS zone file $reverse_zone_output_file successfully]"
+    echo "ok: [generate reverse DNS zone file: $reverse_zone_output_file]"
 else
-    echo "failed: [reverse DNS zone file generation failed]"
+    echo "failed: [generate reverse DNS zone file]"
 fi
 
 
@@ -626,15 +618,19 @@ fi
 sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
 sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
 if [ $? -eq 0 ]; then
-    echo "ok: [added DNS_SERVER_IP to /etc/resolv.conf successfully]"
+    echo "ok: [add DNS_SERVER_IP to /etc/resolv.conf"
 else
-    echo "failed: [adding DNS_SERVER_IP to /etc/resolv.conf failed]"
+    echo "failed: [add DNS_SERVER_IP to /etc/resolv.conf]"
 fi
 
 
 # Change ownership
 chown named. /var/named/*.zone
-echo "ok: [change ownership /var/named/*.zone successfully]"
+if [ $? -eq 0 ]; then
+    echo "ok: [change ownership /var/named/*.zone]"
+else
+    echo "failed: [change ownership /var/named/*.zone]"
+fi
 
 
 # Step 6: Enable and Restart named service
@@ -653,9 +649,9 @@ for service in "${services[@]}"; do
     enable_status=$?
 
     if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [$service service was restarted and enabled successfully]"
+        echo "ok: [restart and enable $service service]"
     else
-        echo "failed: [$service service restart or enable failed]"
+        echo "failed: [restart and enable $service service]"
     fi
 done
 
@@ -699,9 +695,9 @@ done
 
 # Display results
 if [ "$all_successful" = true ]; then
-    echo "ok: [successful resolution of all domain names/IP addresses]"
+    echo "ok: [nslookup all domain names/IP addresses]"
 else
-    echo "failed: [DNS resolution failed for the following Domain/IP:]"
+    echo "failed: [dns resolve failed for the following domain/IP:]"
     for failed_hostname in "${failed_hostnames[@]}"; do
         echo "$failed_hostname"
     done
@@ -789,9 +785,9 @@ EOF
 
 # Verify if the haproxy configuration file was generated successfully
 if [ -f "$haproxy_config_file" ]; then
-    echo "ok: [haproxy configuration file generated: $haproxy_config_file]"
+    echo "ok: [generate haproxy configuration file"
 else
-    echo "failed: [haproxy configuration file generation failed]"
+    echo "failed: [generate haproxy configuration file"
 fi
 
 
@@ -830,8 +826,8 @@ for service in "${services[@]}"; do
     enable_status=$?
 
     if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [$service service was restarted and enabled successfully]"
+        echo "ok: [restart and enable $service service]"
     else
-        echo "failed: [$service service restart or enable failed]"
+        echo "failed: [restart and enable $service service]"
     fi
 done
