@@ -1,3 +1,18 @@
+
+**Hostname | Role**
+--- |--- |--- 
+bastion.ocp4.example.com    | bastion(nfs/registry/haproxy/dns/httpd server)
+master01.ocp4.example.com   | master 
+master02.ocp4.example.com   | master
+master03.ocp4.example.com   | master
+worker01.ocp4.example.com   | worker
+worker02.ocp4.example.com   | worker
+bootstrap.ocp4.example.com  | bootstrap
+
+
+
+
+
 1.Apply after modifying hostname and IP
 ~~~
 wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/1_specify_hostname_and_ip_variables.sh
