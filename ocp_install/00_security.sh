@@ -40,7 +40,6 @@ echo
 
 
 
-
 # === Task: Change SELinux security policy ===
 PRINT_TASK "[TASK: Change SELinux security policy]"
 
@@ -57,7 +56,6 @@ elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permis
 else
     echo "failed: [selinux permanent security policy is $permanent_status (expected permissive or disabled)]"
 fi
-
 
 
 # Temporarily set SELinux security policy to permissive
