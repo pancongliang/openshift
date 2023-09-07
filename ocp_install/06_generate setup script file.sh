@@ -61,5 +61,8 @@ generate_setup_script "${WORKER02_HOSTNAME}" "${WORKER02_IP}"
 
 # Make the script executable
 chmod +x ${IGNITION_PATH}/*.sh
-# ====================================================
 run_command "[change ignition file permissions]"
+
+# Add an empty line after the task
+echo
+# ====================================================
