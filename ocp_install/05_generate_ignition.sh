@@ -12,9 +12,6 @@ PRINT_TASK() {
 # ====================================================
 
 
-# Task: Generate a defined install-config file
-PRINT_TASK "[TASK: Generate a defined install-config file]"
-
 # Function to check command success and display appropriate message
 run_command() {
     if [ $? -eq 0 ]; then
@@ -23,6 +20,10 @@ run_command() {
         echo "failed: $1"
     fi
 }
+
+
+# Task: Generate a defined install-config file
+PRINT_TASK "[TASK: Generate a defined install-config file]"
 
 # Backup and format the registry CA certificate
 rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
