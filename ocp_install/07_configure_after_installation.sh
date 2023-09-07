@@ -34,7 +34,6 @@ echo
 
 
 
-
 # Task: Configure data persistence for the image-registry operator
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
 
