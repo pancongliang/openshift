@@ -9,6 +9,7 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
+# ====================================================
 
 # Task: Set environment variables
 PRINT_TASK "[TASK: Set environment variables]"
