@@ -1,7 +1,6 @@
-
-**Hostname | Role**
 ~~~
---- |--- |--- 
+Hostname | Role
+--- |---
 bastion.ocp4.example.com    | bastion(nfs/registry/haproxy/dns/httpd server)
 master01.ocp4.example.com   | master 
 master02.ocp4.example.com   | master
