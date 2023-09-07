@@ -165,3 +165,7 @@ if [ ${#missing_variables[@]} -gt 0 ]; then
 else
     echo "ok: [all variables are set]"
 fi
+
+# Add an empty line after the task
+echo
+# ====================================================
