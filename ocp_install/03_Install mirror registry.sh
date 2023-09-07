@@ -1,5 +1,5 @@
 #!/bin/bash
-# === Function to print a task with uniform length ===
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
