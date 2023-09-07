@@ -1,5 +1,6 @@
 
 **Hostname | Role**
+~~~
 --- |--- |--- 
 bastion.ocp4.example.com    | bastion(nfs/registry/haproxy/dns/httpd server)
 master01.ocp4.example.com   | master 
@@ -8,7 +9,7 @@ master03.ocp4.example.com   | master
 worker01.ocp4.example.com   | worker
 worker02.ocp4.example.com   | worker
 bootstrap.ocp4.example.com  | bootstrap
-
+~~~
 
 
 
