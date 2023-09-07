@@ -1,5 +1,5 @@
 #!/bin/bash
-# === Function to print a task with uniform length ===
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -9,7 +9,7 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-
+# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -28,10 +28,15 @@ echo 'export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig' >> ~/.bash_profile
 run_command "[add kubeconfig to ~/.bash_profile]"
 source ~/.bash_profile
 
+# Add an empty line after the task
+echo
+# ====================================================
+
+
+
 
 # Task: Configure data persistence for the image-registry operator
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
-
 
 cat << EOF | oc apply -f -
 apiVersion: v1
@@ -50,7 +55,6 @@ spec:
 EOF &> /dev/null
 run_command "[create ${IMAGE_REGISTRY_PV} pv]"
 
-
 # Change the Image registry operator configuration’s managementState from Removed to Managed
 oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
 run_command "[change the Image registry operator configuration’s managementState from Removed to Managed]"
@@ -59,6 +63,9 @@ run_command "[change the Image registry operator configuration’s managementSta
 oc patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
 run_command "[leave the claim field blank to allow the automatic creation of an image-registry-storage PVC]"
 
+# Add an empty line after the task
+echo
+# ====================================================
 
 
 
@@ -71,7 +78,7 @@ oc create configmap registry-config \
      -n openshift-config &> /dev/null
 run_command "[create a configmap containing the CA certificate]"
 
-
 # Additional trusted CA
 oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
 run_command "[additional trusted CA]"
+# ====================================================
