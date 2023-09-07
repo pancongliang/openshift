@@ -68,3 +68,7 @@ if [[ $temporary_status == "Permissive" || $temporary_status == "Disabled" ]]; t
 else
     echo "failed: [selinux temporary security policy is $temporary_status (expected Permissive or Disabled)]"
 fi
+
+# Add an empty line after the task
+echo
+# ====================================================
