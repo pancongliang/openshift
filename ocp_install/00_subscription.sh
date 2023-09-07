@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#######################################################
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -11,8 +9,7 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-
-#######################################################
+# ====================================================
 
 # Task: Sign up for a Red Hat Subscription
 PRINT_TASK "[TASK: Sign up for a Red Hat Subscription]"
