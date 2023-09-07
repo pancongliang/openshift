@@ -2,7 +2,7 @@
 
 **Download clusterlogforwarder template**
 ~~~
-
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/loging/clusterlogforwarder.yaml
 ~~~
 
 **Deploy kafka in project amq-aosqe** 
