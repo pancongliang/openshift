@@ -749,7 +749,7 @@ frontend stats
   stats auth admin:passwd
   stats uri /stats
 
-listen api-server-6443 
+listen api-server-6443
   bind ${LB_IP}:6443
   mode tcp
   server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 check inter 1s backup
