@@ -102,3 +102,7 @@ run_command "[trust the rootCA certificate]"
 # loggin registry
 podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 &>/dev/null
 run_command  "[test login https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
+
+# Add an empty line after the task
+echo
+# ====================================================
