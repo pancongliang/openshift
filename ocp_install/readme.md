@@ -8,7 +8,7 @@ master03.ocp4.example.com   | master
 worker01.ocp4.example.com   | worker
 worker02.ocp4.example.com   | worker
 bootstrap.ocp4.example.com  | bootstrap
---- --- --- --- --- --- --- | --- --- --- --- --- --- --- 
+
 ~~~
 
 
