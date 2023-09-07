@@ -11,6 +11,7 @@ PRINT_TASK() {
 }
 # ====================================================
 
+
 # Task: Set environment variables
 PRINT_TASK "[TASK: Set environment variables]"
 
