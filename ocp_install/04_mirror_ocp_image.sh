@@ -38,3 +38,7 @@ else
     echo "failed: [mirror openshift image to registry]"
 fi
 
+
+# Add an empty line after the task
+echo
+# ====================================================
