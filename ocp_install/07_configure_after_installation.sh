@@ -57,8 +57,10 @@ spec:
     server: ${NFS_SERVER_IP}
   persistentVolumeReclaimPolicy: Retain
 EOF
+run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
+
 oc apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
-run_command "[create ${IMAGE_REGISTRY_PV} pv]"
+run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
 
 rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
 run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
