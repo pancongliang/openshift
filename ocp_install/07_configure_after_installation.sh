@@ -42,7 +42,7 @@ echo
 # Task: Configure data persistence for the image-registry operator
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
 
-cat << EOF | oc apply -f -
+cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -56,8 +56,12 @@ spec:
     path: ${NFS_PATH}/${IMAGE_REGISTRY_PV}
     server: ${NFS_SERVER_IP}
   persistentVolumeReclaimPolicy: Retain
-EOF &> /dev/null
+EOF
+oc apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
 run_command "[create ${IMAGE_REGISTRY_PV} pv]"
+
+rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
+run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
 oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
