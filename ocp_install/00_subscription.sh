@@ -34,3 +34,7 @@ POOL_ID=$(subscription-manager list --available --matches '*OpenShift Container 
 
 # Attach to the chosen Pool
 subscription-manager attach --pool="$POOL_ID"
+
+# Add an empty line after the task
+echo
+# ====================================================
