@@ -28,7 +28,7 @@ echo 'export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig' >> ~/.bash_profile
 run_command "[add kubeconfig to ~/.bash_profile]"
 
 # completion command:
-$ oc completion bash >> /etc/bash_completion.d/oc_completion
+oc completion bash >> /etc/bash_completion.d/oc_completion
 run_command "[add oc_completion]"
 
 source ~/.bash_profile
