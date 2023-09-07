@@ -11,8 +11,19 @@ worker02.ocp4.example.com   | worker
 bootstrap.ocp4.example.com  | bootstrap
 ~~~
 
-
-
+**Download script file**
+~~~
+mkdir ocp_install
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/00_security.sh
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/00_subscription.sh
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/01_ocp_env_parameter.sh
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/02_install_infrastructure.sh
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/03_install_mirror_registry.sh
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/04_mirror_ocp_image.sh
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/05_generate_ignition.sh
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/06_generate_setup_script_file.sh
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/07_configure_after_installation.sh
+~~~
 
 1.Apply after modifying hostname and IP
 ~~~
