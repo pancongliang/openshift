@@ -81,4 +81,7 @@ run_command "[create a configmap containing the CA certificate]"
 # Additional trusted CA
 oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
 run_command "[additional trusted CA]"
+
+# Add an empty line after the task
+echo
 # ====================================================
