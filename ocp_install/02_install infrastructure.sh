@@ -1,5 +1,5 @@
 #!/bin/bash
-# === Function to print a task with uniform length ===
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -30,7 +30,7 @@ done
 
 # Add an empty line after the task
 echo
-# ========================================
+# ====================================================
 
 
 
@@ -40,7 +40,7 @@ echo
 PRINT_TASK "[TASK: Install openshift tool]"
 
 # Step 1: Delete openshift tool
-# ----------------------------------------
+# ----------------------------------------------------
 # Delete openshift tool
 files=(
     "/usr/local/bin/butane"
@@ -58,7 +58,7 @@ done
 
 
 # Step 2: Function to download and install tool
-# ----------------------------------------
+# ----------------------------------------------------
 # Function to download and install .tar.gz tools
 install_tar_gz() {
     local tool_name="$1"
@@ -101,7 +101,7 @@ install_binary "butane" "https://mirror.openshift.com/pub/openshift-v4/clients/b
 
 
 # Step 3: Checking
-# ----------------------------------------
+# ----------------------------------------------------
 # Define the list of commands to check
 commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
 
@@ -122,7 +122,7 @@ echo
 # === Task: Setup and check httpd services ===
 PRINT_TASK "[TASK: Setup and check httpd services]"
 # Step 1: Update httpd listen port
-# ----------------------------------------
+# ----------------------------------------------------
 # Update httpd listen port
 update_httpd_listen_port() {
     # Get the current listen port from httpd.conf
@@ -143,7 +143,7 @@ update_httpd_listen_port
 
 
 # Step 2: Create virtual host configuration and http dir
-# ----------------------------------------
+# ----------------------------------------------------
 # Create virtual host configuration
 create_virtual_host_config() {
     # Create a virtual host configuration file
@@ -190,7 +190,7 @@ fi
 
 
 # Step 3: Enable and Restart httpd service
-# ----------------------------------------
+# ----------------------------------------------------
 # List of services to handle
 services=("httpd")
 
@@ -216,7 +216,7 @@ sleep 10
 
 
 # Step 4: Test
-# ----------------------------------------
+# ----------------------------------------------------
 # Function to execute a command and check its status
 run_command() {
     $1
@@ -236,7 +236,7 @@ run_command "rm -rf httpd-test ${HTTPD_PATH}/httpd-test" "delete the httpd test 
 
 # Add an empty line after the task
 echo
-
+# ====================================================
 
 
 
@@ -245,7 +245,7 @@ echo
 PRINT_TASK "[TASK: Setup nfs services]"
 
 # Step 1: Create directory /user and change permissions and add NFS export
-# ----------------------------------------
+# ----------------------------------------------------
 # Create NFS directories
 rm -rf ${NFS_PATH}
 mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV}
@@ -289,7 +289,7 @@ fi
 
 
 # Step 2: Enable and Restart nfs-server service
-# ----------------------------------------
+# ----------------------------------------------------
 # List of services to handle
 services=("nfs-server")
 
@@ -315,7 +315,7 @@ sleep 10
 
 
 # Step 3: Test
-# ----------------------------------------
+# ----------------------------------------------------
 # Function to check if NFS share is accessible
 check_nfs_access() {
     mount_point="/mnt/nfs_test"
@@ -344,7 +344,7 @@ check_nfs_access
 
 # Add an empty line after the task
 echo
-
+# ====================================================
 
 
 
@@ -352,7 +352,7 @@ echo
 # === Task: Setup named services ===
 PRINT_TASK "[TASK: Setup named services]"
 # Step 1: Generate DNS zone name/zone file name
-# ----------------------------------------
+# ----------------------------------------------------
 # Generate reverse DNS zone name and reverse zone file name
 # Construct forward DNS zone name and zone file name
 FORWARD_ZONE_NAME="${BASE_DOMAIN}"
@@ -386,7 +386,7 @@ fi
 
 
 # Step 2: Generate named service configuration file
-# ----------------------------------------
+# ----------------------------------------------------
 cat << EOF > /etc/named.conf
 options {
     listen-on port 53 { any; };
@@ -443,8 +443,8 @@ else
 fi
 
 
-# Step 2: Generate forward zone file
-# ----------------------------------------
+# Step 3: Generate forward zone file
+# ----------------------------------------------------
 # Clean up: Delete duplicate file
 rm -f /var/named/${FORWARD_ZONE_FILE}
 
@@ -504,8 +504,8 @@ else
 fi
 
 
-# Step 3: Create reverse zone file
-# ----------------------------------------
+# Step 4: Create reverse zone file
+# ----------------------------------------------------
 #!/bin/bash
 # Clean up: Delete duplicate file
 rm -f /var/named/${REVERSE_ZONE_FILE}
@@ -588,8 +588,8 @@ else
 fi
 
 
-# Step 4: Check named configuration/Dns file 
-# ----------------------------------------
+# Step 5: Check named configuration/Dns file 
+# ----------------------------------------------------
 # Check named configuration file
 if named-checkconf &>/dev/null; then
     echo "ok: [named configuration is valid]"
@@ -612,8 +612,8 @@ else
 fi
 
 
-# Step 5: Add dns ip to resolv.conf and change zone permissions
-# ----------------------------------------
+# Step 6: Add dns ip to resolv.conf and change zone permissions
+# ----------------------------------------------------
 # Add dns ip to resolv.conf
 sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
 sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
@@ -633,8 +633,8 @@ else
 fi
 
 
-# Step 6: Enable and Restart named service
-# ----------------------------------------
+# Step 7: Enable and Restart named service
+# ----------------------------------------------------
 # List of services to handle
 services=("named")
 
@@ -659,8 +659,8 @@ done
 sleep 10
 
 
-# Step 7: Test nslookup
-# ----------------------------------------
+# Step 8: Test nslookup
+# ----------------------------------------------------
 # List of hostnames and IP addresses to check
 hostnames=(
     "api.${CLUSTER_NAME}.${BASE_DOMAIN}"
@@ -705,13 +705,14 @@ fi
 
 # Add an empty line after the task
 echo
+# ====================================================
 
 
 
 # === Task: Setup HAproxy services ===
 PRINT_TASK "[TASK: Setup HAproxy services]"
 # Step 1: Generate haproxy service configuration file
-# ----------------------------------------
+# ----------------------------------------------------
 # Specify the path and filename for the haproxy configuration file
 haproxy_config_file="/etc/haproxy/haproxy.cfg"
 
@@ -792,7 +793,7 @@ fi
 
 
 # Step 2: Check haproxy configuration
-# ----------------------------------------
+# ----------------------------------------------------
 # Path to HAProxy configuration file
 CONFIG_FILE="/etc/haproxy/haproxy.cfg"
 
@@ -811,7 +812,7 @@ check_haproxy_config
 
 
 # Step 3: Enable and Restart haproxy service
-# ----------------------------------------
+# ----------------------------------------------------
 # List of services to handle
 services=("haproxy")
 
@@ -831,3 +832,4 @@ for service in "${services[@]}"; do
         echo "failed: [restart and enable $service service]"
     fi
 done
+# ====================================================
