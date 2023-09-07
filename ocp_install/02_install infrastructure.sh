@@ -12,6 +12,7 @@ PRINT_TASK() {
 # ====================================================
 
 
+
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
@@ -31,8 +32,6 @@ done
 # Add an empty line after the task
 echo
 # ====================================================
-
-
 
 
 
@@ -240,7 +239,6 @@ echo
 
 
 
-
 # === Task: Setup nfs services ===
 PRINT_TASK "[TASK: Setup nfs services]"
 
@@ -345,7 +343,6 @@ check_nfs_access
 # Add an empty line after the task
 echo
 # ====================================================
-
 
 
 
@@ -832,4 +829,7 @@ for service in "${services[@]}"; do
         echo "failed: [restart and enable $service service]"
     fi
 done
+
+# Add an empty line after the task
+echo
 # ====================================================
