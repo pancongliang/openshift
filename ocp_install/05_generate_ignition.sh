@@ -174,4 +174,7 @@ done
 # Set correct permissions
 chmod a+r "${IGNITION_PATH}"/*.ign
 run_command "[change ignition file permissions]"
+
+# Add an empty line after the task
+echo
 # ====================================================
