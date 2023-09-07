@@ -90,7 +90,6 @@ set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker0
 [root@localhost ~]$ reboot
 ···Install all master nodes in sequence···
 
-
 # 3.Install all worker
 [core@localhost ~]$ sudo -i
 [root@localhost ~]$ curl http://$BASTION_IP:8080/pre/set-worker01.sh -o set-worker01.sh
