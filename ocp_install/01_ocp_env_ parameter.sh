@@ -13,7 +13,7 @@ PRINT_TASK() {
 # Task: Set environment variables
 PRINT_TASK "[TASK: Set environment variables]"
 
-#### Set the necessary variables ####
+# === Set the necessary variables === 
 # OpenShift version
 export OCP_RELEASE="4.10.20"
 
@@ -55,7 +55,7 @@ export REGISTRY_PW="password"                         # 8 characters or more
 export PULL_SECRET="/root/pull-secret"                # Download pull-secret https://console.redhat.com/openshift/install/metal/installer-provisioned
 export REGISTRY_INSTALL_PATH="/opt/registry"
 
-### more parameters ###
+# === more parameters === 
 # NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
@@ -75,7 +75,7 @@ export PRODUCT_REPO="openshift-release-dev"
 export RELEASE_NAME="ocp-release"
 export ARCHITECTURE="x86_64"
 
-### Do not change the following parameters ###
+# === Do not change the following parameters === 
 # Function to generate duplicate parameters
 export NFS_SERVER_IP="$BASTION_IP"
 export DNS_SERVER_IP="$BASTION_IP"
@@ -88,7 +88,7 @@ export LB_IP="$BASTION_IP"
 # Nslookup public network
 export NSLOOKUP_PUBLIC="redhat.com"
 
-### Check all variables ####
+# === Check all variables === 
 # Define variables
 missing_variables=()
 
