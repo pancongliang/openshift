@@ -1,5 +1,5 @@
 #!/bin/bash
-# === Function to print a task with uniform length ===
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -9,6 +9,8 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
+# ====================================================
+
 
 # Task: Generate a defined install-config file
 PRINT_TASK "[TASK: Generate a defined install-config file]"
@@ -30,12 +32,10 @@ run_command "[backup registry CA certificate]"
 sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
 run_command "[format registry ca certificate]"
 
-
 # Create ssh-key for accessing CoreOS
 rm -rf ${SSH_KEY_PATH}
 ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null
 run_command "[create ssh-key for accessing coreos]"
-
 
 # Define variables
 export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak)"
@@ -88,7 +88,7 @@ run_command "[delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
 # Add an empty line after the task
 echo
-
+# ====================================================
 
 
 
@@ -119,7 +119,7 @@ fi
 
 # Add an empty line after the task
 echo
-
+# ====================================================
 
 
 
@@ -133,6 +133,10 @@ run_command "[generate default ignition file]"
 
 # Add an empty line after the task
 echo
+# ====================================================
+
+
+
 
 # Task: Generate an ignition file containing the node hostname
 PRINT_TASK "[TASK: Generate an ignition file containing the node hostname]"
@@ -170,3 +174,4 @@ done
 # Set correct permissions
 chmod a+r "${IGNITION_PATH}"/*.ign
 run_command "[change ignition file permissions]"
+# ====================================================
