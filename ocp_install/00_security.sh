@@ -40,7 +40,6 @@ echo
 
 
 
-
 # === Task: Change SELinux security policy ===
 PRINT_TASK "[TASK: Change SELinux security policy]"
 
