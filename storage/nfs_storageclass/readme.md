@@ -2,9 +2,9 @@
 
 **Set your namespace, NFS server IP, and NFS server path here**
 ~~~
-NAMESPACE="nfs-client-provisioner"
-NFS_SERVER_IP="10.74.251.171"
-NFS_DIR="/nfs"
+export NAMESPACE="nfs-client-provisioner"
+export NFS_SERVER_IP="10.74.251.171"
+export NFS_DIR="/nfs"
 ~~~
 
 **Optional: Install nfs package**
