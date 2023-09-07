@@ -15,10 +15,10 @@ PRINT_TASK() {
 # Task: Set environment variables
 PRINT_TASK "[TASK: Set environment variables]"
 
+# No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
 # OpenShift version
 export OCP_RELEASE="4.10.20"
-export PULL_SECRET="/root/pull-secret"                # Download pull-secret https://console.redhat.com/openshift/install/metal/installer-provisioned
 
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
@@ -133,7 +133,6 @@ check_all_variables() {
     check_variable "REGISTRY_HOSTNAME"
     check_variable "REGISTRY_ID"
     check_variable "REGISTRY_PW"
-    check_variable "PULL_SECRET"
     check_variable "REGISTRY_INSTALL_PATH"
     check_variable "NFS_PATH"
     check_variable "IMAGE_REGISTRY_PV"
