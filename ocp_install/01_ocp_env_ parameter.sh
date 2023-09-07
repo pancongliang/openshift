@@ -18,6 +18,7 @@ PRINT_TASK "[TASK: Set environment variables]"
 # === Set the necessary variables === 
 # OpenShift version
 export OCP_RELEASE="4.10.20"
+export PULL_SECRET="/root/pull-secret"                # Download pull-secret https://console.redhat.com/openshift/install/metal/installer-provisioned
 
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
@@ -50,14 +51,13 @@ export BOOTSTRAP_IP="10.74.255.118"
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
+# === more parameters === 
 # Mirror-Registry and mirror variable
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="root"
 export REGISTRY_PW="password"                         # 8 characters or more
-export PULL_SECRET="/root/pull-secret"                # Download pull-secret https://console.redhat.com/openshift/install/metal/installer-provisioned
 export REGISTRY_INSTALL_PATH="/opt/registry"
 
-# === more parameters === 
 # NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
