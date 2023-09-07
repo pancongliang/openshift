@@ -97,11 +97,12 @@ set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker0
 [root@localhost ~]$ reboot
 ···Install all worker nodes in sequence···
 
-# 4.Approve csr and wait for 30 minutes to check whether the cluster is normal 
-oc get csr
-oc get node
-oc get csr -o name | xargs oc adm certificate approve
-oc get co | grep -v '.True.*False.*False'
+# 4.Approve csr and wait for 30 minutes to check whether the cluster is normal
+[root@bastion ~]# export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+[root@bastion ~]# oc get csr
+[root@bastion ~]# oc get node
+[root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
+[root@bastion ~]# oc get co | grep -v '.True.*False.*False'
 ~~~
 
 8.Configure image-registry-operator data persistence and registry trustedCA
