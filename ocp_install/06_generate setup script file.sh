@@ -9,6 +9,8 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
+# ====================================================
+
 
 # Task: Generate setup script file
 PRINT_TASK "[TASK: Generate setup script file]"
