@@ -12,7 +12,6 @@ PRINT_TASK() {
 # ====================================================
 
 
-
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
