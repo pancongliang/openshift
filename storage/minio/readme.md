@@ -2,7 +2,7 @@
 
 Options 1. Create a minio that uses ephemeral data.
 ~~~
-$ exaport MINIO_NAMESPACE="minio"
+$ export MINIO_NAMESPACE="minio"
 $ envsubst < https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_ephemeral.yaml | oc create -f -
 ~~~
 
