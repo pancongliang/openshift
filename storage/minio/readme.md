@@ -35,13 +35,13 @@ minio-56f884d55d-l8pmh   1/1     Running   0          10s
 **2. Install the Minio client**
 ~~~
 $ curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc
-$ chmod +x mc && mv mc /usr/local/bin/
+$ chmod +x mc && mv mc /usr/bin/
 ~~~
 
 **3. Access minio and create bucket**
 ~~~
 # Access minio-console(Default ID/PW: minioadmin)
-$ MINIO_ADDR=$(oc get route minio-console -n minio -o jsonpath='http://{.spec.host}')
+$ oc get route minio-console -n minio -o jsonpath='http://{.spec.host}'
 
 # Access minio-cli(Default ID/PW: minioadmin)
 $ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
