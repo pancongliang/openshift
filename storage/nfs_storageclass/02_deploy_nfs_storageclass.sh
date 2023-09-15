@@ -142,7 +142,7 @@ spec:
               value: nfs-storage-provisioner
             - name: NFS_SERVER
               value: ${NFS_SERVER_IP}
-            - name: NFS_DIR_PATH
+            - name: NFS_PATH
               value: ${NFS_DIR}
       volumes:
         - name: nfs-client-root
