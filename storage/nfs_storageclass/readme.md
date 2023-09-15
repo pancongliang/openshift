@@ -15,6 +15,6 @@ source 01_install_nfs_package.sh
 
 **Create nfs sc**
 ~~~
-wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_create_nfs_sc.sh
-source 02_create_nfs_sc.sh
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.sh
+source 02_deploy_nfs_storageclass.sh
 ~~~
