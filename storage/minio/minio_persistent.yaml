@@ -41,7 +41,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: minio-pvc
 spec:
-  storageClassName: nfs-storage
+  storageClassName: managed-nfs-storage
   accessModes:
     - ReadWriteOnce
   resources:
