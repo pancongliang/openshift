@@ -8,8 +8,8 @@ metadata:
   name: lokistack-minio
   namespace: openshift-logging
 stringData:
-  access_key_id: monioadmin
-  access_key_secret: monioadmin
+  access_key_id: minioadmin
+  access_key_secret: minioadmin
   bucketnames: loki-bucket
   endpoint: http://minio-minio.apps.ocp4.example.com
   region: minio
@@ -41,20 +41,6 @@ metadata:
   name: instance
   namespace: openshift-logging
 spec:
-  limits:
-    global: 
-      retention: 
-        days: 2
-    tenants: 
-      application:
-        retention:
-          days: 2
-      infrastructure:
-        retention:
-          days: 2
-      audit:
-        retention:
-          days: 2
   managementState: Managed
   logStore:
     type: lokistack
