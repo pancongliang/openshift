@@ -31,7 +31,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: minio-svc
+  name: minio
 spec:
   selector:
     app: minio
@@ -54,7 +54,7 @@ metadata:
 spec:
   to:
     kind: Service
-    name: minio-svc
+    name: minio
   port:
     targetPort: 9090
 ---
@@ -67,6 +67,6 @@ metadata:
 spec:
   to:
     kind: Service
-    name: minio-svc
+    name: minio
   port:
     targetPort: 9000
