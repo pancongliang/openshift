@@ -22,13 +22,14 @@ $ source 01_install_nfs_package.sh
 $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.sh
 $ source 02_deploy_nfs_storageclass.sh
 
+
 # Deploy minio
 $ oc new-project minio
 $ oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_persistent.yaml
 
-$ oc get pod -n ${MINIO_NAMESPACE}
-NAME                    READY   STATUS    RESTARTS   AGE
-minio-86b46b44c-bm4js   1/1     Running   0          1m
+$ oc get pod -n minio
+NAME                     READY   STATUS    RESTARTS   AGE
+minio-56f884d55d-l8pmh   1/1     Running   0          10s
 ~~~
 
 **2. Install the Minio client**
