@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: minio # Change this value if you want a different namespace name
+  labels:
+    name: minio # Change this value to match metadata.name
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: minio
+spec:
+  selector:
+    matchLabels:
+      app: minio
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: quay.io/minio/minio:latest
+        command:
+        - /bin/bash
+        - -c
+        args: 
+        - minio server /data --console-address :9090
+        volumeMounts:
+        - mountPath: /data
+          name: ephemeral-data
+      volumes:
+      - name: ephemeral-data
+        emptyDir:
+          medium: ""       
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-volume
+  namespace: minio
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-svc
+  namespace: minio
+spec:
+  selector:
+    app: minio
+  ports:
+    - name: 9090-tcp
+      protocol: TCP
+      port: 9090
+      targetPort: 9090
+    - name: 9000-tcp
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: minio-console
+  namespace: minio
+  labels:
+    app: minio
+spec:
+  to:
+    kind: Service
+    name: minio-svc
+  port:
+    targetPort: 9090
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: minio-cli
+  namespace: minio
+  labels:
+    app: minio
+spec:
+  to:
+    kind: Service
+    name: minio-svc
+  port:
+    targetPort: 9000
