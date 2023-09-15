@@ -83,13 +83,13 @@ objects:
             privileged: false
           volumeMounts:
             - mountPath: /data
-              name: ${PVC_NAME}
+              name: minio-pvc
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         volumes:
-         - name: ${PVC_NAME}
+         - name: minio-pvc
            persistentVolumeClaim:
-             claimName: ${PVC_NAME}
+             claimName: minio-pvc
     triggers:
     - type: ConfigChange
 
