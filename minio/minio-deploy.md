@@ -68,6 +68,7 @@ $ chmod +x mc && mv mc /usr/bin
 
 **5. Access minio and create bucket**
 ~~~
+# Access minio
 $ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='https://{.spec.host}')
 $ mc --insecure alias set my-minio ${MINIO_ADDR} minio minio123
 
