@@ -6,32 +6,21 @@ $ oc new-project minio
 
 **2. Create minio resource**
 
-a (optional). ephemeral data.
+Options 1. Create a minio that uses ephemeral data.
 ~~~
 $ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/minio/minio-ephemeral.yaml | oc apply -n minio -f -
 ~~~
 
-b (optional). persistent data.
+Options 2. Create a minio that uses persistent data.
 ~~~
-$ export NFS_SERVER_IP="10.74.251.171"
-$ export PV_NAME="minio-pv"
-$ export PVC_NAME="minio-pvc"
-$ mkdir -p /nfs/${PV_NAME}
-$ useradd nfsnobody
-$ chown -R nfsnobody.nfsnobody /nfs
-$ chmod -R 777 /nfs
-$ yum install -y nfs-utils
-$ echo '/nfs    **(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)' >> /etc/exports
-$ systemctl enable nfs-server --now
-
 # Create pv
 $ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: ${PV_NAME}
+  name: minio-pv
   labels:
-    name: ${PV_NAME}
+    name: minio-pv
 spec:
   capacity:
     storage: 100Gi
@@ -39,16 +28,16 @@ spec:
   - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   nfs:
-    path: /nfs/${PV_NAME}
-    server: ${NFS_SERVER_IP}
+    path: /nfs/minio-pv
+    server: 10.74.251.171
 EOF
 
-# Create pvc(pvc name is specified as minio-data)
+# Create pvc
 $ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: ${PVC_NAME}
+  name: minio-pvc
 spec:
   accessModes:
     - ReadWriteMany
@@ -57,7 +46,7 @@ spec:
       storage: 100Gi
   selector:
     matchLabels:
-      name: ${PV_NAME}
+      name: minio-pv
 EOF
 
 $ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/minio/minio-persistent.yaml | oc apply -n minio -f -
@@ -71,28 +60,29 @@ minio-1-deploy   0/1     Completed   0          9m47s
 minio-1-r4nns    1/1     Running     0          9m42s
 ~~~
 
-**4. Install the Minio client and access Minio**
+**4. Install the Minio client**
 ~~~
 $ curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc
 $ chmod +x mc && mv mc /usr/bin
-$ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='https://{.spec.host}')
-$ mc --insecure alias set my-minio ${MINIO_ADDR} minio minio123
 ~~~
 
-**5. Create bucket**
+**5. Access minio and create bucket**
 ~~~
+$ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='https://{.spec.host}')
+$ mc --insecure alias set my-minio ${MINIO_ADDR} minio minio123
+
 # Create bucket
 $ mc --insecure mb my-minio/loki-bucket
 Bucket created successfully `my-minio/loki-bucket`.
 
-# Confirm that the bucket is created successfully
+# Confirm bucket
 $ mc --insecure ls my-minio
 [2022-01-07 09:29:26 UTC]     0B loki-bucket/
 ~~~
 
 **6. Access minio from the cluster internal**
 ~~~
-cat << EOF | oc apply -f -
+$ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
