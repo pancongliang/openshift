@@ -1,4 +1,3 @@
-cat <<EOF>LogForward.yaml
 apiVersion: logging.openshift.io/v1
 kind: ClusterLogForwarder
 metadata:
@@ -6,20 +5,20 @@ metadata:
  namespace: openshift-logging
 spec:
  outputs: 
-  - name: qe-syslog
+  - name: syslog
    type: syslog    
    syslog:    
     facility: local0    
     rfc: RFC3164   
     severity: informational    
    url: 'udp://rsyslogserver.syslog-aosqe.svc:514'  
-  - name: qe-fluentd
+  - name: fluentd
    url: 'tcp://fluentdserver.fluentd-aosqe.svc:24224'
    type: fluentdForward
-  - name: qe-elasticsearch
+  - name: elasticsearch
    type: elasticsearch
    url: 'http://elasticsearch-server.es-aosqe.svc:9200'
-  - name: qe-kafka-app
+  - name: kafka
    url: tls://my-cluster-kafka-bootstrap.amq-aosqe.svc:9092/topic-logging-app
    type: kafka
  pipelines:
@@ -30,8 +29,7 @@ spec:
    - audit
    outputRefs:
    - default
-   - qe-syslog
-   - qe-fluentd
-   - qe-elasticsearch
-   - qe-kafka-app
-EOF
+   - syslog
+   - fluentd
+   - elasticsearch
+   - kafka
