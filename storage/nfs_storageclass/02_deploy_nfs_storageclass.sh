@@ -26,17 +26,17 @@ run_command() {
 PRINT_TASK "[TASK: Install NFS storage class]"
 
 # new-project
-oc new-project $NAMESPACE
-run_command "[create new project: $NAMESPACE]"
+oc new-project ${NAMESPACE} &>/dev/null
+run_command "[create new project: ${NAMESPACE}]"
 
-# rbac
-cat << EOF | oc apply -f -
+# sa_and_rbac
+cat << EOF > sa_and_rbac.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: $NAMESPACE
+  namespace: ${NAMESPACE}
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -64,7 +64,7 @@ subjects:
   - kind: ServiceAccount
     name: nfs-client-provisioner
     # replace with namespace where provisioner is deployed
-    namespace: $NAMESPACE
+    namespace: ${NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: nfs-client-provisioner-runner
@@ -75,7 +75,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: leader-locking-nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: $NAMESPACE
+  namespace: ${NAMESPACE}
 rules:
   - apiGroups: [""]
     resources: ["endpoints"]
@@ -86,25 +86,27 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: leader-locking-nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: $NAMESPACE
+  namespace: ${NAMESPACE}
 subjects:
   - kind: ServiceAccount
     name: nfs-client-provisioner
     # replace with namespace where provisioner is deployed
-    namespace: $NAMESPACE
+    namespace: ${NAMESPACE}
 roleRef:
   kind: Role
   name: leader-locking-nfs-client-provisioner
   apiGroup: rbac.authorization.k8s.io
-EOF  
+EOF
+oc create -f sa_and_rbac.yaml &>/dev/null
 run_command "[create rbac configuration]"
+rm -rf sa_and_rbac.yaml &>/dev/null
 
 # scc
-oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:$NAMESPACE:nfs-client-provisioner
+oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner &>/dev/null
 run_command "[add SCC to user]"
 
 # deployment
-cat << EOF | oc apply -f -
+cat << EOF > deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -112,7 +114,7 @@ metadata:
   labels:
     app: nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: $NAMESPACE
+  namespace: ${NAMESPACE}
 spec:
   replicas: 1
   strategy:
@@ -136,19 +138,21 @@ spec:
             - name: PROVISIONER_NAME
               value: nfs-storage-provisioner
             - name: NFS_SERVER
-              value: $NFS_SERVER_IP
+              value: ${NFS_SERVER_IP}
             - name: NFS_DIR_PATH
-              value: $NFS_DIR
+              value: ${NFS_DIR}
       volumes:
         - name: nfs-client-root
           nfs:
-            server: $NFS_SERVER_IP
-            path: $NFS_DIR
+            server: ${NFS_SERVER_IP}
+            path: ${NFS_DIR}
 EOF
+oc create -f deployment.yaml &>/dev/null
 run_command "[deploy nfs-client-provisioner]"
+rm -rf deployment.yaml &>/dev/null
 
 # storage class
-cat << EOF | oc apply -f -
+cat << EOF > storageclass.yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -160,4 +164,6 @@ parameters:
   archiveOnDelete: "false"
   reclaimPolicy: Retain
 EOF
+oc create -f storageclass.yaml &>/dev/null
 run_command "[create storage class]"
+rm -rf storageclass.yaml &>/dev/null
