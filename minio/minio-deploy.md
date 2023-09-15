@@ -13,7 +13,6 @@ $ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/mi
 
 b (optional). persistent data.
 ~~~
-$ yum install -y nfs-utils
 $ export NFS_SERVER_IP="10.74.251.171"
 $ export PV_NAME="minio-pv"
 $ export PVC_NAME="minio-pvc"
@@ -21,6 +20,7 @@ $ mkdir -p /nfs/${PV_NAME}
 $ useradd nfsnobody
 $ chown -R nfsnobody.nfsnobody /nfs
 $ chmod -R 777 /nfs
+$ yum install -y nfs-utils
 $ echo '/nfs    **(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)' >> /etc/exports
 $ systemctl enable nfs-server --now
 
