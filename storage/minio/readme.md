@@ -23,48 +23,46 @@ $ exaport MINIO_NAMESPACE="minio"
 $ envsubst < https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_persistent.yaml | oc create -f -
 ~~~
 
-**3. Check the status of deployed resources**
+**2. Check the status of deployed resources**
 ~~~
 $ oc get pod -n minio
 NAME                    READY   STATUS    RESTARTS   AGE
 minio-86b46b44c-bm4js   1/1     Running   0          1m
 ~~~
 
-**4. Install the Minio client**
+**3. Install the Minio client**
 ~~~
 $ curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc
 $ chmod +x mc && mv mc /usr/local/bin/
 ~~~
 
-**5. Access minio and create bucket**
+**4. Access minio and create bucket**
 ~~~
 # Access minio-console(Default ID/PW: minioadmin)
 $ MINIO_ADDR=$(oc get route minio-console -n minio -o jsonpath='http://{.spec.host}')
 
 # Access minio-cli(Default ID/PW: minioadmin)
 $ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
+
+# Create an alias named "my-minio"
 $ mc --insecure alias set my-minio ${MINIO_ADDR} minioadmin minioadmin
 
-# Create bucket
+# Create a bucket named "loki-bucket" in the "my-minio" alias
 $ mc --insecure mb my-minio/loki-bucket
 Bucket created successfully `my-minio/loki-bucket`.
 
-# Confirm bucket
-$ mc --insecure ls my-minio
-[2022-01-07 09:29:26 UTC]     0B loki-bucket/
-~~~
-
-**6. Access minio from the cluster internal**
-~~~
+# List "my-minio" alias info
 $ mc alias list my-minio
 my-minio
   URL       : http://minio-minio.apps.ocp4.example.com
   AccessKey : minioadmin
   SecretKey : minioadmin
 
-$ mc ls my-minio
-[2023-09-15 11:25:08 UTC]     0B loki-bucket/
+# List buckets in "my-minio" alias
+$ mc --insecure ls my-minio
+[2022-01-07 09:29:26 UTC]     0B loki-bucket/
 
+# Create the following secret when an application uses minio
 $ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
@@ -78,4 +76,3 @@ stringData:
   region: minio
 EOF
 ~~~
-
