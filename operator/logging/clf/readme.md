@@ -1,9 +1,9 @@
-### Download clusterlogforwarder template
+#### Download clusterlogforwarder template
 ~~~
 wget https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/clf/clusterlogforwarder.yaml
 ~~~
 
-### Deploy kafka in project kafka
+#### Deploy kafka in project kafka
 ~~~
 export NAMESPACE=kafka
 oc new-project $NAMESPACE
@@ -19,7 +19,7 @@ sh-4.4$ ls /var/lib/kafka/data/kafka-log0/topic-logging-app-0/
 sh-4.4$ /opt/kafka/bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files /var/lib/kafka/data/kafka-log0/topic-logging-app-0/00000000000000000000.log \ --deep-iteration --print-data-log 
 ~~~
 
-### Deploy syslog in project syslog
+#### Deploy syslog in project syslog
 ~~~
 oc new-project syslog
 oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/clf/syslog/01_rsyslogserver_configmap.yaml
@@ -27,7 +27,7 @@ oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/opera
 oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/clf/syslog/03_rsyslogserver_svc.yaml
 ~~~
 
-### Deploy fluentd receiver in project fluentd
+#### Deploy fluentd receiver in project fluentd
 ~~~
 oc new-project fluentd
 oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/clf/fluentd/01_configmap.yaml
@@ -38,7 +38,7 @@ oc expose deployment/fluentdserver
 cd /fluentd/log
 ~~~
 
-### Deploy Elasticsearch in project elasticsearch
+#### Deploy Elasticsearch in project elasticsearch
 ~~~
 export NAMESPACE=elasticsearch
 oc new-project $NAMESPACE
