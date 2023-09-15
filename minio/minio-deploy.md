@@ -13,6 +13,8 @@ $ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/mi
 
 Options 2. Create a minio that uses persistent data.
 ~~~
+# Create a PersistentVolumeClaim named "minio-pvc". For example:
+
 # Create pv
 $ cat << EOF | oc apply -f -
 apiVersion: v1
