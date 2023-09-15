@@ -18,6 +18,7 @@ $ export NFS_DIR="/nfs"
 $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/01_install_nfs_package.sh
 $ source 01_install_nfs_package.sh
 
+# Deploy nfs storageclass
 $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.sh
 $ source 02_deploy_nfs_storageclass.sh
 
