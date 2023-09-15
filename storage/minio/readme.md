@@ -1,6 +1,6 @@
 ### Deploy minio 
 
-**Options A: Deploy a minio that uses ephemeral data**
+#### Options A: Deploy a minio that uses ephemeral data
 ~~~
 $ oc new-project minio
 $ oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_ephemeral.yaml
@@ -10,7 +10,7 @@ NAME                     READY   STATUS    RESTARTS   AGE
 minio-56f884d55d-l8pmh   1/1     Running   0          10s
 ~~~
 
-**Options B: Deploy a minio that uses persistent data**
+#### Options B: Deploy a minio that uses persistent data
 
 * Install nfs storageclass
 ~~~
