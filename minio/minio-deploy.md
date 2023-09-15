@@ -13,6 +13,14 @@ $ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/mi
 
 b (optional). persistent data.
 ~~~
+$ yum install -y nfs-utils
+$ mkdir -p /nfs/minio-pv
+$ useradd nfsnobody
+$ chown -R nfsnobody.nfsnobody /nfs
+$ chmod -R 777 /nfs
+$ echo '/nfs    **(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)' >> /etc/exports
+$ systemctl enable nfs-server --now
+
 # Create pv
 $ cat << EOF | oc apply -f -
 apiVersion: v1
