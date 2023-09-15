@@ -1,15 +1,7 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: minio # Change this value if you want a different namespace name
-  labels:
-    name: minio # Change this value to match metadata.name
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
-  namespace: minio
 spec:
   selector:
     matchLabels:
@@ -52,7 +44,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: minio-svc
-  namespace: minio
 spec:
   selector:
     app: minio
@@ -70,7 +61,6 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: minio-console
-  namespace: minio
   labels:
     app: minio
 spec:
@@ -84,7 +74,6 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: minio
-  namespace: minio
   labels:
     app: minio
 spec:
