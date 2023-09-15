@@ -83,7 +83,7 @@ spec:
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: minio-cli
+  name: minio
   namespace: ${MINIO_NAMESPACE}
   labels:
     app: minio
