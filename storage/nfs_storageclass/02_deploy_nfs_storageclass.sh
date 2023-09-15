@@ -26,6 +26,7 @@ run_command() {
 PRINT_TASK "[TASK: Install NFS storage class]"
 
 # new-project
+oc delete ns ${NFS_NAMESPACE} &>/dev/null
 oc new-project ${NFS_NAMESPACE} &>/dev/null
 run_command "[create new project: ${NFS_NAMESPACE}]"
 
@@ -97,6 +98,8 @@ roleRef:
   name: leader-locking-nfs-client-provisioner
   apiGroup: rbac.authorization.k8s.io
 EOF
+
+oc delete -f sa_and_rbac.yaml &>/dev/null
 oc create -f sa_and_rbac.yaml &>/dev/null
 run_command "[create rbac configuration]"
 rm -rf sa_and_rbac.yaml &>/dev/null
@@ -147,6 +150,7 @@ spec:
             server: ${NFS_SERVER_IP}
             path: ${NFS_DIR}
 EOF
+oc delete -f deployment.yaml &>/dev/null
 oc create -f deployment.yaml &>/dev/null
 run_command "[deploy nfs-client-provisioner]"
 rm -rf deployment.yaml &>/dev/null
@@ -162,6 +166,7 @@ parameters:
   archiveOnDelete: "false"
   reclaimPolicy: Retain
 EOF
+oc delete -f storageclass.yaml &>/dev/null
 oc create -f storageclass.yaml &>/dev/null
 run_command "[create storage class]"
 rm -rf storageclass.yaml &>/dev/null
