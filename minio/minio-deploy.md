@@ -8,7 +8,7 @@ $ oc new-project minio
 
 Options 1. Create a minio that uses ephemeral data.
 ~~~
-$ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/minio/minio-ephemeral.yaml | oc apply -n minio -f -
+$ oc process -f https://raw.githubusercontent.com/pancongliang/openshift/main/minio/minio-ephemeral.yaml | oc apply -n minio -f -
 ~~~
 
 Options 2. Create a minio that uses persistent data.
@@ -51,7 +51,7 @@ spec:
       name: minio-pv
 EOF
 
-$ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/minio/minio-persistent.yaml | oc apply -n minio -f -
+$ oc process -f https://raw.githubusercontent.com/pancongliang/openshift/main/minio/minio-persistent.yaml | oc apply -n minio -f -
 ~~~
 
 **3. Check the status of deployed resources**
