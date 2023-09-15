@@ -14,23 +14,24 @@ $ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/mi
 b (optional). persistent data.
 ~~~
 $ yum install -y nfs-utils
-$ mkdir -p /nfs/minio-pv
+$ export NFS_SERVER_IP="10.74.251.171"
+$ export PV_NAME="minio-pv"
+$ export PVC_NAME="minio-pvc"
+$ mkdir -p /nfs/${PV_NAME}
 $ useradd nfsnobody
 $ chown -R nfsnobody.nfsnobody /nfs
 $ chmod -R 777 /nfs
 $ echo '/nfs    **(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)' >> /etc/exports
 $ systemctl enable nfs-server --now
-$ export NFS_SERVER_IP="10.74.251.171"
-
 
 # Create pv
 $ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: minio-pv
+  name: ${PV_NAME}
   labels:
-    name: minio-pv
+    name: ${PV_NAME}
 spec:
   capacity:
     storage: 100Gi
@@ -38,8 +39,8 @@ spec:
   - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   nfs:
-    path: /nfs/minio-pv
-    server: 10.74.251.171
+    path: /nfs/${PV_NAME}
+    server: ${NFS_SERVER_IP}
 EOF
 
 # Create pvc(pvc name is specified as minio-data)
@@ -47,7 +48,7 @@ $ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: minio-data
+  name: ${PVC_NAME}
 spec:
   accessModes:
     - ReadWriteMany
@@ -56,7 +57,7 @@ spec:
       storage: 100Gi
   selector:
     matchLabels:
-      name: minio-pv
+      name: ${PV_NAME}
 EOF
 
 $ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/minio/minio-persistent.yaml | oc apply -n minio -f -
