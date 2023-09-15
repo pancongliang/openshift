@@ -1,14 +1,15 @@
 **1. Deploy minio**
 
-Options a. Create a minio that uses ephemeral data.
+Options a. Deploy a minio that uses ephemeral data.
 ~~~
-$ export MINIO_NAMESPACE="minio"
-$ envsubst < https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_ephemeral.yaml | oc create -f -
+$ oc new-project minio
+$ oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_ephemeral.yaml
 ~~~
 
-Options b. Create a minio that uses persistent data.
+Options b. Deploy a minio that uses persistent data.
 ~~~
 # Install nfs storageclass
+# (If there is already a storageclass, skip this step and then modify the pvc information in the minio_persistent.yaml file)
 $ export NFS_NAMESPACE="nfs-client-provisioner"
 $ export NFS_SERVER_IP="10.74.251.171"
 $ export NFS_DIR="/nfs"
@@ -18,9 +19,9 @@ $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs
 $ source 01_install_nfs_package.sh
 $ source 02_deploy_nfs_storageclass.sh
 
-# Create minio
-$ exaport MINIO_NAMESPACE="minio"
-$ envsubst < https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_persistent.yaml | oc create -f -
+# Deploy minio
+$ oc new-project minio
+$ oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_persistent.yaml
 
 $ oc get pod -n ${MINIO_NAMESPACE}
 NAME                    READY   STATUS    RESTARTS   AGE
