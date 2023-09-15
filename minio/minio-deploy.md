@@ -20,6 +20,8 @@ $ chown -R nfsnobody.nfsnobody /nfs
 $ chmod -R 777 /nfs
 $ echo '/nfs    **(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)' >> /etc/exports
 $ systemctl enable nfs-server --now
+$ export NFS_SERVER_IP="10.74.251.171"
+
 
 # Create pv
 $ cat << EOF | oc apply -f -
@@ -60,7 +62,6 @@ EOF
 $ oc process -f https://raw.githubusercontent.com/pancongliang/OpenShift/main/minio/minio-persistent.yaml | oc apply -n minio -f -
 ~~~
 
-
 **3. Check the status of deployed resources**
 ~~~
 $ oc get pod -n minio
@@ -70,8 +71,6 @@ minio-1-r4nns    1/1     Running     0          9m42s
 ~~~
 
 **4. Install the Minio client and access Minio**
-
-a (optional). Install the Minio client on the basion machine and use the route address to access.
 ~~~
 $ curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc
 $ chmod +x mc && mv mc /usr/bin
@@ -79,43 +78,31 @@ $ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='https://{.spec.host}')
 $ mc --insecure alias set my-minio ${MINIO_ADDR} minio minio123
 ~~~
 
-b (optional).  Install the Minio client in the pod and use the service address to access.
-~~~
-$ oc new-project minio-client
-$ oc apply -f - << EOF
-apiVersion: v1
-kind: Pod
-metadata:
-  name: minio-client
-  namespace: minio-client
-spec:
-  containers:
-    - name: minio-client
-      image: busybox
-      command: [ "/bin/sh", "-c", "while true ; do date; sleep 1; done;" ]
-  restartPolicy: Never
-EOF
-
-$ oc get po -n minio-client
-NAME           READY   STATUS    RESTARTS   AGE
-minio-client   1/1     Running   0          98s
-
-$ oc -n minio-client rsh minio-client
-/ # cd ~
-~ # wget https://dl.min.io/client/mc/release/linux-amd64/mc
-~ # chmod +x mc
-~ # ./mc alias set my-minio http://minio.minio.svc minio minio123
-~~~
-
 **5. Create bucket**
 ~~~
 # Create bucket
-$ mc --insecure mb my-minio/ocp-bucket
-Bucket created successfully `my-minio/ocp-bucket`.
+$ mc --insecure mb my-minio/loki-bucket
+Bucket created successfully `my-minio/loki-bucket`.
 
 # Confirm that the bucket is created successfully
 $ mc --insecure ls my-minio
-[2022-01-07 09:29:26 UTC]     0B ocp-bucket/
+[2022-01-07 09:29:26 UTC]     0B loki-bucket/
+~~~
+
+**6. Access minio from the cluster internal**
+~~~
+cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: access-minio
+stringData:
+  access_key_id: minio
+  access_key_secret: minio123
+  bucketnames: loki-bucket
+  endpoint: http://minio.minio.svc
+  region: minio
+EOF
 ~~~
 
 **Minio commands**
