@@ -1,12 +1,12 @@
-**2. Create minio resource**
+**1. Create minio resource**
 
-Options 1. Create a minio that uses ephemeral data.
+Options a. Create a minio that uses ephemeral data.
 ~~~
 $ export MINIO_NAMESPACE="minio"
 $ envsubst < https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_ephemeral.yaml | oc create -f -
 ~~~
 
-Options 2. Create a minio that uses persistent data.
+Options b. Create a minio that uses persistent data.
 ~~~
 # Install nfs storageclass
 $ export NFS_NAMESPACE="nfs-client-provisioner"
@@ -26,22 +26,24 @@ $ envsubst < https://raw.githubusercontent.com/pancongliang/openshift/main/stora
 **3. Check the status of deployed resources**
 ~~~
 $ oc get pod -n minio
-NAME             READY   STATUS      RESTARTS   AGE
-minio-1-deploy   0/1     Completed   0          9m47s
-minio-1-r4nns    1/1     Running     0          9m42s
+NAME                    READY   STATUS    RESTARTS   AGE
+minio-86b46b44c-bm4js   1/1     Running   0          1m
 ~~~
 
 **4. Install the Minio client**
 ~~~
 $ curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc
-$ chmod +x mc && mv mc /usr/bin
+$ chmod +x mc && mv mc /usr/local/bin/
 ~~~
 
 **5. Access minio and create bucket**
 ~~~
-# Access minio
-$ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='https://{.spec.host}')
-$ mc --insecure alias set my-minio ${MINIO_ADDR} minio minio123
+# Access minio-console(Default ID/PW: minioadmin)
+$ MINIO_ADDR=$(oc get route minio-console -n minio -o jsonpath='http://{.spec.host}')
+
+# Access minio-cli(Default ID/PW: minioadmin)
+$ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
+$ mc --insecure alias set my-minio ${MINIO_ADDR} minioadmin minioadmin
 
 # Create bucket
 $ mc --insecure mb my-minio/loki-bucket
@@ -54,42 +56,26 @@ $ mc --insecure ls my-minio
 
 **6. Access minio from the cluster internal**
 ~~~
+$ mc alias list my-minio
+my-minio
+  URL       : http://minio-minio.apps.ocp4.example.com
+  AccessKey : minioadmin
+  SecretKey : minioadmin
+
+$ mc ls my-minio
+[2023-09-15 11:25:08 UTC]     0B loki-bucket/
+
 $ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
   name: access-minio
 stringData:
-  access_key_id: minio
-  access_key_secret: minio123
+  access_key_id: minioadmin
+  access_key_secret: minioadmin
   bucketnames: loki-bucket
-  endpoint: http://minio.minio.svc
+  endpoint: http://minio-minio.apps.ocp4.example.com
   region: minio
 EOF
 ~~~
 
-**Minio commands**
-~~~
-- View MinIO configuration
-$ mc alias ls my-minio
-my-minio
-  URL       : https://minio-minio.apps.ocp4.example.com
-  AccessKey : minio
-  SecretKey : minio123
-  API       : s3v4
-  Path      : auto
-
-- Copy files between buckets
-$ echo hello minio > hello
-$ mc --insecure cp hello my-minio/${MY_BUCKET}/test/hellominio
-hello:                        12 B / 12 B ┃▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓┃ 50 B/s 0s
-$ mc --insecure ls my-minio/${MY_BUCKET}/test/
-[2022-01-07 08:17:10 UTC]    12B hellominio
-$ mc --insecure cat my-minio/${MY_BUCKET}/test/hellominio
-hello minio
-
-- Delete Bucket
-$ mc --insecure rm --recursive --force my-minio/${MY_BUCKET}/
-Removing `my-minio/hello`.
-Removing `my-minio/test/hellominio`.
-~~~
