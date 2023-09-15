@@ -1,4 +1,4 @@
-**1. Create minio resource**
+**1. Deploy minio**
 
 Options a. Create a minio that uses ephemeral data.
 ~~~
@@ -21,22 +21,19 @@ $ source 02_create_nfs_sc.sh
 # Create minio
 $ exaport MINIO_NAMESPACE="minio"
 $ envsubst < https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_persistent.yaml | oc create -f -
-~~~
 
-**2. Check the status of deployed resources**
-~~~
-$ oc get pod -n minio
+$ oc get pod -n ${MINIO_NAMESPACE}
 NAME                    READY   STATUS    RESTARTS   AGE
 minio-86b46b44c-bm4js   1/1     Running   0          1m
 ~~~
 
-**3. Install the Minio client**
+**2. Install the Minio client**
 ~~~
 $ curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc
 $ chmod +x mc && mv mc /usr/local/bin/
 ~~~
 
-**4. Access minio and create bucket**
+**3. Access minio and create bucket**
 ~~~
 # Access minio-console(Default ID/PW: minioadmin)
 $ MINIO_ADDR=$(oc get route minio-console -n minio -o jsonpath='http://{.spec.host}')
@@ -75,4 +72,6 @@ stringData:
   endpoint: http://minio-minio.apps.ocp4.example.com
   region: minio
 EOF
+
+# Command Quick Reference: https://min.io/docs/minio/linux/reference/minio-mc.html?ref=docs#command-quick-reference
 ~~~
