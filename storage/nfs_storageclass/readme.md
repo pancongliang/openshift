@@ -1,6 +1,6 @@
 **Setting parameters**
 ~~~
-export NAMESPACE="nfs-client-provisioner"
+export NFS_NAMESPACE="nfs-client-provisioner"
 export NFS_SERVER_IP="10.74.251.171"
 export NFS_DIR="/nfs"
 ~~~
