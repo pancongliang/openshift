@@ -1,14 +1,14 @@
 [OpenShift 4 - 配置基于 Red Hat SSO 的 Identity Providers](https://blog.csdn.net/weixin_43902588/article/details/105303056)
 
 #### Installation and configuration the Red Hat Single Sign-On Operator
-1.Install the Red Hat Single Sign-On Operator.  
+1. Install the Red Hat Single Sign-On Operator.  
 ~~~
 $ oc new-project rhsso
 
 # Console -> OperatorHub -> Red Hat Single Sign-On Operator.
 ~~~
 
-2.Create a Keycloak object in the rhsso project.
+2. Create a Keycloak object in the rhsso project.
 ~~~
 $ cat << EOF | oc apply -f -
 apiVersion: v1
@@ -42,7 +42,7 @@ spec:
 EOF
 ~~~
 
-3.Check that the Keycloak object was created successfully.
+3. Check that the Keycloak object was created successfully.
 ~~~
 $ oc get po -n rhsso
 NAME                                   READY   STATUS    RESTARTS   AGE
@@ -51,8 +51,8 @@ keycloak-postgresql-64f4c9c68c-6ckfk   1/1     Running   0          19m
 rhsso-operator-578c76f745-pmfxz        1/1     Running   0          20m
 ~~~
 
-4.Find the Secret named "credential-example-sso" in the rhsso project, 
-  which contains the login password of the RHSSO admin.
+4. Find the Secret named "credential-example-sso" in the rhsso project, 
+   which contains the login password of the RHSSO admin.
 ~~~
 $ oc get secret credential-example-sso -o yaml -n rhsso | grep ADMIN 
   ADMIN_PASSWORD: MkdCU0hjazVYQy1JQ3c9PQ==
@@ -67,49 +67,49 @@ lylyK0-Zm-NK5Q==
 ~~~
 
 #### Configure Red Hat SSO
-1.Login to the console of rhsso.
+1. Login to the console of rhsso.
 ~~~
 $ oc get route -n rhsso
 NAME                       HOST/PORT                              PATH                          SERVICES   PORT       TERMINATION   WILDCARD
 keycloak                   keycloak-rhsso.apps.ocp4.example.com                                 keycloak   keycloak   reencrypt     None
 keycloak-metrics-rewrite   keycloak-rhsso.apps.ocp4.example.com   /auth/realms/master/metrics   keycloak   keycloak   reencrypt     None
 ~~~
-2.Click Administration Console to login with "admin/2GBSHck5XC-ICw==".
+2. Click Administration Console to login with "admin/2GBSHck5XC-ICw==".
 
-3.Click "Master", then click "Add realm".
+3. Click "Master", then click "Add realm".
 
-4.Set the "Name" to "OpenShift" in the "Add realm" page, and click the "Create" button.
+4. Set the "Name" to "OpenShift" in the "Add realm" page, and click the "Create" button.
 
-5.At this point, the page will display the General information of the newly created OpenShift Realm, 
-  and then click the "OpenID Endpoint Configuration" link in the box behind Endpoints.
+5. At this point, the page will display the General information of the newly created OpenShift Realm, 
+   and then click the "OpenID Endpoint Configuration" link in the box behind Endpoints.
 
-6.Find the string "https://keycloak-rhsso.<base_domain>/auth/realms/OpenShift" behind the issuer in the newly popped-up page.
-  This is the Issuer URL that will be used later in configuring Identity Providers.
+6. Find the string "https://keycloak-rhsso.<base_domain>/auth/realms/OpenShift" behind the issuer in the newly popped-up page.
+   This is the Issuer URL that will be used later in configuring Identity Providers.
 ~~~
 {"issuer":"https://keycloak-rhsso.apps.ocp4.example.com/auth/realms/OpenShift"
 ~~~
 
 #### Create user
-1.Click the "Users" link in the left menu, then click "Add user".
-2.On the "Add user" page set the Username to "test-user" and click "Save".
-3.Click the "Credentials" button, set the password for the "test-user" user and click "Temporary/Set Password".
+1. Click the "Users" link in the left menu, then click "Add user".
+2. On the "Add user" page set the Username to "test-user" and click "Save".
+3. Click the "Credentials" button, set the password for the "test-user" user and click "Temporary/Set Password".
 
 
 #### Create Client
-1.Click the menu on the left to enter the configuration page of "Clients", 
-  and then click the "Create" button on the right in the "Clients" page.
-2.Set the Client ID to "openshift-demo" on the "Add Client" page, and click "Save".
-3.On the Settings page of "openshift-demo", first change the Access Type to "confendial", 
-  and then set the Valid Redirect URIs to "https://oauth-openshift.<base_domain>/*",
-  For example "https://oauth-openshift.apps.ocp4.example.com/*", finally the Save button.
+1. Click the menu on the left to enter the configuration page of "Clients", 
+   and then click the "Create" button on the right in the "Clients" page.
+2. Set the Client ID to "openshift-demo" on the "Add Client" page, and click "Save".
+3. On the Settings page of "openshift-demo", first change the Access Type to "confendial", 
+   and then set the Valid Redirect URIs to "https://oauth-openshift.<base_domain>/*",
+   For example "https://oauth-openshift.apps.ocp4.example.com/*", finally the Save button.
 ~~~
 $ oc get route -n openshift-authentication
 NAME              HOST/PORT                               PATH   SERVICES          PORT   TERMINATION            WILDCARD
 oauth-openshift   oauth-openshift.apps.ocp4.example.com          oauth-openshift   6443   passthrough/Redirect   None
 ~~~
 
-4.A new "Credentials" button will appear in the "openshift-demo" configuration page.
-  Click the "Credentials" button and copy the Secret "mdapnJoxBblyYlVpAIRQHfhkkyroVgbu" string.
+4. A new "Credentials" button will appear in the "openshift-demo" configuration page.
+   Click the "Credentials" button and copy the Secret "mdapnJoxBblyYlVpAIRQHfhkkyroVgbu" string.
 
 #### Create and configure an Identity Provider for OpenShifts
 * export router-ca certificate
@@ -154,7 +154,7 @@ spec:
     name: openid
 ~~~
 
-6.Wait for the oauth pod restart to complete.
+5. Wait for the oauth pod restart to complete.
 ~~~
 $ oc get po -n openshift-authentication
 NAME                               READY   STATUS        RESTARTS   AGE
