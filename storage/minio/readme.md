@@ -14,9 +14,11 @@ $ export NFS_NAMESPACE="nfs-client-provisioner"
 $ export NFS_SERVER_IP="10.74.251.171"
 $ export NFS_DIR="/nfs"
 
+# Skip if nfs rpm is already installed
 $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/01_install_nfs_package.sh
-$ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.sh
 $ source 01_install_nfs_package.sh
+
+$ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.sh
 $ source 02_deploy_nfs_storageclass.sh
 
 # Deploy minio
