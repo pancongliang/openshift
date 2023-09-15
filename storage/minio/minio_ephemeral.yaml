@@ -37,18 +37,6 @@ spec:
           medium: ""       
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: minio-volume
-  namespace: ${MINIO_NAMESPACE}
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
-apiVersion: v1
 kind: Service
 metadata:
   name: minio-svc
