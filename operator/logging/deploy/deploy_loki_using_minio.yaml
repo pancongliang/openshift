@@ -1,7 +1,3 @@
-**1.Install Red Hat Openshift Logging and Loki Operator in the console**
-
-**2.Create a secret that contains object storage key information**
-$ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -13,10 +9,7 @@ stringData:
   bucketnames: loki-bucket
   endpoint: http://minio-minio.apps.ocp4.example.com
   region: minio
-EOF
-
-**3.Create a LokiStack instance**
-$ cat << EOF | oc apply -f -
+---
 apiVersion: loki.grafana.com/v1
 kind: LokiStack
 metadata:
@@ -31,10 +24,7 @@ spec:
       type: s3
   tenants:
     mode: openshift-logging    
-EOF
-
-**4.Create a Cluster Logging instance**
-$ cat << EOF | oc apply -f -
+---
 apiVersion: logging.openshift.io/v1
 kind: ClusterLogging
 metadata:
@@ -48,10 +38,7 @@ spec:
       name: logging-loki
   collection:
     type: vector
-EOF
-
-**5.Create a ClusterLogForwarder**
-$ cat << EOF | oc apply -f -
+---
 apiVersion: logging.openshift.io/v1
 kind: ClusterLogForwarder
 metadata:
@@ -66,4 +53,3 @@ spec:
     - audit
     outputRefs:
     - default
-EOF
