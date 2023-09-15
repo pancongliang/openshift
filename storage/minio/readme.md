@@ -14,7 +14,7 @@ minio-56f884d55d-l8pmh   1/1     Running   0          10s
 
 * Install nfs storageclass
 ~~~
-# (If there is already a storageclass, skip this step and then modify the pvc information in the minio_persistent.yaml file)
+# Setting parameters
 $ export NFS_NAMESPACE="nfs-client-provisioner"
 $ export NFS_SERVER_IP="10.74.251.171"
 $ export NFS_DIR="/nfs"
@@ -30,6 +30,7 @@ $ source 02_deploy_nfs_storageclass.sh
 
 * Deploy a minio that uses persistent data
 ~~~
+# If there is already a storageclass, skip this step and then modify the pvc information in the minio_persistent.yaml file
 $ oc new-project minio
 $ oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio_persistent.yaml
 $ oc get pod -n minio
