@@ -15,6 +15,15 @@ Options 2. Create a minio that uses persistent data.
 ~~~
 # Create a PersistentVolumeClaim named "minio-pvc". For example:
 
+# Install nfs
+$ yum install nfs-utils
+$ mkdir -p /nfs/minio-pv
+$ useradd nfsnobody
+$ chown -R nfsnobody.nfsnobody /nfs
+$ chmod -R 777 /nfs
+$ echo '/nfs    **(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)' >> /etc/exports
+$ systemctl enable nfs-server --now
+
 # Create pv
 $ cat << EOF | oc apply -f -
 apiVersion: v1
