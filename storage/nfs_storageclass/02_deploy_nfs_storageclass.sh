@@ -26,8 +26,8 @@ run_command() {
 PRINT_TASK "[TASK: Install NFS storage class]"
 
 # new-project
-oc new-project ${NAMESPACE} &>/dev/null
-run_command "[create new project: ${NAMESPACE}]"
+oc new-project ${NFS_NAMESPACE} &>/dev/null
+run_command "[create new project: ${NFS_NAMESPACE}]"
 
 # sa_and_rbac
 cat << EOF > sa_and_rbac.yaml
@@ -36,7 +36,7 @@ kind: ServiceAccount
 metadata:
   name: nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: ${NAMESPACE}
+  namespace: ${NFS_NAMESPACE}
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -64,7 +64,7 @@ subjects:
   - kind: ServiceAccount
     name: nfs-client-provisioner
     # replace with namespace where provisioner is deployed
-    namespace: ${NAMESPACE}
+    namespace: ${NFS_NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: nfs-client-provisioner-runner
@@ -75,7 +75,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: leader-locking-nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: ${NAMESPACE}
+  namespace: ${NFS_NAMESPACE}
 rules:
   - apiGroups: [""]
     resources: ["endpoints"]
@@ -86,12 +86,12 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: leader-locking-nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: ${NAMESPACE}
+  namespace: ${NFS_NAMESPACE}
 subjects:
   - kind: ServiceAccount
     name: nfs-client-provisioner
     # replace with namespace where provisioner is deployed
-    namespace: ${NAMESPACE}
+    namespace: ${NFS_NAMESPACE}
 roleRef:
   kind: Role
   name: leader-locking-nfs-client-provisioner
@@ -102,7 +102,7 @@ run_command "[create rbac configuration]"
 rm -rf sa_and_rbac.yaml &>/dev/null
 
 # scc
-oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner &>/dev/null
+oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NFS_NAMESPACE}:nfs-client-provisioner &>/dev/null
 run_command "[add SCC to user]"
 
 # deployment
@@ -114,7 +114,7 @@ metadata:
   labels:
     app: nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: ${NAMESPACE}
+  namespace: ${NFS_NAMESPACE}
 spec:
   replicas: 1
   strategy:
