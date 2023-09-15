@@ -152,7 +152,7 @@ cat << EOF | oc apply -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: nfs-storage
+  name: managed-nfs-storage
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
 provisioner: nfs-storage-provisioner     
