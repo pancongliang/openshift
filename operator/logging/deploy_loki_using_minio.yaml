@@ -1,0 +1,83 @@
+**1.Install Red Hat Openshift Logging and Loki Operator in the console**
+
+**2.Create a secret that contains object storage key information**
+$ cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lokistack-minio
+  namespace: openshift-logging
+stringData:
+  access_key_id: monioadmin
+  access_key_secret: monioadmin
+  bucketnames: loki-bucket
+  endpoint: http://minio-minio.apps.ocp4.example.com
+  region: minio
+EOF
+
+**3.Create a LokiStack instance**
+$ cat << EOF | oc apply -f -
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: logging-loki
+  namespace: openshift-logging
+spec:
+  size: 1x.extra-small
+  storageClassName: managed-nfs-storage
+  storage:
+    secret:
+      name: lokistack-minio
+      type: s3
+  tenants:
+    mode: openshift-logging    
+EOF
+
+**4.Create a Cluster Logging instance**
+$ cat << EOF | oc apply -f -
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogging
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  limits:
+    global: 
+      retention: 
+        days: 2
+    tenants: 
+      application:
+        retention:
+          days: 2
+      infrastructure:
+        retention:
+          days: 2
+      audit:
+        retention:
+          days: 2
+  managementState: Managed
+  logStore:
+    type: lokistack
+    lokistack:
+      name: logging-loki
+  collection:
+    type: vector
+EOF
+
+**5.Create a ClusterLogForwarder**
+$ cat << EOF | oc apply -f -
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  pipelines: 
+  - name: all-to-default
+    inputRefs:
+    - infrastructure
+    - application
+    - audit
+    outputRefs:
+    - default
+EOF
