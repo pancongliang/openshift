@@ -1,7 +1,10 @@
+### This installation uses nfs storageClass as the backend storage of odf 
+
 #### Install OpenShift Data Foundation in the web console
 * Install the operator into the default namespace
 
 #### Create and configure Noobaa object
+* The backend storage uses StorageClass. If not, please refer to [Install NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md)
 1. Create Noobaa object
 ~~~
 $ cat << EOF | oc apply -f -
@@ -11,20 +14,20 @@ metadata:
   name: noobaa
   namespace: openshift-storage
 spec:
- dbResources:
-   requests:
-     cpu: '0.1'
-     memory: 1Gi
- dbType: postgres
- coreResources:
-   requests:
-     cpu: '0.1'
-     memory: 1Gi
+  dbResources:
+    requests:
+      cpu: '0.1'
+      memory: 1Gi
+  dbStorageClass: managed-nfs-storage
+  dbType: postgres
+  coreResources:
+    requests:
+      cpu: '0.1'
+      memory: 1Gi
 EOF
 ~~~
 
 2. Create BackingStore object
-* The backend storage uses StorageClass. If not, please refer to [Install NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md)
 ~~~
 $ cat << EOF | oc apply -f -
 apiVersion: noobaa.io/v1alpha1
@@ -51,48 +54,49 @@ EOF
 ~~~
 $ oc get po -n openshift-storage
 NAME                                               READY   STATUS    RESTARTS   AGE
-csi-addons-controller-manager-748f67756d-sdw6t     2/2     Running   0          10m
-noobaa-core-0                                      1/1     Running   0          2m1s
-noobaa-db-pg-0                                     1/1     Running   0          2m1s
-noobaa-endpoint-b45489b-kr6rj                      1/1     Running   0          29s
-noobaa-operator-bdcf8977d-tqxsj                    1/1     Running   0          11m
-noobaa-pv-backing-store-noobaa-pod-23f9a0f6        1/1     Running   0          7s
-noobaa-pv-backing-store-noobaa-pod-f876724d        1/1     Running   0          7s
-ocs-metrics-exporter-9c4586984-dmlx2               1/1     Running   0          11m
-ocs-operator-566dccb78b-62xrt                      1/1     Running   0          11m
-odf-console-65686c7d9f-hcdrj                       1/1     Running   0          11m
-odf-operator-controller-manager-84b6b455d5-t5nnl   2/2     Running   0          11m
-rook-ceph-operator-6fc75fc489-8j7sz                1/1     Running   0          11m
+csi-addons-controller-manager-7df4b4787b-rf77z     2/2     Running   0          9m
+noobaa-core-0                                      1/1     Running   0          3m53s
+noobaa-db-pg-0                                     1/1     Running   0          3m53s
+noobaa-endpoint-c6944f-t99c4                       1/1     Running   0          2m56s
+noobaa-operator-5479989f55-hxjnp                   1/1     Running   0          10m
+noobaa-pv-backing-store-noobaa-pod-050fa690        1/1     Running   0          2m52s
+noobaa-pv-backing-store-noobaa-pod-57f6c3e8        1/1     Running   0          2m52s
+ocs-metrics-exporter-5f6c474855-lqtdm              1/1     Running   0          10m
+ocs-operator-7947c989d5-qqbkv                      1/1     Running   0          10m
+odf-console-6fd77c5bc8-8mz25                       1/1     Running   0          10m
+odf-operator-controller-manager-5dcdd7586d-wxxlj   2/2     Running   0          10m
+rook-ceph-operator-55fb8fb977-qwskn                1/1     Running   0          10m
 
 $ oc get storageclass openshift-storage.noobaa.io
 NAME                          PROVISIONER                       RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
-openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc   Delete          Immediate           false                  38s
+openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc   Delete          Immediate           false                  3m8s
 
 $ oc get pvc -n openshift-storage
-NAME                                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-db-noobaa-db-pg-0                                  Bound    pvc-914e1b77-1aed-46a8-aa8c-062529449a97   50Gi       RWO            nfs-storage    2m48s
-noobaa-default-backing-store-noobaa-pvc-dd3ef018   Bound    pvc-ca2ac57f-4aaa-48b3-947d-587869407ba2   50Gi       RWO            nfs-storage    44s
-noobaa-pv-backing-store-noobaa-pvc-23f9a0f6        Bound    pvc-1dc6ebdc-5eb3-4da4-adae-171bfd22a8f4   100Gi      RWO            nfs-storage    55s
-noobaa-pv-backing-store-noobaa-pvc-f876724d        Bound    pvc-07216e39-5989-470c-8014-a29224bb5026   100Gi      RWO            nfs-storage    54s
+NAME                                          STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS          AGE
+db-noobaa-db-pg-0                             Bound    pvc-d1105b63-bd85-4af3-83c0-f2ea9d34d276   50Gi       RWO            managed-nfs-storage   5m51s
+noobaa-pv-backing-store-noobaa-pvc-050fa690   Bound    pvc-9174a675-9acf-470c-a504-341d7dde255f   100Gi      RWO            managed-nfs-storage   4m50s
+noobaa-pv-backing-store-noobaa-pvc-57f6c3e8   Bound    pvc-d057128b-daf1-41ec-8d47-31a0ffbe603e   100Gi      RWO            managed-nfs-storage   4m50s
 
 $ oc get BackingStore -n openshift-storage
-NAME                           TYPE      PHASE   AGE
-noobaa-default-backing-store   pv-pool   Ready   6m25s
-noobaa-pv-backing-store        pv-pool   Ready   6m39s
+NAME                      TYPE      PHASE   AGE
+noobaa-pv-backing-store   pv-pool   Ready   5m48s
 
 $ oc get noobaa -n openshift-storage
-NAME     MGMT-ENDPOINTS                    S3-ENDPOINTS                      IMAGE                                                                                                            PHASE   AGE
-noobaa   ["https://10.74.249.234:31440"]   ["https://10.74.249.234:30856"]   registry.redhat.io/odf4/mcg-core-rhel8@sha256:3261f399d8cf9ad6311eceaba78454ebad17f34d98811745484e618d568f93ff   Ready   8m42s
+NAME     MGMT-ENDPOINTS                   S3-ENDPOINTS                    IMAGE                                                                                                            PHASE         AGE
+noobaa   ["https://10.74.251.58:31560"]   ["https://10.74.251.9:31142"]   registry.redhat.io/odf4/mcg-core-rhel8@sha256:09ff291587e3ea37ddcc18fe97c1ac9d457ee2744a2542e1c2ecf23f7e7ef92e   Configuring   6m37s
 
 $ oc get bucketclass -n openshift-storage
-NAME                          PLACEMENT                                                        NAMESPACEPOLICY   QUOTA   PHASE   AGE
-noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backing-store"]}]}                             Ready   7m1s
+NAME                          PLACEMENT                                                        NAMESPACEPOLICY   QUOTA   PHASE      AGE
+noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backing-store"]}]}                             Rejected   5m40s
 ~~~
-
 
 5.Update the backingStores configuration used by the noobaa-default-bucket-class object
 ~~~
 $ oc patch bucketclass noobaa-default-bucket-class --patch '{"spec":{"placementPolicy":{"tiers":[{"backingStores":["noobaa-pv-backing-store"]}]}}}' --type merge -n openshift-storage
+
+$ oc get bucketclass -n openshift-storage
+NAME                          PLACEMENT                                                   NAMESPACEPOLICY   QUOTA   PHASE   AGE
+noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-pv-backing-store"]}]}                             Ready   6m24s
 ~~~
 
 #### Create ObjectBucketClaim and Object Storage secret 
@@ -100,10 +104,10 @@ $ oc patch bucketclass noobaa-default-bucket-class --patch '{"spec":{"placementP
 ~~~
 $ NAMESPACE="openshift-logging"
 $ OBC_NAME="loki-bucket-odf"
-$ GENERATEBUCKETNAME="loki-bucket-odf"
-$ OBJECTBUCKETNAME="obc-openshift-logging-loki-bucket-odf"
+$ GENERATEBUCKETNAME="${OBC_NAME}"
+$ OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
 
-$ cat << EOF | oc apply -f -
+$ cat << EOF | envsubst | oc apply -f -
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
@@ -114,11 +118,11 @@ metadata:
     bucket-provisioner: openshift-storage.noobaa.io-obc
     noobaa-domain: openshift-storage.noobaa.io
   name: ${OBC_NAME}
-  namespace: ${NAMESPACE}            # Specify the namespace using bucket object
+  namespace: ${NAMESPACE}
 spec:
   additionalConfig:
     bucketclass: noobaa-default-bucket-class
-  generateBucketName: ${GENERATEBUCKETNAME}     # Specify bucket name
+  generateBucketName: ${GENERATEBUCKETNAME}
   objectBucketName: ${OBJECTBUCKETNAM}
   storageClassName: openshift-storage.noobaa.io
 EOF
@@ -127,18 +131,18 @@ EOF
 2. Create Object Storage secret
 * Get bucket properties from the associated ConfigMap
 ~~~
-$ BUCKET_HOST=$(oc get -n openshift-logging configmap loki-bucket-odf -o jsonpath='{.data.BUCKET_HOST}')
-$ BUCKET_NAME=$(oc get -n openshift-logging configmap loki-bucket-odf -o jsonpath='{.data.BUCKET_NAME}')
-$ BUCKET_PORT=$(oc get -n openshift-logging configmap loki-bucket-odf -o jsonpath='{.data.BUCKET_PORT}')
+$ BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
+$ BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
+$ BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
 ~~~
 * Get bucket access key from the associated Secret
 ~~~
-$ ACCESS_KEY_ID=$(oc get -n openshift-logging secret loki-bucket-odf -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
-$ SECRET_ACCESS_KEY=$(oc get -n openshift-logging secret loki-bucket-odf -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+$ ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+$ SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
 ~~~
 * Create an Object Storage secret with keys as follows
 ~~~
-$ oc create -n openshift-logging secret generic lokistack-dev-odf \
+$ oc create -n ${NAMESPACE} secret generic access-${OBC_NAME} \
    --from-literal=access_key_id="${ACCESS_KEY_ID}" \
    --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
    --from-literal=bucketnames="${BUCKET_NAME}" \
