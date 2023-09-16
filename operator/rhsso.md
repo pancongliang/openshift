@@ -164,15 +164,16 @@ oauth-openshift-686bdd4f8-g25gz    1/1     Running       0          30h
 oauth-openshift-686bdd4f8-hzm45    1/1     Terminating   0          30h
 ~~~
 
-### Enable RH-SSO logout feature
+#### Enable RH-SSO logout feature
 ~~~
 # rhsso console -> Clients -> openshift-demo -> Settings -> Valid Redirect URIs -> Add "https://console-openshift-console.apps.ocp4.example.com/*"
 
 $ oc edit console.config.openshift.io cluster
 spec:
   authentication:
-    logoutRedirect: https://keycloak-rhsso.apps.ocp4.example.com/auth/realms/OpenShift/protocol/openid-connect/logout?post_logout_redirect_uri=https://console-openshift-console.apps.ocp4.example.com&client_id=openshift-demo
+    logoutRedirect: https://<KEYCLOAK_URL>/auth/realms/${MY_REALM_NAME}/protocol/openid-connect/logout?post_logout_redirect_uri=${CONSOLE_URL}&client_id=${USE_THE_CLIENTID_VALUE_FROM_OAUTH_CONFIG}
 
-https://<KEYCLOAK_URL>/auth/realms/${MY_REALM_NAME}/protocol/openid-connect/logout?post_logout_redirect_uri=${CONSOLE_URL}&client_id=${USE_THE_CLIENTID_VALUE_FROM_OAUTH_CONFIG}
+# e.g.
+    logoutRedirect: https://keycloak-rhsso.apps.ocp4.example.com/auth/realms/OpenShift/protocol/openid-connect/logout?post_logout_redirect_uri=https://console-openshift-console.apps.ocp4.example.com&client_id=openshift-demo
 ~~~
 
