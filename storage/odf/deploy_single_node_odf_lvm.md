@@ -1,9 +1,9 @@
 ### What is ODF LVM?
-OpenShift Data Foundation Logical Volume Manager (ODF LVM) is a way to deploy ODF using the local storage of a single OpenShift node. ODF LVM can be regarded as a streamlined deployment method for deploying ODF on a single node.
+* OpenShift Data Foundation Logical Volume Manager (ODF LVM) is a way to deploy ODF using the local storage of a single OpenShift node. ODF LVM can be regarded as a streamlined deployment method for deploying ODF on a single node.
 
-Since ODF is actually a containerized Ceph deployment method, a single OpenShift node deploying ODF LVM requires at least three additional storage devices. This article uses OpenShift Local to demonstrate how to install and configure ODF on a single node OpenShift.
+* Since ODF is actually a containerized Ceph deployment method, a single OpenShift node deploying ODF LVM requires at least three additional storage devices. This article uses OpenShift Local to demonstrate how to install and configure ODF on a single node OpenShift.
 
-It should be noted that standard ODF is deployed on multiple nodes and therefore has RWX capabilities. ODF LVM only runs on one node, so its PV does not have the RWX capability of simultaneous access by multiple nodes.
+* It should be noted that standard ODF is deployed on multiple nodes and therefore has RWX capabilities. ODF LVM only runs on one node, so its PV does not have the RWX capability of simultaneous access by multiple nodes.
 
 
 #### Add storage devices to worker nodes
