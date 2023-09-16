@@ -143,7 +143,7 @@ $ SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.d
 ~~~
 * Create an Object Storage secret with keys as follows
 ~~~
-$ oc create -n ${NAMESPACE} secret generic access-${OBC_NAME} \
+$ oc create -n ${NAMESPACE} secret generic ${OBC_NAME}-credentials \
    --from-literal=access_key_id="${ACCESS_KEY_ID}" \
    --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
    --from-literal=bucketnames="${BUCKET_NAME}" \
