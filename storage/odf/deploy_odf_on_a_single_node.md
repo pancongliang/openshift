@@ -1,4 +1,5 @@
-### This installation uses nfs storageClass as the backend storage of odf 
+#### Installation introduction
+* Use nfs storageClass as a single streamlined deployment method for odf's back-end storage
 
 #### Install OpenShift Data Foundation in the web console
 * Install the operator into the default namespace
