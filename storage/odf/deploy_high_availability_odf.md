@@ -54,13 +54,21 @@ The cluster must consist of at least three OpenShift Container Platform worker n
 ### Step 2: Preparing Nodes
 * Add raw block devices to the three selected worker nodes. Each raw block device must be the same size and shall not be less than 100GB.
    ~~~
-  ssh core@<Worker-Node-Name> sudo lsblk
+   ssh core@<worker-node-name> sudo lsblk
+   NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+   sda      8:0    0   80G  0 disk 
+   ├─sda1   8:1    0    1M  0 part 
+   ├─sda2   8:2    0  127M  0 part 
+   ├─sda3   8:3    0  384M  0 part /boot
+   └─sda4   8:4    0 79.5G  0 part /sysroot
+   sr0     11:0    1 1024M  0 rom 
+   sdb    252:16   0  100G  0 disk    # Additional storage devices
    ~~~
 
 * Each worker node that has local storage devices to be used by OpenShift Container Storage must have a specific label to deploy OpenShift Container Storage pods. To label the nodes, use the following command:
 
    ~~~
-  oc label node <Worker-Node-Name> cluster.ocs.openshift.io/openshift-storage=''
+   oc label node <Worker-Node-Name> cluster.ocs.openshift.io/openshift-storage=''
    ~~~
 
 
