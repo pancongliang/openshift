@@ -284,7 +284,7 @@ The cluster must consist of at least three OpenShift Container Platform worker n
    odf-operator.v4.10.14              OpenShift Data Foundation     4.10.14   odf-operator.v4.10.13              Succeeded
    ~~~
 
-### Step 5: Creating test CephRBD PVC and CephFS PVC.
+### Creating test CephRBD PVC and CephFS PVC.
 * CephRBD PVC
    ~~~
    cat <<EOF | oc apply -f -
@@ -324,7 +324,56 @@ The cluster must consist of at least three OpenShift Container Platform worker n
    oc get pvc | grep cephfs-pvc
    ~~~
 
+### Create ObjectBucketClaim and Object Storage secret 
+* Create ObjectBucketClaim
+   ~~~
+   NAMESPACE="openshift-logging"
+   OBC_NAME="loki-bucket-odf"
+   GENERATEBUCKETNAME="${OBC_NAME}"
+   OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
+   
+   cat << EOF | envsubst | oc apply -f -
+   apiVersion: objectbucket.io/v1alpha1
+   kind: ObjectBucketClaim
+   metadata:
+     finalizers:
+     - objectbucket.io/finalizer
+     labels:
+       app: noobaa
+       bucket-provisioner: openshift-storage.noobaa.io-obc
+       noobaa-domain: openshift-storage.noobaa.io
+     name: ${OBC_NAME}
+     namespace: ${NAMESPACE}
+   spec:
+     additionalConfig:
+       bucketclass: noobaa-default-bucket-class
+     generateBucketName: ${GENERATEBUCKETNAME}
+     objectBucketName: ${OBJECTBUCKETNAM}
+     storageClassName: openshift-storage.noobaa.io
+   EOF
+   ~~~
 
+* Create Object Storage secret
+
+  Get bucket properties from the associated ConfigMap
+   ~~~
+   BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
+   BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
+   BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
+   ~~~
+  Get bucket access key from the associated Secret
+   ~~~
+   ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+   SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+   ~~~
+* Create an Object Storage secret with keys as follows
+   ~~~
+   oc create -n ${NAMESPACE} secret generic ${OBC_NAME}-credentials \
+      --from-literal=access_key_id="${ACCESS_KEY_ID}" \
+      --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
+      --from-literal=bucketnames="${BUCKET_NAME}" \
+      --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
+   ~~~
 
 
 
