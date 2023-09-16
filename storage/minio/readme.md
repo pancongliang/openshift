@@ -54,7 +54,8 @@ $ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
 $ mc --insecure alias set my-minio ${MINIO_ADDR} minioadmin minioadmin
 
 # Create a bucket named "loki-bucket-minio" in the "my-minio" alias
-$ mc --insecure mb my-minio/loki-bucket-minio
+$ BUCKET_NAME="loki-bucket-minio"
+$ mc --insecure mb my-minio/${BUCKET_NAME}
 Bucket created successfully `my-minio/loki-bucket-minio`.
 
 # List "my-minio" alias info
