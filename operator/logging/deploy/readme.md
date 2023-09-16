@@ -28,6 +28,7 @@ stringData:
   region: minio
 EOF
 ~~~
+
 * Create LokiStack ClusterLogging ClusterLogForwarder resource
 ~~~
 $ cat << EOF | envsubst | oc apply -f -
@@ -79,7 +80,7 @@ EOF
 
 
 #### Option B: Install lokistack using ODF
-* Install and configure [odf-operator](https://github.com/pancongliang/openshift/blob/main/storage/odf/deploy_odf_on_single_node.md)
+* Install and configure [odf-operator](https://github.com/pancongliang/openshift/blob/main/storage/odf/deploy_high_availability_odf.md)
 
 * Create ObjectBucketClaim
 ~~~
