@@ -1,11 +1,13 @@
 ### Install Red Hat Openshift Logging and Loki Operator in the console
-Install the Operator using the default namespace.
+
+* Install the Operator using the default namespace.
 
 
 ### Install and configure Loki Stack resource
 
-#### Option A: Install lokistack using minio and nfs sc
-* Install and configure [minio and nfs sc](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md)
+#### Option A: Install lokistack using Minio Object Storage and NFS Storage Class
+
+* Install and configure [Minio Object Storage and NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md)
 
 * Create Object Storage secret credentials
   ~~~
@@ -133,8 +135,6 @@ Install the Operator using the default namespace.
   
 * Create LokiStack ClusterLogging ClusterLogForwarder resource
   ~~~
-  $ STORAGECLASS_NAME=$(oc get sc openshift-storage.noobaa.io -o custom-columns=NAME:.metadata.name --no-headers)
-  
   $ cat << EOF | envsubst | oc apply -f -
   apiVersion: loki.grafana.com/v1
   kind: LokiStack
@@ -143,7 +143,7 @@ Install the Operator using the default namespace.
     namespace: openshift-logging
   spec:
     size: 1x.extra-small
-    storageClassName: ${STORAGECLASS_NAME}
+    storageClassName: ocs-storagecluster-cephfs
     storage:
       secret:
         name: ${OBC_NAME}-credentials
