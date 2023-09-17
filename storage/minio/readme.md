@@ -10,9 +10,9 @@
   $ oc get pod,route -n minio
   ~~~
 
-#### Options B: Deploying MinIO with NFS Storage Class as the Backend Storage
+#### Options B: Deploying MinIO with NFS StorageClass as the Backend Storage
 
-* Deploy nfs storage class, if storage class or pv has been deployed,only need to set the `variables`.
+* Deploy NFS StorageClass, if storage class or pv has been deployed,only need to set the `variables`.
 
   Set variables
   ~~~
@@ -20,12 +20,12 @@
   $ export NFS_SERVER_IP="10.74.251.171"
   $ export NFS_DIR="/nfs"
   ~~~
-  Install nfs-utils rpm, skip if already installed
+  Install and configure NFS server, skip if already installed
   ~~~
   $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/01_install_nfs_package.sh
   $ source 01_install_nfs_package.sh
   ~~~
-  Deploy nfs storage class
+  Deploy NFS StorageClass
   ~~~
   $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.sh
   $ source 02_deploy_nfs_storageclass.sh
