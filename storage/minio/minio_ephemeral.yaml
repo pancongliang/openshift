@@ -22,9 +22,9 @@ spec:
         - minio server /data --console-address :9090
         volumeMounts:
         - mountPath: /data
-          name: ephemeral-data
+          name: ephemeral-volume
       volumes:
-      - name: ephemeral-data
+      - name: ephemeral-volume
         emptyDir:
           medium: ""       
 ---
