@@ -40,7 +40,7 @@
   $ oc get pod -n minio
   ~~~
 
-### Install the Minio client
+### Install the MinIO client
 
 * Minio Client (mc) is a command line tool for managing and operating Minio object storage services.
 
