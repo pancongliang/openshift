@@ -43,6 +43,7 @@
 ### Install the Minio client
 
 * Minio Client (mc) is a command line tool for managing and operating Minio object storage services.
+
   ~~~
   $ curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc
   $ chmod +x mc && mv mc /usr/bin/
@@ -51,6 +52,7 @@
 ### Access MinIO and create bucket
 
 * Create a bucket by accessing the MinIO Console (Default ID/PW: minioadmin)
+ 
   ~~~
   $ oc get route minio-console -n minio -o jsonpath='http://{.spec.host}'
   ~~~
