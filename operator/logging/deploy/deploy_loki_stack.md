@@ -33,6 +33,8 @@
   
 * Create LokiStack ClusterLogging ClusterLogForwarder resource
   ~~~
+  $ STORAGECLASS_NAME="managed-nfs-storage"
+  
   $ cat << EOF | envsubst | oc apply -f -
   apiVersion: loki.grafana.com/v1
   kind: LokiStack
