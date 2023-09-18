@@ -21,7 +21,7 @@
 * Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
   ~~~
   $ STORAGECLASS_NAME="managed-nfs-storage"
-  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_deploy_loki_stack.yaml | envsubst | oc apply -f -
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_deploy_loki_stack_minio.yaml | envsubst | oc apply -f -
   ~~~
 
 
@@ -34,26 +34,7 @@
   $ OBC_NAME="loki-bucket-odf"
   $ GENERATEBUCKETNAME="${OBC_NAME}"
   $ OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
-  
-  $ cat << EOF | envsubst | oc apply -f -
-  apiVersion: objectbucket.io/v1alpha1
-  kind: ObjectBucketClaim
-  metadata:
-    finalizers:
-    - objectbucket.io/finalizer
-    labels:
-      app: noobaa
-      bucket-provisioner: openshift-storage.noobaa.io-obc
-      noobaa-domain: openshift-storage.noobaa.io
-    name: ${OBC_NAME}
-    namespace: ${NAMESPACE}
-  spec:
-    additionalConfig:
-      bucketclass: noobaa-default-bucket-class
-    generateBucketName: ${GENERATEBUCKETNAME}
-    objectBucketName: ${OBJECTBUCKETNAM}
-    storageClassName: openshift-storage.noobaa.io
-  EOF
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/01_create_obc.yaml | envsubst | oc apply -f -
   ~~~
   
 * Create Object Storage secret credentials
@@ -79,49 +60,5 @@
   
 * Create LokiStack ClusterLogging ClusterLogForwarder resource
   ~~~
-  $ cat << EOF | envsubst | oc apply -f -
-  apiVersion: loki.grafana.com/v1
-  kind: LokiStack
-  metadata:
-    name: logging-loki
-    namespace: openshift-logging
-  spec:
-    size: 1x.extra-small
-    storageClassName: ocs-storagecluster-cephfs
-    storage:
-      secret:
-        name: ${OBC_NAME}-credentials
-        type: s3
-    tenants:
-      mode: openshift-logging    
-  ---
-  apiVersion: logging.openshift.io/v1
-  kind: ClusterLogging
-  metadata:
-    name: instance
-    namespace: openshift-logging
-  spec:
-    managementState: Managed
-    logStore:
-      type: lokistack
-      lokistack:
-        name: logging-loki
-    collection:
-      type: vector
-  ---
-  apiVersion: logging.openshift.io/v1
-  kind: ClusterLogForwarder
-  metadata:
-    name: instance
-    namespace: openshift-logging
-  spec:
-    pipelines: 
-    - name: all-to-default
-      inputRefs:
-      - infrastructure
-      - application
-      - audit
-      outputRefs:
-      - default
-  EOF
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_deploy_loki_stack_odf.yaml | envsubst | oc apply -f -
   ~~~
