@@ -25,6 +25,8 @@
   ~~~
 
 
+
+
 #### Option B: Install lokistack using ODF
 * Install and configure [odf-operator](https://github.com/pancongliang/openshift/blob/main/storage/odf/deploy_high_availability_odf.md)
 
