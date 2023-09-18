@@ -25,12 +25,19 @@ run_command() {
 # === Task: Install NFS storage class ===
 PRINT_TASK "[TASK: Install NFS storage class]"
 
-# new-project
-oc delete ns ${NFS_NAMESPACE} &>/dev/null
-oc new-project ${NFS_NAMESPACE} &>/dev/null
-run_command "[create new project: ${NFS_NAMESPACE}]"
+# Create namespace
+cat << EOF > namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "${NFS_NAMESPACE}"
+EOF
+oc delete -f namespace.yaml &>/dev/null
+oc create -f namespace.yaml &>/dev/null
+run_command "[create new namespace: ${NFS_NAMESPACE}]"
+rm -rf amespace.yaml &>/dev/null
 
-# sa_and_rbac
+# Create sa and rbac
 cat << EOF > sa_and_rbac.yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -106,7 +113,7 @@ rm -rf sa_and_rbac.yaml &>/dev/null
 
 # scc
 oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NFS_NAMESPACE}:nfs-client-provisioner &>/dev/null
-run_command "[add SCC to user]"
+run_command "[add SCC hostmount-anyuid to nfs-client-provisioner user]"
 
 # deployment
 cat << EOF > deployment.yaml
@@ -168,5 +175,5 @@ parameters:
 EOF
 oc delete -f storageclass.yaml &>/dev/null
 oc create -f storageclass.yaml &>/dev/null
-run_command "[create storage class]"
+run_command "[create nfs storage class]"
 rm -rf storageclass.yaml &>/dev/null
