@@ -2,7 +2,7 @@
 
 #### Options A: Deploying a MinIO Pod with ephemeral volume
 
-* emptyDir is a temporary storage volume used to provide transient storage space during the lifetime of a Pod.  
+* EmptyDir is a temporary storage volume used to provide transient storage space during the lifetime of a Pod.  
 
   ~~~
   $ oc new-project minio   # Custom namespace
