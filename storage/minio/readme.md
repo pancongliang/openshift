@@ -5,9 +5,9 @@
 * EmptyDir is a temporary storage volume used to provide transient storage space during the lifetime of a Pod.  
 
   ~~~
-  $ oc new-project minio   # Custom namespace
-  $ oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_ephemeral_volume.yaml
-  $ oc get pod,route -n minio
+  $ export NAMESPACE="minio"
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_ephemeral_volume.yaml | envsubst | oc apply -f -
+  $ oc get pod,route -n ${NAMESPACE}
   ~~~
 
 #### Options B: Deploying MinIO with Local volume as the Backend Storage
@@ -15,11 +15,11 @@
 * First specify the worker node where minio pv/pod is located, and then create the local volume and minio.
 
   ~~~
-  $ export NAMESPACE="minio-dev"
+  $ export NAMESPACE="minio"
   $ export PV_NODE_NAME="worker01.ocp4.example.com"
   $ ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/minio-data
-  $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_local_storage.yaml
-  $ envsubst < deploy_minio_with_local_storage.yaml | oc apply -f -
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_local_storage.yaml | envsubst | oc apply -f -
+  $ oc get pod,route -n ${NAMESPACE}
   ~~~
 
 #### Options C: Deploying MinIO with NFS StorageClass as the Backend Storage
@@ -39,16 +39,15 @@
   ~~~
   Deploy NFS StorageClass
   ~~~
-  $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.sh
-  $ source 02_deploy_nfs_storageclass.sh
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.yaml | envsubst | oc apply -f -
   ~~~
 
 * Deploy MinIO Object Storage
   
   If there is already a storage class or pv, can directly modify the pvc content in the following yaml file.
   ~~~
-  $ oc new-project minio   # Custom namespace
-  $ oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_persistent_volume.yaml
+  $ export NAMESPACE="minio"
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_persistent_volume.yaml | envsubst | oc apply -f -
   $ oc get pod -n minio
   ~~~
 
