@@ -11,6 +11,9 @@
   ~~~
 
 #### Options B: Deploying MinIO with Local volume as the Backend Storage
+
+* First specify the worker node where minio pv/pod is located, and then create the local volume and minio.
+
   ~~~
   $ export NAMESPACE="minio-dev"
   $ export PV_NODE_NAME="worker01.ocp4.example.com"
@@ -21,7 +24,7 @@
 
 #### Options C: Deploying MinIO with NFS StorageClass as the Backend Storage
 
-* Deploy NFS StorageClass, if storage class or pv has been deployed,only need to set the `variables`.
+* Deploy NFS StorageClass, if storage class or pv has been deployed,only need to set the variables.
 
   Set variables
   ~~~
