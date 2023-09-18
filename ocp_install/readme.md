@@ -122,6 +122,8 @@
 
 ### Configure image-registry-operator data persistence and registry trustedCA
 
+* Configure image-registry-operator data persistence and registry trustedCA through the following script.
+
   ~~~
   source 07_configure_after_installation.sh
   ~~~
