@@ -60,18 +60,16 @@
   source 06_generate_setup_script_file.sh
   ~~~
 
-### Install bootstrap/master/worker node
+### Generate igniyion file and install bootstrap/master/worker node through script
 
 * Generate ignition file
   ~~~
   source 05_generate_ignition.sh
   ~~~
-
 * Generate setup script file
   ~~~
   source 06_generate_setup_script_file.sh
   ~~~
-
 * After mounting the ISO, start the bootstrap node and execute the following command.
   If the node cannot communicate, manually enter the content in set-*.sh.
   ~~~
@@ -86,14 +84,13 @@
   [root@localhost ~]$ reboot
   ···
   # Wait for the reboot to complete and check for error messages
-  [root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+  [root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}
   [core@localhost ~]$ sudo -i
   [root@localhost ~]$ netstat -ntplu |grep 6443
   [root@localhost ~]$ netstat -ntplu |grep 22623
   [root@localhost ~]$ podman ps
   [root@localhost ~]$ journalctl -b -f -u release-image.service -u bootkube.service
   ~~~
-
 * Install all master
   ~~~
   [core@localhost ~]$ sudo -i
@@ -101,7 +98,6 @@
   [root@localhost ~]$ reboot
   ···Install all master nodes in sequence···
   ~~~
-
 * Install all worker
   ~~~
   [core@localhost ~]$ sudo -i
