@@ -7,7 +7,7 @@
   export NFS_DIR="/nfs"
   ~~~
 
-* Optional: Install and configure NFS server
+* Install and configure the NFS server, skip this step if installed.
   ~~~
   wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/01_install_nfs_package.sh
   source 01_install_nfs_package.sh
@@ -15,6 +15,6 @@
 
 * Deploy NFS StorageClass
   ~~~
-  wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.sh
-  source 02_deploy_nfs_storageclass.sh
+  curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.yaml | envsubst | oc apply -f -
+  oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NFS_NAMESPACE}:nfs-client-provisioner
   ~~~
