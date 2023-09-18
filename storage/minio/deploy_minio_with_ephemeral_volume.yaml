@@ -1,7 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "${NAMESPACE}"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
+  namespace: ${NAMESPACE}
 spec:
   selector:
     matchLabels:
@@ -32,6 +38,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: minio
+  namespace: ${NAMESPACE}
 spec:
   selector:
     app: minio
@@ -49,6 +56,7 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: minio-console
+  namespace: ${NAMESPACE}
   labels:
     app: minio
 spec:
@@ -62,6 +70,7 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: minio
+  namespace: ${NAMESPACE}
   labels:
     app: minio
 spec:
