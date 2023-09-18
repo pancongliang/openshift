@@ -70,15 +70,15 @@
 
 * Create bucket through Minio Client (Default ID/PW: minioadmin)
   
-  Create an alias named "my-minio"
+  Create an alias named "my-minio" and Access MinIO, After creating/using an "alias", the minio url can be ignored the next time visit.
   ~~~    
   $ MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-  $ mc --insecure alias set my-minio ${MINIO_ADDR} minioadmin minioadmin
+  $ mc alias set my-minio ${MINIO_ADDR} minioadmin minioadmin
   ~~~ 
   Create a bucket named "loki-bucket-minio" in the "my-minio" alias
   ~~~
   $ BUCKET_NAME="loki-bucket-minio"
-  $ mc --insecure mb my-minio/${BUCKET_NAME}
+  $ mc mb my-minio/${BUCKET_NAME}
   Bucket created successfully `my-minio/loki-bucket-minio`.
   ~~~
   Commonly used [mc commands](https://min.io/docs/minio/linux/reference/minio-mc.html?ref=docs#command-quick-reference)
@@ -91,7 +91,7 @@
     SecretKey : minioadmin
 
   # List buckets in "my-minio" alias
-  $ mc --insecure ls my-minio
+  $ mc ls my-minio
   [2022-01-07 09:29:26 UTC]     0B loki-bucket-minio/
 
   # Delete  bucket
