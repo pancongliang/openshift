@@ -19,7 +19,7 @@
   $ export PV_NODE_NAME="worker01.ocp4.example.com"
   $ ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/minio-data
   $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_local_storage.yaml | envsubst | oc apply -f -
-  $ oc get pod,route -n ${NAMESPACE}
+  $ oc get pod,route,pvc -n ${NAMESPACE}
   ~~~
 
 #### Options C: Deploying MinIO with NFS StorageClass as the Backend Storage
@@ -48,7 +48,7 @@
   ~~~
   $ export NAMESPACE="minio"
   $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_persistent_volume.yaml | envsubst | oc apply -f -
-  $ oc get pod,route -n ${NAMESPACE}
+  $ oc get pod,route,pvc -n ${NAMESPACE}
   ~~~
 
 ### Install the MinIO client
