@@ -10,7 +10,16 @@
   $ oc get pod,route -n minio
   ~~~
 
-#### Options B: Deploying MinIO with NFS StorageClass as the Backend Storage
+#### Options B: Deploying MinIO with Local volume as the Backend Storage
+  ~~~
+  $ export NAMESPACE="minio-dev"
+  $ export PV_NODE_NAME="worker01.ocp4.example.com"
+  $ ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/minio-data
+  $ wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_local_storage.yaml
+  $ envsubst < deploy_minio_with_local_storage.yaml | oc apply -f -
+  ~~~
+
+#### Options C: Deploying MinIO with NFS StorageClass as the Backend Storage
 
 * Deploy NFS StorageClass, if storage class or pv has been deployed,only need to set the `variables`.
 
