@@ -40,7 +40,6 @@
   Deploy NFS StorageClass
   ~~~
   $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.yaml | envsubst | oc apply -f -
-  $ oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NFS_NAMESPACE}:nfs-client-provisioner
   ~~~
 
 * Deploy MinIO Object Storage
