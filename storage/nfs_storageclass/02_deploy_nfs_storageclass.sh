@@ -30,11 +30,11 @@ cat << EOF > namespace.yaml
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: "${NFS_NAMESPACE}"
+  name: ${NAMESPACE}
 EOF
 oc delete -f namespace.yaml &>/dev/null
 oc create -f namespace.yaml &>/dev/null
-run_command "[create new namespace: ${NFS_NAMESPACE}]"
+run_command "[create new namespace: ${NAMESPACE}]"
 rm -rf amespace.yaml &>/dev/null
 
 # Create sa and rbac
@@ -44,7 +44,7 @@ kind: ServiceAccount
 metadata:
   name: nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: ${NFS_NAMESPACE}
+  namespace: ${NAMESPACE}
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -72,7 +72,7 @@ subjects:
   - kind: ServiceAccount
     name: nfs-client-provisioner
     # replace with namespace where provisioner is deployed
-    namespace: ${NFS_NAMESPACE}
+    namespace: ${NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: nfs-client-provisioner-runner
@@ -83,7 +83,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: leader-locking-nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: ${NFS_NAMESPACE}
+  namespace: ${NAMESPACE}
 rules:
   - apiGroups: [""]
     resources: ["endpoints"]
@@ -94,12 +94,12 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: leader-locking-nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: ${NFS_NAMESPACE}
+  namespace: ${NAMESPACE}
 subjects:
   - kind: ServiceAccount
     name: nfs-client-provisioner
     # replace with namespace where provisioner is deployed
-    namespace: ${NFS_NAMESPACE}
+    namespace: ${NAMESPACE}
 roleRef:
   kind: Role
   name: leader-locking-nfs-client-provisioner
@@ -112,7 +112,7 @@ run_command "[create rbac configuration]"
 rm -rf sa_and_rbac.yaml &>/dev/null
 
 # scc
-oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NFS_NAMESPACE}:nfs-client-provisioner &>/dev/null
+oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner &>/dev/null
 run_command "[add SCC hostmount-anyuid to nfs-client-provisioner user]"
 
 # deployment
@@ -124,7 +124,7 @@ metadata:
   labels:
     app: nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: ${NFS_NAMESPACE}
+  namespace: ${NAMESPACE}
 spec:
   replicas: 1
   strategy:
