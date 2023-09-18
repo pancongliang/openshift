@@ -48,7 +48,7 @@
   ~~~
   $ export NAMESPACE="minio"
   $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_persistent_volume.yaml | envsubst | oc apply -f -
-  $ oc get pod -n minio
+  $ oc get pod,route -n ${NAMESPACE}
   ~~~
 
 ### Install the MinIO client
