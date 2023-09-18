@@ -7,7 +7,7 @@
 
 #### Option A: Install lokistack using Minio Object Storage and NFS Storage Class
 
-* Install and configure [Minio Object Storage and NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md)
+* Install and configure [Minio Object Storage and NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-c-deploying-minio-with-nfs-storageclass-as-the-backend-storage)
 
 * Create Object Storage secret credentials
   ~~~
