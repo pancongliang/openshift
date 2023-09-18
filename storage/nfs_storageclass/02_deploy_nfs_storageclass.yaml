@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: "${NFS_NAMESPACE}"
+  name: ${NFS_NAMESPACE}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nfs-client-provisioner
   # replace with namespace where provisioner is deployed
-  namespace: "${NFS_NAMESPACE}"
+  namespace: ${NFS_NAMESPACE}
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -117,4 +117,3 @@ provisioner: nfs-storage-provisioner
 parameters:
   archiveOnDelete: "false"
   reclaimPolicy: Retain
-EOF
