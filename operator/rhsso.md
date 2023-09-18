@@ -66,7 +66,7 @@ admin
 lylyK0-Zm-NK5Q==
 ~~~
 
-#### Configure Red Hat SSO
+#### Configure Red Hat Single Sign-On
 1. Login to the console of rhsso.
 ~~~
 $ oc get route -n rhsso
@@ -89,13 +89,13 @@ keycloak-metrics-rewrite   keycloak-rhsso.apps.ocp4.example.com   /auth/realms/m
 {"issuer":"https://keycloak-rhsso.apps.ocp4.example.com/auth/realms/OpenShift"
 ~~~
 
-#### Create user
+#### Create Red Hat Single Sign-On User
 1. Click the "Users" link in the left menu, then click "Add user".
 2. On the "Add user" page set the Username to "test-user" and click "Save".
 3. Click the "Credentials" button, set the password for the "test-user" user and click "Temporary/Set Password".
 
 
-#### Create Client
+#### Create Red Hat Single Sign-On Client
 1. Click the menu on the left to enter the configuration page of "Clients", 
    and then click the "Create" button on the right in the "Clients" page.
 2. Set the Client ID to "openshift-demo" on the "Add Client" page, and click "Save".
@@ -164,7 +164,7 @@ oauth-openshift-686bdd4f8-g25gz    1/1     Running       0          30h
 oauth-openshift-686bdd4f8-hzm45    1/1     Terminating   0          30h
 ~~~
 
-#### Enable RH-SSO logout feature
+#### Enable Red Hat Single Sign-On logout feature
 ~~~
 # rhsso console -> Clients -> openshift-demo -> Settings -> Valid Redirect URIs -> Add "https://console-openshift-console.apps.ocp4.example.com/*"
 
