@@ -1,8 +1,15 @@
 ### Install Red Hat Openshift Logging and Loki Operator in the console
 
 * Install the Operator using the default namespace.
+  ~~~
+  $ export CHANNEL="stable-5.6"
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/01_deploy_operator.yaml | envsubst | oc apply -f -
 
-
+  $ INSTALLPLAN_NAME_1=$(oc -n openshift-operators-redhat get installplans -o custom-columns=:metadata.name --no-headers)
+  $ INSTALLPLAN_NAME_2=$(oc -n openshift-logging get installplans -o custom-columns=:metadata.name --no-headers)
+  $ oc -n openshift-operators-redhat patch installplan $INSTALLPLAN_NAME_1 -p '{"spec":{"approved":true}}' --type merge
+  $ oc -n openshift-logging patch installplan $INSTALLPLAN_NAME_2 -p '{"spec":{"approved":true}}' --type merge
+~~~
 ### Install and configure Loki Stack resource
 
 #### Option A: Install lokistack using Minio Object Storage and NFS Storage Class
@@ -15,13 +22,13 @@
   $ ACCESS_KEY_ID="minioadmin"
   $ ACCESS_KEY_SECRET="minioadmin"
   $ BUCKET_NAME="loki-bucket-minio"
-  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/01_minio_credentials.yaml | envsubst | oc apply -f -
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_minio_credentials.yaml | envsubst | oc apply -f -
   ~~~
   
 * Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
   ~~~
   $ STORAGECLASS_NAME="managed-nfs-storage"
-  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_deploy_loki_stack_minio.yaml | envsubst | oc apply -f -
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/03_deploy_loki_stack_minio.yaml | envsubst | oc apply -f -
   ~~~
 
 
@@ -36,7 +43,7 @@
   $ OBC_NAME="loki-bucket-odf"
   $ GENERATEBUCKETNAME="${OBC_NAME}"
   $ OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
-  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/01_create_obc.yaml | envsubst | oc apply -f -
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/2_create_obc.yaml | envsubst | oc apply -f -
   ~~~
   
 * Create Object Storage secret credentials
@@ -62,5 +69,5 @@
   
 * Create LokiStack ClusterLogging ClusterLogForwarder resource
   ~~~
-  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_deploy_loki_stack_odf.yaml | envsubst | oc apply -f -
+  $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/3_deploy_loki_stack_odf.yaml | envsubst | oc apply -f -
   ~~~
