@@ -25,7 +25,6 @@
 * Security settings and subscriptions
   ```
   source 00_security.sh
-  
   source 00_subscription.sh
 
   reboot
@@ -91,6 +90,7 @@
   ···
   # Wait for the reboot to complete and check for error messages
   [root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}
+  
   [core@localhost ~]$ sudo -i
   [root@localhost ~]$ netstat -ntplu |grep 6443
   [root@localhost ~]$ netstat -ntplu |grep 22623
