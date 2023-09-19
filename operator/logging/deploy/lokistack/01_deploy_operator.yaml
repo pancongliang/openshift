@@ -32,7 +32,7 @@ spec:
   channel: ${CHANNEL}
   installPlanApproval: "Manual"
   name: loki-operator
-  source: redhat-operators
+  source: ${SOURCE_NAME}
   sourceNamespace: openshift-marketplace
 ---
 apiVersion: operators.coreos.com/v1
@@ -53,5 +53,5 @@ spec:
   channel: ${CHANNEL}
   installPlanApproval: "Manual"
   name: cluster-logging
-  source: redhat-operators 
+  source: ${SOURCE_NAME}
   sourceNamespace: openshift-marketplace
