@@ -2,7 +2,7 @@
 
 #### Installation and configuration the Red Hat Single Sign-On Operator
 1. Install the Red Hat Single Sign-On Operator.  
-```bash
+```
 # step 1
 oc new-project rhsso
 
@@ -11,7 +11,7 @@ Console -> OperatorHub -> Red Hat Single Sign-On Operator.
 ```
 
 2. Create a Keycloak object in the rhsso project.
-```bash
+```
 cat << EOF | oc apply -f -
 apiVersion: v1
 kind: PersistentVolume
@@ -45,7 +45,7 @@ EOF
 ```
 
 3. Check that the Keycloak object was created successfully.
-```bash
+```
 oc get po -n rhsso
 NAME                                   READY   STATUS    RESTARTS   AGE
 keycloak-0                             1/1     Running   0          70s
@@ -55,8 +55,8 @@ rhsso-operator-578c76f745-pmfxz        1/1     Running   0          20m
 
 4. Find the Secret named "credential-example-sso" in the rhsso project, 
    which contains the login password of the RHSSO admin.
-```bash
-oc get secret credential-example-sso -o yaml -n rhsso | grep ADMIN 
+```
+oc get secret credential-example-sso -o yaml -n rhsso | grep ADMIN
   ADMIN_PASSWORD: MkdCU0hjazVYQy1JQ3c9PQ==
   ADMIN_USERNAME: YWRtaW4=
 
@@ -65,12 +65,11 @@ echo LUFERjNSVVBSSHg5ekE9PQ== | base64 -d
 
 echo YWRtaW4= | base64 -d
 admin
-lylyK0-Zm-NK5Q==
 ```
 
 #### Configure Red Hat Single Sign-On
 1. Login to the console of rhsso.
-```bash
+```
 oc get route -n rhsso
 NAME                       HOST/PORT                              PATH                          SERVICES   PORT       TERMINATION   WILDCARD
 keycloak                   keycloak-rhsso.apps.ocp4.example.com                                 keycloak   keycloak   reencrypt     None
@@ -104,7 +103,7 @@ keycloak-metrics-rewrite   keycloak-rhsso.apps.ocp4.example.com   /auth/realms/m
 3. On the Settings page of "openshift-demo", first change the Access Type to "confendial", 
    and then set the Valid Redirect URIs to "https://oauth-openshift.<base_domain>/*",
    For example "https://oauth-openshift.apps.ocp4.example.com/*", finally the Save button.
-```bash
+```
 oc get route -n openshift-authentication
 NAME              HOST/PORT                               PATH   SERVICES          PORT   TERMINATION            WILDCARD
 oauth-openshift   oauth-openshift.apps.ocp4.example.com          oauth-openshift   6443   passthrough/Redirect   None
@@ -115,14 +114,14 @@ oauth-openshift   oauth-openshift.apps.ocp4.example.com          oauth-openshift
 
 #### Create and configure an Identity Provider for OpenShifts
 * export router-ca certificate
-```bash
+```
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
 mv tls.crt route.ca.crt
 ```
 
 * Create a Red Hat SSO-based Identity Provider
 
-```bash
+```
 oc create secret generic openid-client-secret --from-literal=clientSecret=CT4C1rCOmKh90r94uTglSUilVq5kUBYN -n openshift-config
 oc create configmap openid-route-ca --from-file=ca.crt=./route.ca.crt -n openshift-config
 
@@ -149,7 +148,7 @@ spec:
 ```
 
 5. Wait for the oauth pod restart to complete.
-```bash
+```
 oc get po -n openshift-authentication
 NAME                               READY   STATUS        RESTARTS   AGE
 oauth-openshift-5745d4d7d9-92zhp   0/1     Pending       0          9s
@@ -159,7 +158,7 @@ oauth-openshift-686bdd4f8-hzm45    1/1     Terminating   0          30h
 ```
 
 #### Enable Red Hat Single Sign-On logout feature
-```bash
+```
 # step 1
 rhsso console -> Clients -> openshift-demo -> Settings -> Valid Redirect URIs -> Add "https://console-openshift-console.apps.ocp4.example.com/*"
 
