@@ -4,12 +4,12 @@
   ~~~
   $ export CHANNEL="stable-5.6"
   $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/01_deploy_operator.yaml | envsubst | oc apply -f -
-
   $ INSTALLPLAN_NAME_1=$(oc -n openshift-operators-redhat get installplans -o custom-columns=:metadata.name --no-headers)
   $ INSTALLPLAN_NAME_2=$(oc -n openshift-logging get installplans -o custom-columns=:metadata.name --no-headers)
   $ oc -n openshift-operators-redhat patch installplan $INSTALLPLAN_NAME_1 -p '{"spec":{"approved":true}}' --type merge
   $ oc -n openshift-logging patch installplan $INSTALLPLAN_NAME_2 -p '{"spec":{"approved":true}}' --type merge
-~~~
+  ~~~
+  
 ### Install and configure Loki Stack resource
 
 #### Option A: Install lokistack using Minio Object Storage and NFS Storage Class
