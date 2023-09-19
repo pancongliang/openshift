@@ -29,6 +29,9 @@
   ~~~
   $ STORAGECLASS_NAME="managed-nfs-storage"
   $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/03_deploy_loki_stack_minio.yaml | envsubst | oc apply -f -
+
+  # Wait for deployment to complete
+  $ oc get po -n openshift-logging 
   ~~~
 
 
@@ -70,4 +73,7 @@
 * Create LokiStack ClusterLogging ClusterLogForwarder resource
   ~~~
   $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/3_deploy_loki_stack_odf.yaml | envsubst | oc apply -f -
+
+  # Wait for deployment to complete
+  $ oc get po -n openshift-logging 
   ~~~
