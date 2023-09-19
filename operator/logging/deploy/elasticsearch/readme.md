@@ -12,7 +12,7 @@
   ~~~
   
 
-### Install and configure Loki Stack resource
+### Deploy ClusterLogging instance
 
 * Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/edit/main/storage/nfs_storageclass/readme.md)
 
