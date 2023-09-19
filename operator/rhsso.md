@@ -47,33 +47,43 @@ EOF
 3. Check that the Keycloak object was created successfully.
 ```
 oc get po -n rhsso
+---
 NAME                                   READY   STATUS    RESTARTS   AGE
 keycloak-0                             1/1     Running   0          70s
 keycloak-postgresql-64f4c9c68c-6ckfk   1/1     Running   0          19m
 rhsso-operator-578c76f745-pmfxz        1/1     Running   0          20m
+---
 ```
 
 4. Find the Secret named "credential-example-sso" in the rhsso project, 
    which contains the login password of the RHSSO admin.
 ```
 oc get secret credential-example-sso -o yaml -n rhsso | grep ADMIN
+---
   ADMIN_PASSWORD: MkdCU0hjazVYQy1JQ3c9PQ==
   ADMIN_USERNAME: YWRtaW4=
+---
 
 echo LUFERjNSVVBSSHg5ekE9PQ== | base64 -d
+---
 2GBSHck5XC-ICw==
+---
 
 echo YWRtaW4= | base64 -d
+---
 admin
+---
 ```
 
 #### Configure Red Hat Single Sign-On
 1. Login to the console of rhsso.
 ```
 oc get route -n rhsso
+---
 NAME                       HOST/PORT                              PATH                          SERVICES   PORT       TERMINATION   WILDCARD
 keycloak                   keycloak-rhsso.apps.ocp4.example.com                                 keycloak   keycloak   reencrypt     None
 keycloak-metrics-rewrite   keycloak-rhsso.apps.ocp4.example.com   /auth/realms/master/metrics   keycloak   keycloak   reencrypt     None
+---
 ```
 2. Click Administration Console to login with "admin/2GBSHck5XC-ICw==".
 
@@ -150,11 +160,13 @@ spec:
 5. Wait for the oauth pod restart to complete.
 ```
 oc get po -n openshift-authentication
+---
 NAME                               READY   STATUS        RESTARTS   AGE
 oauth-openshift-5745d4d7d9-92zhp   0/1     Pending       0          9s
 oauth-openshift-686bdd4f8-2cwgv    1/1     Running       0          30h
 oauth-openshift-686bdd4f8-g25gz    1/1     Running       0          30h
 oauth-openshift-686bdd4f8-hzm45    1/1     Terminating   0          30h
+---
 ```
 
 #### Enable Red Hat Single Sign-On logout feature
