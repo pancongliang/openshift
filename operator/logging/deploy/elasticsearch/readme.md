@@ -25,9 +25,6 @@
   $ oc get po -n openshift-logging
   ~~~
 
-  ```
-  $ oc get po -n openshift-logging
-  ```
 
   ```shell
   $ oc get po -n openshift-logging
