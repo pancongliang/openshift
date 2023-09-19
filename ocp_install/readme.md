@@ -25,13 +25,16 @@
 * Security settings and subscriptions
   ```
   source 00_security.sh
+  
   source 00_subscription.sh
+
   reboot
   ```
 
 * Execute after modifying the necessary parameters
   ```
   vim 01_ocp_env_parameter.sh
+  
   source 01_ocp_env_parameter.sh
   ```
 
@@ -71,7 +74,7 @@
   ```
   source 06_generate_setup_script_file.sh
 
-  [root@bastion ~]# ls ${IGNITION_PATH}/set*
+  ls ${IGNITION_PATH}/set*
   set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh
   ```
 
