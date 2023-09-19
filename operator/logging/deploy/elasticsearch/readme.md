@@ -20,4 +20,7 @@
   ~~~
   $ export STORAGECLASS_NAME="managed-nfs-storage"
   $ curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/elasticsearch/02_deploy_instance.yaml | envsubst | oc apply -f -
+
+  # Wait for deployment to complete
+  $ oc get po -n openshift-logging 
   ~~~
