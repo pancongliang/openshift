@@ -55,8 +55,7 @@ The cluster must consist of at least three OpenShift Container Platform worker n
 * Add raw block devices to the three selected worker nodes. Each raw block device must be the same size and shall not be less than 100GB.
    ```
    ssh core@<worker-node-name> sudo lsblk
-   ```
-   ```
+   ---
    NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
    sda      8:0    0   80G  0 disk 
    ├─sda1   8:1    0    1M  0 part 
@@ -65,8 +64,8 @@ The cluster must consist of at least three OpenShift Container Platform worker n
    └─sda4   8:4    0 79.5G  0 part /sysroot
    sr0     11:0    1 1024M  0 rom 
    sdb    252:16   0  100G  0 disk    # Additional storage devices
+   ---
    ```
-
 * Each worker node that has local storage devices to be used by OpenShift Container Storage must have a specific label to deploy OpenShift Container Storage pods. To label the nodes, use the following command:
 
    ```
@@ -100,20 +99,20 @@ The cluster must consist of at least three OpenShift Container Platform worker n
 * Can check the `localvolumediscovery` resource and `localvolumediscoveryresults` by running the command given below:
    ```
    oc get localvolumediscoveries -n openshift-local-storage
-   ```
-   ```
+   ---
    NAME                    AGE
    auto-discover-devices   5m15s
+   ---
    ```
    
    ```
    oc get localvolumediscoveryresults -n openshift-local-storage
-   ```
-   ```
+   ---
    NAME                           AGE
    discovery-result-compute-0     19m
    discovery-result-compute-1     19m
    discovery-result-compute-2     19m
+   ---
    ```
  
 
@@ -155,23 +154,23 @@ The cluster must consist of at least three OpenShift Container Platform worker n
    Check for diskmaker-manager pods
    ```
    oc get pods -n openshift-local-storage | grep "diskmaker-manager"
-   ```
-   ```
+   ---
    diskmaker-manager-8l2bq                   2/2     Running   0          3m42s
    diskmaker-manager-bsklr                   2/2     Running   0          3m42s
    diskmaker-manager-fzbnx                   2/2     Running   0          3m42s
+   ---
    ```
 
    Check for PV's created
 
    ```
    oc get pv -n openshift-local-storage
-   ```
-   ```
+   ---
    NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
    local-pv-1f003b14   2328Gi     RWO            Delete           Available           localblock              11s
    local-pv-4d7de45    2328Gi     RWO            Delete           Available           localblock              11s
    local-pv-77dbe0a6   2328Gi     RWO            Delete           Available           localblock              10s
+   ---
    ```
 
 ### Step 3: Installing OpenShift Data Foundation
@@ -289,13 +288,13 @@ The cluster must consist of at least three OpenShift Container Platform worker n
 
    ```
    oc get csv -n openshift-storage
-   ```
-   ```
+   ---
    NAME                               DISPLAY                       VERSION   REPLACES                           PHASE
    mcg-operator.v4.10.14              NooBaa Operator               4.10.14   mcg-operator.v4.10.13              Succeeded
    ocs-operator.v4.10.14              OpenShift Container Storage   4.10.14   ocs-operator.v4.10.13              Succeeded
    odf-csi-addons-operator.v4.10.14   CSI Addons                    4.10.14   odf-csi-addons-operator.v4.10.13   Succeeded
    odf-operator.v4.10.14              OpenShift Data Foundation     4.10.14   odf-operator.v4.10.13              Succeeded
+   ---
    ```
 
 ### Creating test CephRBD PVC and CephFS PVC.
