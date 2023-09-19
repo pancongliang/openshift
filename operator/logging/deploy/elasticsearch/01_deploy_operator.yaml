@@ -31,7 +31,7 @@ metadata:
 spec:
   channel: ${CHANNEL}
   installPlanApproval: "Manual"
-  source: "redhat-operators" 
+  source: ${SOURCE_NAME}
   sourceNamespace: "openshift-marketplace"
   name: "elasticsearch-operator"
 ---
@@ -53,5 +53,5 @@ spec:
   channel: ${CHANNEL}
   installPlanApproval: "Manual"
   name: cluster-logging
-  source: redhat-operators 
+  source: ${SOURCE_NAME}
   sourceNamespace: openshift-marketplace
