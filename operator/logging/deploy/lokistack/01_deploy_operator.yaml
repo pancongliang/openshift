@@ -26,14 +26,14 @@ spec: {}
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: "elasticsearch-operator"
+  name: "loki-operator"
   namespace: "openshift-operators-redhat" 
 spec:
   channel: ${CHANNEL}
   installPlanApproval: "Manual"
-  source: "redhat-operators" 
-  sourceNamespace: "openshift-marketplace"
-  name: "elasticsearch-operator"
+  name: loki-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
 ---
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
