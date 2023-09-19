@@ -1,6 +1,6 @@
-### Deploy MinIO Object Storage
+### Deploy Minio Object Storage
 
-#### Options A: Deploying a MinIO Pod with ephemeral volume
+#### Options A: Deploying a Minio Pod with ephemeral volume
 
 * EmptyDir is a temporary storage volume used to provide transient storage space during the lifetime of a Pod.  
 
@@ -12,9 +12,9 @@
   oc get pod,route -n ${NAMESPACE}
   ```
 
-#### Options B: Deploying MinIO with Local volume as the Backend Storage
+#### Options B: Deploying Minio with Local volume as the Backend Storage
 
-* First specify the worker node where minio pv/pod is located, and then create the local volume and minio.
+* First specify the worker node where Minio pv/pod is located, and then create the local volume and Minio.
 
   ```
   export NAMESPACE="minio"
@@ -27,7 +27,7 @@
   oc get pod,route,pvc -n ${NAMESPACE}
   ```
 
-#### Options C: Deploying MinIO with NFS StorageClass as the Backend Storage
+#### Options C: Deploying Minio with NFS StorageClass as the Backend Storage
 
 * Deploy NFS StorageClass, if storage class or pv has been deployed,only need to set the variables.
 
@@ -48,7 +48,7 @@
   curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.yaml | envsubst | oc apply -f -
   ```
 
-* Deploy MinIO Object Storage
+* Deploy Minio Object Storage
   
   If there is already a storage class or pv, can directly modify the pvc content in the following yaml file.
   ```
@@ -59,7 +59,7 @@
   oc get pod,route,pvc -n ${NAMESPACE}
   ```
 
-### Install the MinIO client
+### Install the Minio client
 
 * Minio Client (mc) is a command line tool for managing and operating Minio object storage services.
 
@@ -69,9 +69,9 @@
   chmod +x mc && mv mc /usr/bin/
   ```
 
-### Access MinIO and create bucket
+### Access Minio and create bucket
 
-* Create a bucket by accessing the MinIO Console (Default ID/PW: minioadmin)
+* Create a bucket by accessing the Minio Console (Default ID/PW: minioadmin)
  
   ```
   oc get route minio-console -n minio -o jsonpath='http://{.spec.host}'
@@ -79,7 +79,7 @@
 
 * Create bucket through Minio Client (Default ID/PW: minioadmin)
   
-  Create an alias named "my-minio" and Access MinIO, After creating/using an "alias", the minio url can be ignored the next time visit.
+  Create an alias named "my-minio" and Access Minio, After creating/using an "alias", the Minio url can be ignored the next time visit.
   ```    
   MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
   
