@@ -12,6 +12,7 @@ PRINT_TASK() {
 # ====================================================
 
 
+
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
@@ -155,7 +156,6 @@ EOF
 
 # Create virtual host configuration
 create_virtual_host_config
-
 
 # Check if virtual host configuration is valid
 check_virtual_host_configuration() {
@@ -618,7 +618,6 @@ if [ $? -eq 0 ]; then
 else
     echo "failed: [add DNS_SERVER_IP to /etc/resolv.conf]"
 fi
-
 
 # Change ownership
 chown named. /var/named/*.zone
