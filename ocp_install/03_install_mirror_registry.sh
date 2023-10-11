@@ -86,7 +86,7 @@ run_command "[installing mirror-registry...]"
 cd - &>/dev/null
 sleep 6
 
-# Delete ${MIRROR_REGISTRY_PACKAGE_PATH}
+# Delete MIRROR_REGISTRY_PACKAGE_PATH
 rm -rf ${REGISTRY_PACKAGE_TEMP_PATH}
 mirror_registry_command "[delete ${REGISTRY_PACKAGE_TEMP_PATH}]"
 
