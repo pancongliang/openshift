@@ -49,7 +49,6 @@ echo
 # ====================================================
 
 
-
 # === Task: Install mirror registry ===
 PRINT_TASK "[TASK: Install mirror registry]"
 
