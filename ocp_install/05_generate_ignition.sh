@@ -92,7 +92,6 @@ echo
 # ====================================================
 
 
-
 # Task:  Generate a manifests
 PRINT_TASK "[TASK: Generate a manifests]"
 
@@ -123,8 +122,6 @@ echo
 # ====================================================
 
 
-
-
 # Task: Generate default ignition file
 PRINT_TASK "[TASK: Generate default ignition file]"
 
@@ -137,8 +134,6 @@ echo
 # ====================================================
 
 
-
-
 # Task: Generate an ignition file containing the node hostname
 PRINT_TASK "[TASK: Generate an ignition file containing the node hostname]"
 
@@ -146,7 +141,6 @@ PRINT_TASK "[TASK: Generate an ignition file containing the node hostname]"
 BOOTSTRAP_HOSTNAME="${BOOTSTRAP_HOSTNAME}"
 MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
 WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}")
-
 
 cp "${IGNITION_PATH}/bootstrap.ign" "${IGNITION_PATH}/append-${BOOTSTRAP_HOSTNAME}.ign"
 run_command "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
