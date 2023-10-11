@@ -18,11 +18,9 @@ PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
 # Prompt for pull-secret
 read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
 
-
 # Create a temporary file to store the pull secret
 PULL_SECRET=$(mktemp -p /tmp)
 echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
-
 
 # Login to the registry
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
@@ -46,7 +44,6 @@ if [ $? -eq 0 ]; then
 else
     echo "failed: [mirror openshift image to registry]"
 fi
-
 
 # Remove the temporary file
 rm -f "${PULL_SECRET}"
