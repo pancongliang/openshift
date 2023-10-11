@@ -11,6 +11,7 @@ PRINT_TASK() {
 }
 # ====================================================
 
+
 # Function to check command success and display appropriate message
 run_command() {
     if [ $? -eq 0 ]; then
@@ -19,6 +20,7 @@ run_command() {
         echo "failed: $1"
     fi
 }
+
 
 # Task: Kubeconfig login and oc completion
 PRINT_TASK "[TASK: Kubeconfig login]"
@@ -36,7 +38,6 @@ source ~/.bash_profile
 # Add an empty line after the task
 echo
 # ====================================================
-
 
 
 # Task: Configure data persistence for the image-registry operator
@@ -76,7 +77,6 @@ run_command "[leave the claim field blank to allow the automatic creation of an 
 # Add an empty line after the task
 echo
 # ====================================================
-
 
 
 # Task: Configuring additional trust stores for image registry access
