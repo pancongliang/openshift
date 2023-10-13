@@ -10,14 +10,13 @@ spec:
     mappingMethod: claim
     name: htpasswd-user
     type: HTPasswd
-
   - mappingMethod: claim
     openID:
       ca:
         name: openid-route-ca
       claims:
-        email:
-        - email
+#        email:
+#        - email
         name:
         - name
         preferredUsername:
