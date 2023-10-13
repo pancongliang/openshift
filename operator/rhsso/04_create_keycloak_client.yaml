@@ -8,9 +8,9 @@ metadata:
 spec:
   client:
     clientId: openshift-demo
-#    secret: client-secret
+#   secret: client-secret
     clientAuthenticatorType: client-secret
-#    publicClient: false
+    publicClient: false
     protocol: openid-connect
     standardFlowEnabled: true
     implicitFlowEnabled: false
@@ -18,7 +18,7 @@ spec:
     redirectUris:
       - https://${OAUTH_HOST}/*
       - https://${CONSOLE_HOST}/*
-#   webOrigins: {}
+    webOrigins: {}
     defaultClientScopes:
       - acr
       - email
