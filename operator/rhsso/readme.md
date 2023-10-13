@@ -16,7 +16,7 @@
 * Create pv with size 1GB or deploy [NFS Storage Class](https://github.com/pancongliang/openshift/edit/main/storage/nfs_storageclass/readme.md),The following is an example of nfs pv
   
   ```
-  export NFS_PATH="/nfs/pv002"
+  export NFS_PATH="/nfs/pv005"
   export NFS_IP="10.74.251.171"
   
   curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/02_create_keycloak_pv.yaml | envsubst | oc apply -f -
@@ -24,25 +24,29 @@
   
 * Create Keycloak
   ```
-  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/02_create_keycloak.yaml
+  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/02_create_keycloak.yaml | envsubst | oc apply -f -
   ```
 
 ### Configuring the Red Hat Single Sign-On Operator
 
 * Create realm custom resource
-
-* Create client custom resource
-
-* Create user custom resource
-
-* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/edit/main/storage/nfs_storageclass/readme.md)
-
-* Create ClusterLogging instance
   ```
-  export STORAGECLASS_NAME="managed-nfs-storage"
+  export USER_NAME=rhadmin
+  export PASSWORD=redhat
   
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/elasticsearch/02_deploy_instance.yaml | envsubst | oc apply -f -
-
-  oc get po -n openshift-logging
+  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/03_create_keycloak_realm.yaml | envsubst | oc apply -f -
   ```
+* Create client custom resource
+  ```
+  export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
+  export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
+  
+  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/04_create_keycloak_client.yaml | envsubst | oc apply -f -
+  ```
+* Create RH-SSO user
+  ```
+  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/05_create_keycloak_user.yaml | envsubst | oc apply -f -
+  ```
+
+
 
