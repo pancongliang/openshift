@@ -18,7 +18,7 @@ spec:
   persistentVolumeReclaimPolicy: Delete
   storageClassName: local-storage
   local:
-    path: /mnt/minio-data
+    path: /mnt/${PV_NAME}
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -32,7 +32,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: ${PVC_NAME}
-  namespace: ${NAMESPACE}
+  namespace: ${PVC_TARGET_NAMESPACE}
 spec:
   accessModes:
   - ReadWriteOnce
