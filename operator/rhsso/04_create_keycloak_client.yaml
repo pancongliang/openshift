@@ -6,19 +6,19 @@ metadata:
   labels:
     app: sso
 spec:
-  realmSelector:
-     matchLabels:
-      app: sso
   client:
     clientId: openshift-demo
-    secret: client-secret
+#    secret: client-secret
 #    clientAuthenticatorType: client-secret
+    publicClient: fals
     protocol: openid-connect
     standardFlowEnabled: true
+    implicitFlowEnabled: false
     directAccessGrantsEnabled: true
     redirectUris:
       - https://${OAUTH_HOST}/*
       - https://${CONSOLE_HOST}/*
+    webOrigins: {}
     defaultClientScopes:
       - acr
       - email
@@ -30,3 +30,7 @@ spec:
       - microprofile-jwt
       - offline_access
       - phone
+  realmSelector:
+     matchLabels:
+      app: sso
+  scopeMappings: {}
