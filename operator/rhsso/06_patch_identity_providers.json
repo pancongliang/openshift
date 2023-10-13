@@ -11,7 +11,6 @@ spec:
     name: htpasswd-user
     type: HTPasswd
   - mappingMethod: claim
-    name: openid
     openID:
       ca:
         name: openid-route-ca
@@ -25,5 +24,6 @@ spec:
       clientID: openshift-demo
       clientSecret:
         name: openid-client-secret
-      issuer: https://keycloak-rhsso.apps.ocp4.example.com/auth/realms/OpenShift
+      issuer: https://${KEYCLOAK_HOST}/auth/realms/OpenShift
     type: OpenID
+    name: openid
