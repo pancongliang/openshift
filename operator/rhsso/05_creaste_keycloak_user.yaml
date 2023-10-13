@@ -1,0 +1,17 @@
+apiVersion: keycloak.org/v1alpha1
+kind: KeycloakUser
+metadata:
+  name: example-user
+spec:
+  user:
+    username: ${USER_NAME}
+    credentials:
+      - temporary: false
+      - type: "password"
+        value: "${PASSWORD}"
+    enabled: true
+    realmRoles:
+      - "default-roles-openshift"
+  realmSelector:
+    matchLabels:
+      app: sso
