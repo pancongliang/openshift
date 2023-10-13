@@ -1,24 +1,29 @@
-  {
-    "op": "add",
-    "path": "/spec/identityProviders/-",
-    "value": {
-      "mappingMethod": "claim",
-      "name": "openid",
-      "openID": {
-        "ca": {
-          "name": "openid-route-ca"
-        },
-        "claims": {
-          "email": ["email"],
-          "name": ["name"],
-          "preferredUsername": ["preferred_username"]
-        },
-        "clientID": "openshift-demo",
-        "clientSecret": {
-          "name": "keycloak-client-secret-example-client"
-        },
-        "issuer": "https://${KEYCLOAK_HOST}/auth/realms/OpenShift"
-      },
-      "type": "OpenID"
-    }
-  }
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - htpasswd:
+      fileData:
+        name: htpasswd-secret
+    mappingMethod: claim
+    name: htpasswd-user
+    type: HTPasswd
+  - mappingMethod: claim
+    name: openid
+    openID:
+      ca:
+        name: openid-route-ca
+      claims:
+        email:
+        - email
+        name:
+        - name
+        preferredUsername:
+        - preferred_username
+      clientID: openshift-demo
+      clientSecret:
+        name: openid-client-secret
+      issuer: https://keycloak-rhsso.apps.ocp4.example.com/auth/realms/OpenShift
+    type: OpenID
