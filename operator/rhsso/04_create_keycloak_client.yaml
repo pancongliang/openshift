@@ -17,8 +17,8 @@ spec:
     standardFlowEnabled: true
     directAccessGrantsEnabled: true
     redirectUris:
-      - https://oauth-openshift.apps.ocp4.example.com/*
-      - https://console-openshift-console.apps.ocp4.example.com/*
+      - https://${OAUTH_HOST}/*
+      - https://${CONSOLE_HOST}/*
     defaultClientScopes:
       - acr
       - email
