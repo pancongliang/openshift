@@ -9,6 +9,7 @@ apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: rhsso-operator-group
+  namespace: ${NAMESPACE}
 spec:
   targetNamespaces:
   -  ${NAMESPACE} # change this to the namespace you will use for RH-SSO
@@ -17,6 +18,7 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: rhsso-operator
+  namespace: ${NAMESPACE}
 spec:
   channel: ${CHANNEL}
   installPlanApproval: Manual
