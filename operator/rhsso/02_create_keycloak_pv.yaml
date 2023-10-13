@@ -12,7 +12,7 @@ metadata:
   name: ${PV_NAME}
 spec:
   capacity:
-    storage: ${STORAGE_SIZE}
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete
