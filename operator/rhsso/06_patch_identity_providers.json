@@ -10,6 +10,7 @@ spec:
     mappingMethod: claim
     name: htpasswd-user
     type: HTPasswd
+
   - mappingMethod: claim
     openID:
       ca:
