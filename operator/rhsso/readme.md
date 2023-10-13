@@ -6,7 +6,6 @@
   export CHANNEL="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"  
   curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/01_deploy_operator.yaml | envsubst | oc apply -f -
-
   oc patch installplan $(oc get ip -n ${NAMESPACE} -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n ${NAMESPACE} --type merge --patch '{"spec":{"approved":true}}'
   ```
 
@@ -56,7 +55,6 @@
   ```
   export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
   export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
-  
   curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/04_create_keycloak_client.yaml | envsubst | oc apply -f -
   ```
   
@@ -67,7 +65,6 @@
   ```
   export USER_NAME=rhadmin
   export PASSWORD=redhat
-  
   curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/05_create_keycloak_user.yaml | envsubst | oc apply -f -
   ```
 
@@ -76,7 +73,6 @@
 * Create client authenticator secret and configmap containing router-ca certificate
   ```
   oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config
-
   oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
   oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config
   ```
