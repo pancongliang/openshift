@@ -2,6 +2,7 @@ apiVersion: keycloak.org/v1alpha1
 kind: KeycloakUser
 metadata:
   name: example-user
+  namespace: ${NAMESPACE}
 spec:
   user:
     username: ${USER_NAME}
