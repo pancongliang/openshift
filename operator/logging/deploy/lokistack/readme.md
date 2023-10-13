@@ -3,7 +3,7 @@
 * Install the Operator using the default namespace.
   ```
   export CHANNEL="stable-5.6"
-  export CATALOG_SOURCE_NAME="redhat-operator-index"
+  export CATALOG_SOURCE_NAME="redhat-operators"
   
   curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/01_deploy_operator.yaml | envsubst | oc apply -f -
   
