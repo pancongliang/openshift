@@ -23,7 +23,6 @@ spec:
   storageClassName: local-storage
   local:
     path: /mnt/minio-data
-    
   nodeAffinity:
     required:
       nodeSelectorTerms:
