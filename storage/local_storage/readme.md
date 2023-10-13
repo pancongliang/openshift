@@ -1,6 +1,6 @@
 ### Deploy Local Storage
 
-* Set environment variables.  
+* Set environment variables
 
   ```
   export PVC_TARGET_NAMESPACE="test"
