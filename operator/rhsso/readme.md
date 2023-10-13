@@ -100,3 +100,10 @@
   EOF
   )"
   ```
+
+* Wait for the pod restart to complete
+  ```
+  oc get po -n openshift-authentication
+  ```
+* Test whether login and logout are normal
+  
