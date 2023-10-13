@@ -56,7 +56,7 @@ export NET_IF_NAME="'Wired connection 1'"
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="root"
 export REGISTRY_PW="password"                         # 8 characters or more
-export REGISTRY_INSTALL_DIR="/opt"
+export REGISTRY_INSTALL_DIR="/opt/quay-install"
 
 # NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"
