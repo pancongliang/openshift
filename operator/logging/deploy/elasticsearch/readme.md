@@ -3,7 +3,7 @@
 * Install the Operator using the default namespace.
   ```
   export CHANNEL="stable-5.6"
-  export CATALOG_SOURCE_NAME="redhat-operator-index"   # Default is "redhat-operators"
+  export CATALOG_SOURCE_NAME="redhat-operators"
   
   curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/elasticsearch/01_deploy_operator.yaml | envsubst | oc apply -f -
 
