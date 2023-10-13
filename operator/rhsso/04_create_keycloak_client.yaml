@@ -1,0 +1,31 @@
+apiVersion: keycloak.org/v1alpha1
+kind: KeycloakClient
+metadata:
+  name: example-client
+  labels:
+    app: sso
+spec:
+  realmSelector:
+     matchLabels:
+      app: sso
+  client:
+    clientId: openshift-demo
+    secret: client-secret
+    clientAuthenticatorType: client-secret
+    protocol: openid-connect
+    standardFlowEnabled: true
+    directAccessGrantsEnabled: true
+    redirectUris:
+      - https://oauth-openshift.apps.ocp4.example.com/*
+      - https://console-openshift-console.apps.ocp4.example.com/*
+    defaultClientScopes:
+      - acr
+      - email
+      - profile
+      - roles
+      - web-origins
+    optionalClientScopes:
+      - address
+      - microprofile-jwt
+      - offline_access
+      - phone
