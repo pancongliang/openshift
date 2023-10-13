@@ -1,28 +1,24 @@
-{
-  "identityProviders": [
-    {
-      "op": "add",
-      "path": "/spec/identityProviders/-",
-      "value": {
-        "mappingMethod": "claim",
-        "name": "openid",
-        "openID": {
-          "ca": {
-            "name": "openid-route-ca"
-          },
-          "claims": {
-            "email": ["email"],
-            "name": ["name"],
-            "preferredUsername": ["preferred_username"]
-          },
-          "clientID": "openshift-demo",
-          "clientSecret": {
-            "name": "keycloak-client-secret-example-client"
-          },
-          "issuer": "https://${KEYCLOAK_HOST}/auth/realms/OpenShift"
+  {
+    "op": "add",
+    "path": "/spec/identityProviders/-",
+    "value": {
+      "mappingMethod": "claim",
+      "name": "openid",
+      "openID": {
+        "ca": {
+          "name": "openid-route-ca"
         },
-        "type": "OpenID"
-      }
+        "claims": {
+          "email": ["email"],
+          "name": ["name"],
+          "preferredUsername": ["preferred_username"]
+        },
+        "clientID": "openshift-demo",
+        "clientSecret": {
+          "name": "keycloak-client-secret-example-client"
+        },
+        "issuer": "https://${KEYCLOAK_HOST}/auth/realms/OpenShift"
+      },
+      "type": "OpenID"
     }
-  ]
-}
+  }
