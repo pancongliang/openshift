@@ -56,7 +56,7 @@ export NET_IF_NAME="'Wired connection 1'"
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="root"
 export REGISTRY_PW="password"                         # 8 characters or more
-export REGISTRY_PACKAGE_TEMP_PATH="~/mirror-registry-package"
+export REGISTRY_INSTALL_DIR="/opt"
 
 # NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"
@@ -133,7 +133,7 @@ check_all_variables() {
     check_variable "REGISTRY_HOSTNAME"
     check_variable "REGISTRY_ID"
     check_variable "REGISTRY_PW"
-    check_variable "REGISTRY_PACKAGE_TEMP_PATH"
+    check_variable "REGISTRY_INSTALL_DIR"
     check_variable "NFS_PATH"
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "DNS_SERVER_IP"
