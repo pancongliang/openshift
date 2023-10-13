@@ -2,7 +2,6 @@ apiVersion: keycloak.org/v1alpha1
 kind: KeycloakClient
 metadata:
   name: example-client
-  namespace: ${NAMESPACE}
   labels:
     app: sso
 spec:
