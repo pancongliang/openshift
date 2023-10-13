@@ -14,7 +14,7 @@ metadata:
   namespace: ${NAMESPACE}
 spec:
   targetNamespaces:
-  -  ${NAMESPACE} # change this to the namespace you will use for RH-SSO
+  - ${NAMESPACE} # change this to the namespace you will use for RH-SSO
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
