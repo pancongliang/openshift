@@ -9,7 +9,7 @@ spec:
   client:
     clientId: openshift-demo
 #    secret: client-secret
-#    clientAuthenticatorType: client-secret
+    clientAuthenticatorType: client-secret
 #    publicClient: false
     protocol: openid-connect
     standardFlowEnabled: true
