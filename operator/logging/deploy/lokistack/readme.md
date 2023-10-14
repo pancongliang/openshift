@@ -5,7 +5,7 @@
   export CHANNEL="stable-5.6"
   export CATALOG_SOURCE_NAME="redhat-operators"
   
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/01_deploy_operator.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/01_deploy_operator.yaml | envsubst | oc apply -f -
   
   export INSTALLPLAN_NAME_1=$(oc -n openshift-operators-redhat get installplans -o custom-columns=:metadata.name --no-headers)
   export INSTALLPLAN_NAME_2=$(oc -n openshift-logging get installplans -o custom-columns=:metadata.name --no-headers)
@@ -29,14 +29,14 @@
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="loki-bucket-minio"
   
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_minio_credentials.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_minio_credentials.yaml | envsubst | oc apply -f -
   ```
   
 * Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
   ```
   export STORAGECLASS_NAME="managed-nfs-storage"
   
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/03_deploy_loki_stack_minio.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/03_deploy_loki_stack_minio.yaml | envsubst | oc apply -f -
 
   oc get po -n openshift-logging 
   ```
@@ -54,7 +54,7 @@
   export GENERATEBUCKETNAME="${OBC_NAME}"
   export OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
   
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/2_create_obc.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/2_create_obc.yaml | envsubst | oc apply -f -
   ```
   
 * Create Object Storage secret credentials
@@ -80,7 +80,7 @@
   
 * Create LokiStack ClusterLogging ClusterLogForwarder resource
   ```
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/3_deploy_loki_stack_odf.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/3_deploy_loki_stack_odf.yaml | envsubst | oc apply -f -
 
   oc get po -n openshift-logging 
   ```
