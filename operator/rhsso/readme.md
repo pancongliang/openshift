@@ -83,6 +83,11 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/06_configure_identity_provider.yaml | envsubst | oc apply -f -
   ```
 
+* Wait for the pod restart to complete
+  ```
+  oc get po -n openshift-authentication
+  ```
+
 ### Configure logout Redirect in openshift
 * Specify the URL of the page to load when a user logs out of the web console.
   If do not specify a value, the user returns to the login page for the web console.
@@ -101,9 +106,5 @@
   )"
   ```
 
-* Wait for the pod restart to complete
-  ```
-  oc get po -n openshift-authentication
-  ```
 * Test whether login and logout are normal
   
