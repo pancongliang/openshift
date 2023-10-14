@@ -29,7 +29,7 @@
 
 #### Options C: Deploying Minio with NFS StorageClass as the Backend Storage
 
-* Deploy NFS StorageClass, if storage class or pv has been deployed,only need to set the variables.
+* Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md), if storage class or pv has been deployed,only need to set the variables.
 
   Set variables
   ```
