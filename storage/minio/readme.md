@@ -32,8 +32,7 @@
 * Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md), if storage class has been deployed,only need to set the variables.
 
 * Deploy Minio Object Storage
-  
-  If there is already a storage class or pv, can directly modify the pvc content in the following yaml file.
+
   ```
   export NAMESPACE="minio"
   export STORAGE_CLASS_NAME="managed-nfs-storage"
