@@ -16,7 +16,7 @@ metadata:
   name: minio-pv
 spec:
   capacity:
-    storage: 100Gi
+    storage: ${STORAGE_SIZE}
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete
@@ -43,7 +43,7 @@ spec:
   volumeMode: Filesystem
   resources:
     requests:
-      storage: 100Gi
+      storage: ${STORAGE_SIZE}
   storageClassName: local-storage
 ---
 apiVersion: apps/v1
