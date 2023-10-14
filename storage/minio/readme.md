@@ -19,6 +19,7 @@
   ```
   export NAMESPACE="minio"
   export PV_NODE_NAME="worker01.ocp4.example.com"
+  export STORAGE_SIZE="50Gi"
 
   ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/minio-data
 
