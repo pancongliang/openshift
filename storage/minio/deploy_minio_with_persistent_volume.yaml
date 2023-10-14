@@ -40,12 +40,12 @@ metadata:
   name: minio-pvc
   namespace: ${NAMESPACE}
 spec:
-  storageClassName: managed-nfs-storage
+  storageClassName: ${STORAGE_CLASS_NAME}
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 50Gi
+      storage: ${STORAGE_SIZE}
 ---
 apiVersion: v1
 kind: Service
