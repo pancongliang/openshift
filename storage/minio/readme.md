@@ -29,31 +29,15 @@
 
 #### Options C: Deploying Minio with NFS StorageClass as the Backend Storage
 
-* Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md), if storage class or pv has been deployed,only need to set the variables.
-
-  Set variables
-  ```
-  export NAMESPACE="nfs-client-provisioner"
-  export NFS_SERVER_IP="10.74.251.171"
-  export NFS_DIR="/nfs"
-  ```
-  Install and configure NFS server, skip if already installed
-  ```
-  wget https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/01_install_nfs_package.sh
-
-  source 01_install_nfs_package.sh
-  ```
-  Deploy NFS StorageClass
-  ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.yaml | envsubst | oc apply -f -
-  ```
+* Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md), if storage class has been deployed,only need to set the variables.
 
 * Deploy Minio Object Storage
   
   If there is already a storage class or pv, can directly modify the pvc content in the following yaml file.
   ```
   export NAMESPACE="minio"
-
+  export STORAGE_CLASS_NAME="managed-nfs-storage"
+  export STORAGE_SIZE="50Gi"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_persistent_volume.yaml | envsubst | oc apply -f -
 
   oc get pod,route,pvc -n ${NAMESPACE}
