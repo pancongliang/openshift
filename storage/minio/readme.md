@@ -7,7 +7,7 @@
   ```
   export NAMESPACE="minio"
   
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_ephemeral_volume.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_ephemeral_volume.yaml | envsubst | oc apply -f -
 
   oc get pod,route -n ${NAMESPACE}
   ```
@@ -22,7 +22,7 @@
 
   ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/minio-data
 
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_local_storage.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_local_storage.yaml | envsubst | oc apply -f -
 
   oc get pod,route,pvc -n ${NAMESPACE}
   ```
@@ -45,7 +45,7 @@
   ```
   Deploy NFS StorageClass
   ```
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs_storageclass/02_deploy_nfs_storageclass.yaml | envsubst | oc apply -f -
   ```
 
 * Deploy Minio Object Storage
@@ -54,7 +54,7 @@
   ```
   export NAMESPACE="minio"
 
-  curl https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_persistent_volume.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_persistent_volume.yaml | envsubst | oc apply -f -
 
   oc get pod,route,pvc -n ${NAMESPACE}
   ```
