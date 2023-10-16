@@ -11,12 +11,12 @@
 
 ### Create Keycloak instance and view the console URL and username/password information
 
-* Create pv with size 1GB or deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md),The following is an example of nfs pv
+* Create pv with size 1GB or deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md),The following is an example of nfs pv
   
   ```
   export NFS_PATH="/nfs/pv005"
   export NFS_IP="10.74.251.171"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/02-create-keycloak_pv.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/02-create-keycloak-pv.yaml | envsubst | oc apply -f -
   ```
   
 * Create Keycloak
