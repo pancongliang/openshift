@@ -61,7 +61,7 @@
   
 * Generate setup script file
   ```
-  source 06-generate-setup-script_file.sh
+  source 06-generate-setup-script-file.sh
 
   ls ${IGNITION_PATH}/set*
   set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh
