@@ -46,8 +46,7 @@
   export NAMESPACE="openshift-logging"
   export OBC_NAME="loki-bucket-odf"
   export GENERATEBUCKETNAME="${OBC_NAME}"
-  export OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
-  
+  export OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/2_create_obc.yaml | envsubst | oc apply -f -
   ```
   
