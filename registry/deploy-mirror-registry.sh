@@ -63,20 +63,22 @@ run_command() {
 
 # Create installation directory
 mkdir -p ${REGISTRY_INSTALL_DIR}
-run_command "[create installation directory]"
+run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
+
+mkdir -p /tmp/mirror-registry
+run_command "[create /tmp/registry-package directory]"
 sleep 3
 
 # Download mirror-registry
-wget -P ${REGISTRY_INSTALL_DIR} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
+wget -P /tmp/registry-package https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR}/ &> /dev/null
-run_command "[extract the downloaded mirror-registry package]"
+tar xvf /tmp/registry-package/mirror-registry.tar.gz -C /tmp/registry-package/ &> /dev/null
+run_command "[extract the mirror-registry package]"
 
 # Install mirror-registry
-cd ${REGISTRY_INSTALL_DIR}
-${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
+/tmp/registry-package/mirror-registry install -v \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
      --quayRoot ${REGISTRY_INSTALL_DIR} \
      --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
@@ -99,6 +101,10 @@ run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-tru
 # Trust the rootCA certificate
 update-ca-trust
 run_command "[trust the rootCA certificate]"
+
+# Move registry-package
+mv /tmp/registry-package ${REGISTRY_INSTALL_DIR}/
+run_command "[Move registry package to ${REGISTRY_INSTALL_DIR}]"
 
 # loggin registry
 podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
