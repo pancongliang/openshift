@@ -4,7 +4,6 @@
   ```
   export CHANNEL_NAME="stable-3.9"
   export CATALOG_SOURCE_NAME="redhat-operators"
-  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/quay/01_deploy_operator.yaml | envsubst | oc apply -f -
 
   oc patch installplan $(oc get ip -n openshift-operators  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
