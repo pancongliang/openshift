@@ -63,29 +63,30 @@ run_command() {
 
 # Create installation directory
 mkdir -p ${REGISTRY_INSTALL_DIR}
-run_command "[create installation directory]"
-sleep 3
+run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
+
+mkdir -p /tmp/mirror-registry
+run_command "[create /tmp/registry-package directory]"
+sleep 1
 
 # Download mirror-registry
-wget -P ${REGISTRY_INSTALL_DIR} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
+wget -P /tmp/registry-package https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR}/ &> /dev/null
-run_command "[extract the downloaded mirror-registry package]"
+tar xvf /tmp/registry-package/mirror-registry.tar.gz -C /tmp/registry-package/ &> /dev/null
+run_command "[extract the mirror-registry package]"
 
 # Install mirror-registry
-cd ${REGISTRY_INSTALL_DIR}
-${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
+/tmp/registry-package/mirror-registry install -v \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} \
      --quayRoot ${REGISTRY_INSTALL_DIR} \
      --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
      --pgStorage ${REGISTRY_INSTALL_DIR}/pg-storage \
-     --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} &>/dev/null
+     --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} 
 run_command "[installing mirror-registry...]"
 
 # Wait for the installation to complete
-cd - &>/dev/null
 sleep 6
 
 # Get the status and number of containers for quay-pod
@@ -99,6 +100,17 @@ run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-tru
 # Trust the rootCA certificate
 update-ca-trust
 run_command "[trust the rootCA certificate]"
+
+# Move registry-package
+mv /tmp/registry-package ${REGISTRY_INSTALL_DIR}/
+run_command "[Move registry package to ${REGISTRY_INSTALL_DIR}]"
+
+# Delete package
+cd ${REGISTRY_INSTALL_DIR}/
+cd ..
+rm -rf pause.tar postgres.tar quay.tar redis.tar
+run_command "[delete package: pause.tar postgres.tar quay.tar redis.tar]"
+cd ~
 
 # loggin registry
 podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 &>/dev/null
