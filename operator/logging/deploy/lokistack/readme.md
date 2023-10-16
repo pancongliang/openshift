@@ -4,7 +4,6 @@
   ```
   export CHANNEL_NAME="stable-5.6"
   export CATALOG_SOURCE_NAME="redhat-operators"
-  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/01_deploy_operator.yaml | envsubst | oc apply -f -
   
   oc patch installplan $(oc get ip -n openshift-operators-redhat  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
@@ -25,14 +24,12 @@
   export ACCESS_KEY_ID="minioadmin"
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="loki-bucket"
-  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_minio_credentials.yaml | envsubst | oc apply -f -
   ```
   
 * Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
   ```
   export STORAGECLASS_NAME="managed-nfs-storage"
-  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/03_deploy_loki_stack_minio.yaml | envsubst | oc apply -f -
 
   oc get po -n openshift-logging 
