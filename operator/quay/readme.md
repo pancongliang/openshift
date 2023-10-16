@@ -22,7 +22,7 @@
   export MINIO_ADDR="http://minio-minio.apps.ocp4.example.com"
   export ACCESS_KEY_ID="minioadmin"
   export ACCESS_KEY_SECRET="minioadmin"
-  export BUCKET_NAME="quat-bucket"
+  export BUCKET_NAME="quay-bucket"
 
   cat > config.yaml << EOF
   DISTRIBUTED_STORAGE_CONFIG: 
