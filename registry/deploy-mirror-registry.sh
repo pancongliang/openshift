@@ -83,7 +83,7 @@ run_command "[extract the mirror-registry package]"
      --quayRoot ${REGISTRY_INSTALL_DIR} \
      --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
      --pgStorage ${REGISTRY_INSTALL_DIR}/pg-storage \
-     --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} &>/dev/null
+     --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} 
 run_command "[installing mirror-registry...]"
 
 # Wait for the installation to complete
