@@ -14,7 +14,7 @@
   ```
   ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/${PV_NAME}
   
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local_storage/01_deploy_local_storage.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-storage/deploy-local-storage.yaml | envsubst | oc apply -f -
 
   oc get sc
   oc get pvc -n ${NAMESPACE}
