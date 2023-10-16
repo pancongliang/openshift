@@ -9,13 +9,11 @@
   oc patch installplan $(oc get ip -n openshift-operators -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
   ```
 
-### Create Object Storage secret
+### Deploy Minio Object Storage
 
-* Create quay namespace.
-  ```
-  export NAMESPACE=quay-enterprise
-  oc new-project ${NAMESPACE}
-  ```
+* Deploy [Minio Object Storage](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md)
+
+### Create Object Storage secret
 
 * Create a configuration file that contains access to the MinIO Bucket.
   ```
@@ -38,6 +36,12 @@
   DISTRIBUTED_STORAGE_PREFERENCE: 
       - default
   EOF
+  ```
+  
+* Create quay namespace.
+  ```
+  export NAMESPACE=quay-enterprise
+  oc new-project ${NAMESPACE}
   ```
 
 * Create Secret based on configuration file.
