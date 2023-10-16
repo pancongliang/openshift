@@ -67,7 +67,6 @@ run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
 
 mkdir -p /tmp/mirror-registry
 run_command "[create /tmp/registry-package directory]"
-sleep 1
 
 # Download mirror-registry
 wget -P /tmp/registry-package https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
@@ -85,9 +84,6 @@ run_command "[extract the mirror-registry package]"
      --pgStorage ${REGISTRY_INSTALL_DIR}/pg-storage \
      --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} 
 run_command "[installing mirror-registry...]"
-
-# Wait for the installation to complete
-sleep 6
 
 # Get the status and number of containers for quay-pod
 podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
