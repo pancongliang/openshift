@@ -13,7 +13,7 @@
 
 ### Deploy ClusterLogging instance
 
-* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/edit/main/storage/nfs_storageclass/readme.md)
+* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md)
 
 * Create ClusterLogging instance
   ```
