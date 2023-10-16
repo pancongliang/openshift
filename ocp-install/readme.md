@@ -19,59 +19,59 @@
 
 * Download script file
   ```
-  wget -O - https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/00_download_scripts.sh | sh
+  wget -O - https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/00-download-scripts.sh | sh
   ```
 
 * Security settings and subscriptions
   ```
-  source 00_security.sh
-  source 00_subscription.sh
+  source 00-security.sh
+  source 00-subscription.sh
 
   reboot
   ```
 
 * Execute after modifying the necessary parameters
   ```
-  vim 01_ocp_env_parameter.sh
+  vim 01-ocp-env_parameter.sh
   
-  source 01_ocp_env_parameter.sh
+  source 01-ocp-env-parameter.sh
   ```
 
 * Install rpm and configure httpd/nfs/dns/haproxy
   ```
-  source 02_install_infrastructure.sh
+  source 02-install-infrastructure.sh
   ```
 
 * Install mirror-registry
   ```
-  source 03_install_mirror_registry.sh
+  source 03-install-mirror-registry.sh
   ```
 
 * Download ocp image
   ```
-  source 04_mirror_ocp_image.sh
+  source 04-mirror-ocp-image.sh
   ```
 
 * Generate ignition file
   ```
-  source 05_generate_ignition.sh
+  source 05-generate-ignition.sh
   ```
 
 * Generate setup script file
   ```
-  source 06_generate_setup_script_file.sh
+  source 06-generate-setup-script_file.sh
   ```
 
 ### Generate igniyion file and install bootstrap/master/worker node through script
 
 * Generate ignition file
   ```
-  source 05_generate_ignition.sh
+  source 05-generate-ignition.sh
   ```
   
 * Generate setup script file
   ```
-  source 06_generate_setup_script_file.sh
+  source 06-generate-setup-script_file.sh
 
   ls ${IGNITION_PATH}/set*
   set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh
@@ -128,5 +128,5 @@
 * Configure image-registry-operator data persistence and registry trustedCA through the following script.
 
   ```
-  source 07_configure_after_installation.sh
+  source 07-configure-after-installation.sh
   ```
