@@ -24,7 +24,7 @@
   export MINIO_ADDR="http://minio-minio.apps.ocp4.example.com"
   export ACCESS_KEY_ID="minioadmin"
   export ACCESS_KEY_SECRET="minioadmin"
-  export BUCKET_NAME="loki-bucket-minio"
+  export BUCKET_NAME="loki-bucket"
   
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/deploy/lokistack/02_minio_credentials.yaml | envsubst | oc apply -f -
   ```
