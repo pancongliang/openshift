@@ -5,23 +5,23 @@
   export NAMESPACE=rhsso
   export CHANNEL="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"  
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/01_deploy_operator.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/01-deploy-operator.yaml | envsubst | oc apply -f -
   oc patch installplan $(oc get ip -n ${NAMESPACE} -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n ${NAMESPACE} --type merge --patch '{"spec":{"approved":true}}'
   ```
 
 ### Create Keycloak instance and view the console URL and username/password information
 
-* Create pv with size 1GB or deploy [NFS Storage Class](https://github.com/pancongliang/openshift/edit/main/storage/nfs_storageclass/readme.md),The following is an example of nfs pv
+* Create pv with size 1GB or deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md),The following is an example of nfs pv
   
   ```
   export NFS_PATH="/nfs/pv005"
   export NFS_IP="10.74.251.171"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/02_create_keycloak_pv.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/02-create-keycloak_pv.yaml | envsubst | oc apply -f -
   ```
   
 * Create Keycloak
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/02_create_keycloak.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/02-create-keycloak.yaml | envsubst | oc apply -f -
   oc get po -n ${NAMESPACE}
   ```
   
@@ -45,7 +45,7 @@
     > Can only create or delete realms by creating or deleting the YAML file, and changes appear in the Red Hat Single Sign-On admin console.
     > However changes to the admin console are not reflected back and updates of the CR after the realm is created are not supported.
   ```  
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/03_create_keycloak_realm.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/03-create-keycloak-realm.yaml | envsubst | oc apply -f -
   ```
 
 * Create client custom resource
@@ -55,7 +55,7 @@
   ```
   export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
   export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/04_create_keycloak_client.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/04-create-keycloak-client.yaml | envsubst | oc apply -f -
   ```
   
 * Create RH-SSO user, If need to create multiple users, repeat this step after changing the variable value
@@ -65,7 +65,7 @@
   ```
   export USER_NAME=rhadmin
   export PASSWORD=redhat
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/05_create_keycloak_user.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/05-create-keycloak-user.yaml | envsubst | oc apply -f -
   ```
 
 ### Create and configure Identity Providers for OpenShift
@@ -80,7 +80,7 @@
 * Configure Identity Providers
   ```
   export KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/06_configure_identity_provider.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/rhsso/06-configure-identity-provider.yaml | envsubst | oc apply -f -
   ```
 
 * Wait for the pod restart to complete
