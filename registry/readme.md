@@ -56,6 +56,7 @@
     >       -----BEGIN CERTIFICATE-----
     >       ···                               # Replace with new regitry ca certificate
     >       -----END CERTIFICATE-----
+    > 
     >   oc patch proxy/cluster --type=merge --patch='{"spec":{"trustedCA":{"name":"user-ca-bundle"}}}'
     > 
     >   ssh core@<node-name> sudo cat /etc/pki/ca-trust/source/anchors/openshift-config-user-ca-bundle.crt 
