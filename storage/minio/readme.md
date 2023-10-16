@@ -68,9 +68,9 @@
   
   mc alias set my-minio ${MINIO_ADDR} minioadmin minioadmin
   ``` 
-  Create a bucket named "loki-bucket-minio" in the "my-minio" alias
+  Create a bucket named "loki-bucket" in the "my-minio" alias
   ```
-  BUCKET_NAME="loki-bucket-minio"
+  BUCKET_NAME="loki-bucket"
   
   mc mb my-minio/${BUCKET_NAME}
   ```
@@ -83,5 +83,5 @@
   mc ls my-minio
 
   # Delete  bucket
-  mc rb --force my-minio/loki-bucket-minio
+  mc rb --force my-minio/loki-bucket
   ```  
