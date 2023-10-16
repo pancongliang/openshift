@@ -9,7 +9,7 @@
   oc patch installplan $(oc get ip -n openshift-operators  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
   ```
 
-### Create Object Storage secret credentials
+### Create Object Storage secret and Quay Registry
 
 * Create quay namespace.
   ```
@@ -45,8 +45,7 @@
   oc create secret generic --from-file config.yaml=./config.yaml config-bundle-secret -n ${NAMESPACE}
   ```
   
-### Create Quay Registry
-  
+* Create Quay Registry 
   ```
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/quay/02_create_quay_registry.yaml | envsubst | oc apply -f -
   ```
