@@ -1,7 +1,7 @@
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
-  name: image-registry
+  name: example-registry
   namespace: ${NAMESPACE}
 spec:
   configBundleSecret: config-bundle-secret
