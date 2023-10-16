@@ -19,7 +19,7 @@
 
 * Download script file
   ```
-  wget -O - https://raw.githubusercontent.com/pancongliang/openshift/main/ocp_install/00-download-scripts.sh | sh
+  wget -O - https://raw.githubusercontent.com/pancongliang/openshift/main/ocp-install/00-download-scripts.sh | sh
   ```
 
 * Security settings and subscriptions
@@ -32,7 +32,7 @@
 
 * Execute after modifying the necessary parameters
   ```
-  vim 01-ocp-env_parameter.sh
+  vim 01-ocp-env-parameter.sh
   
   source 01-ocp-env-parameter.sh
   ```
