@@ -6,7 +6,6 @@
 
   ```
   export NAMESPACE="minio"
-  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-ephemeral-volume.yaml | envsubst | oc apply -f -
   
   oc get pod,route -n ${NAMESPACE}
