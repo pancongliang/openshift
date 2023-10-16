@@ -2,7 +2,7 @@
 
 * Deploy the latest version of Mirror Registry
   ```
-  export REGISTRY_DOMAIN_NAME="mirror.registry"
+  export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
   export REGISTRY_ID="root"
   export REGISTRY_PW="password"                         # 8 characters or more
   export REGISTRY_INSTALL_DIR="/opt/quay-install"
