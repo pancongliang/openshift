@@ -1,4 +1,4 @@
-### Install Red Hat Openshift Logging and Loki Operator in the console
+### Install Red Hat Openshift Logging and Loki Operator
 
 * Install the Operator using the default namespace.
   ```
