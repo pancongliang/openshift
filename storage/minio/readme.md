@@ -7,8 +7,8 @@
   ```
   export NAMESPACE="minio"
   
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_ephemeral_volume.yaml | envsubst | oc apply -f -
-
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-ephemeral-volume.yaml | envsubst | oc apply -f -
+  
   oc get pod,route -n ${NAMESPACE}
   ```
 
@@ -22,14 +22,14 @@
   export STORAGE_SIZE="50Gi"
   ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/minio-data
 
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_local_storage.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-local-storage.yaml | envsubst | oc apply -f -
 
   oc get pod,route,pvc -n ${NAMESPACE}
   ```
 
 #### Options C: Deploying Minio with NFS StorageClass as the Backend Storage
 
-* Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs_storageclass/readme.md), if storage class has been deployed,only need to set the variables.
+* Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md), if storage class has been deployed,only need to set the variables.
 
 * Deploy Minio Object Storage
 
@@ -37,7 +37,7 @@
   export NAMESPACE="minio"
   export STORAGE_CLASS_NAME="managed-nfs-storage"
   export STORAGE_SIZE="50Gi"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy_minio_with_persistent_volume.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f -
 
   oc get pod,route,pvc -n ${NAMESPACE}
   ```
