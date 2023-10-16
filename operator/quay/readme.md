@@ -9,7 +9,7 @@
   oc patch installplan $(oc get ip -n openshift-operators  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
   ```
 
-### Create Object Storage secret and Quay Registry
+### Create Object Storage secret
 
 * Create quay namespace.
   ```
@@ -44,8 +44,32 @@
   ```
   oc create secret generic --from-file config.yaml=./config.yaml config-bundle-secret -n ${NAMESPACE}
   ```
-  
-* Create Quay Registry 
+
+### Create Quay Registry 
+
+* Create quay registry 
   ```
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/quay/02_create_quay_registry.yaml | envsubst | oc apply -f -
+  ```
+
+* View deployed resources
+  ```
+  oc get po -n ${NAMESPACE}
+  ```
+
+### Access the quay console and create a user
+
+* View quay route
+  ```
+  QUAY_HOST=$(oc get route example-registry-quay -n redhat-quay -o jsonpath='{.spec.host}')
+  ```
+* Enter the address in the "QUAY_HOST" variable into browser
+
+* Click `Create Account` to create `quayadmin` user. 
+  
+* Push the image to quay registry
+  ```
+  podman login -u quayadmin -p password ${QUAY_HOST}
+  podman tag quay.io/redhattraining/hello-world-nginx:v1.0 ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0
+  pomdan push ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0 –tls-verify=false
   ```
