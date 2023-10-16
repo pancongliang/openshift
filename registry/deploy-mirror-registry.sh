@@ -67,7 +67,7 @@ run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
 
 mkdir -p /tmp/mirror-registry
 run_command "[create /tmp/registry-package directory]"
-sleep 3
+sleep 1
 
 # Download mirror-registry
 wget -P /tmp/registry-package https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
