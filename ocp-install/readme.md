@@ -52,16 +52,6 @@
   source 04-mirror-ocp-image.sh
   ```
 
-* Generate ignition file
-  ```
-  source 05-generate-ignition.sh
-  ```
-
-* Generate setup script file
-  ```
-  source 06-generate-setup-script_file.sh
-  ```
-
 ### Generate igniyion file and install bootstrap/master/worker node through script
 
 * Generate ignition file
