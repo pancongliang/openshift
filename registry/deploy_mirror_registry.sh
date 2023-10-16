@@ -31,7 +31,7 @@ fi
 
 # Delete existing duplicate data
 files=(
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem"
+    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem"
     "${REGISTRY_INSTALL_DIR}"
 )
 for file in "${files[@]}"; do
@@ -77,7 +77,7 @@ run_command "[extract the downloaded mirror-registry package]"
 # Install mirror-registry
 cd ${REGISTRY_INSTALL_DIR}
 ${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
-     --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} \
+     --quayHostname ${REGISTRY_DOMAIN_NAME} \
      --quayRoot ${REGISTRY_INSTALL_DIR} \
      --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
      --pgStorage ${REGISTRY_INSTALL_DIR}/pg-storage \
@@ -93,16 +93,16 @@ podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/
 run_command "[mirror registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
-cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
-run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
+cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem
+run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem]"
 
 # Trust the rootCA certificate
 update-ca-trust
 run_command "[trust the rootCA certificate]"
 
 # loggin registry
-podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 &>/dev/null
-run_command  "[test login https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
+podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
+run_command  "[test login https://${REGISTRY_DOMAIN_NAME}:8443]"
 
 # Add an empty line after the task
 echo
