@@ -18,5 +18,5 @@ base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/ocp-inst
 
 # Use a loop to download the scripts
 for script in "${scripts[@]}"; do
-    wget "${base_url}${script}"
+    wget -q "${base_url}${script}" -O /dev/null
 done
