@@ -159,6 +159,7 @@ podman run \
     -v ${REGISTRY_INSTALL_PATH}/auth:/auth:z \
     -v ${REGISTRY_INSTALL_PATH}/certs:/certs:z \
     -d docker.io/library/registry:2 &>/dev/null
+check_command_result "[Creating ${CONTAINER_NAME} container]"
 
 sudo sleep 60
 
