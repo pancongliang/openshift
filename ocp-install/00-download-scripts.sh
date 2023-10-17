@@ -20,8 +20,14 @@ base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/ocp-inst
 download_scripts() {
     for script in "${scripts[@]}"; do
         wget -q "${base_url}${script}"
-        echo "Downloaded: ${script}"
+        if [ $? -eq 0 ]; then
+            echo "ok: [download ${script}]"
+        else
+            echo "failed: [download ${script}]"
+        fi
     done
+
+    exit 0  # Exit the script after all tasks are done
 }
 
 # Execute the function in the background
