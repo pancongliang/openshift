@@ -7,6 +7,7 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/quay/01-deploy-operator.yaml | envsubst | oc apply -f -
 
   oc patch installplan $(oc get ip -n openshift-operators -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
+  oc get ip -n openshift-operators
   ```
 
 ### Deploy NFS Storage Class and Minio Object Storage
