@@ -116,7 +116,9 @@ openssl x509 -req -sha256 \
     -CAcreateserial -out ${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN_NAME}.crt &>/dev/null
 check_command_result "[generate the domain certificate(CRT)]"
 
-
+# Add an empty line after the task
+echo
+# ====================================================
 
 # === Task: Install Registry ===
 PRINT_TASK "[TASK: Install registry]"
