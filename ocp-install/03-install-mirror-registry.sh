@@ -95,12 +95,12 @@ update-ca-trust
 run_command "[trust the rootCA certificate]"
 
 # Delete the tar package generated during installation
-rm -rf pause.tar redis.tar postgres.tar postgres.tar &>/dev/null
-run_command "[Delete the tar package: pause.tar redis.tar postgres.tar postgres.tar]
+rm -rf pause.tar postgres.tar quay.tar redis.tar &>/dev/null
+run_command "[Delete the tar package: pause.tar postgres.tar quay.tar redis.tar]"
 
 # loggin registry
 podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 &>/dev/null
-run_command  "[test login https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
+run_command  "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
 # Add an empty line after the task
 echo
