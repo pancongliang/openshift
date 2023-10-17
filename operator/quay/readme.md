@@ -19,6 +19,12 @@
 
 ### Create Object Storage secret
 
+* Create quay namespace.
+  ```
+  export NAMESPACE=quay-enterprise
+  oc new-project ${NAMESPACE}
+  ```
+
 * Create a configuration file that contains access to the MinIO Bucket.
   ```
   export MINIO_ADDR="minio-minio.apps.ocp4.example.com"
@@ -41,12 +47,6 @@
   DISTRIBUTED_STORAGE_PREFERENCE:
       - default
   EOF
-  ```
-  
-* Create quay namespace.
-  ```
-  export NAMESPACE=quay-enterprise
-  oc new-project ${NAMESPACE}
   ```
 
 * Create Secret based on configuration file.
