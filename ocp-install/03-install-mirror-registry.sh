@@ -76,6 +76,9 @@ run_command "[download mirror-registry package]"
 tar xvf /tmp/registry-package/mirror-registry.tar.gz -C /tmp/registry-package/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
+cp /tmp/registry-package/image-archive.tar ${REGISTRY_INSTALL_DIR}/
+
+
 # Install mirror-registry
 /tmp/registry-package/mirror-registry install -v \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} \
