@@ -30,5 +30,5 @@ download_scripts() {
     exit 0  # Exit the script after all tasks are done
 }
 
-# Execute the function in the background
-download_scripts &
+# Execute the function in the foreground
+download_scripts
