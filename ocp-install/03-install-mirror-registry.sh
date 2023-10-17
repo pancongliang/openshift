@@ -18,7 +18,7 @@ PRINT_TASK "[TASK: Delete existing duplicate data]"
 # Check if there is an active mirror registry pod
 if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_DIR} &>/dev/null
+    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [uninstall the mirror registry]"
@@ -32,7 +32,7 @@ fi
 # Delete existing duplicate data
 files=(
     "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem"
-    "${REGISTRY_INSTALL_DIR}"
+    "${REGISTRY_INSTALL_PATH}"
 )
 for file in "${files[@]}"; do
     if [ -e "$file" ]; then
@@ -62,23 +62,23 @@ run_command() {
 }
 
 # Create installation directory
-mkdir -p ${REGISTRY_INSTALL_DIR}
-run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
+mkdir -p ${REGISTRY_INSTALL_PATH}
+run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
-wget -P ${REGISTRY_INSTALL_DIR} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
+wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR}/ &> /dev/null
+tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
 # Install mirror-registry
-${REGISTRY_INSTALL_DIR}/mirror-registry install \
+${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} \
-     --quayRoot ${REGISTRY_INSTALL_DIR} \
-     --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
-     --pgStorage ${REGISTRY_INSTALL_DIR}/pg-storage \
+     --quayRoot ${REGISTRY_INSTALL_PATH} \
+     --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
+     --pgStorage ${REGISTRY_INSTALL_PATH}/pg-storage \
      --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} 
 run_command "[installing mirror-registry...]"
 
@@ -87,7 +87,7 @@ podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/
 run_command "[mirror registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
-cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
+cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
 run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
 
 # Trust the rootCA certificate
