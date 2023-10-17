@@ -44,7 +44,11 @@ for file in "${files[@]}"; do
         rm -rf "$file" &>/dev/null
         if [ $? -eq 0 ]; then
             echo "ok: [delete existing duplicate data: $file]"
+        else
+            echo "failed: [delete existing duplicate data: $file]"
         fi
+    else
+        echo "skipping: [no duplicate data]"
     fi
 done
 
