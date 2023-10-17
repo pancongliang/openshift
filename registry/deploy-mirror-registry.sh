@@ -44,7 +44,7 @@ for file in "${files[@]}"; do
             echo "failed: [delete existing duplicate data: $file]"
         fi
     else
-        echo "skipping: [no duplicate data]"
+        echo "skipping: [no duplicate data: $file]"
     fi
 done
 
