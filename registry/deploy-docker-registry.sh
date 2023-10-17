@@ -159,13 +159,12 @@ podman run \
 sudo sleep 60
 
 # Check if container is running
-container_info=$(podman inspect -f '{{.State.Status}}' ${CONTAINER_NAME} &>/dev/null)
+container_info=$(podman inspect -f '{{.State.Status}}' ${CONTAINER_NAME})
 if [ "$container_info" == "running" ]; then
     echo "ok: [container '${CONTAINER_NAME}' is running]"
 else
     echo "failed: [container '${CONTAINER_NAME}' is not running]"
 fi
-
 
 # Generating a systemd unit file for the registry service
 cat << EOF > /etc/systemd/system/${CONTAINER_NAME}.service
