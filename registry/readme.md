@@ -19,7 +19,7 @@
   export USER="admin"
   export PASSWD="redhat"
   export REGISTRY_CERT_PATH="/cert"
-  export REGISTRY_INSTALL_PATH="/regitry"
+  export REGISTRY_INSTALL_PATH="/opt/registry"
   export CONTAINER_NAME="docker-registry"
   wget -q  https://raw.githubusercontent.com/pancongliang/openshift/main/registry/deploy-docker-registry.sh
   
