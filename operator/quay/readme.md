@@ -91,7 +91,7 @@
   ```
   QUAY_HOST=$(oc get route example-registry-quay -n ${NAMESPACE} -o jsonpath='{.spec.host}')
   ```
-* Enter the address in the "QUAY_HOST" variable into browser
+* Enter the address in the `QUAY_HOST` variable into browser
 
 * Click `Create Account` to create `quayadmin` user. 
   
