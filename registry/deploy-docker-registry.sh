@@ -17,23 +17,25 @@ PRINT_TASK() {
 PRINT_TASK "[TASK: Delete existing duplicate data]"
 
 # Check if there is an active mirror registry pod
-if podman inspect -f '{{.State.Status}}' $CONTAINER_NAME &>/dev/null; then
+if podman inspect -f '{{.State.Status}}' ${CONTAINER_NAME} &>/dev/null; then
     # If the mirror registry pod is running, uninstall it
-    podman rm -f $CONTAINER_NAME &>/dev/null
+    podman stop ${CONTAINER_NAME}.service &>/dev/null
+    podman rm -f ${CONTAINER_NAME} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
-        echo "ok: [uninstall the $CONTAINER_NAME]"
+        echo "ok: [uninstall the ${CONTAINER_NAME}]"
     else
-        echo "failed: [uninstall the $CONTAINER_NAME]"
+        echo "failed: [uninstall the ${CONTAINER_NAME}]"
     fi
 else
-    echo "skipping: [no active $CONTAINER_NAME container found. skipping uninstallation]"
+    echo "skipping: [no active ${CONTAINER_NAME} container found. skipping uninstallation]"
 fi
 
 # Delete existing duplicate data
 files=(
     "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.crt &>/dev/null"
     "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.crt &>/dev/null"
+    "/etc/systemd/system/${CONTAINER_NAME}.service"
     "${REGISTRY_INSTALL_PATH} &>/dev/null"
     "${REGISTRY_CERT_PATH} &>/dev/null"
 )
@@ -135,10 +137,6 @@ check_command_result "[updating trust settings with new certificates]"
 htpasswd -bBc ${REGISTRY_INSTALL_PATH}/auth/htpasswd "${USER}" "${PASSWD}" &>/dev/null
 check_command_result "[create ${USER} user using htpasswd identity provider]" 
 
-# Delete the container with the same name
-podman stop $CONTAINER_NAME &>/dev/null
-podman rm $CONTAINER_NAME &>/dev/null
-
 #  Generate registry container
 podman run \
     --name ${CONTAINER_NAME} \
@@ -157,17 +155,15 @@ podman run \
 sudo sleep 60
 
 # Check if container is running
-container_info=$(podman inspect -f '{{.State.Status}}' $CONTAINER_NAME 2>/dev/null)
+container_info=$(podman inspect -f '{{.State.Status}}' ${CONTAINER_NAME} &>/dev/null)
 if [ "$container_info" == "running" ]; then
-    echo "ok: [container '$CONTAINER_NAME' is running]"
+    echo "ok: [container '${CONTAINER_NAME}' is running]"
 else
-    echo "failed: [container '$CONTAINER_NAME' is not running]"
+    echo "failed: [container '${CONTAINER_NAME}' is not running]"
 fi
 
 
 # Generating a systemd unit file for the registry service
-rm -rf /etc/systemd/system/${CONTAINER_NAME}.service
-
 cat << EOF > /etc/systemd/system/${CONTAINER_NAME}.service
 [Unit]
 Description= ${CONTAINER_NAME} service
