@@ -34,12 +34,17 @@ files=(
     "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem"
     "${REGISTRY_INSTALL_PATH}"
 )
+
 for file in "${files[@]}"; do
     if [ -e "$file" ]; then
         rm -rf "$file" 2>/dev/null
         if [ $? -eq 0 ]; then
             echo "ok: [delete existing duplicate data: $file]"
+        else
+            echo "failed: [delete existing duplicate data: $file]"
         fi
+    else
+        echo "skipping: [no duplicate data]"
     fi
 done
 
