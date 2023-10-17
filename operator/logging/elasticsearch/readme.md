@@ -1,6 +1,6 @@
 ### Install Red Hat Openshift Logging and elasticsearch operator
 
-* Install the Operator using the default namespace.
+* Install the Operator using the default namespace
   ```
   export CHANNEL_NAME="stable-5.6"
   export CATALOG_SOURCE_NAME="redhat-operators"
