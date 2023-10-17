@@ -74,7 +74,7 @@ tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR
 run_command "[extract the mirror-registry package]"
 
 # Install mirror-registry
-${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
+${REGISTRY_INSTALL_DIR}/mirror-registry install \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} \
      --quayRoot ${REGISTRY_INSTALL_DIR} \
      --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
