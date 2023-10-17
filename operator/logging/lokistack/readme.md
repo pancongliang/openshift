@@ -8,6 +8,9 @@
   
   oc patch installplan $(oc get ip -n openshift-operators-redhat  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
   oc patch installplan $(oc get ip -n openshift-logging  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-logging --type merge --patch '{"spec":{"approved":true}}'
+
+  oc get ip -n openshift-operators-redhat
+  oc get ip -n openshift-logging
   ```
   
 ### Install and configure Loki Stack resource
