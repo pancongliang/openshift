@@ -17,7 +17,7 @@ PRINT_TASK() {
 PRINT_TASK "[TASK: Delete existing duplicate data]"
 
 # Check if there is an active mirror registry pod
-if podman inspect -f '{{.State.Status}}' $CONTAINER_NAME 2>/dev/null >/dev/null; then
+if podman inspect -f '{{.State.Status}}' $CONTAINER_NAME &>/dev/null; then
     # If the mirror registry pod is running, uninstall it
     podman rm -f $CONTAINER_NAME &>/dev/null
     # Check the exit status of the uninstall command
