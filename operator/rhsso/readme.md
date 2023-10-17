@@ -30,9 +30,8 @@
   
 * Keycloak console URL and username/password information
   ```
-  oc get route keycloak -n ${NAMESPACE}
-  NAME       HOST/PORT                              PATH   SERVICES   PORT       TERMINATION   WILDCARD
-  keycloak   keycloak-rhsso.apps.ocp4.example.com          keycloak   keycloak   reencrypt     None
+  oc get route keycloak -o jsonpath='{.spec.host}' -n ${NAMESPACE}
+  keycloak-rhsso.apps.ocp4.example.com
 
   oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_USERNAME}' -n ${NAMESPACE} | base64 -d && echo
   admin
