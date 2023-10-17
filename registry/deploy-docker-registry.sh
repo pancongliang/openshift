@@ -33,15 +33,15 @@ fi
 
 # Delete existing duplicate data
 files=(
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.crt &>/dev/null"
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.crt &>/dev/null"
+    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.crt"
+    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.crt"
     "/etc/systemd/system/${CONTAINER_NAME}.service"
-    "${REGISTRY_INSTALL_PATH} &>/dev/null"
-    "${REGISTRY_CERT_PATH} &>/dev/null"
+    "${REGISTRY_INSTALL_PATH}"
+    "${REGISTRY_CERT_PATH}"
 )
 for file in "${files[@]}"; do
     if [ -e "$file" ]; then
-        rm -rf "$file" 2>/dev/null
+        rm -rf "$file" &>/dev/null
         if [ $? -eq 0 ]; then
             echo "ok: [delete existing duplicate data: $file]"
         fi
@@ -122,11 +122,11 @@ mkdir -p ${REGISTRY_INSTALL_PATH}/{auth,certs,data} &>/dev/null
 check_command_result "[create directories for registry installation ${REGISTRY_INSTALL_PATH}]"
 
 # Copying root and domain certificates to trust source
-cp "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN_NAME}.ca.crt" "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN_NAME}.crt" /etc/pki/ca-trust/source/anchors/ &>/dev/null
+cp -f "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN_NAME}.ca.crt" "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN_NAME}.crt" /etc/pki/ca-trust/source/anchors/ &>/dev/null
 check_command_result "[copying root and domain certificates to trust source]"
 
 # Copy certificate and key to the specified path
-cp "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN_NAME}.key" "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN_NAME}.crt" ${REGISTRY_INSTALL_PATH}/certs/ &>/dev/null
+cp -f "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN_NAME}.key" "${REGISTRY_CERT_PATH}/${REGISTRY_DOMAIN_NAME}.crt" ${REGISTRY_INSTALL_PATH}/certs/ &>/dev/null
 check_command_result "[copy certificate and key to ${REGISTRY_INSTALL_PATH}/certs/]"
 
 # Update trust settings with new certificates
