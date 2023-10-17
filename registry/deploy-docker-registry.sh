@@ -11,11 +11,45 @@ PRINT_TASK() {
 }
 # ====================================================
 
-# Delete existing file
-rm -rf /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.crt &>/dev/null
-rm -rf /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.crt &>/dev/null
-rm -rf ${REGISTRY_INSTALL_PATH} &>/dev/null
-rm -rf ${REGISTRY_CERT_PATH} &>/dev/null
+
+
+# === Task: Delete existing duplicate data ===
+PRINT_TASK "[TASK: Delete existing duplicate data]"
+
+# Check if there is an active mirror registry pod
+if podman inspect -f '{{.State.Status}}' $CONTAINER_NAME 2>/dev/null >/dev/null; then
+    # If the mirror registry pod is running, uninstall it
+    podman rm -f $CONTAINER_NAME &>/dev/null
+    # Check the exit status of the uninstall command
+    if [ $? -eq 0 ]; then
+        echo "ok: [uninstall the $CONTAINER_NAME]"
+    else
+        echo "failed: [uninstall the $CONTAINER_NAME]"
+    fi
+else
+    echo "skipping: [no active $CONTAINER_NAME container found. skipping uninstallation]"
+fi
+
+# Delete existing duplicate data
+files=(
+    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.crt &>/dev/null"
+    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.crt &>/dev/null"
+    "${REGISTRY_INSTALL_PATH} &>/dev/null"
+    "${REGISTRY_CERT_PATH} &>/dev/null"
+)
+for file in "${files[@]}"; do
+    if [ -e "$file" ]; then
+        rm -rf "$file" 2>/dev/null
+        if [ $? -eq 0 ]; then
+            echo "ok: [delete existing duplicate data: $file]"
+        fi
+    fi
+done
+
+# Add an empty line after the task
+echo
+# ====================================================
+
 
 
 # Function to check command success and display appropriate message
