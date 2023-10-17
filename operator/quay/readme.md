@@ -87,16 +87,17 @@
 
 ### Access the quay console and create a user
 
-* View quay route
+* Access the quay console
   ```
-  QUAY_HOST=$(oc get route example-registry-quay -n ${NAMESPACE} -o jsonpath='{.spec.host}')
+  oc get route example-registry-quay -n ${NAMESPACE} -o jsonpath='{.spec.host}'
   ```
-* Enter the address in the `QUAY_HOST` variable into browser
 
-* Click `Create Account` to create `quayadmin` user. 
+* Click `Create Account` to create `quayadmin` user in the quay console page
+
   
 * Push the image to quay registry
   ```
+  QUAY_HOST=$(oc get route example-registry-quay -n ${NAMESPACE} -o jsonpath='{.spec.host}')
   podman login -u quayadmin -p password ${QUAY_HOST}
   podman tag quay.io/redhattraining/hello-world-nginx:v1.0 ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0
   pomdan push ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0 –tls-verify=false
