@@ -120,6 +120,8 @@ check_command_result "[generate the domain certificate(CRT)]"
 echo
 # ====================================================
 
+
+
 # === Task: Install Registry ===
 PRINT_TASK "[TASK: Install registry]"
 
