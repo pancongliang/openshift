@@ -16,7 +16,13 @@ scripts=(
 # Specify the base URL of the GitHub repository
 base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/ocp-install/"
 
-# Use a loop to download the scripts
-for script in "${scripts[@]}"; do
-    wget -q "${base_url}${script}" -O &>/dev/null
-done
+# Function to download scripts
+download_scripts() {
+    for script in "${scripts[@]}"; do
+        wget -q "${base_url}${script}"
+        echo "Downloaded: ${script}"
+    done
+}
+
+# Execute the function in the background
+download_scripts &
