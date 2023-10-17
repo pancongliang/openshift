@@ -37,7 +37,7 @@ files=(
 
 for file in "${files[@]}"; do
     if [ -e "$file" ]; then
-        rm -rf "$file" 2>/dev/null
+        rm -rf "$file" $>/dev/null
         if [ $? -eq 0 ]; then
             echo "ok: [delete existing duplicate data: $file]"
         else
