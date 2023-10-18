@@ -10,7 +10,6 @@
   ```
   htpasswd -c -B -b <htpasswd_file> <user_name> <password>
   htpasswd -c -B -b users.htpasswd admin redhat
-  
   ```
 * Continue to add or update credentials to the file:  
   ```
