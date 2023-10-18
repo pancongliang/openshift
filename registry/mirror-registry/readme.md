@@ -6,7 +6,7 @@
   export REGISTRY_ID="root"
   export REGISTRY_PW="password"                         # 8 characters or more
   export REGISTRY_INSTALL_PATH="/opt/quay-install"
-  wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/deploy-mirror-registry.sh
+  wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/deploy-mirror-registry.sh
   
   source deploy-mirror-registry.sh
   ```
