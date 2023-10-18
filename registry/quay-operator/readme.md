@@ -4,7 +4,7 @@
   ```
   export CHANNEL_NAME="stable-3.9"
   export CATALOG_SOURCE_NAME="redhat-operators"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/quay/01-deploy-operator.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/01-deploy-operator.yaml | envsubst | oc apply -f -
 
   oc patch installplan $(oc get ip -n openshift-operators -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
   oc get ip -n openshift-operators
@@ -59,7 +59,7 @@
 
 * Create quay registry 
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/quay/02-create-quay-registry.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/02-create-quay-registry.yaml | envsubst | oc apply -f -
   ```
 
 * View deployed resources
