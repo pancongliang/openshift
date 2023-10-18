@@ -100,5 +100,5 @@
   QUAY_HOST=$(oc get route example-registry-quay -n ${NAMESPACE} -o jsonpath='{.spec.host}')
   podman login -u quayadmin -p password ${QUAY_HOST}
   podman tag quay.io/redhattraining/hello-world-nginx:v1.0 ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0
-  pomdan push ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0 –tls-verify=false
+  podman push ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0 --tls-verify=false
   ```
