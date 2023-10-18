@@ -8,7 +8,7 @@
   export REGISTRY_CERT_PATH="/etc/crts"
   export REGISTRY_INSTALL_DIR="/opt/registry"
   export CONTAINER_NAME="docker-registry"
-  wget -q  https://raw.githubusercontent.com/pancongliang/openshift/main/registry/deploy-docker-registry.sh
+  wget -q  https://raw.githubusercontent.com/pancongliang/openshift/main/registry/docker-registry/deploy-docker-registry.sh
   
   source deploy-docker-registry.sh
   ```
