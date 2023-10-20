@@ -1,4 +1,4 @@
-# Install and configure external log aggregator
+## Install and configure external log aggregator
 
 
 ### Forwarding logs to external third-party logging systems
