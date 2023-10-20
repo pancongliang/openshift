@@ -1,6 +1,7 @@
-### Deploy Minio Object Storage
+# Deploy Minio Object Storage
 
-#### Options A: Deploying a Minio Pod with ephemeral volume
+
+### Options A: Deploying a Minio Pod with ephemeral volume
 
 * EmptyDir is a temporary storage volume used to provide transient storage space during the lifetime of a Pod.  
 
@@ -11,7 +12,7 @@
   oc get pod,route -n ${NAMESPACE}
   ```
 
-#### Options B: Deploying Minio with Local volume as the Backend Storage
+### Options B: Deploying Minio with Local volume as the Backend Storage
 
 * First specify the worker node where Minio pv/pod is located, and then create the local volume and Minio.
 
@@ -26,7 +27,7 @@
   oc get pod,route,pvc -n ${NAMESPACE}
   ```
 
-#### Options C: Deploying Minio with NFS StorageClass as the Backend Storage
+### Options C: Deploying Minio with NFS StorageClass as the Backend Storage
 
 * Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md), if storage class has been deployed,only need to set the variables.
 
