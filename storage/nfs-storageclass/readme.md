@@ -1,6 +1,6 @@
 ## Deploy NFS StorageClass
 
-* Set variables
+* Set necessary parameters
   ```
   export NAMESPACE="nfs-client-provisioner"
   export NFS_SERVER_IP="10.74.251.171"
