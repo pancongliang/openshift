@@ -1,4 +1,4 @@
-# Generating self-signed TLS certificates
+## Generating self-signed TLS certificates
 
 * Set necessary variables
   ```
