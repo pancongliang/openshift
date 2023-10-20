@@ -1,3 +1,5 @@
+# Install and configure Red Hat Openshift Logging and elasticsearch operator
+
 ### Install Red Hat Openshift Logging and elasticsearch operator
 
 * Install the Operator using the default namespace
