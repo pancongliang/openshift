@@ -1,3 +1,6 @@
+# Install and configure external log aggregator
+
+
 ### Forwarding logs to external third-party logging systems
 
 * Download clusterlogforwarder template
