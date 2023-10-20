@@ -1,3 +1,5 @@
+# Install and configure Mirror Registry
+
 ### Deploy Mirror Registry
 
 * Deploy the latest version of Mirror Registry
