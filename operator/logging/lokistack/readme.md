@@ -1,4 +1,4 @@
-# Install and configure Red Hat Openshift Logging and Loki Operator
+## Install and configure Red Hat Openshift Logging and Loki Operator
 
 
 ### Install Red Hat Openshift Logging and Loki Operator
