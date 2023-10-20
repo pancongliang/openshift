@@ -1,4 +1,4 @@
-## Install and configure Red Hat Openshift Logging and es operator
+## Install and configure Red Hat Openshift Logging and elasticsearch operator
 
 ### Install Red Hat Openshift Logging and elasticsearch operator
 
