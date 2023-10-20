@@ -1,4 +1,4 @@
-## Install and configure Red Hat Single Sign-On Operator
+# Install and configure Red Hat Single Sign-On Operator
 
 
 ### Installing the Red Hat Single Sign-On Operator on a cluster
