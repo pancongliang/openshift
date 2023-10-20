@@ -1,4 +1,4 @@
-# Install and configure Docker Registry
+## Install and configure Docker Registry
 
 
 ### Deploy Docker Registry
