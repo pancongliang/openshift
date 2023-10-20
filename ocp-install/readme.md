@@ -1,4 +1,4 @@
-### Restricted network installation OpenShift4
+# Restricted network installation OpenShift4
 * Use scripts to install and configure the infrastructure and download the ocp image to the offline registry.
 * The script generates the ignition file, and downloads and executes the script from node to install openshift.
 
