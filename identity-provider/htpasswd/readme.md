@@ -1,4 +1,4 @@
-# Configuring an htpasswd identity provider
+## Configuring an htpasswd identity provider
 
 ### Configuring an htpasswd identity provider
 
