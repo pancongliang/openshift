@@ -1,4 +1,4 @@
-# Deploy Applications Using Argo CD
+## Deploy Applications Using Argo CD
 
 * In GitOps, Argo CD has its own RBAC management strategy that has nothing to do with OCP. 
   OCP only provides authentication identities, and all related permissions are managed by its own Argo CD RBAC.
