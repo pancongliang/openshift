@@ -1,4 +1,4 @@
-# Install and configure quay operator
+## Install and configure quay operator
 
 ### Install quay operator
 
