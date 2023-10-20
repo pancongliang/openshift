@@ -1,3 +1,6 @@
+# Install and configure Docker Registry
+
+
 ### Deploy Docker Registry
 
 * Generate self-signed certificate and deploy Docker Registry
