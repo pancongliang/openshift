@@ -1,4 +1,4 @@
-## Mirroring images for a disconnected installation using the oc-mirror plugin
+# Mirroring images for a disconnected installation using the oc-mirror plugin
 
 
 ### Installing the oc-mirror plug-in
