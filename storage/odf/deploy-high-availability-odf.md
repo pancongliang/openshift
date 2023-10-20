@@ -1,6 +1,6 @@
-### Requirements for installing OpenShift Data Foundation using local storage devices 
+## Requirements for installing OpenShift Data Foundation using local storage devices 
 
-#### Node requirements
+### Node requirements
 The cluster must consist of at least three OpenShift Container Platform worker nodes with locally attached-storage devices on each of them.
 
 * Each of the three selected nodes must have at least one raw block device available. OpenShift Data Foundation uses the one or more available raw block devices.
