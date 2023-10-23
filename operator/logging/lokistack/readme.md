@@ -18,7 +18,7 @@
   
 ### Install and configure Loki Stack resource
 
-#### Option A: Install lokistack using Minio Object Storage and NFS Storage Class
+#### Install lokistack using Minio Object Storage and NFS Storage Class
 
 * Install and configure [Minio Object Storage and NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-c-deploying-minio-with-nfs-storageclass-as-the-backend-storage).
   If storageclass already exists, only [Minio Object Storage](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-b-deploying-minio-with-local-volume-as-the-backend-storage) will be installed.
@@ -42,44 +42,3 @@
   ```
 
 
-
-
-#### Option B: Install lokistack using ODF
-* Install and configure [odf-operator](https://github.com/pancongliang/openshift/blob/main/storage/odf/deploy-high-availability-odf.md)
-
-* Create ObjectBucketClaim
-  ```
-  export NAMESPACE="openshift-logging"
-  export OBC_NAME="loki-bucket-odf"
-  export GENERATEBUCKETNAME="${OBC_NAME}"
-  export OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"  
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/2-create-obc.yaml | envsubst | oc apply -f -
-  ```
-  
-* Create Object Storage secret credentials
-  1. Get bucket properties from the associated ConfigMap
-  ```
-  export BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
-  export BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
-  export BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
-  ```
-  2. Get bucket access key from the associated Secret
-  ```
-  export ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
-  export SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
-  ```
-  3. Create an Object Storage secret with keys as follows
-  ```
-  oc create -n ${NAMESPACE} secret generic ${OBC_NAME}-credentials \
-     --from-literal=access_key_id="${ACCESS_KEY_ID}" \
-     --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
-     --from-literal=bucketnames="${BUCKET_NAME}" \
-     --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
-  ```
-  
-* Create LokiStack ClusterLogging ClusterLogForwarder resource
-  ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/3-deploy-loki-stack-odf.yaml | envsubst | oc apply -f -
-
-  oc get po -n openshift-logging 
-  ```
