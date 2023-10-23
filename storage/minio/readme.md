@@ -37,7 +37,6 @@
   ```
   export NAMESPACE="minio"
   export STORAGE_CLASS_NAME="managed-nfs-storage"
-  export STORAGE_SIZE="50Gi"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f -
 
   oc get pod,route,pvc -n ${NAMESPACE}
