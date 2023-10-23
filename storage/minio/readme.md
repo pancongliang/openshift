@@ -71,8 +71,9 @@
   ``` 
   Create a bucket named "loki-bucket" in the "my-minio" alias
   ```
-  BUCKET_NAME="loki-bucket"
-  
+  BUCKET_NAME="loki-bucket"   # loki bucket
+  BUCKET_NAME="quay-bucket"   # quay bucket
+
   mc mb my-minio/${BUCKET_NAME}
   ```
   Commonly used [mc commands](https://min.io/docs/minio/linux/reference/minio-mc.html?ref=docs#command-quick-reference)
