@@ -26,7 +26,7 @@
 
 * Create Object Storage secret credentials
   ```
-  export MINIO_ADDR="http://minio-minio.apps.ocp4.example.com"
+  export MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
   export ACCESS_KEY_ID="minioadmin"
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="loki-bucket"
