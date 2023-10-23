@@ -17,7 +17,7 @@
 * Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md)
   - Postgres database requires two 50 GiB PVs, so deploy nfs storage class.
 
-* Deploy [Minio Object Storage](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-c-deploying-minio-with-nfs-storageclass-as-the-backend-storage)
+* Deploy [Minio Object Storage](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-c-deploying-minio-with-nfs-storageclass-as-the-backend-storage) and create a bucket named `quay-bucket`
   - Quay uses object storage by default, so deploy Minio object storage.
 
 ### Create Object Storage secret
@@ -30,7 +30,7 @@
 
 * Create a configuration file that contains access to the MinIO Bucket.
   ```
-  export MINIO_ADDR="minio-minio.apps.ocp4.example.com"
+  export MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
   export ACCESS_KEY_ID="minioadmin"
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="quay-bucket"
