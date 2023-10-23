@@ -13,10 +13,10 @@
   
 * Deploy NFS Persistent Storage
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-storage/deploy-local-storage.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-persistent-storage/nfs-persistent-storage.yaml | envsubst | oc apply -f -
 
-  oc get sc
-  oc get pvc -n ${NAMESPACE}
+  oc get pv
+  oc get pvc
   ```
 
 
