@@ -9,7 +9,7 @@
 
 * Install and configure the NFS server, skip this step if installed.
   ```
-  wget -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/01-install-nfs-package.sh
+  wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/01-install-nfs-package.sh
   
   source 01-install-nfs-package.sh
   ```
