@@ -1,4 +1,6 @@
+## Deploy NFS Persistent Storage
 
+* Set necessary parameters
 
   ```
   export NFS_SERVER_IP="10.74.251.171"
@@ -7,4 +9,17 @@
   export PVC_NAME="test-pvc"
   export STORAGE_SIZE="10Gi"
   exportACCESS_MODE=ReadWriteOnce
+  ```
+  
+* Deploy NFS Persistent Storage
+  ```
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-storage/deploy-local-storage.yaml | envsubst | oc apply -f -
+
+  oc get sc
+  oc get pvc -n ${NAMESPACE}
+  ```
+
+
+  ```
+
   ```
