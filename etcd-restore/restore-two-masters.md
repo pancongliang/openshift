@@ -1,5 +1,5 @@
 
-## restore tow master
+## Restore tow master
 
 ### Test the recovery process
    - Environment 4.8(UPI)
