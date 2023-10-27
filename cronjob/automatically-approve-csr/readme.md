@@ -12,5 +12,5 @@
 
 * Create cronjob
   ```
-  oc create -f Cronjob .yaml
+  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/cronjob/automatically-approve-csr/cronjob.yaml
   ```
