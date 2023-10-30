@@ -35,21 +35,7 @@
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="quay-bucket"
 
-  cat > config.yaml << EOF
-  DISTRIBUTED_STORAGE_CONFIG:
-    default:
-      - RadosGWStorage
-      - access_key: ${ACCESS_KEY_ID}
-        secret_key: ${ACCESS_KEY_SECRET}
-        bucket_name: ${BUCKET_NAME}
-        hostname: ${MINIO_ADDR}
-        is_secure: false
-        port: 80
-        storage_path: /
-  DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
-  DISTRIBUTED_STORAGE_PREFERENCE:
-      - default
-  EOF
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/03-create-config.yaml | envsubst | oc apply -f -
   ```
 
 * Create Secret based on configuration file.
