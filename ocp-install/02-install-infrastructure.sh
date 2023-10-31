@@ -673,7 +673,7 @@ hostnames=(
     "${WORKER01_IP}"
     "${WORKER02_IP}"
     "${BOOTSTRAP_IP}"
-    "${NSLOOKUP_PUBLIP}"
+    "${NSLOOKUP_PUBLIC}"
 )
 
 # Loop through hostnames and perform nslookup
