@@ -10,10 +10,10 @@ spec:
     type: fluentdForward
  pipelines:
   - name: forward-to-fluentd-insecure
-   inputRefs:
-   - infrastructure
-   - application
-   - audit
-   outputRefs:
-   - default
-   - fluentd-server-insecure
+    inputRefs:
+    - infrastructure
+    - application
+    - audit
+    outputRefs:
+    - default
+    - fluentd-server-insecure
