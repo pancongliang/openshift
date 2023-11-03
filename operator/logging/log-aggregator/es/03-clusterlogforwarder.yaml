@@ -7,7 +7,7 @@ spec:
  outputs: 
   - name: elasticsearch
     type: elasticsearch
-    url: 'http://elasticsearch-server.es-aosqe.svc:9200'
+    url: 'http://elasticsearch-server.${NAMESPACE}.svc:9200'
  pipelines:
   - name: test-app
     inputRefs:
