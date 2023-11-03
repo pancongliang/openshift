@@ -5,8 +5,8 @@ metadata:
  namespace: openshift-logging
 spec:
  outputs: 
-  - name: kafka-insecure 
-    url: tls://my-cluster-kafka-bootstrap.amq-aosqe.svc:9092/topic-logging-app
+  - name: kafka-server-insecure
+    url: tls://my-cluster-kafka-bootstrap.${NAMESPACE}.svc:9092/topic-logging-app
     type: kafka
  pipelines:
   - name: forward-to-kafka-insecure 
@@ -16,4 +16,4 @@ spec:
     - audit
     outputRefs:
     - default
-    - kafka-insecure 
+    - kafka-server-insecure
