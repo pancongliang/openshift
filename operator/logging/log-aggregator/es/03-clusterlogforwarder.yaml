@@ -5,15 +5,15 @@ metadata:
  namespace: openshift-logging
 spec:
  outputs: 
-  - name: elasticsearch
+  - name: elasticsearch-insecure
     type: elasticsearch
     url: 'http://elasticsearch-server.${NAMESPACE}.svc:9200'
  pipelines:
-  - name: test-app
+  - name: forward-to-elasticsearch-insecure
     inputRefs:
     - infrastructure
     - application
     - audit
     outputRefs:
     - default
-    - elasticsearch
+    - elasticsearch-insecure
