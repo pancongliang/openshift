@@ -22,8 +22,8 @@
   oc process -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/04-kafka-topics-template.yaml -p KAFKA_TOPIC=topic-logging-app| oc create -f -
 
   # View the logs forwarded to Kafka
-  sh-4.4ls /var/lib/kafka/data/kafka-log0/topic-logging-app-0/
-  sh-4.4/opt/kafka/bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files /var/lib/kafka/data/kafka-log0/topic-logging-app-0/00000000000000000000.log \ --deep-iteration --print-data-log 
+  sh-4.4# ls /var/lib/kafka/data/kafka-log0/topic-logging-app-0/
+  sh-4.4# /opt/kafka/bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files /var/lib/kafka/data/kafka-log0/topic-logging-app-0/00000000000000000000.log \ --deep-iteration --print-data-log 
   ```
 
 * Deploy syslog in project syslog
@@ -46,7 +46,7 @@
   oc expose deployment/fluentdserver
   
   # View the logs forwarded to fluentd
-  cd /fluentd/log
+  sh-4.4# cd /fluentd/log
   ```
   
 * Deploy Elasticsearch in project elasticsearch
