@@ -5,7 +5,7 @@ metadata:
  namespace: openshift-logging
 spec:
  outputs:  
-  - name: fluentd
+  - name: fluentd-server-insecure
     url: 'tcp://fluentdserver.${NAMESPACE}.svc:24224'
     type: fluentdForward
  pipelines:
@@ -16,4 +16,4 @@ spec:
    - audit
    outputRefs:
    - default
-   - fluentd
+   - fluentd-server-insecure
