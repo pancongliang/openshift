@@ -1,0 +1,19 @@
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+ name: instance
+ namespace: openshift-logging
+spec:
+ outputs: 
+  - name: elasticsearch
+    type: elasticsearch
+    url: 'http://elasticsearch-server.es-aosqe.svc:9200'
+ pipelines:
+  - name: test-app
+    inputRefs:
+    - infrastructure
+    - application
+    - audit
+    outputRefs:
+    - default
+    - elasticsearch
