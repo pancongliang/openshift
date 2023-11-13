@@ -36,7 +36,7 @@
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/syslog/02-rsyslogserver-deployment.yaml
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/syslog/03-rsyslogserver-svc.yaml
 
-  curl -s  | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/syslog/04-clusterlogforwarder.yaml | envsubst | oc apply -f -
   ```
   
 * Deploy fluentd receiver in project fluentd
