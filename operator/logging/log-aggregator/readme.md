@@ -22,6 +22,7 @@
   oc process -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/04-kafka-topics-template.yaml -p KAFKA_TOPIC=topic-logging-app| oc create -f -
 
   curl -s  | envsubst | oc apply -f -
+  
   # View the logs forwarded to Kafka
   sh-4.4# ls /var/lib/kafka/data/kafka-log0/topic-logging-app-0/
   sh-4.4# /opt/kafka/bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files /var/lib/kafka/data/kafka-log0/topic-logging-app-0/00000000000000000000.log \ --deep-iteration --print-data-log 
@@ -48,6 +49,7 @@
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/fluentd/02-deployment.yaml
   oc expose deployment/fluentdserver
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/fluentd/03-clusterlogforwarder.yaml | envsubst | oc apply -f -
+
   # View the logs forwarded to fluentd
   sh-4.4# cd /fluentd/log
   ```
@@ -60,5 +62,6 @@
   oc process -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/es/01-configmap.yaml -p NAMESPACE=$NAMESPACE |oc create -f -
   oc process -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/es/02-deployment.yaml -p NAMESPACE=$NAMESPACE |oc create -f -
   oc expose deployment/elasticsearch-server
-  curl -s  | envsubst | oc apply -f -
+
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/es/03-clusterlogforwarder.yaml | envsubst | oc apply -f -
   ```
