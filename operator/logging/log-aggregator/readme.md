@@ -21,7 +21,7 @@
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/03-kafka-my-cluster-no-authorization.yaml
   oc process -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/04-kafka-topics-template.yaml -p KAFKA_TOPIC=topic-logging-app| oc create -f -
 
-  curl -s  | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/05-clusterlogforwarder.yaml | envsubst | oc apply -f -
   
   # View the logs forwarded to Kafka
   sh-4.4# ls /var/lib/kafka/data/kafka-log0/topic-logging-app-0/
