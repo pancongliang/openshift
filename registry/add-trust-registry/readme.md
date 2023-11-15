@@ -17,7 +17,8 @@
   ssh core@<node-name> sudo ls -ltr /etc/docker/certs.d/
   ```
 
-    > [!NOTE] 
+    > [!NOTE]
+    > 
     > If the registry used during offline installation is damaged or needs to be replaced, you need to add the following steps, otherwise the new node will prompt `x509 error`,Please note that this step will reboot all nodes.
     > 
     > ```
