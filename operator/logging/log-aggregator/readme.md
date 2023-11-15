@@ -48,6 +48,7 @@
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/fluentd/01-configmap.yaml
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/fluentd/02-deployment.yaml
   oc expose deployment/fluentdserver
+  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/fluentd/03-clusterlogforwarder.yaml | envsubst | oc apply -f -
 
   # View the logs forwarded to fluentd
