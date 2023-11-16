@@ -46,17 +46,18 @@
 ### Configuring the Red Hat Single Sign-On Operator
 
 * Create realm custom resource
-    > [!NOTE]  
-    > Can only create or delete realms by creating or deleting the YAML file, and changes appear in the Red Hat Single Sign-On admin console.
-    > However changes to the admin console are not reflected back and updates of the CR after the realm is created are not supported.
+  > **Note**  
+  > Can only create or delete realms by creating or deleting the YAML file, and changes appear in the Red Hat Single Sign-On admin console.
+  > However changes to the admin console are not reflected back and updates of the CR after the realm is created are not supported.
+
   ```  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/03-create-keycloak-realm.yaml | envsubst | oc apply -f -
   ```
 
 * Create client custom resource
-    > [!NOTE]  
-    > Can update the YAML file and changes appear in the Red Hat Single Sign-On admin console,
-    > however changes to the admin console do not update the custom resource.
+  > **Note**  
+  > Can update the YAML file and changes appear in the Red Hat Single Sign-On admin console,
+  > however changes to the admin console do not update the custom resource.
   ```
   export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
   export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
@@ -64,9 +65,9 @@
   ```
   
 * Create RH-SSO user, If need to create multiple users, repeat this step after changing the variable value
-    > [!NOTE]  
-    > Can update properties in the YAML file and changes appear in the Red Hat Single Sign-On admin console,
-    > however changes to the admin console do not update the custom resource.
+  > **Note**  
+  > Can update properties in the YAML file and changes appear in the Red Hat Single Sign-On admin console,
+  > however changes to the admin console do not update the custom resource.
   ```
   export USER_NAME=rhadmin
   export PASSWORD=redhat
