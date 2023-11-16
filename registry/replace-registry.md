@@ -286,6 +286,8 @@ spec:
 ```
 
 ###  TEST
+#### Update openshift-logging test
+
 Since the Operator version being used may be inconsistent with the Operator version just downloaded, the Operator needs to be updated.
 Different operator upgrade methods may have some differences, so it is recommended to refer to the official documentation. The following example updates the openshift-logging version using the image provided by the new image registry
 ```
@@ -324,7 +326,7 @@ cluster-logging.v5.6.12          Red Hat OpenShift Logging          5.6.12    cl
 elasticsearch-operator.v5.6.12   OpenShift Elasticsearch Operator   5.6.12    elasticsearch-operator.v5.6.5   Succeeded
 ```
 
-9.Delete all images of the node and restart to test whether the ocp image can be pulled
+#### Delete all images of the node and restart to test whether the ocp image can be pulled
 ```
 $ ssh core@worker01.ocp4.example.com
 [core@worker01 ~]$ sudo -i
@@ -370,7 +372,11 @@ reboot node worker02.ocp4.example.com
 
 $ oc get po -A | grep -vE 'Running|Completed'
 $ oc get co | grep -v '.True.*False.*False'
+```
 
+#### Delete/Add node text
+
+```
 $ oc delete node worker01
 # Reinstall worker01 
 $ oc get csr
