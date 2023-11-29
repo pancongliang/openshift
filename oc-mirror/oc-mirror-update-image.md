@@ -4,18 +4,18 @@
 
 * View catalogsource name
   ```
-  oc get catalogsources -n openshift-marketplace
+  $ oc get catalogsources -n openshift-marketplace
   NAME                    DISPLAY   TYPE   PUBLISHER   AGE
   redhat-operator-index             grpc               7m10s
   ```
 * View the operator in the index image
   ```
-  oc get catalogsources redhat-operator-index -n openshift-marketplace -o yaml |grep image
+  $ oc get catalogsources redhat-operator-index -n openshift-marketplace -o yaml |grep image
   image: docker.registry.example.com:5000/redhat/redhat-operator-index:v4.10
   ```
 * View the operator in the index image
   ```
-  oc-mirror list operators --catalog=docker.registry.example.com:5000/redhat/redhat-operator-index:v4.10
+  $ oc-mirror list operators --catalog=docker.registry.example.com:5000/redhat/redhat-operator-index:v4.10
   NAME                        DISPLAY NAME                      DEFAULT CHANNEL
   cluster-logging             Red Hat OpenShift Logging         stable-5.6
   elasticsearch-operator      OpenShift Elasticsearch Operator  stable-5.6
@@ -23,14 +23,14 @@
   ```
 * View the version of the operator in the index image
   ```
-  oc-mirror list operators --catalog=docker.registry.example.com:5000/redhat/redhat-operator-index:v4.10 \
+  $ oc-mirror list operators --catalog=docker.registry.example.com:5000/redhat/redhat-operator-index:v4.10 \
     --package=elasticsearch-operator --channel=stable-5.6
   VERSIONS
   5.6.2
   ```
 * View packagemanifests
   ```
-  oc get packagemanifests -n openshift-marketplace
+  $ oc get packagemanifests -n openshift-marketplace
   NAME                         CATALOG   AGE
   performance-addon-operator             8m26s
   elasticsearch-operator                 8m26s
@@ -38,14 +38,14 @@
   ```
 * View subscription
   ```
-  oc get subscription -A
+  $ oc get subscription -A
   NAMESPACE                    NAME                     PACKAGE                  SOURCE                  CHANNEL
   openshift-logging            cluster-logging          cluster-logging          redhat-operator-index   stable-5.6
   openshift-operators-redhat   elasticsearch-operator   elasticsearch-operator   redhat-operator-index   stable-5.6
   ```
 * View ClusterServiceVersion
   ```
-  oc get csv -n openshift-logging
+  $ oc get csv -n openshift-logging
   NAME                            DISPLAY                            VERSION   REPLACES                        PHASE
   cluster-logging.v5.6.2          Red Hat OpenShift Logging          5.6.2     cluster-logging.v5.6.1          Succeeded
   elasticsearch-operator.v5.6.2   OpenShift Elasticsearch Operator   5.6.2     elasticsearch-operator.v5.6.1   Succeeded
@@ -105,32 +105,32 @@
 ### View available operator versions and ocp release images
 * Login OperatorHub catalog
   ```
-  podman login registry.redhat.io
+  $ podman login registry.redhat.io
   ```
   
 * Find OCP releases by major/minor version:
   ```
-  oc-mirror list releases --version=4.11
+  $ oc-mirror list releases --version=4.11
   ```
   
 * Find the available catalogs for the target version
   ```
-  oc-mirror list operators --catalogs --version=4.11
+  $ oc-mirror list operators --catalogs --version=4.11
   ```
 
 * Find the available packages within the selected catalog
   ```
-  oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.10
+  $ oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.10
   ```
 
 * Find channels for the selected package
   ```
-  oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.10 --package=cluster-logging
+  $ oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.10 --package=cluster-logging
   ```
 
 * Find package versions within the selected channel
   ```
-  oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.10 --package=elasticsearch-operator --channel=stable-5.6
+  $ oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.10 --package=elasticsearch-operator --channel=stable-5.6
   ```
 
 ### [Configuring credentials](https://docs.openshift.com/container-platform/4.11/installing/disconnected_install/installing-mirroring-disconnected.html#installation-adding-registry-pull-secret_installing-mirroring-disconnected) that allow images to be mirrored.
@@ -139,13 +139,13 @@
 
 * Add local Image Registry credentials to the pull-secret
   ```
-  MIRROR_REGISTRY=docker.registry.example.com:5000
-  podman login ${MIRROR_REGISTRY}
-  podman login --authfile /root/pull-secret ${MIRROR_REGISTRY}
+  $ MIRROR_REGISTRY=docker.registry.example.com:5000
+  $ podman login ${MIRROR_REGISTRY}
+  $ podman login --authfile /root/pull-secret ${MIRROR_REGISTRY}
   ```
 * Save the file either as ~/.docker/config.json or $XDG_RUNTIME_DIR/containers/auth.json
   ```
-  cat /root/pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
+  $ cat /root/pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
   ```
 
 ### Update the [image set configuration](https://docs.openshift.com/container-platform/4.11/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-imageset-config-params_installing-mirroring-disconnected)
@@ -158,7 +158,7 @@
   - Update cluster-logging, elasticsearch-operator, ocp release images version
 
   ```
-  cat > imageset-config.yaml << EOF
+  $ cat > imageset-config.yaml << EOF
   apiVersion: mirror.openshift.io/v1alpha2
   kind: ImageSetConfiguration
   storageConfig:
@@ -195,7 +195,7 @@
 
 * [Mirroring](https://docs.openshift.com/container-platform/4.11/installing/disconnected_install/installing-mirroring-disconnected.html#mirroring-image-set-partial) an image set to a mirror registry.
   ```
-  oc mirror --config=./imageset-config.yaml \
+  $ oc mirror --config=./imageset-config.yaml \
             docker://${MIRROR_REGISTRY} --dest-skip-tls
   ···
   # Related images that have been deleted in ImageSetConfiguration will be deleted during the download process.
@@ -210,17 +210,17 @@
 
 * Create icsp and modify catalogsource index image
   ```
-  ls oc-mirror-workspace/results-1701230281
+  $ ls oc-mirror-workspace/results-1701230281
   catalogSource-redhat-operator-index.yaml  charts  imageContentSourcePolicy.yaml  mapping.txt  release-signatures
 
-  oc create -f oc-mirror-workspace/results-1701230281/imageContentSourcePolicy.yaml
+  $ oc create -f oc-mirror-workspace/results-1701230281/imageContentSourcePolicy.yaml
   imagecontentsourcepolicy.operator.openshift.io/operator-0 created
 
-  cat oc-mirror-workspace/results-1701230281/catalogSource-redhat-operator-index.yaml |grep image
+  $ cat oc-mirror-workspace/results-1701230281/catalogSource-redhat-operator-index.yaml |grep image
     image: docker.registry.example.com:5000/redhat/redhat-operator-index:v4.10
   
   # The update operator cannot modify the catalog source name, otherwise you will not be able to see the updateable version.
-  oc edit catalogsource redhat-operator-index -n openshift-marketplace
+  $ oc edit catalogsource redhat-operator-index -n openshift-marketplace
   spec:
     image: docker.registry.example.com:5000/redhat/redhat-operator-index:v4.10  # Modify to the latest index image address
     sourceType: grpc
@@ -228,12 +228,12 @@
 
 * Verify that the operator download is complete
   ```
-  oc get catalogsource -n openshift-marketplace
+  $ oc get catalogsource -n openshift-marketplace
   NAME                      DISPLAY   TYPE   PUBLISHER   AGE
   redhat-operator-index               grpc               13s
 
   # If it does not appear as expected, restart the pod in the openshift-marketplace project
-  oc get packagemanifest -n openshift-marketplace  
+  $ oc get packagemanifest -n openshift-marketplace  
   NAME                          CATALOG   AGE
   kubernetes-nmstate-operator             111m
   elasticsearch-operator                  111m
@@ -241,7 +241,7 @@
   ```
 * Verify OCP releases image
   ```
-  podman search docker.registry.example.com:5000/openshift/release-images \
+  $ podman search docker.registry.example.com:5000/openshift/release-images \
     --list-tags --limit=1000 --tls-verify=false --authfile /root/pull-secret
   docker.registry.example.com:5000/openshift/release-images  4.10.20-x86_64
   docker.registry.example.com:5000/openshift/release-images  4.10.67-x86_64
@@ -251,7 +251,7 @@
 
 * View upgrade channel information
   ```
-  oc-mirror list operators --catalog=docker.registry.example.com:5000/redhat/redhat-operator-index:v4.10 \
+  $ oc-mirror list operators --catalog=docker.registry.example.com:5000/redhat/redhat-operator-index:v4.10 \
     --package=elasticsearch-operator --channel=stable-5.6
   VERSIONS
   5.6.2
@@ -261,12 +261,12 @@
 
 * Upgrade logging to 5.6.9
   ```
-  oc get csv -n openshift-logging
+  $ oc get csv -n openshift-logging
   NAME                            DISPLAY                            VERSION   REPLACES                        PHASE
   cluster-logging.v5.6.9          Red Hat OpenShift Logging          5.6.9     cluster-logging.v5.6.2          Succeeded
   elasticsearch-operator.v5.6.9   OpenShift Elasticsearch Operator   5.6.9     elasticsearch-operator.v5.6.2   Succeeded
   
-  oc get po -n openshift-logging
+  $ oc get po -n openshift-logging
   NAME                                            READY   STATUS      RESTARTS   AGE
   cluster-logging-operator-d854cf5d7-777cs        1/1     Running     0          2m40s
   collector-889x9                                 2/2     Running     0          73s
@@ -282,4 +282,3 @@
   elasticsearch-im-infra-28353885-v5rlh           0/1     Completed   0          6m58s
   kibana-5c5bd44bdf-29gbm                         2/2     Running     0          3m18s
   ```
-
