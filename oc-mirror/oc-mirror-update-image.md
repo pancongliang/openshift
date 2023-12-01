@@ -1,4 +1,4 @@
-## Update operators in partially disconnected environments using the oc-mirror plugin
+## Update operator and release images in partially disconnected environments using the oc-mirror plugin
 
 ### View the currently used operator and version before updating the image
 
