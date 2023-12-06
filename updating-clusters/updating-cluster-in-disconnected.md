@@ -4,10 +4,10 @@
 
 * Installing the oc-mirror plug-in.
   ```
-  $ curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
-  $ tar -xvf oc-mirror.tar.gz
-  $ chmod +x ./oc-mirror
-  $ sudo mv ./oc-mirror /usr/local/bin/
+  curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
+  tar -xvf oc-mirror.tar.gz
+  chmod +x ./oc-mirror
+  sudo mv ./oc-mirror /usr/local/bin/
   ```
 
 * Login OperatorHub catalog
