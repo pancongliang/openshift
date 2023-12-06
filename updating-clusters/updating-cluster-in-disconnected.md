@@ -101,11 +101,14 @@
      --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@${RELEASE_DIGEST}
 
   oc get pod,job -n openshift-cluster-version
-  NAME                                        READY   STATUS      RESTARTS   AGE
-  cluster-version-operator-6869754c56-5wwnz   1/1     Running     0          41s
-  version--jlrrn-gnlk7                        0/1     Completed   0          105s
-  ···
+  NAME                                            READY   STATUS     RESTARTS   AGE
+  pod/cluster-version-operator-7444474bc4-jmkms   1/1     Running    11         252d
+  pod/version--mt47x-lwmgs                        0/1     Init:3/4   0          34s
 
+  NAME                       COMPLETIONS   DURATION   AGE
+  job.batch/version--mt47x   0/1           34s        34s
+  ```
+  
 * Wait for the OCP cluster upgrade to complete and check the status
   ```
   oc get clusterversion
