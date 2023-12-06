@@ -69,10 +69,9 @@
   oc create -f imageContentSourcePolicy.yaml
   oc create -f release-signatures/
   ```
-  
-  ```
 
 * If the operator is mirrored, create the catalogsource
+  ```
   oc create -f catalogSource-redhat-operator-index.yaml
   ```
 
