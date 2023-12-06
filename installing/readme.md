@@ -20,7 +20,7 @@
 
 * Download script file
   ```
-  wget -q -O - https://raw.githubusercontent.com/pancongliang/openshift/main/ocp-install/00-download-script.sh | sh
+  wget -q -O - https://raw.githubusercontent.com/pancongliang/openshift/main/installing/00-download-script.sh | sh
   ```
 
 * Security settings and subscriptions
