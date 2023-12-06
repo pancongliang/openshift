@@ -29,7 +29,7 @@ scripts=(
 )
 
 # Specify the base URL of the GitHub repository
-base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/ocp-install/"
+base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/"
 
 # Function to download scripts
 download_scripts() {
