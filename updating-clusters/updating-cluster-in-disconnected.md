@@ -71,7 +71,8 @@
 
 * Verify OCP releases image
   ```
-  podman search ${LOCAL_REGISTRY}/openshift/release-images --list-tags --limit=1000 --tls-verify=false --authfile /root/pull-secret
+  podman search ${LOCAL_REGISTRY}/openshift/release-images \
+    --list-tags --limit=1000 --tls-verify=false --authfile /root/pull-secret
   NAME                                                       TAG
   mirror.registry.example.com:8443/openshift/release-images  4.10.20-x86_64
   mirror.registry.example.com:8443/openshift/release-images  4.11.53-x86_64
@@ -96,7 +97,8 @@
   export ARCHITECTURE='x86_64'
   export RELEASE_DIGEST=$(oc adm release info -o 'jsonpath={.digest}{"\n"}' quay.io/openshift-release-dev/ocp-release:${OCP_RELEASE_VERSION}-${ARCHITECTURE})
 
-  oc adm upgrade --allow-explicit-upgrade --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@${RELEASE_DIGEST}
+  oc adm upgrade --allow-explicit-upgrade \
+     --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@${RELEASE_DIGEST}
 
   oc get pod,job -n openshift-cluster-version
   NAME                                        READY   STATUS      RESTARTS   AGE
