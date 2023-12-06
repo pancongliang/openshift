@@ -9,29 +9,23 @@
   chmod +x ./oc-mirror
   sudo mv ./oc-mirror /usr/local/bin/
   ```
-
-* Login OperatorHub catalog
-  ```
-  podman login registry.redhat.io
-  ```
-
-* Find OCP releases by major/minor version
-  ```
-  oc-mirror list releases --version=4.10
-  ```
-
 * Download [pull-secret](https://console.redhat.com/openshift/install/pull-secret)
 
 * Add local Image Registry credentials to the pull-secret
   ```
-  MIRROR_REGISTRY=mirror.registry.example.com:8443
-  podman login ${MIRROR_REGISTRY}
-  podman login --authfile /root/pull-secret ${MIRROR_REGISTRY}
+  export LOCAL_REGISTRY=mirror.registry.example.com:8443
+  podman login ${LOCAL_REGISTRY}
+  podman login --authfile /root/pull-secret ${LOCAL_REGISTRY}
   ```
 
 * Save the file either as ~/.docker/config.json or $XDG_RUNTIME_DIR/containers/auth.json
   ```
   cat /root/pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
+  ```
+  
+* Find OCP releases by major/minor version
+  ```
+  oc-mirror list releases --version=4.11
   ```
 
 * Creating the image set configuration
@@ -41,14 +35,14 @@
   kind: ImageSetConfiguration
   storageConfig:
    registry:
-     imageURL: ${MIRROR_REGISTRY}/mirror/metadata
+     imageURL: ${LOCAL_REGISTRY}/mirror/metadata
   mirror:
     platform:
       channels:
         - name: stable-4.11
           minVersion: 4.10.20     # Current version
           maxVersion: 4.11.53     # Updated target version
-          shortestPath: true      # Mirror only the shortest upgrade path，For example: setting minVersion 4.9.12/maxVersion 4.  10.31 will mirror intermediate version 4.9.47
+          shortestPath: true      # Mirror only the shortest upgrade path，For example: setting minVersion 4.9.12/maxVersion 4.10.31 will mirror intermediate version 4.9.47
    #operators:                    # Can mirror both ocp release image and specific operator
    #- catalog: registry.redhat.io/redhat/redhat-operator-index:v4.10
    #  packages:
@@ -58,7 +52,7 @@
 
 * Mirroring an image set to a mirror registry.
   ```
-  oc mirror --config=./imageset-config.yaml docker://${MIRROR_REGISTRY} --dest-skip-tls
+  oc mirror --config=./imageset-config.yaml docker://${LOCAL_REGISTRY} --dest-skip-tls
   ```
 
 * Create release-signatures and image-content-source-policy
@@ -77,8 +71,7 @@
 
 * Verify OCP releases image
   ```
-  podman search  mirror.registry.example.com:8443/openshift/release-images \
-      --list-tags --limit=1000 --tls-verify=false --authfile /root/pull-secret
+  podman search ${LOCAL_REGISTRY}/openshift/release-images --list-tags --limit=1000 --tls-verify=false --authfile /root/pull-secret
   NAME                                                       TAG
   mirror.registry.example.com:8443/openshift/release-images  4.10.20-x86_64
   mirror.registry.example.com:8443/openshift/release-images  4.11.53-x86_64
@@ -97,11 +90,11 @@
 
 * Retrieve release image digests and update disconnected clusters
   ```
-  LOCAL_REGISTRY=${MIRROR_REGISTRY}
-  LOCAL_REPOSITORY='openshift/release-images'
-  OCP_RELEASE_VERSION='4.11.53'
-  ARCHITECTURE='x86_64'
-  RELEASE_DIGEST=$(oc adm release info -o 'jsonpath={.digest}{"\n"}' quay.io/openshift-release-dev/ocp-release:${OCP_RELEASE_VERSION}-${ARCHITECTURE})
+  export LOCAL_REGISTRY=${LOCAL_REGISTRY}
+  export LOCAL_REPOSITORY='openshift/release-images'
+  export OCP_RELEASE_VERSION='4.11.53'
+  export ARCHITECTURE='x86_64'
+  export RELEASE_DIGEST=$(oc adm release info -o 'jsonpath={.digest}{"\n"}' quay.io/openshift-release-dev/ocp-release:${OCP_RELEASE_VERSION}-${ARCHITECTURE})
 
   oc adm upgrade --allow-explicit-upgrade --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@${RELEASE_DIGEST}
 
@@ -110,7 +103,6 @@
   cluster-version-operator-6869754c56-5wwnz   1/1     Running     0          41s
   version--jlrrn-gnlk7                        0/1     Completed   0          105s
   ···
-  ```
 
 * Wait for the OCP cluster upgrade to complete and check the status
   ```
