@@ -11,7 +11,7 @@
   ```
 * Download [pull-secret](https://console.redhat.com/openshift/install/pull-secret)
 
-* Add local Image Registry credentials to the pull-secret
+* Add local registry credentials to the pull-secret
   ```
   export LOCAL_REGISTRY=mirror.registry.example.com:8443
   podman login ${LOCAL_REGISTRY}
