@@ -79,7 +79,7 @@
   ```
 
 ### Updating a cluster in a disconnected environment without the OpenShift Update Service
-
+  
 * Pausing a MachineHealthCheck resource
   ```
   oc get machinehealthcheck -n openshift-machine-api
@@ -87,6 +87,11 @@
   machine-api-termination-handler   100% 
 
   oc -n openshift-machine-api annotate mhc machine-api-termination-handler cluster.x-k8s.io/paused=""
+  ```
+
+* Change upgrade channel
+  ```
+  oc patch clusterversion version --type merge -p '{"spec": {"channel": "stable-4.11"}}'
   ```
 
 * Retrieve release image digests and update disconnected clusters
