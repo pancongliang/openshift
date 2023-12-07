@@ -100,7 +100,8 @@
   export LOCAL_REPOSITORY='openshift/release-images'
   export OCP_RELEASE_VERSION='4.11.53'
   export ARCHITECTURE='x86_64'
-  export RELEASE_DIGEST=$(oc adm release info -o 'jsonpath={.digest}{"\n"}' quay.io/openshift-release-dev/ocp-release:${OCP_RELEASE_VERSION}-${ARCHITECTURE})
+  export RELEASE_DIGEST=$(oc adm release info -o 'jsonpath={.digest}{"\n"}' \
+                            quay.io/openshift-release-dev/ocp-release:${OCP_RELEASE_VERSION}-${ARCHITECTURE})
 
   oc adm upgrade --allow-explicit-upgrade \
      --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@${RELEASE_DIGEST}
