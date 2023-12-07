@@ -59,7 +59,7 @@
 
 * Add local Image Registry credentials to the pull-secret
   ```
-  LOCAL_REGISTRY=mirror.registry.example.com:8443
+  export LOCAL_REGISTRY=mirror.registry.example.com:8443
   podman login ${LOCAL_REGISTRY}
   podman login --authfile /root/pull-secret ${LOCAL_REGISTRY}
   ```
@@ -80,7 +80,7 @@
   kind: ImageSetConfiguration
   storageConfig:
    registry:
-     imageURL: ${LOCAL_REGISTRY}/mirror/metadata
+     imageURL: ${LOCAL_REGISTRY}/mirror/metadata\
      skipTLS: false
   mirror:
     platform:
