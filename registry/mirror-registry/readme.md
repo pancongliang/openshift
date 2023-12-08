@@ -12,3 +12,4 @@
   
   source deploy-mirror-registry.sh
   ```
+* Configuring additional [trust](https://github.com/pancongliang/openshift/blob/main/registry/add-trust-registry/readme.md#configuring-additional-trust-stores-for-image-registry-access) stores for image registry access
