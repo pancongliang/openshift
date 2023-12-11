@@ -23,7 +23,7 @@
   #!/bin/bash
   for Hostname in $(oc get nodes  -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
   do
-     echo "---  $Hostname ---"
+     echo "---  [$Hostname] ---"
      ssh -o StrictHostKeyChecking=no core@$Hostname sudo ls /etc/docker/certs.d/
      echo
   done
@@ -41,7 +41,7 @@
   #!/bin/bash
   for Hostname in $(oc get nodes  -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
   do
-     echo "---  $Hostname ---"
+     echo "---  [$Hostname] ---"
      ssh -o StrictHostKeyChecking=no core@$Hostname sudo cat /var/lib/kubelet/config.json
      echo
   done
