@@ -14,8 +14,8 @@ oc new-project samplelog
 oc new-app --name samplelog-app --docker-image docker.registry.example.com:5000/samplelog/samplelog-app:latest
 oc expose svc samplelog-app --hostname hello-world.apps.ocp4.example.com
 
-curl -s http://hello-world.apps.ocp4.example.com |grep :Hello World"
-        Hello World
+curl -s http://hello-world.apps.ocp4.example.com |grep "Hello World"
+Hello World
 ~~~
 
 ### Generate log(Generate 10 logs)
