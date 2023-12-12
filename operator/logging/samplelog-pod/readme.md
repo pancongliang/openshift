@@ -23,4 +23,9 @@ curl -s http://hello-world.apps.ocp4.example.com |grep :Hello World"
 yum install httpd-tools
 
 ab -n 10 -c 1 http://hello-world.apps.ocp4.example.com/
+
+oc logs -n samplelog samplelog-app-69d56fb7db-bjpmz |grep "Hello World"
+Hello World
+Hello World
+···
 ~~~
