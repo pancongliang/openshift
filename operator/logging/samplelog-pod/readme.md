@@ -1,8 +1,8 @@
 
 ### Build samplelog-app image
 ~~~
-wget https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/index.jsp
-wget https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/Dockerfile
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/index.jsp
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/Dockerfile
 
 podman build -t docker.registry.example.com:5000/samplelog/samplelog-app:latest .
 podman push docker.registry.example.com:5000/samplelog/samplelog-app:latest
