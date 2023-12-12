@@ -2,10 +2,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>log test</title>
+    <title>Log Test</title>
 </head>
 <body>
 	<%
+                out.print("Hello World");
 		System.out.println("Hello World");
 	%>
 </body>
