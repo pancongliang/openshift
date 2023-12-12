@@ -11,7 +11,7 @@ podman push docker.registry.example.com:5000/samplelog/samplelog-app:latest
 ### Create samplelog app serive
 ~~~
 oc new-project samplelog
-oc new-app --name samplelog-app docker.registry.example.com:5000/samplelog/samplelog-app:latest
+oc new-app --name samplelog-app --docker-image docker.registry.example.com:5000/samplelog/samplelog-app:latest
 oc expose svc samplelog-app --hostname hello-world.apps.ocp4.example.com
 ~~~
 
