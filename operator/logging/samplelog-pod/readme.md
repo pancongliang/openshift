@@ -1,4 +1,4 @@
-wget
+wget https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/01-index.jsp
 
 wget 
 
