@@ -5,9 +5,9 @@
     <title>Log Test</title>
 </head>
 <body>
-	<%
-          out.print("Hello World");
-          System.out.println("Hello World");
-	%>
+<%
+    out.print("Hello World");
+    System.out.println("Hello World");
+%>
 </body>
 </html>
