@@ -29,3 +29,34 @@
 
   oc get po -n openshift-logging
   ```
+
+### Search index in elasticsearch by keyword
+
+* Find index
+  ```
+  oc exec -it -n openshift-logging -c elasticsearch $(oc get pod -n openshift-logging \
+    -l cluster-name=elasticsearch -o jsonpath='{.items[0].metadata.name}') \
+    -- curl --cert /etc/elasticsearch/secret/admin-cert --key /etc/elasticsearch/secret/admin-key \
+    --cacert /etc/elasticsearch/secret/admin-ca \
+    -X GET "https://localhost:9200/_cat/indices?v"
+  ```
+
+* Search for keywords in a specific index
+  ```
+  export INDEX=app-000001
+  export KEYWORD="Hello World"
+  
+  oc exec -it -n openshift-logging -c elasticsearch $(oc get pod -n openshift-logging \
+    -l cluster-name=elasticsearch -o jsonpath='{.items[0].metadata.name}') \
+    -- curl --cert /etc/elasticsearch/secret/admin-cert --key /etc/elasticsearch/secret/admin-key \
+    --cacert /etc/elasticsearch/secret/admin-ca \
+    -XGET "https://localhost:9200/${INDEX}/_search?pretty" -H 'Content-Type: application/json' \
+    --data "{
+    \"query\": {
+      \"match\": {
+        \"message\": \"${KEYWORD}\"
+      }
+    }
+  }"
+
+  ```
