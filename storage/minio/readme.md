@@ -73,7 +73,7 @@
   ```
   BUCKET_NAME="loki-bucket"   # loki bucket
   BUCKET_NAME="quay-bucket"   # quay bucket
-
+  BUCKET_NAME="oadp-bucket"   # oadp bucket
   mc mb my-minio/${BUCKET_NAME}
   ```
   Commonly used [mc commands](https://min.io/docs/minio/linux/reference/minio-mc.html?ref=docs#command-quick-reference)
