@@ -172,7 +172,7 @@
   oc get backup -n openshift-adp nginx-sample-backup -o jsonpath='{.status.phase}'
   ```
 
-* 确认 “my-minio/ocp-backup/velero/backups/nginx-sample-backup” 是否有备份数据
+* Check "my-minio/ocp-backup/velero/backups/nginx-sample-backup" to see if there is backup data
   ```
   mc ls my-minio/oadp-bucket/velero/backups/nginx-sample-backup
   [2022-07-12 14:12:56 UTC]    29B STANDARD nginx-sample-backup-csi-volumesnapshotcontents.json.gz
