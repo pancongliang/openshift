@@ -247,7 +247,7 @@
   apiVersion: velero.io/v1
   kind: Schedule
   metadata:
-    name: nginx-sample-backup-schedule
+    name: sample-backup-schedule
     namespace: openshift-adp
   spec:
     schedule: '*/10 * * * *'
@@ -264,4 +264,15 @@
  * Verify that the status of the Schedule CR:
   ```
   oc get schedule -n openshift-adp
+  NAME                           STATUS    SCHEDULE       LASTBACKUP   AGE   PAUSED
+  nginx-sample-backup-schedule   Enabled   */10 * * * *   2m11s        18m 
+
+  oc get backup -n openshift-adp
+  NAME                                    AGE
+  sample-backup-schedule-20231214055040   12m
+  sample-backup-schedule-20231214060040   2m26s
+  sample-backup                           37m
+ 
+  oc get backup -n openshift-adp sample-backup-schedule-20231214055040  -o jsonpath='{.status.phase}'
+  Completed
   ```
