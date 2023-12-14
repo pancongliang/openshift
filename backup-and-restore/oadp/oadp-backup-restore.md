@@ -101,7 +101,7 @@
             name: cloud-credentials
           default: true
           objectStorage:
-            bucket: ocp-backup
+            bucket: oadp-bucket
             prefix: velero
           provider: aws
     configuration:
@@ -136,9 +136,11 @@
   NAME         AGE
   oadp-minio   2m46s
 
+  oc get backupStorageLocations -n openshift-adp
+  
   velero get backup-locations -n openshift-adp
   NAME           PROVIDER   BUCKET/PREFIX       PHASE       LAST VALIDATED                  ACCESS MODE   DEFAULT
-  oadp-minio-1   aws        oadp-backet/velero   Available   2022-07-12 13:50:24 +0000 UTC   ReadWrite     true
+  oadp-minio-1   aws        oadp-bucket/velero   Available   2022-07-12 13:50:24 +0000 UTC   ReadWrite     true
   ```
 
 ### Backing up applications
@@ -172,7 +174,7 @@
 
 * 确认 “my-minio/ocp-backup/velero/backups/nginx-sample-backup” 是否有备份数据
   ```
-  mc ls my-minio/oadp-backet/velero/backups/nginx-sample-backup
+  mc ls my-minio/oadp-bucket/velero/backups/nginx-sample-backup
   [2022-07-12 14:12:56 UTC]    29B STANDARD nginx-sample-backup-csi-volumesnapshotcontents.json.gz
   [2022-07-12 14:12:56 UTC]    29B STANDARD nginx-sample-backup-csi-volumesnapshots.json.gz
   [2022-07-12 14:12:56 UTC]  11KiB STANDARD nginx-sample-backup-logs.gz
