@@ -1,0 +1,14 @@
+apiVersion: mirror.openshift.io/v1alpha2
+kind: ImageSetConfiguration
+storageConfig:
+ registry:
+   imageURL: docker.registry.example.com:5000/mirror/metadata
+   #imageURL: mirror.registry.example.com:8443/mirror/metadata
+   skipTLS: false
+mirror:
+  platform:
+    channels:
+      - name: stable-4.12
+        minVersion: 4.11.50
+        maxVersion: 4.12.37
+        shortestPath: true
