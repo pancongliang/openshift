@@ -82,7 +82,10 @@
 
 * Create DataProtectionApplication
   ```
-  cat <<EOF | oc apply -f -
+  export S3URL=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
+  export BUCKET_NAME="oadp-bucket"
+  
+  cat <<EOF /root/dpa.yaml
   apiVersion: oadp.openshift.io/v1alpha1
   kind: DataProtectionApplication
   metadata:
@@ -95,13 +98,13 @@
             profile: default
             region: minio
             s3ForcePathStyle: 'true'
-            s3Url: 'http://minio.minio.svc/'
+            s3Url: '${S3URL}'
           credential:
             key: cloud
             name: cloud-credentials
           default: true
           objectStorage:
-            bucket: oadp-bucket
+            bucket: ${BUCKET_NAME}
             prefix: velero
           provider: aws
     configuration:
@@ -119,6 +122,8 @@
             region: minio
           provider: aws
   EOF
+
+  oc create -f /root/dpa.yaml
   ```
 
 * View the Resources related to the DataProtectionApplication object
