@@ -62,19 +62,19 @@
 
 ### Install and configure OADP Operator
 
-* webconsole -> Operators → OperatorHub -> OADP operator -> Install
+* Install OADP Operator
   ```
   export CHANNEL_NAME="stable-1.3"
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/backup-and-restore/oadp/01-deploy-operator.yaml | envsubst | oc apply -f -
 
-sleep 6
+  sleep 6
 
-oc patch installplan $(oc get ip -n openshift-adp  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-adp --type merge --patch '{"spec":{"approved":true}}'
+  oc patch installplan $(oc get ip -n openshift-adp  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-adp --type merge --patch '{"spec":{"approved":true}}'
 
   oc get po -n openshift-adp
-  NAME                                                READY   STATUS    RESTARTS   AGE
-  openshift-adp-controller-manager-6f847bb84c-2smkc   1/1     Running   0          4h13m
+  NAME                                               READY   STATUS    RESTARTS   AGE
+  openshift-adp-controller-manager-7f6f5fcf6-ndxcn   1/1     Running   0          89s
   ```
 
 * Create a Secret named "cloud-credentials" in the openshift-adp project to allow access to Minio
