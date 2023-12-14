@@ -6,8 +6,8 @@
   oc new-project sample-backup
   oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
   oc expose svc/nginx --hostname  nginx.apps.ocp4.example.net
-  curl nginx.apps.ocp4.example.net | grep Hello
-  <h1>Hello, world from nginx!</h1>
+  curl -s nginx.apps.ocp4.example.net | grep Hello
+  Hello, world from nginx!
   
   oc set volumes deployment/nginx \
     --add --name nginx-storage --type pvc --claim-class nfs-storage \
@@ -64,6 +64,14 @@
 
 * webconsole -> Operators → OperatorHub -> OADP operator -> Install
   ```
+  export CHANNEL_NAME="stable-1.3"
+  export CATALOG_SOURCE_NAME="redhat-operators"
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/backup-and-restore/oadp/01-deploy-operator.yaml | envsubst | oc apply -f -
+
+sleep 6
+
+oc patch installplan $(oc get ip -n openshift-adp  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-adp --type merge --patch '{"spec":{"approved":true}}'
+
   oc get po -n openshift-adp
   NAME                                                READY   STATUS    RESTARTS   AGE
   openshift-adp-controller-manager-6f847bb84c-2smkc   1/1     Running   0          4h13m
