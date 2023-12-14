@@ -1,55 +1,55 @@
 ##  OADP Application backup and restore
 
 ### Deploy test application
-* nginx pod for testing
+* nginx pod for testing:
   ```
   oc new-project sample-backup
   oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
-  oc expose svc/nginx --hostname  nginx.apps.ocp4.example.net
-  curl -s nginx.apps.ocp4.example.net | grep Hello
-  Hello, world from nginx!
+  oc expose svc/nginx --hostname nginx.apps.ocp4.example.com
+  curl -s nginx.apps.ocp4.example.com | grep Hello
+      <h1>Hello, world from nginx!</h1>
   
   oc set volumes deployment/nginx \
-    --add --name nginx-storage --type pvc --claim-class nfs-storage \
+    --add --name nginx-storage --type pvc --claim-class managed-nfs-storage \
     --claim-mode RWO --claim-size 5Gi --mount-path /data \
     --claim-name nginx-storage
   
-  oc rsh nginx-5ffbd89cfd-wlbsw
+  oc -n sample-backup rsh nginx-7c5fc86c75-qblm9
   sh-4.4$ df -h /data
   Filesystem                                                                               Size  Used Avail Use% Mounted on
-  10.74.251.171:/nfs/sample-backup-nginx-storage-pvc-e7ddddef-8565-4f32-a9a3-5e4728dcff47  192G  127G   65G  67% /data
+  10.74.251.171:/nfs/sample-backup-nginx-storage-pvc-ed2735be-8c15-41eb-be1e-71ccb0e5db14  192G  127G   65G  67% /data
   sh-4.4$ cat /data/test
   hello
   sh-4.4$ exit
   
   oc get all -n sample-backup
   NAME                         READY   STATUS    RESTARTS   AGE
-  pod/nginx-5ffbd89cfd-wlbsw   1/1     Running   0          53s
+  pod/nginx-7c5fc86c75-qblm9   1/1     Running   0          90s
   
-  NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-  service/nginx   ClusterIP   172.30.228.52   <none>        8080/TCP   70s
+  NAME            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+  service/nginx   ClusterIP   172.30.137.187   <none>        8080/TCP   2m11s
   
   NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
-  deployment.apps/nginx   1/1     1            1           70s
+  deployment.apps/nginx   1/1     1            1           2m11s
   
   NAME                               DESIRED   CURRENT   READY   AGE
-  replicaset.apps/nginx-5b4bbd55     0         0         0       70s
-  replicaset.apps/nginx-5ffbd89cfd   1         1         1       53s
-  replicaset.apps/nginx-6fb64d848    0         0         0       69s
+  replicaset.apps/nginx-675f9c6887   0         0         0       2m7s
+  replicaset.apps/nginx-7557ff84     0         0         0       2m11s
+  replicaset.apps/nginx-7c5fc86c75   1         1         1       90s
   
-  NAME                                   IMAGE REPOSITORY                                                                   TAGS   UPDATED
-  imagestream.image.openshift.io/nginx   default-route-openshift-image-registry.apps.ocp4.example.net/sample-backup/nginx   v1.0   About a minute ago
+  NAME                                   IMAGE REPOSITORY                                                       TAGS     UPDATED
+  imagestream.image.openshift.io/nginx   image-registry.openshift-image-registry.svc:5000/sample-backup/nginx   v1.0   2   minutes ago
   
   NAME                             HOST/PORT                     PATH   SERVICES   PORT       TERMINATION   WILDCARD
-  route.route.openshift.io/nginx   nginx.apps.ocp4.example.net          nginx      8080-tcp                 None
+  route.route.openshift.io/nginx   nginx.apps.ocp4.example.com          nginx      8080-tcp                 None
   
   oc get pvc -n sample-backup
-  NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-  nginx-storage   Bound    pvc-e7ddddef-8565-4f32-a9a3-5e4728dcff47   5Gi        RWO            nfs-storage    70s
+  NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS          AGE
+  nginx-storage   Bound    pvc-ed2735be-8c15-41eb-be1e-71ccb0e5db14   5Gi        RWO            managed-nfs-storage   24m
   ```
 
 ### Install dependent components
-* Install velero client on bastion machine
+* Install velero client on bastion machine:
   ```
   VERSION=v1.7.1
   cd ~/ && curl -OL https://github.com/vmware-tanzu/velero/releases/download/${VERSION}/velero-${VERSION}-linux-amd64.tar.gz
@@ -57,12 +57,12 @@
   mv velero-${VERSION}-linux-amd64/velero /usr/local/bin/
   ```
 
-* Deploy Minio Object Storage
+* Deploy Minio Object Storage:
   [Create `oadp-bucket`](Create `oadp-bucket` after Deploy Minio Object Storage) after [Deploy Minio](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#deploy-minio-object-storage) Object Storage
 
 ### Install and configure OADP Operator
 
-* Install OADP Operator
+* Install OADP Operator:
   ```
   export CHANNEL_NAME="stable-1.3"
   export CATALOG_SOURCE_NAME="redhat-operators"
@@ -77,7 +77,7 @@
   openshift-adp-controller-manager-7f6f5fcf6-ndxcn   1/1     Running   0          89s
   ```
 
-* Create a Secret named "cloud-credentials" in the openshift-adp project to allow access to Minio
+* Create a Secret named "cloud-credentials" in the openshift-adp project to allow access to Minio:
   ```
   cat << EOF > /root/credentials-velero
   [default]
@@ -88,79 +88,43 @@
   oc create secret generic cloud-credentials -n openshift-adp --from-file cloud=/root/credentials-velero
   ```
 
-* Create DataProtectionApplication
+* Create DataProtectionApplication:
   ```
   export S3URL=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
   export BUCKET_NAME="oadp-bucket"
   
-  cat <<EOF /root/dpa.yaml
-  apiVersion: oadp.openshift.io/v1alpha1
-  kind: DataProtectionApplication
-  metadata:
-    name: odpa-sample
-    namespace: openshift-adp
-  spec:
-    backupLocations:
-      - velero:
-          config:
-            profile: default
-            region: minio
-            s3ForcePathStyle: 'true'
-            s3Url: '${S3URL}'
-          credential:
-            key: cloud
-            name: cloud-credentials
-          default: true
-          objectStorage:
-            bucket: ${BUCKET_NAME}
-            prefix: velero
-          provider: aws
-    configuration:
-      restic:
-        enable: true
-      velero:
-        defaultPlugins:
-          - openshift
-          - aws
-          - kubevirt
-    snapshotLocations:
-      - velero:
-          config:
-            profile: default
-            region: minio
-          provider: aws
-  EOF
-
-  oc create -f /root/dpa.yaml
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/backup-and-restore/oadp/02-dpa.yaml | envsubst | oc apply -f -
   ```
 
-* View the Resources related to the DataProtectionApplication object
+* View the Resources related to the DataProtectionApplication object:
   ```
   oc get po -n openshift-adp
-  NAME                                                READY   STATUS    RESTARTS   AGE
-  oadp-odpa-sample-1-aws-registry-745b5b86b8-l5zgr     1/1     Running   0          25s
-  openshift-adp-controller-manager-6f847bb84c-2smkc   1/1     Running   0          4h13m
-  restic-bl2m6                                        1/1     Running   0          24s
-  restic-cbx24                                        1/1     Running   0          24s
-  restic-zxz8v                                        1/1     Running   0          24s
-  velero-54cb6f7c8b-h5t8f                             1/1     Running   0          24s
+  NAME                                               READY   STATUS    RESTARTS   AGE
+  node-agent-ctzm4                                   1/1     Running   0          12s
+  openshift-adp-controller-manager-7f6f5fcf6-ndxcn   1/1     Running   0          87m
+  velero-7bb45ff59b-ntnpg                            1/1     Running   0          12s
 
   oc get dataprotectionapplication -n openshift-adp
   NAME         AGE
-  odpa-sample   2m46s
+  dpa-sample   24s
 
   oc get backupStorageLocations -n openshift-adp
+  NAME           PHASE       LAST VALIDATED   AGE   DEFAULT
+  dpa-sample-1   Available   8s               38s   true
   
   velero get backup-locations -n openshift-adp
-  NAME           PROVIDER   BUCKET/PREFIX       PHASE       LAST VALIDATED                  ACCESS MODE   DEFAULT
-  odpa-sample-1   aws        oadp-bucket/velero   Available   2022-07-12 13:50:24 +0000 UTC   ReadWrite     true
+  NAME           PROVIDER   BUCKET/PREFIX        PHASE       LAST VALIDATED                  ACCESS MODE   DEFAULT
+  dpa-sample-1   aws        oadp-bucket/velero   Available   2023-12-14 05:19:40 +0000 UTC   ReadWrite     true
   ```
 
 ### Backing up applications
 
-* Create a Backup CR
+* Create a Backup CR:
   ```
-  cat << EOF | oc apply -f -
+  export BACKUP_NAMESPACE=sample-backup
+  export STORAGELOCATION=$(oc get backupStorageLocations -n openshift-adp -o jsonpath='{.items[0].metadata.name}')
+  
+  cat <<EOF | envsubst | oc apply -f -
   apiVersion: velero.io/v1
   kind: Backup
   metadata:
@@ -169,8 +133,8 @@
   spec:
       hooks: {}
       includedNamespaces:
-      - sample-backup                 # Specify the namespace name of the backup object
-      storageLocation: odpa-sample-1   # Based on the name output by <velero get backup-locations -n openshift-adp>
+      - ${BACKUP_NAMESPACE}
+      storageLocation: ${STORAGELOCATION}
       defaultVolumesToRestic: true 
       ttl: 720h0m0s
   EOF
@@ -178,92 +142,107 @@
 
 * Verify that the status of the Backup CR is Completed:
   ```
+  oc get backup -n openshift-adp sample-backup -o jsonpath='{.status.phase}'
+  Completed
+  
   velero get backup -n openshift-adp
-  NAME                  STATUS      ERRORS   WARNINGS   CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
-  nginx-sample-backup   Completed   0        0          2022-07-12 14:12:30 +0000 UTC   29d       odpa-sample-1       <none>
-
-  oc get backup -n openshift-adp nginx-sample-backup -o jsonpath='{.status.phase}'
+  NAME            STATUS      ERRORS   WARNINGS   CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
+  sample-backup   Completed   0        0          2023-12-14 05:26:05 +0000 UTC   29d       dpa-sample-1       <none>
   ```
 
-* Check "my-minio/ocp-backup/velero/backups/nginx-sample-backup" to see if there is backup data
+* Check "my-minio/ocp-backup/velero/backups/sample-backup" to see if there is backup data:
   ```
-  mc ls my-minio/oadp-bucket/velero/backups/nginx-sample-backup
-  [2022-07-12 14:12:56 UTC]    29B STANDARD nginx-sample-backup-csi-volumesnapshotcontents.json.gz
-  [2022-07-12 14:12:56 UTC]    29B STANDARD nginx-sample-backup-csi-volumesnapshots.json.gz
-  [2022-07-12 14:12:56 UTC]  11KiB STANDARD nginx-sample-backup-logs.gz
-  [2022-07-12 14:12:56 UTC]   891B STANDARD nginx-sample-backup-podvolumebackups.json.gz
-  [2022-07-12 14:12:56 UTC]   948B STANDARD nginx-sample-backup-resource-list.json.gz
-  [2022-07-12 14:12:56 UTC]    29B STANDARD nginx-sample-backup-volumesnapshots.json.gz
-  [2022-07-12 14:12:56 UTC] 176KiB STANDARD nginx-sample-backup.tar.gz
-  [2022-07-12 14:12:56 UTC] 2.6KiB STANDARD velero-backup.json
+  mc ls my-minio/oadp-bucket/velero/backups/sample-backup
+  [2023-12-14 05:26:15 UTC]    29B STANDARD sample-backup-csi-volumesnapshotclasses.json.gz
+  [2023-12-14 05:26:16 UTC]    29B STANDARD sample-backup-csi-volumesnapshotcontents.json.gz
+  [2023-12-14 05:26:16 UTC]    29B STANDARD sample-backup-csi-volumesnapshots.json.gz
+  [2023-12-14 05:26:15 UTC]    27B STANDARD sample-backup-itemoperations.json.gz
+  [2023-12-14 05:26:15 UTC]  11KiB STANDARD sample-backup-logs.gz
+  [2023-12-14 05:26:15 UTC]   902B STANDARD sample-backup-podvolumebackups.json.gz
+  [2023-12-14 05:26:15 UTC]   899B STANDARD sample-backup-resource-list.json.gz
+  [2023-12-14 05:26:15 UTC]    49B STANDARD sample-backup-results.gz
+  [2023-12-14 05:26:15 UTC]    29B STANDARD sample-backup-volumesnapshots.json.gz
+  [2023-12-14 05:26:15 UTC] 157KiB STANDARD sample-backup.tar.gz
+  [2023-12-14 05:26:16 UTC] 3.6KiB STANDARD velero-backup.json
   ```
 
 ###  Restoring applications
-* Delete the namespace to back up the object
+* Delete the namespace to back up the object:
   ```
   oc delete project sample-backup
   ```
-
-* Creating a Restore CR
+  
+* Creating a Restore CR:
   ```
-  cat << EOF | oc apply -f -
+  oc get backup -n openshift-adp
+  NAME            AGE
+  sample-backup   5m30s
+
+  export BACKUP_NAME=sample-backup
+  
+  cat <<EOF | envsubst | oc apply -f -
   apiVersion: velero.io/v1
   kind: Restore
   metadata:
-    name: nginx-sample-restore
+    name: sample-restore
     namespace: openshift-adp
   spec:
-    backupName: nginx-sample-backup
-    restorePVs: true     # Optional: true/false
+    backupName: ${BACKUP_NAME}
+    restorePVs: true
   EOF
   ```
 
 * Verify that the status of the Restore CR is Completed by entering the following command:
   ```
+  oc get restore -n openshift-adp sample-restore -o jsonpath='{.status.phase}'
+  Completed
+  
   velero get restore -n openshift-adp
-  NAME                   BACKUP                STATUS      STARTED                         COMPLETED                       ERRORS   WARNINGS   CREATED                         SELECTOR
-  nginx-sample-restore   nginx-sample-backup   Completed   2022-07-12 14:16:14 +0000 UTC   2022-07-12 14:16:41 +0000 UTC   0        4          2022-07-12 14:16:14 +0000 UTC   <none>
-
-  oc get restore -n openshift-adp nginx-sample-restore -o jsonpath='{.status.phase}'
+  NAME             BACKUP          STATUS      STARTED                         COMPLETED                       ERRORS   WARNINGS   CREATED                         SELECTOR
+  sample-restore   sample-backup   Completed   2023-12-14 05:35:15 +0000 UTC   2023-12-14 05:35:53 +0000 UTC   0        11         2023-12-14 05:35:15 +0000 UTC   <none>
   ```
 
-* Verify that the backup resources have been restored by entering the following command
+* Verify that the backup resources have been restored by entering the following command:
   ```
   oc get all -n sample-backup
   NAME                         READY   STATUS    RESTARTS   AGE
-  pod/nginx-5ffbd89cfd-wlbsw   1/1     Running   0          90s
+  pod/nginx-7c5fc86c75-qblm9   1/1     Running   0          75s
   
   NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-  service/nginx   ClusterIP   172.30.21.198   <none>        8080/TCP   88s
+  service/nginx   ClusterIP   172.30.25.116   <none>        8080/TCP   74s
   
   NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
-  deployment.apps/nginx   1/1     1            1           89s
+  deployment.apps/nginx   1/1     1            1           74s
   
   NAME                               DESIRED   CURRENT   READY   AGE
-  replicaset.apps/nginx-5ffbd89cfd   1         1         1       89s
+  replicaset.apps/nginx-7c5fc86c75   1         1         1       74s
   
-  NAME                                   IMAGE   REPOSITORY                                                                   TAGS     UPDATED
-  imagestream.image.openshift.io/nginx   default-route-openshift-image-registry.apps.  ocp4.example.net/sample-backup/nginx   v1.0   About a minute ago
+  NAME                                   IMAGE REPOSITORY                                                       TAGS   UPDATED
+  imagestream.image.openshift.io/nginx   image-registry.openshift-image-registry.svc:5000/sample-backup/nginx   v1.0   About a minute ago
   
-  NAME                             HOST/PORT                     PATH   SERVICES     PORT       TERMINATION   WILDCARD
-  route.route.openshift.io/nginx   nginx.apps.ocp4.example.net          nginx        8080-tcp                 None
+  NAME                             HOST/PORT                     PATH   SERVICES   PORT       TERMINATION   WILDCARD
+  route.route.openshift.io/nginx   nginx.apps.ocp4.example.com          nginx      8080-tcp                 None
   
   oc get pvc -n sample-backup
-  NAME            STATUS   VOLUME                                     CAPACITY   ACCESS   MODES   STORAGECLASS   AGE
-  nginx-storage   Bound    pvc-088935bc-a85f-402b-b3fe-ddf449f60dd1   5Gi          RWO            nfs-storage    2m4s
+  NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS          AGE
+  nginx-storage   Bound    pvc-54fd07f8-f6e0-4e79-b45a-cfb22ff58140   5Gi        RWO            managed-nfs-storage   119s
   
-  oc -n sample-backup rsh nginx-5ffbd89cfd-wlbsw  
+  oc -n sample-backup rsh nginx-7c5fc86c75-qblm9 
   Defaulted container "nginx" out of: nginx, restic-wait (init)
   sh-4.4$ df -h /data
-  Filesystem                                                                                 Size  Used Avail Use% Mounted on
-  10.74.251.171:/nfs/  sample-backup-nginx-storage-pvc-088935bc-a85f-402b-b3fe-ddf449f60dd1  192G  127G     65G  67% /data
+  Filesystem                                                                               Size  Used Avail Use% Mounted on
+  10.74.251.171:/nfs/sample-backup-nginx-storage-pvc-54fd07f8-f6e0-4e79-b45a-cfb22ff58140  150G   62G   88G  42% /data
   sh-4.4$ cat /data/test 
   hello
   sh-4.4$ exit
   ```
 
 ### Scheduling backups using Schedule CR
+* Create a Schedule CR, as in the following example:  
   ```
+  export BACKUP_NAMESPACE=sample-backup
+  export STORAGELOCATION=$(oc get backupStorageLocations -n openshift-adp -o jsonpath='{.items[0].metadata.name}')
+
   cat << EOF | oc apply -f -
   apiVersion: velero.io/v1
   kind: Schedule
@@ -271,13 +250,18 @@
     name: nginx-sample-backup-schedule
     namespace: openshift-adp
   spec:
-    schedule: 0 7 * * * 
+    schedule: '*/10 * * * *'
     template:
       hooks: {}
       includedNamespaces:
-      - sample-backup
-      storageLocation: odpa-sample-1
+      - ${BACKUP_NAMESPACE}
+      storageLocation: ${STORAGELOCATION}
       defaultVolumesToRestic: true 
       ttl: 720h0m0s
   EOF
+  ```
+
+ * Verify that the status of the Schedule CR:
+  ```
+  oc get schedule -n openshift-adp
   ```
