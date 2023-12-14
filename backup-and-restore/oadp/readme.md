@@ -1,7 +1,7 @@
 ##  OADP Application backup and restore
 
 ### Deploy test application
-* nginx pod for testing:
+* Create a test pod:
   ```
   oc new-project sample-backup
   oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
@@ -58,7 +58,7 @@
   ```
 
 * Deploy Minio Object Storage:
-  [Create `oadp-bucket`](Create `oadp-bucket` after Deploy Minio Object Storage) after [Deploy Minio](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#deploy-minio-object-storage) Object Storage
+  [Create `oadp-bucket`](https://github.com/pancongliang/openshift/tree/main/storage/minio#access-minio-and-create-bucket) after [Deploy Minio](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#deploy-minio-object-storage) Object Storage
 
 ### Install and configure OADP Operator
 
