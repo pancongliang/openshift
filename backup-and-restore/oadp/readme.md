@@ -128,7 +128,7 @@
   apiVersion: velero.io/v1
   kind: Backup
   metadata:
-    name: nginx-sample-backup
+    name: sample-backup
     namespace: openshift-adp
   spec:
       hooks: {}
