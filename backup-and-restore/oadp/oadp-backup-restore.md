@@ -86,7 +86,7 @@
   apiVersion: oadp.openshift.io/v1alpha1
   kind: DataProtectionApplication
   metadata:
-    name: oadp-minio
+    name: odpa-sample
     namespace: openshift-adp
   spec:
     backupLocations:
@@ -125,7 +125,7 @@
   ```
   oc get po -n openshift-adp
   NAME                                                READY   STATUS    RESTARTS   AGE
-  oadp-oadp-minio-1-aws-registry-745b5b86b8-l5zgr     1/1     Running   0          25s
+  oadp-odpa-sample-1-aws-registry-745b5b86b8-l5zgr     1/1     Running   0          25s
   openshift-adp-controller-manager-6f847bb84c-2smkc   1/1     Running   0          4h13m
   restic-bl2m6                                        1/1     Running   0          24s
   restic-cbx24                                        1/1     Running   0          24s
@@ -134,13 +134,13 @@
 
   oc get dataprotectionapplication -n openshift-adp
   NAME         AGE
-  oadp-minio   2m46s
+  odpa-sample   2m46s
 
   oc get backupStorageLocations -n openshift-adp
   
   velero get backup-locations -n openshift-adp
   NAME           PROVIDER   BUCKET/PREFIX       PHASE       LAST VALIDATED                  ACCESS MODE   DEFAULT
-  oadp-minio-1   aws        oadp-bucket/velero   Available   2022-07-12 13:50:24 +0000 UTC   ReadWrite     true
+  odpa-sample-1   aws        oadp-bucket/velero   Available   2022-07-12 13:50:24 +0000 UTC   ReadWrite     true
   ```
 
 ### Backing up applications
@@ -157,7 +157,7 @@
       hooks: {}
       includedNamespaces:
       - sample-backup                 # Specify the namespace name of the backup object
-      storageLocation: oadp-minio-1   # Based on the name output by <velero get backup-locations -n openshift-adp>
+      storageLocation: odpa-sample-1   # Based on the name output by <velero get backup-locations -n openshift-adp>
       defaultVolumesToRestic: true 
       ttl: 720h0m0s
   EOF
@@ -167,7 +167,7 @@
   ```
   velero get backup -n openshift-adp
   NAME                  STATUS      ERRORS   WARNINGS   CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
-  nginx-sample-backup   Completed   0        0          2022-07-12 14:12:30 +0000 UTC   29d       oadp-minio-1       <none>
+  nginx-sample-backup   Completed   0        0          2022-07-12 14:12:30 +0000 UTC   29d       odpa-sample-1       <none>
 
   oc get backup -n openshift-adp nginx-sample-backup -o jsonpath='{.status.phase}'
   ```
@@ -263,7 +263,7 @@
       hooks: {}
       includedNamespaces:
       - sample-backup
-      storageLocation: oadp-minio-1
+      storageLocation: odpa-sample-1
       defaultVolumesToRestic: true 
       ttl: 720h0m0s
   EOF
