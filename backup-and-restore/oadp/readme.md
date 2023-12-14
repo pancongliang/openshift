@@ -150,7 +150,7 @@
   sample-backup   Completed   0        0          2023-12-14 05:26:05 +0000 UTC   29d       dpa-sample-1       <none>
   ```
 
-* Check "my-minio/ocp-backup/velero/backups/sample-backup" to see if there is backup data:
+* Verify whether there is backup data in "my minio/ocp backup/velo/backups/sample backup":
   ```
   mc ls my-minio/oadp-bucket/velero/backups/sample-backup
   [2023-12-14 05:26:15 UTC]    29B STANDARD sample-backup-csi-volumesnapshotclasses.json.gz
