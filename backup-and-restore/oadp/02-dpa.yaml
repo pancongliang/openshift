@@ -1,7 +1,7 @@
 apiVersion: oadp.openshift.io/v1alpha1
 kind: DataProtectionApplication
 metadata:
-  name: dpa-sample
+  name: 
   namespace: openshift-adp
 spec:
   backupLocations:
