@@ -36,6 +36,9 @@ podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${
 run_command "[add authentication information to pull-secret]"
 
 # Create ImageSetConfiguration
+mkdir ${IMAGE_SET_CONFIGURATION_PATH}
+run_command "[create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
+
 cat << EOF > ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml
 apiVersion: mirror.openshift.io/v1alpha2
 kind: ImageSetConfiguration
