@@ -20,7 +20,7 @@
 
 * Download script file
   ```
-  wget -q -O - https://raw.githubusercontent.com/pancongliang/openshift/main/installing/00-download-script.sh | sh
+  wget -q -O - https://raw.githubusercontent.com/pancongliang/openshift/main/installing/v1/00-download-script.sh | sh
   ```
 
 * Security settings and subscriptions
@@ -33,9 +33,9 @@
 
 * Execute after modifying the necessary parameters
   ```
-  vim 01-ocp-env-parameter.sh
+  vim 01-set-ocp-env-parameter.sh
   
-  source 01-ocp-env-parameter.sh
+  source 01-set-ocp-env-parameter.sh
   ```
 
 * Install rpm and configure httpd/nfs/dns/haproxy
@@ -50,14 +50,14 @@
 
 * Download ocp image
   ```
-  source 04-mirror-ocp-image.sh
+  source 04-mirror-ocp-release-image.sh
   ```
 
 ### Generate igniyion file and install bootstrap/master/worker node through script
 
 * Generate ignition file
   ```
-  source 05-generate-ignition.sh
+  source 05-generate-ignition-file.sh
   ```
   
 * Generate setup script file
