@@ -19,17 +19,17 @@ PRINT_TASK "[TASK: Download script]"
 scripts=(
     "00-security.sh"
     "00-subscription.sh"
-    "01-ocp-env-parameter.sh"
+    "01-set-ocp-env-parameter.sh"
     "02-install-infrastructure.sh"
     "03-install-mirror-registry.sh"
-    "04-mirror-ocp-image.sh"
-    "05-generate-ignition.sh"
+    "04-mirror-ocp-release-image.sh"
+    "05-generate-ignition-file.sh"
     "06-generate-setup-script-file.sh"
     "07-configure-after-installation.sh"
 )
 
 # Specify the base URL of the GitHub repository
-base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/"
+base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/v1/"
 
 # Function to download scripts
 download_scripts() {
