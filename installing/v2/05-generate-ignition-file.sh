@@ -46,7 +46,7 @@ export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 # Generate a defined install-config file
 rm -rf ${HTTPD_PATH}/install-config.yaml
 
-cat << EOF > $HTTPD_PATH/install-config.yaml 
+cat << EOF > ${HTTPD_PATH}/install-config.yaml 
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
 compute: 
@@ -75,13 +75,13 @@ additionalTrustBundle: |
 ${REGISTRY_CA_CERT_FORMAT}
 imageContentSources:
 - mirrors:
-  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/${LOCAL_REPOSITORY}
-  source: quay.io/openshift-release-dev/ocp-release
-- mirrors:
-  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/${LOCAL_REPOSITORY}
+  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/openshift/release
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+- mirrors:
+  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/openshift/release-images
+  source: quay.io/openshift-release-dev/ocp-release
 EOF
-run_command "[create install-config.yaml fole]"
+run_command "[create ${HTTPD_PATH}/install-config.yaml file]"
 
 # Delete certificate
 rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
