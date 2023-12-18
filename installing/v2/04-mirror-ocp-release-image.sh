@@ -11,6 +11,14 @@ PRINT_TASK() {
 }
 # ====================================================
 
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
 
 # Task: Mirror ocp image to mirror-registry
 PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
@@ -21,29 +29,33 @@ read -p "Please input the pull secret string from https://cloud.redhat.com/opens
 # Create a temporary file to store the pull secret
 PULL_SECRET=$(mktemp -p /tmp)
 echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
+run_command "[create a temporary file to store the pull secret]"
 
 # Login to the registry
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
+run_command "[add authentication information to pull-secret]"
 
-# Check the return code of the podman login command
-if [ $? -eq 0 ]; then
-    echo "ok: [add authentication information to pull-secret]"
-else
-    echo "failed: [add authentication information to pull-secret]"
-fi
+# Create ImageSetConfiguration
+cat << EOF > ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml
+apiVersion: mirror.openshift.io/v1alpha2
+kind: ImageSetConfiguration
+storageConfig:
+ registry:
+   imageURL: ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/mirror/metadata
+   skipTLS: false
+mirror:
+  platform:
+    channels:
+      - name: stable-${OCP_RELEASE_CHANNEL}
+        minVersion: ${OCP_RELEASE_VERSION}
+        maxVersion: ${OCP_RELEASE_VERSION}
+        shortestPath: true
+EOF
+run_command "[create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
 
-# Execute oc adm release mirror command
-oc adm -a ${PULL_SECRET} release mirror \
-  --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} \
-  --to=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/${LOCAL_REPOSITORY} \
-  --to-release-image=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}
-  
-# Check the return code of the oc adm release mirror command
-if [ $? -eq 0 ]; then
-    echo "ok: [mirror openshift image to registry]"
-else
-    echo "failed: [mirror openshift image to registry]"
-fi
+# Mirroring ocp release image
+oc mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
+run_command "[Mirroring ocp ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
 rm -f "${PULL_SECRET}"
