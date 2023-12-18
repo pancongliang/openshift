@@ -101,7 +101,7 @@ mkdir -p "${IGNITION_PATH}"
 run_command "[create installation directory: ${IGNITION_PATH}]"
 
 # Copy install-config.yaml to installation directory
-cp "$HTTPD_PATH/install-config.yaml" "${IGNITION_PATH}"
+cp "${HTTPD_PATH}/install-config.yaml" "${IGNITION_PATH}"
 run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
