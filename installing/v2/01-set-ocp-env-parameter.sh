@@ -17,14 +17,17 @@ PRINT_TASK "[TASK: Set environment variables]"
 
 # No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
-# OpenShift version
-export OCP_RELEASE="4.10.20"
+# OpenShift release version
+export OCP_RELEASE_VERSION="4.10.20"
 
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export SSH_KEY_PATH="/root/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
+export POD_CIDR="10.128.0.0/14"
+export HOST_PREFIX="23"
+export SERVICE_CIDR="172.30.0.0/16"
 
 # OpenShift infrastructure network
 export GATEWAY_IP="10.74.255.254"
@@ -52,11 +55,15 @@ export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
 # === more parameters === 
-# Mirror-Registry and mirror variable
+# Mirror-Registry is used to mirror ocp image
 export REGISTRY_HOSTNAME="mirror.registry"
-export REGISTRY_ID="root"
+export REGISTRY_ID="admin"
 export REGISTRY_PW="password"                         # 8 characters or more
 export REGISTRY_INSTALL_PATH="/opt/quay-install"
+
+# oc-mirror plug-in for mirror image
+export IMAGE_SET_CONFIGURATION_PATH="/root/oc-mirror"
+export OCP_RELEASE_CHANNEL="$(echo $OCP_RELEASE_VERSION | cut -d. -f1,2)"
 
 # NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"
@@ -65,17 +72,6 @@ export IMAGE_REGISTRY_PV="image-registry"
 # Httpd and ocp ignition dir
 export HTTPD_PATH="/var/www/html/materials"
 export IGNITION_PATH="${HTTPD_PATH}/pre"
-
-# OpenShift install-config
-export POD_CIDR="10.128.0.0/14"
-export HOST_PREFIX="23"
-export SERVICE_CIDR="172.30.0.0/16"
-
-# Download ocp image
-export LOCAL_REPOSITORY="ocp4/openshift4"
-export PRODUCT_REPO="openshift-release-dev" 
-export RELEASE_NAME="ocp-release"
-export ARCHITECTURE="x86_64"
 
 # === Do not change the following parameters === 
 # Function to generate duplicate parameters
@@ -103,7 +99,7 @@ check_variable() {
 
 # Check all variables that need validation
 check_all_variables() {
-    check_variable "OCP_RELEASE"
+    check_variable "OCP_RELEASE_VERSION"
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
@@ -134,6 +130,8 @@ check_all_variables() {
     check_variable "REGISTRY_ID"
     check_variable "REGISTRY_PW"
     check_variable "REGISTRY_INSTALL_PATH"
+    check_variable "IMAGE_SET_CONFIGURATION_PATH"
+    check_variable "OCP_RELEASE_CHANNEL"
     check_variable "NFS_PATH"
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "DNS_SERVER_IP"
@@ -144,10 +142,6 @@ check_all_variables() {
     check_variable "APPS_IP"
     check_variable "NFS_SERVER_IP"
     check_variable "NSLOOKUP_PUBLIC"
-    check_variable "LOCAL_REPOSITORY"
-    check_variable "PRODUCT_REPO"
-    check_variable "RELEASE_NAME"
-    check_variable "ARCHITECTURE"
     check_variable "HTTPD_PATH"
     check_variable "IGNITION_PATH"
     # If all variables are set, display a success message  
