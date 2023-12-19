@@ -20,7 +20,7 @@
 
 * Download script file
   ```
-  wget -q -O - https://raw.githubusercontent.com/pancongliang/openshift/main/installing/v2/00-download-script.sh | sh
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/v2/00-download-script.sh | sh
   ```
 
 * Security settings and subscriptions
