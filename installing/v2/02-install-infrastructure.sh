@@ -117,6 +117,36 @@ done
 echo
 
 
+# === Task: Change basic settings===
+PRINT_TASK "[TASK: Change basic settings]"
+
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
+# Write LANG=en_US.UTF-8 to the ./bash_profile file]
+echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
+run_command "[Write LANG=en_US.UTF-8 to the ./bash_profile file]"
+
+# Reload ~/.bash_profile
+source ~/.bash_profile
+run_command "[Reload ~/.bash_profile]"
+
+# Change time zone to UTC
+timedatectl set-timezone UTC
+run_command "[Change time zone to UTC]"
+
+# Change hostname
+hostnamectl set-hostname ${BASTION_HOSTNAME}
+run_command "[Change hostname to ${BASTION_HOSTNAME}]"
+# Add an empty line after the task
+echo
+
 
 # === Task: Setup and check httpd services ===
 PRINT_TASK "[TASK: Setup and check httpd services]"
