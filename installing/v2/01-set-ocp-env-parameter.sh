@@ -18,7 +18,7 @@ PRINT_TASK "[TASK: Set environment variables]"
 # No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
 # OpenShift release version
-export OCP_RELEASE_VERSION="4.10.20"
+export OCP_RELEASE_VERSION="4.10.60"
 
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
