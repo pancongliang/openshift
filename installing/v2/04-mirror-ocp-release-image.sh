@@ -35,10 +35,11 @@ run_command "[create a temporary file to store the pull secret]"
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
 run_command "[add authentication information to pull-secret]"
 
-# Create ImageSetConfiguration
+# Create ImageSetConfiguration directory
 mkdir ${IMAGE_SET_CONFIGURATION_PATH}
 run_command "[create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
 
+# Create ImageSetConfiguration file
 cat << EOF > ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml
 apiVersion: mirror.openshift.io/v1alpha2
 kind: ImageSetConfiguration
@@ -58,7 +59,7 @@ run_command "[create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
 oc mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
-run_command "[Mirroring ocp ${OCP_RELEASE_VERSION} release image]"
+run_command "[mirroring ocp ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
 rm -f "${PULL_SECRET}"
