@@ -21,8 +21,8 @@
   export QUERY="node_memory_MemTotal_bytes%7Binstance%3D'${NODE}'%7D%20-%20node_memory_MemAvailable_bytes%7Binstance%3D'${NODE}'%7D"
   export QUERY="sum(max%20by%20(device)%20(node_filesystem_size_bytes%7Binstance%3D'${NODE}'%2C%20device%3D~'%2F.*'%7D))%20-%20sum(max%20by%20(device)%20(node_filesystem_avail_bytes%7Binstance%3D'${NODE}'%2C%20device%3D~'%2F.*'%7D))"
 
-  export NODD_IP=10.74.251.58
-  export QUERY="kubelet_running_pods{instance=~'$NODD_IP:.*'}"
+  export NODD_IP='10.74.251.58'
+  export QUERY="kubelet_running_pods{instance=~'${NODD_IP}:.*'}"
   ```
 * Customize the most recent time range  
   ```
