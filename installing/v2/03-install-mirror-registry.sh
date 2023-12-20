@@ -86,6 +86,12 @@ run_command "[installing mirror-registry...]"
 podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
 run_command "[mirror registry Pod is running]"
 
+# Restart quay-pod.service/quay-app.service
+systemctl restart quay-pod.service quay-app.service
+run_command "[restart quay-pod.service quay-app.service]"
+
+sleep 60
+
 # Copy the rootCA certificate to the trusted source
 cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
 run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
