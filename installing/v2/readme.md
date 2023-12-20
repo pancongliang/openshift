@@ -25,8 +25,8 @@
 
 * Security settings and subscriptions
   ```
-  source 00-security.sh
-  source 00-subscription.sh
+  source 00-security-setup.sh
+  source 00-register-subscription.sh
 
   reboot
   ```
@@ -35,12 +35,12 @@
   ```
   vim 01-set-ocp-env-parameter.sh
   
-  source 01-set-ocp-env-parameter.sh
+  source 01-set-ocp-install-parameters.s
   ```
 
-* Install rpm and configure httpd/nfs/dns/haproxy
+* Install rpm/oc and configure httpd/nfs/dns/haproxy
   ```
-  source 02-install-infrastructure.sh
+  source 02-install-configure-infrastructure.sh
   ```
 
 * Install mirror-registry
@@ -53,16 +53,16 @@
   source 04-mirror-ocp-release-image.sh
   ```
 
-### Generate igniyion file and install bootstrap/master/worker node through script
+### Create ignition file and install bootstrap/master/worker node through script
 
-* Generate ignition file
+* Create ignition file
   ```
-  source 05-generate-ignition-file.sh
+  source 05-create-ignition-config-file.sh
   ```
   
-* Generate setup script file
+* Create node installation script file
   ```
-  source 06-generate-setup-script-file.sh
+  source 06-create-installation-script.sh
 
   ls ${IGNITION_PATH}/set*
   set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh
@@ -119,5 +119,5 @@
 * Configure image-registry-operator data persistence and registry trustedCA through the following script.
 
   ```
-  source 07-configure-after-installation.sh
+  source 07-post-installation-configuration.sh
   ```
