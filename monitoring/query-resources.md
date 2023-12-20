@@ -1,9 +1,5 @@
 ### How to check pods resource consumption by namespace using Prometheus query?
 
-* Specify the namespace to be queried
-  ```
-
-  ```
   
 * Specify querying metrics
   ```
