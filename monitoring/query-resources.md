@@ -59,9 +59,10 @@
        }'
   ```
 
-* Convert timestamp to human readable and change byte units to MB
+* Convert timestamp to human readable and change memory byte units to MB
   ```
   export QUERY="container_memory_working_set_bytes{namespace='${NAMESPACE}'}"
+  
   curl -s -g -k -X GET \
        -H "Authorization: Bearer ${TOKEN}" \
        -H 'Accept: application/json' \
