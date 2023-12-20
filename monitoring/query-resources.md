@@ -59,8 +59,9 @@
        }'
   ```
 
-  * Convert timestamp to human readable and change byte units to MB
+* Convert timestamp to human readable and change byte units to MB
   ```
+  export QUERY="container_memory_working_set_bytes{namespace='${NAMESPACE}'}"
   curl -s -g -k -X GET \
        -H "Authorization: Bearer ${TOKEN}" \
        -H 'Accept: application/json' \
@@ -70,4 +71,4 @@
            "resultType": "matrix",
            "result": [.data.result[] | {metric, values: [.values[] | [(.[0] | strftime("%Y-%m-%d %H:%M:%S")), ((.[1] | tonumber) / 1048576 | tostring + " MB")]]}]
          }
-  ```  
+  ```
