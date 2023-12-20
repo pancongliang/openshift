@@ -90,7 +90,7 @@ run_command "[mirror registry Pod is running]"
 systemctl restart quay-pod.service quay-app.service
 run_command "[restart quay-pod.service quay-app.service]"
 
-sleep 60
+sleep 120
 
 # Copy the rootCA certificate to the trusted source
 cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
