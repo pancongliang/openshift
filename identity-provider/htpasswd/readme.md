@@ -21,7 +21,7 @@
 ### Creating the htpasswd secret
 * Create a Secret object that contains the htpasswd users file
   ```
-  oc create secret generic htpasswd-secret --from-file=users.htpasswd -n openshift-config
+  oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd -n openshift-config
   ```
 
 ### Sample htpasswd CR
