@@ -26,7 +26,7 @@ run_command() {
 PRINT_TASK "[TASK: Kubeconfig login]"
 
 # kubeconfig login:
-echo 'export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig' >> ~/.bash_profile
+echo "export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig" >> ~/.bash_profile
 run_command "[add kubeconfig to ~/.bash_profile]"
 
 # completion command:
