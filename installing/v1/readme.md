@@ -53,7 +53,7 @@
   source 04-mirror-ocp-release-image.sh
   ```
 
-### Generate igniyion file and install bootstrap/master/worker node through script
+### Generate ignition file and install bootstrap/master/worker node through script
 
 * Generate ignition file
   ```
