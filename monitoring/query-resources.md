@@ -2,19 +2,37 @@
 
 * Specify the namespace to be queried
   ```
-  export NAMESPACE='minio'
+
   ```
   
 * Specify querying metrics
   ```
+  export NAMESPACE='minio'
   export QUERY="container_memory_working_set_bytes{namespace='${NAMESPACE}'}"
+  export QUERY="pod:container_cpu_usage:sum{namespace='${NAMESPACE}'}"
   export QUERY="container_cpu_usage_seconds_total{namespace='${NAMESPACE}'}"
+  export QUERY="container_network_receive_bytes_total{namespace='${NAMESPACE}'}"
   export QUERY="container_network_transmit_bytes_total{namespace='${NAMESPACE}'}"
+  export QUERY="pod:container_fs_usage_bytes:sum{namespace='${NAMESPACE}'}"
+
+  export PVC='minio-pvc'
+  export QUERY="kubelet_volume_stats_used_bytes{persistentvolumeclaim='${PVC}'}"
+  export QUERY="kubelet_volume_stats_available_bytes{persistentvolumeclaim='${PVC}'}"
+  export QUERY="kubelet_volume_stats_capacity_bytes{persistentvolumeclaim='${PVC}'}"
+
+  export NODE='worker01.ocp4.example.com'
+  export QUERY="instance:node_cpu:rate:sum{instance='${NODE}'}"
+  export QUERY="node_memory_MemTotal_bytes%7Binstance%3D'${NODE}'%7D%20-%20node_memory_MemAvailable_bytes%7Binstance%3D'${NODE}'%7D"
+  export QUERY="sum(max%20by%20(device)%20(node_filesystem_size_bytes%7Binstance%3D'${NODE}'%2C%20device%3D~'%2F.*'%7D))%20-%20sum(max%20by%20(device)%20(node_filesystem_avail_bytes%7Binstance%3D'${NODE}'%2C%20device%3D~'%2F.*'%7D))"
+
+  export NODD_IP=10.74.251.58
+  export QUERY="kubelet_running_pods{instance=~'$NODD_IP:.*'}"
   ```
 * Customize the most recent time range  
   ```
   export RECENT_TIME_RANGE='10m' 
   export QUERY="kubelet_volume_stats_available_bytes{namespace='${NAMESPACE}'}[${RECENT_TIME_RANGE}]"
+  export QUERY="(sum(irate(container_network_receive_bytes_total%7Bpod%3D~'.*'%2C%20namespace%3D~'${NAMESPACE}'%7D%5B${RECENT_TIME_RANGE}%5D))%20by%20(pod%2C%20namespace%2C%20interface))%20%2B%20on(namespace%2Cpod%2Cinterface)%20group_left(network_name)%20(pod_network_name_info)"
   ```
   
 * Run query metrics
