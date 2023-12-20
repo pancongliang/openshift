@@ -80,6 +80,16 @@ install_tar_gz "openshift-install" "https://mirror.openshift.com/pub/openshift-v
 install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
 install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
 
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
+
 # Function to download and install binary files
 install_binary() {
     local tool_name="$1"
@@ -88,8 +98,6 @@ install_binary() {
     wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
     if [ $? -eq 0 ]; then
         echo "ok: [download $tool_name tool]"        
-        # Add execute permissions to the downloaded binary
-        chmod a+x "/usr/local/bin/$(basename $tool_url)" &> /dev/null
     else
         echo "failed: [download $tool_name tool]"
     fi
@@ -98,6 +106,19 @@ install_binary() {
 # Install binary files
 install_binary "butane" "https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane"
 
+# Modify /usr/local/bin/oc-mirror and butane toolpermissions
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+chmod a+x /usr/local/bin/oc-mirror &> /dev/null
+run_command "[modify /usr/local/bin/oc-mirror permissions]"
+
+chmod a+x /usr/local/bin/butane &> /dev/null
+run_command "[modify /usr/local/bin/butane permissions]"
 
 # Step 3: Checking
 # ----------------------------------------------------
@@ -116,18 +137,6 @@ done
 # Add an empty line after the task
 echo
 
-
-# === Task: Change basic settings===
-PRINT_TASK "[TASK: Change basic settings]"
-
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
 
 # Write LANG=en_US.UTF-8 to the ./bash_profile file]
 echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
