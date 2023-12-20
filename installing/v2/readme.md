@@ -23,7 +23,7 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/v2/00-download-script.sh | sh
   ```
 
-* Security settings and subscriptions
+* Security settings and register subscriptions
   ```
   source 00-security-setup.sh
   source 00-register-subscription.sh
