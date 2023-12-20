@@ -96,3 +96,10 @@ run_command "[additional trusted CA]"
 # Add an empty line after the task
 echo
 # ====================================================
+
+# Task: Disabling the default OperatorHub sources
+PRINT_TASK "[TASK: Disabling the default OperatorHub sources]"
+
+# Disabling the default OperatorHub sources
+oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+run_command "[disabling the default OperatorHub sources]"
