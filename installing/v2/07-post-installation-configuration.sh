@@ -33,7 +33,8 @@ run_command "[add kubeconfig to ~/.bash_profile]"
 oc completion bash >> /etc/bash_completion.d/oc_completion
 run_command "[add oc_completion]"
 
-source ~/.bash_profile
+# Effective immediately
+bash
 
 # Add an empty line after the task
 echo
