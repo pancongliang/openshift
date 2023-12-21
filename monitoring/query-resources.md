@@ -69,12 +69,12 @@
   or
 
   curl -G -s "${URL}/api/v1/query_range" \
-     -d "${QUERY}" \
-     -d "start=${START}" \
-     -d "end=${END}" \
-     -d "step=${INTERVAL}" \
-     -H "Authorization: Bearer ${TOKEN}"
-     -H 'Accept: application/json' | jq
+       -d "${QUERY}" \
+       -d "start=${START}" \
+       -d "end=${END}" \
+       -d "step=${INTERVAL}" \
+       -H "Authorization: Bearer ${TOKEN}"
+       -H 'Accept: application/json' | jq
   ```
 
 * Change the timestamp to something human-readable
