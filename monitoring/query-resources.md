@@ -53,7 +53,7 @@
   export QUERY="kubelet_volume_stats_available_bytes{namespace='${NAMESPACE}'}[${RECENT_TIME_RANGE}]"
   ```
 
-### Query metrics via HTTP API
+### Query metrics via [HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/#http-api)
 * If `QUERY does not contain special characters`, query through the following method.
   ```
   curl -s -g -k -X GET \
