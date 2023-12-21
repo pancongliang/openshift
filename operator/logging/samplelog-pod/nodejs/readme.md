@@ -16,7 +16,18 @@ curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/l
 oc expose svc nodejs-app --hostname nodejs.apps.ocp4.example.com
 
 curl http://nodejs.apps.ocp4.example.com
+Hello World!
 
+oc logs nodejs-app-76f9f47b4f-x6c26
+Example app listening at http://localhost:3000
+{
+  "event": "requestReceived",
+  "url": "/",
+  "method": "GET",
+  "timestamp": "2023-12-21T17:24:18.087Z",
+  "podName": "nodejs-app-76f9f47b4f-x6c26",
+  "nodeName": "worker02.ocp4.example.com"
+}
 ~~~
 
 ### Generate log(Generate 10 logs)
@@ -26,7 +37,15 @@ yum install httpd-tools
 ab -n 10 -c 1 http://hello-world.apps.ocp4.example.com/
 
 oc logs -n samplelog samplelog-app-69d56fb7db-bjpmz |grep "Hello World"
-Hello World
-Hello World
+oc logs nodejs-app-76f9f47b4f-x6c26
+Example app listening at http://localhost:3000
+{
+  "event": "requestReceived",
+  "url": "/",
+  "method": "GET",
+  "timestamp": "2023-12-21T17:24:18.087Z",
+  "podName": "nodejs-app-76f9f47b4f-x6c26",
+  "nodeName": "worker02.ocp4.example.com"
+}
 ···
 ~~~
