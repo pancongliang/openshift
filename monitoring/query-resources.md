@@ -1,5 +1,15 @@
 ### How to check pods resource consumption by namespace using Prometheus query?
 
+* Get tonken and Prometheus route addresses
+  ```
+  export TOKEN=$(oc whoami -t)
+
+  or
+
+  export TOKEN=$(oc sa get-token prometheus-k8s -n openshift-monitoring)
+  
+  export URL=$(oc get route prometheus-k8s -o jsonpath='https://{.spec.host}' -n openshift-monitoring)    
+  ```
   
 * Specify querying metrics
   ```
@@ -33,8 +43,6 @@
   
 * Run query metrics
   ```
-  export TOKEN=$(oc sa get-token prometheus-k8s -n openshift-monitoring)
-  export URL=$(oc get route prometheus-k8s -o jsonpath='https://{.spec.host}' -n openshift-monitoring)
   curl -s -g -k -X GET \
        -H "Authorization: Bearer ${TOKEN}" \
        -H 'Accept: application/json' \
@@ -57,7 +65,17 @@
        -H "Authorization: Bearer ${TOKEN}" \
        -H 'Accept: application/json' \
        "${URL}/api/v1/query_range?query=${QUERY}&start=${START}&end=${END}&step=${INTERVAL}" | jq
-    ```
+
+  or
+
+  curl -G -s "${URL}/api/v1/query_range" \
+     -d "${QUERY}" \
+     -d "start=${START}" \
+     -d "end=${END}" \
+     -d "step=${INTERVAL}" \
+     -H "Authorization: Bearer ${TOKEN}"
+     -H 'Accept: application/json' | jq
+  ```
 
 * Change the timestamp to something human-readable
   ```
