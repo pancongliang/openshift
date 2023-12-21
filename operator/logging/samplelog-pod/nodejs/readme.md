@@ -4,13 +4,14 @@ wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/l
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/nodejs/package.json
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/nodejs/Dockerfile
 
-podman build -t docker.registry.example.com:5000/nodejs/snodejs-app:latest .
-podman push docker.registry.example.com:5000/nodejs/snodejs-app:latest
+podman build -t docker.registry.example.com:5000/nodejs/nodejs-app:latest .
+podman push docker.registry.example.com:5000/nodejs/nodejs-app:latest
 ~~~
 
 ### Create samplelog app serive
 ~~~
-export IMAGE="docker.registry.example.com:5000/nodejs/snodejs-app:latest"
+export NAMESPACE="nodejs-app"
+export IMAGE="docker.registry.example.com:5000/nodejs/nodejs-app:latest"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/nodejs/deployment.yaml | envsubst | oc apply -f -
 oc expose svc nodejs-app --hostname nodejs.apps.ocp4.example.com
 
