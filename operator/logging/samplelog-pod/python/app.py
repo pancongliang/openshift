@@ -9,14 +9,17 @@ class StructuredMessage(object):
         self.message = message
         self.kwargs = kwargs
 
-    def to_json(self):
+    def to_json_pretty(self):
         return json.dumps({
+            '@timestamp': datetime.now().isoformat(),
+            '@version': '1',
             'message': self.message,
-            'timestamp': datetime.now().isoformat(),
-            'log_level': 'INFO',
-            'user_id': '12345',
+            'logger_name': 'my.company.multilinelog.service.GreetingController',
+            'thread_name': 'main',
+            'level': 'INFO',
+            'level_value': 20000,
             **self.kwargs
-        })
+        }, indent=4)
 
 def setup_logging():
     logger = logging.getLogger()
@@ -27,10 +30,10 @@ def setup_logging():
     logger.addHandler(handler)
 
 def log_structured_message(message, **kwargs):
-    logging.info(StructuredMessage(message, **kwargs).to_json())
+    logging.info(StructuredMessage(message, **kwargs).to_json_pretty())
 
 setup_logging()
 
 while True:
-    log_structured_message("This is a structured log message", example_key="example_value")
+    log_structured_message("Init GreetingController with message:\nHello User from application.yaml!", extra_key="extra_value")
     time.sleep(5)
