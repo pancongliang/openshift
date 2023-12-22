@@ -1,8 +1,8 @@
 
 ### Build samplelog-app image
 ~~~
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/index.jsp
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/Dockerfile
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/jboos/index.jsp
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/jboos/Dockerfile
 
 podman build -t docker.registry.example.com:5000/jboss-webserver-5/samplelog-app:latest .
 podman push docker.registry.example.com:5000/jboss-webserver-5/samplelog-app:latest
