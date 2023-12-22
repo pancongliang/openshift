@@ -1,4 +1,4 @@
-## Generate JSON format logs every 5 seconds
+## Generate JSON formatted logs of multi-line messages
 
 ### Build python-app image
 ~~~
