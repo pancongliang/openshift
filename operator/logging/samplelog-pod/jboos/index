@@ -1,3 +1,11 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Log Test</title>
+</head>
+<body>
+<%
 {
     "apiVersion": "v1",
     "kind": "Pod",
@@ -222,3 +230,6 @@
         "startTime": "2023-12-21T17:30:31Z"
     }
 }
+%>
+</body>
+</html>
