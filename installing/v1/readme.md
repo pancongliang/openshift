@@ -76,7 +76,6 @@
   ```
   [core@localhost ~]$ sudo -i
   [root@localhost ~]$ curl -s http://$BASTION_IP:8080/pre/set-bootstrap.sh | sh
-  [root@localhost ~]$ source set-bootstrap.sh
   [root@localhost ~]$ reboot
   ···
   # Wait for the reboot to complete and check for error messages
