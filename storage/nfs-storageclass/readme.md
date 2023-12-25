@@ -16,5 +16,7 @@
 
 * Deploy NFS StorageClass
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/02-deploy-nfs-storageclass.yaml | envsubst | oc apply -f -
+  wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/02-deploy-nfs-storageclass.sh
+
+  source 02-deploy-nfs-storageclass.sh
   ```
