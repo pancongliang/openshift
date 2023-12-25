@@ -34,7 +34,7 @@ oc completion bash >> /etc/bash_completion.d/oc_completion
 run_command "[add oc_completion]"
 
 # Effective immediately
-source
+source /etc/bash_completion.d/oc_completion
 
 # Add an empty line after the task
 echo
