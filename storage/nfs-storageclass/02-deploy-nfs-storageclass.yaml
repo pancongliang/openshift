@@ -46,7 +46,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: system:openshift:scc:hostmount-anyuid
-  resourceVersion: "1516243"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
