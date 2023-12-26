@@ -4,7 +4,12 @@
 * Install jdk and maven
   ```
   yum install -y java-17-openjdk-devel
-  yum install -y maven
+
+  wget https://archive.apache.org/dist/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz
+  tar -zxvf apache-maven-3.8.1-bin.tar.gz && mv apache-maven-3.8.1 /usr/local/
+  echo 'export MAVEN_HOME=/usr/local/apache-maven-3.8.1/' >> /etc/profile
+  echo 'export PATH=${PATH}:${MAVEN_HOME}/bin' >> /etc/profile
+  source /etc/profile
   ```
 
 * Build Spring Boot
