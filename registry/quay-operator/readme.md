@@ -88,6 +88,8 @@
   export QUAY_HOST=$(oc get route example-registry-quay -n ${NAMESPACE} -o jsonpath='{.spec.host}')
   export PASSWORD="password"
   podman login -u quayadmin -p ${PASSWORD} ${QUAY_HOST}
+
+  podman pull quay.io/redhattraining/hello-world-nginx:v1.0
   podman tag quay.io/redhattraining/hello-world-nginx:v1.0 ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0
   podman push ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0 --tls-verify=false
   ```
