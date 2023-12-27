@@ -86,6 +86,9 @@
   # List buckets in "my-minio" alias
   mc ls my-minio
 
+  # List files in bucket
+  mc ls my-minio/${BUCKET_NAME}
+
   # Delete  bucket
   mc rb --force my-minio/loki-bucket
   ```  
