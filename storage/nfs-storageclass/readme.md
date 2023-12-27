@@ -24,7 +24,10 @@
 * Or deploy NFS StorageClass via yaml
   ```
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/02-rbac.yaml | envsubst | oc apply -f -
+
   oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner
+
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/03-deployment.yaml | envsubst | oc apply -f -
+
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/04-class.yaml | envsubst | oc apply -f -
   ```
