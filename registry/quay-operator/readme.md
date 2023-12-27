@@ -35,19 +35,19 @@
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="quay-bucket"
 
-  wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/03-config.yaml
+  wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/02-config.yaml
   ```
 
 * Create Secret based on configuration file.
   ```
-  oc create secret generic config-bundle-secret --from-file=config.yaml=<(envsubst < 03-config.yaml) -n ${NAMESPACE}
+  oc create secret generic config-bundle-secret --from-file=config.yaml=<(envsubst < 02-config.yaml) -n ${NAMESPACE}
   ```
 
 ### Create Quay Registry 
 
 * Create quay registry 
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/02-create-quay-registry.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/03-quay-registry.yaml | envsubst | oc apply -f -
   ```
 
 * View deployed resources
