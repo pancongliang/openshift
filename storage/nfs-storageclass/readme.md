@@ -29,5 +29,5 @@
 
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/03-deployment.yaml | envsubst | oc apply -f -
 
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/04-class.yaml | envsubst | oc apply -f -
+  oc create https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/04-class.yaml
   ```
