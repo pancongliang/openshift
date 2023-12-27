@@ -38,7 +38,7 @@
   wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/02-config.yaml
   ```
 
-* Create Secret based on configuration file.
+* Create Secret based on config.yaml file.
   ```
   oc create secret generic config-bundle-secret --from-file=config.yaml=<(envsubst < 02-config.yaml) -n ${NAMESPACE}
   ```
