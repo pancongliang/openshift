@@ -84,11 +84,12 @@
 * Get CENTRAL_ADDRESS/ENDPOINT
   ```
   export ROX_ENDPOINT=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
-  export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
   ```
 
-roxctl central login
-
+* login
+  ```
+  roxctl central login
+  ```
 
 ### Updating Scanner definitions in offline mode
 
@@ -96,6 +97,9 @@ roxctl central login
 
 * Uploading definitions to Central by using an API token
   ```
+  export ROX_API_TOKEN=${ROX_API_TOKEN}
+  export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
+
   roxctl scanner upload-db \
      -e "$ROX_CENTRAL_ADDRESS" \
      --scanner-db-file=<compressed_scanner_definitions.zip>
@@ -106,6 +110,8 @@ roxctl central login
 
 * Uploading kernel support packages to Central
   ```
-   roxctl collector support-packages upload <package_file> \
-  -e "$ROX_CENTRAL_ADDRESS"
+  export ROX_API_TOKEN=${ROX_API_TOKEN}
+  export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
+
+  roxctl collector support-packages upload <package_file> -e "$ROX_CENTRAL_ADDRESS"
   ```
