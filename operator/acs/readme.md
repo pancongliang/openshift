@@ -31,7 +31,7 @@
 ### Add an OpenShift cluster to RHACS
 * Get Authentication Token
   ```
-  Platform Configuration → Integrations → Cluster Init Bundle → Generate bundle → <cluster_init_bundle.yaml> → Generate → Download Kubernetes Secret File
+  ACS Console Platform → Configuration → Integrations → Cluster Init Bundle → Generate bundle → <cluster_init_bundle.yaml> → Generate → Download Kubernetes Secret File
   ```
   
 * Creating resources by using the init bundle
