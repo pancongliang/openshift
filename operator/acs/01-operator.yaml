@@ -19,8 +19,8 @@ metadata:
   name: rhacs-operator
   namespace: rhacs-operator
 spec:
-  channel: stable
-  installPlanApproval: Automatic
+  channel: ${CHANNEL_NAME}
+  installPlanApproval: "Manual"
+  source: ${CATALOG_SOURCE_NAME}
   name: rhacs-operator
-  source: cs-redhat-operator-index
   sourceNamespace: openshift-marketplace
