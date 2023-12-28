@@ -81,13 +81,14 @@
   export ROX_API_TOKEN=eyJhbGciOiJSUzI1NiIsImtpZCI6Imp3dGswIiwidHlwIjoiSldUIn0.eyJhdWQiOlsiaHR0cHM6Ly9zdGFja3JveC5pby9qd3Qtc291cmNlcyNhcGktdG9rZW5zIl0sImV4cCI6MTczNTMyMDU1NywiaWF0IjoxNzAzNzg0NTU3LCJpc3MiOiJodHRwczovL3N0YWNrcm94LmlvL2p3dCIsImp0aSI6Ijk0NTZmMTExLWM0NDAtNDRhMi04YTNiLTQ1OTFiYTM4MGZkOSIsIm5hbWUiOiJhZG1pbiIsInJvbGVzIjpbIkFkbWluIl19.KPxFW6VEnkqA9KEjjQJ1_9BuXZVGlfZfVtBdJCJWQuxgIO4WUQdcsT3Qz1R4AdO1wZANrcTObhZ-OFKXnYDjCh_O6PoY3_40rfsfTum-2p771tr0SpTLv9hXcCJcs1xiY7okQFwVyk6LXHZYHCqAJs-BhlcwLHPJiYQn1PTm2bBIoLDMDdRe0d2lpMyVKXtU8bfnNreaHQPesU1sH5wPcEQo9ESQ1azLVtUl7GdeR-E2CrVl3pK6NlmhSZfI7dirQRJjdQZd6x9bh0Y6LbRxEoUgaX-SzHFh-UHWrl2oQ4FD7CrjjrHl1OWXlh2SWMVVR5pq5pTIY61VTX2NmAJcMD0jtU4N5hv2qcjtvAoJgRw8l5D7ZcU-SOWhqw846OMWcLUs33x3EHyu1f6wcub2TPEpHQpq1YWoZbJyYbqv5YzmqiKBScz2u5TC7qhrUlKAUc7s77QDlWkCip8oKrmK60JFWbo3yCOMtEkKuQ5R2A7RZBxAirYGTmgnXlOXgilbGZfYSH6F_FJ7xdtJJD7JdWXDSZpaON2xehM0JSqnIDv1hc-uG8iVd1nCi405Ui106oFSXyIHkEE0av160lE33jIEqAPO80VTuHzCF2gyFKHjokRSUsX698nFLUpn4y33ZljYClP9rYB5CE38whaJIduXnEzLi1ARv_2Ee4VxvNA
   ```
 
-* Get CENTRAL_ADDRESS/ENDPOINT
+* Set the ROX_ENDPOINT variable
   ```
   export ROX_ENDPOINT=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
   ```
 
-* login
+* Run the following command to initiate the login process to Central
   ```
+  roxctl central debug dump --token-file token-file
   roxctl central login
   ```
 
