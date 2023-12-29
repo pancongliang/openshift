@@ -14,11 +14,6 @@
 ### Create Central instance
 
 * Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md)
-
-* Create `stackrox` project
-  ```
-  oc new-project stackrox
-  ```
   
 * Create Central instance
   ```
