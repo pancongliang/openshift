@@ -1,5 +1,4 @@
 ### Install RHACS Operator
-
 * Install the Operator using the default namespace
   ```
   export CHANNEL_NAME="stable"
@@ -65,7 +64,7 @@
   collector   6         6         6       6            6           <none>          13m
   ```
 
-### Authenticating by using the roxctl CLI
+### Installing the roxctl CLI
 * Installing the roxctl CLI
   ```
   arch="$(uname -m | sed "s/x86_64//")"; arch="${arch:+-$arch}"
@@ -73,49 +72,37 @@
   chmod +x roxctl
   mv ./roxctl /usr/local/bin/
   ```
-  
-* Creating an API token
 
-  (ACS Console → Platform Configuration → Integrations → Authentication Tokens → API Token → <Admin> → Generate Token)
+### Enabling offline mode and updating Scanner and kernel support packages
+* Creating an API token and setting environment variables
+  ```
+  ACS Console → Platform Configuration → Integrations → Authentication Tokens → API Token → <Admin> → Generate Token
+  ```
+* Set the ROX_API_TOKEN variable
   ```
   export ROX_API_TOKEN=eyJhbGciOiJSUzI1NiIsImtpZCI6Imp3dGswIiwidHlwIjoiSldUIn0.eyJhdWQiOlsiaHR0cHM6Ly9zdGFja3JveC5pby9qd3Qtc291cmNlcyNhcGktdG9rZW5zIl0sImV4cCI6MTczNTMyMDU1NywiaWF0IjoxNzAzNzg0NTU3LCJpc3MiOiJodHRwczovL3N0YWNrcm94LmlvL2p3dCIsImp0aSI6Ijk0NTZmMTExLWM0NDAtNDRhMi04YTNiLTQ1OTFiYTM4MGZkOSIsIm5hbWUiOiJhZG1pbiIsInJvbGVzIjpbIkFkbWluIl19.KPxFW6VEnkqA9KEjjQJ1_9BuXZVGlfZfVtBdJCJWQuxgIO4WUQdcsT3Qz1R4AdO1wZANrcTObhZ-OFKXnYDjCh_O6PoY3_40rfsfTum-2p771tr0SpTLv9hXcCJcs1xiY7okQFwVyk6LXHZYHCqAJs-BhlcwLHPJiYQn1PTm2bBIoLDMDdRe0d2lpMyVKXtU8bfnNreaHQPesU1sH5wPcEQo9ESQ1azLVtUl7GdeR-E2CrVl3pK6NlmhSZfI7dirQRJjdQZd6x9bh0Y6LbRxEoUgaX-SzHFh-UHWrl2oQ4FD7CrjjrHl1OWXlh2SWMVVR5pq5pTIY61VTX2NmAJcMD0jtU4N5hv2qcjtvAoJgRw8l5D7ZcU-SOWhqw846OMWcLUs33x3EHyu1f6wcub2TPEpHQpq1YWoZbJyYbqv5YzmqiKBScz2u5TC7qhrUlKAUc7s77QDlWkCip8oKrmK60JFWbo3yCOMtEkKuQ5R2A7RZBxAirYGTmgnXlOXgilbGZfYSH6F_FJ7xdtJJD7JdWXDSZpaON2xehM0JSqnIDv1hc-uG8iVd1nCi405Ui106oFSXyIHkEE0av160lE33jIEqAPO80VTuHzCF2gyFKHjokRSUsX698nFLUpn4y33ZljYClP9rYB5CE38whaJIduXnEzLi1ARv_2Ee4VxvNA
   ```
 
-* Set the ROX_ENDPOINT variable
+* Set the ROX_CENTRAL_ADDRESS variable
   ```
-  export ROX_ENDPOINT=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
-  ```
-
-* Run the following command to initiate the login process to Central
-  ```
-  roxctl central debug dump --token-file token-file
-  roxctl central login
+  export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
   ```
 
-### Updating Scanner definitions in offline mode
+* Downloading [kernel support packages](https://install.stackrox.io/collector/support-packages/index.html)
 
 * Downloading [Scanner](https://install.stackrox.io/scanner/scanner-vuln-updates.zip) definitions
   ```
   wget -q https://install.stackrox.io/scanner/scanner-vuln-updates.zip
   ```
   
-* Uploading definitions to Central by using an API token
+* Uploading definitions to Central
   ```
-  export ROX_API_TOKEN=${ROX_API_TOKEN}
-  export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
-
   roxctl scanner upload-db \
      -e "$ROX_CENTRAL_ADDRESS" \
-     --scanner-db-file=<compressed_scanner_definitions.zip>
+     --scanner-db-file=scanner-vuln-updates.zip
   ```
-### Updating kernel support packages in offline mode
-
-* Downloading [kernel support packages](https://install.stackrox.io/collector/support-packages/index.html)
 
 * Uploading kernel support packages to Central
   ```
-  export ROX_API_TOKEN=${ROX_API_TOKEN}
-  export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
-
-  roxctl collector support-packages upload <package_file> -e "$ROX_CENTRAL_ADDRESS"
+  roxctl collector support-packages upload <support-pkg-2.7.0-20231223111739.zip> -e "$ROX_CENTRAL_ADDRESS"
   ```
