@@ -16,9 +16,10 @@ spec:
     persistence:
       persistentVolumeClaim:
         claimName: stackrox-db
+  customize:
     envVars:
       - name: ROX_REPROCESSING_INTERVAL
-        value: "10m" 
+        value: "30m"
   egress:
     connectivityPolicy: Online
   scanner:
