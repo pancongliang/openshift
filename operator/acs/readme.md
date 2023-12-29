@@ -191,3 +191,5 @@
       roxctl --insecure-skip-tls-verify -e "${ROX_CENTRAL_ADDRESS}" image scan --image ${LOCAL_REGISTRY}/$image --output=table
   done
    ```
+
+[More RHCAS configurations](https://github.com/rhthsa/openshift-demo/blob/main/acs.md#scan-and-check-image-with-roxctl)
