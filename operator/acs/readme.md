@@ -145,6 +145,11 @@
 
 * Uploading kernel support packages to Central
   ```
+  ls
+  support-pkg-2.7.0-latest.zip  support-pkg-2.7.0-latest.zip.sha256
+
+  sha256sum -c support-pkg-2.7.0-latest.zip.sha256
+
   roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS" \
     collector support-packages upload support-pkg-2.7.0-latest.zip
   ```
