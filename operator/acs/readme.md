@@ -162,7 +162,7 @@
 
 * Central fetches the image scan results for all active images from Scanner or other integrated image scanners that you use and updates the results every 4 hours.
 
-* Change the interval for periodic scanning images(Unverified)
+* Change the interval for periodic scanning images
   ```
   export ROX_REPROCESSING_INTERVAL="30m"
   
@@ -170,7 +170,7 @@
      --type=json -p="$(echo '[{"op": "add", "path": "/spec/customize", "value": {"envVars": [{"name": "ROX_REPROCESSING_INTERVAL", "value": "${ROX_REPROCESSING_INTERVAL}"}]}}]' | envsubst)"
   ```
 
-* Fallback to default periodic image scan interval(Unverified) 
+* Fallback to default periodic image scan interval
   ```
   oc patch central stackrox-central-services -n stackrox \
      --type=json -p='[{"op": "remove", "path": "/spec/customize"}]'
