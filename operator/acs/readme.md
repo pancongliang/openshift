@@ -165,12 +165,16 @@
 * Change the interval for periodic scanning images(Unverified)
   ```
   export ROX_REPROCESSING_INTERVAL="30m"
-  oc patch central stackrox-central-services -n stackrox --type=json -p='[{"op": "add", "path": "/spec/central/customize/envVars", "value": [{"name": "ROX_REPROCESSING_INTERVAL", "value": "${ROX_REPROCESSING_INTERVAL}"}]}]'
+  
+  oc patch central stackrox-central-services -n stackrox \
+     --type=json -p='[{"op": "add", "path": "/spec/customize", \
+     "value": {"envVars": [{"name": "ROX_REPROCESSING_INTERVAL", "value": "${ROX_REPROCESSING_INTERVAL}"}]}}]'
   ```
 
-*  Fallback to default periodic image scan interval(Unverified) 
+* Fallback to default periodic image scan interval(Unverified) 
   ```
-  oc patch central stackrox-central-services -n stackrox --type=json -p='[{"op": "remove", "path": "/spec/central/customize/envVars"}]'
+  oc patch central stackrox-central-services -n stackrox \
+     --type=json -p='[{"op": "remove", "path": "/spec/customize"}]'
   ```
 ### Checking image scan results
 
