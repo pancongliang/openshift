@@ -209,7 +209,7 @@ $ oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjs
 #!/bin/bash
 for Hostname in $(oc get nodes  -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
 do
-   echo "---  [$Hostname] ---"
+   echo "[$Hostname]"
    ssh -o StrictHostKeyChecking=no core@$Hostname sudo cat /var/lib/kubelet/config.json
    echo
 done
@@ -227,7 +227,7 @@ $ oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTruste
 #!/bin/bash
 for Hostname in $(oc get nodes  -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
 do
-   echo "---  [$Hostname] ---"
+   echo "[$Hostname]"
    ssh -o StrictHostKeyChecking=no core@$Hostname sudo ls /etc/docker/certs.d/
    echo
 done
@@ -265,7 +265,7 @@ worker02.ocp4.example.com   NotReady,SchedulingDisabled   worker   231d   v1.24.
 #!/bin/bash
 for Hostname in $(oc get nodes  -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
 do
-   echo "---  [$Hostname] ---"
+   echo "[$Hostname]"
    ssh -o StrictHostKeyChecking=no core@$Hostname sudo cat /etc/pki/ca-trust/source/anchors/openshift-config-user-ca-bundle.crt
    echo 
 done
