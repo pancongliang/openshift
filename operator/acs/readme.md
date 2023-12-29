@@ -94,8 +94,11 @@
 
 ### Updating Scanner definitions in offline mode
 
-* Downloading [Scanner]( https://install.stackrox.io/scanner/scanner-vuln-updates.zip t) definitions
-
+* Downloading [Scanner](https://install.stackrox.io/scanner/scanner-vuln-updates.zip) definitions
+  ```
+  wget -q https://install.stackrox.io/scanner/scanner-vuln-updates.zip
+  ```
+  
 * Uploading definitions to Central by using an API token
   ```
   export ROX_API_TOKEN=${ROX_API_TOKEN}
