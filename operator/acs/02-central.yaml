@@ -21,6 +21,11 @@ spec:
     persistence:
       persistentVolumeClaim:
         claimName: stackrox-db
+    db:
+      isEnabled: Default
+      persistence:
+        persistentVolumeClaim:
+          claimName: central-db
   egress:
     connectivityPolicy: Online
   scanner:
