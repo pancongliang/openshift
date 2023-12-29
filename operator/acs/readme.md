@@ -179,17 +179,4 @@
     image scan --image bastion.ocp4.example.com:5000/openshift/release@sha256:28869cebbf8e5454493def0e6c8eb9bf33bfd8d56d1ce106a6c6708530c2c1c2 -o json
   ```
 
-* Manually check all images in the image registry
-  ```
-  export LOCAL_REGISTRY="bastion.ocp4.example.com:5000"
-  export ROX_API_TOKEN="${ROX_API_TOKEN}"
-  export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
-  
-  allImages=(backend:v1 backend:11-ubuntu backend:CVE-2020-36518 frontend-js:v1 frontend-js:node frontend-js:CVE-2020-28471 log4shell:latest backend-native:v1 backend-native:distroless)
-  for image in $allImages
-  do
-      roxctl --insecure-skip-tls-verify -e "${ROX_CENTRAL_ADDRESS}" image scan --image ${LOCAL_REGISTRY}/$image --output=table
-  done
-   ```
-
-[More RHCAS configurations](https://github.com/rhthsa/openshift-demo/blob/main/acs.md#scan-and-check-image-with-roxctl)
+### More [RHCAS configurations](https://github.com/rhthsa/openshift-demo/blob/main/acs.md#scan-and-check-image-with-roxctl)
