@@ -153,9 +153,8 @@
 
 * Configuring delegated image scanning in an offline environment 
   ```
-  ACS Console →Platform Configuration → Clusters → Select <my-cluster> → Manage delegated scanning
-  → Specified registries → Select default cluster to delegate to <my-cluter>
-  → Add registry  Source → registry <LOCAL_REGISTEY> → Destination cluster <my-cluter> → Save
+  ACS Console → Platform Configuration → Clusters → Select <my-cluster> → Manage delegated scanning
+  → Delegate scanning for <All registries> → Select default cluster to delegate to <my-cluter> → Save
   ```
 
 ### Periodic scanning of images
