@@ -47,8 +47,8 @@ export MASTER01_IP="10.74.251.61"
 export MASTER02_IP="10.74.254.155"
 export MASTER03_IP="10.74.253.133"
 export WORKER01_IP="10.74.251.58"
-export WORKER02_IP="10.74.253.49"
-export BOOTSTRAP_IP="10.74.255.118"
+export WORKER02_IP="10.74.255.118"
+export BOOTSTRAP_IP="0.74.249.234"
 
 # OpenShift Coreos install Dev/Net ifname
 export COREOS_INSTALL_DEV="/dev/sda"
