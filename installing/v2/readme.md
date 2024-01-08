@@ -33,9 +33,9 @@
 
 * Execute after modifying the necessary parameters
   ```
-  vim 01-set-ocp-env-parameter.sh
+  vim 01-set-ocp-install-parameters.sh
   
-  source 01-set-ocp-install-parameters.s
+  source 01-set-ocp-install-parameters.sh
   ```
 
 * Install rpm/oc and configure httpd/nfs/dns/haproxy
