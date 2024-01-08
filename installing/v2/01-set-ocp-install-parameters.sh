@@ -18,7 +18,7 @@ PRINT_TASK "[TASK: Set environment variables]"
 # No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
 # OpenShift release version
-export OCP_RELEASE_VERSION="4.10.60"
+export OCP_RELEASE_VERSION="4.12.26"
 
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
@@ -50,11 +50,11 @@ export WORKER01_IP="10.74.251.58"
 export WORKER02_IP="10.74.253.49"
 export BOOTSTRAP_IP="10.74.255.118"
 
-# OpenShift Coreos install dev/Net ifname
+# OpenShift Coreos install Dev/Net ifname
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
-# === more parameters === 
+# === More parameters === 
 # Mirror-Registry is used to mirror ocp image
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="admin"
