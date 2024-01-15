@@ -2,7 +2,7 @@
 
 ### Build python-app image
 ~~~
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/python/index.jsp
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/python/app.py
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/python/Dockerfile
 
 podman build -t docker.registry.example.com:5000/python/python-app:latest .
