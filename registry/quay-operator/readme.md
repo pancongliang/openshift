@@ -80,8 +80,13 @@
   oc get route example-registry-quay -n ${NAMESPACE} -o jsonpath='{.spec.host}'
   ```
 
-* Click `Create Account` to create `quayadmin` user in the quay console page
-
+* Click `Create Account` to create `quayadmin` user in the quay console page, or create a user through the following command
+  ```
+  oc create secret generic quay-admin \
+     --from-literal=superuser-username=quayadmin \
+     --from-literal=superuser-password=password \
+     --from-literal=superuser-email=admin@example.com
+  ```
   
 * Push the image to quay registry
   ```
