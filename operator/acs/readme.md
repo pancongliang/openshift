@@ -165,8 +165,11 @@
 
 * Change the interval for periodic scanning images
   ```
-  oc -n stackrox set env deploy/central ROX_REPROCESSING_INTERVAL=30
   export ROX_REPROCESSING_INTERVAL="30m"
+
+  oc -n stackrox set env deploy/central ROX_REPROCESSING_INTERVAL=${ROX_REPROCESSING_INTERVAL}"}
+
+  or
   
   oc patch central stackrox-central-services -n stackrox \
      --type=json -p="$(echo '[{"op": "add", "path": "/spec/customize", "value": {"envVars": [{"name": "ROX_REPROCESSING_INTERVAL", "value": "${ROX_REPROCESSING_INTERVAL}"}]}}]' | envsubst)"
