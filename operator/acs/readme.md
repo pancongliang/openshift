@@ -167,10 +167,10 @@
   ```
   export ROX_REPROCESSING_INTERVAL="30m"
 
-  oc -n stackrox set env deploy/central ROX_REPROCESSING_INTERVAL=${ROX_REPROCESSING_INTERVAL}"}
+  # After installation
+  oc -n stackrox set env deploy/central ROX_REPROCESSING_INTERVAL=${ROX_REPROCESSING_INTERVAL}
 
-  or
-  
+  # Before installation
   oc patch central stackrox-central-services -n stackrox \
      --type=json -p="$(echo '[{"op": "add", "path": "/spec/customize", "value": {"envVars": [{"name": "ROX_REPROCESSING_INTERVAL", "value": "${ROX_REPROCESSING_INTERVAL}"}]}}]' | envsubst)"
   ```
