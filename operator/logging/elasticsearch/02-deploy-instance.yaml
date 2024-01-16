@@ -15,7 +15,7 @@ spec:
       audit:
         maxAge: 3d
     elasticsearch:
-      nodeCount: 3 
+      nodeCount: 2
       storage:
         storageClassName: ${STORAGECLASS_NAME}
         size: 100G
