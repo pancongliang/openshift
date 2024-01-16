@@ -81,6 +81,8 @@
   ```
 
 * Click `Create Account` to create `quayadmin` user in the quay console page, or create a user through the following command
+
+  Default quay superuser credentials <quay/password>
   ```
   oc create secret generic quay-admin \
      --from-literal=superuser-username=quayadmin \
