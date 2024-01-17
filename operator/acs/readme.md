@@ -182,7 +182,7 @@
   ```
 ### Checking image scan results
 
-* Manually check a single image
+* Manually scan a single image
   ```
   export ROX_API_TOKEN="${ROX_API_TOKEN}"
   export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
@@ -192,4 +192,41 @@
     image scan --image bastion.ocp4.example.com:5000/openshift/release@sha256:28869cebbf8e5454493def0e6c8eb9bf33bfd8d56d1ce106a6c6708530c2c1c2 -o json
   ```
 
+* Scan all images in docker registry
+  ```
+  # Set variables
+  export REGISTRY_URL='docker.registry.example.com:5000'
+  export REGISTRY_ID="admin"
+  export REGISTRY_PW="redhat"
+  
+  export ROX_API_TOKEN="${ROX_API_TOKEN}"
+  export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
+  
+  
+  # Get all repositories
+  REPOSITORIES=$(curl -s -u "$REGISTRY_ID:$REGISTRY_PW" "https://$REGISTRY_URL/v2/_catalog" | jq -r '.repositories  []')
+  
+  # Iterate over each repository, get tags or hashes
+  for REPOSITORY in $REPOSITORIES
+  do
+      # Try to get tags
+      TAGS=$(curl -s -u "$REGISTRY_ID:$REGISTRY_PW" "https://$REGISTRY_URL/v2/$REPOSITORY/tags/list" | jq -r '.tags  []' || echo "latest")
+  
+      # If no tags, get digest
+      if [ "$TAGS" == "latest" ]; then
+          DIGEST=$(curl -s -u "$REGISTRY_ID:$REGISTRY_PW" "https://$REGISTRY_URL/v2/$REPOSITORY/manifests/  latest" | jq -r '.config.digest')
+          IMAGE_URI="$REGISTRY_URL/$REPOSITORY@$DIGEST"
+      else
+          # Output image URI with tags
+          for TAG in $TAGS
+          do
+              IMAGE_URI="$REGISTRY_URL/$REPOSITORY:$TAG"
+              echo "Image URI: $IMAGE_URI"
+  
+              # Perform roxctl check for each image
+              roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS" image check --image="$IMAGE_URI" 
+          done
+      fi
+  done
+  ```
 ### More [RHCAS configurations](https://github.com/rhthsa/openshift-demo/blob/main/acs.md#scan-and-check-image-with-roxctl)
