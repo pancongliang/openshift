@@ -257,7 +257,8 @@
   
   # Extract namespace and repository fields
   echo "$REPOSITORIES" | jq -r '.repositories | map(select(.namespace != null and .name != null)) | .[] | "\(.namespace) \(.name)"' | while read -r NS   REPO; do
-    TAGS=$(curl -ks -H "Authorization: Bearer ${REGISTRY_TOKEN}" "https://${REGISTRY_URL}/api/v1/repository/${NS}/${REPO}/tag/" | jq -r '.tags | map(select(.  name != null)) | .[].name')
+    TAGS=$(curl -ks -H "Authorization: Bearer ${REGISTRY_TOKEN}" "https://${REGISTRY_URL}/api/v1/repository/${NS}/${REPO}/tag/" | jq -r '.tags | map(select(.name != null)) | .[].name')
+
     if [ -n "$TAGS" ]; then
       for TAG in $TAGS; do
         # Print image address
