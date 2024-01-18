@@ -194,6 +194,7 @@
 
 * Scan all images in docker registry
   ```
+  #!/bin/bash
   # Set variables
   export REGISTRY_URL='docker.registry.example.com:5000'
   export REGISTRY_ID="admin"
@@ -227,6 +228,46 @@
               roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS" image check --image="$IMAGE_URI"
           done
       fi
+  done
+  ```
+  
+* Scan all images in quay registry(public repositories)
+  ```
+  Create OAuth access token
+
+  1.Log in to Red Hat Quay and select your Organization (or create a new one).
+  2.Select the Applications icon from the left navigation.
+  3.Select Create New Application and give the new application a name when prompted.
+  4.Select the new application.
+  5.Select Generate Token from the left navigation.
+  6.Select the checkboxes to set the scope of the token and select Generate Access Token.
+  7.Review the permissions you are allowing and select Authorize Application to approve it.
+  8.Copy the newly generated token to use to access the API.
+  ```
+  ```
+  #!/bin/bash
+  export REGISTRY_TOKEN="BGz3ExbSNb5RPewDNvVEZW3EUghHACVBgZ4ijq2q"
+  export REGISTRY_URL='mirror.registry.example.com:8443'
+
+  export ROX_API_TOKEN="${ROX_API_TOKEN}"
+  export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
+  
+  # View public repositories in the registry and retrieve namespace and name fields
+  REPOSITORIES=$(curl -ks -H "Authorization: Bearer ${REGISTRY_TOKEN}" "https://${REGISTRY_URL}/api/v1/repository?public=true")
+  
+  # Extract namespace and repository fields
+  echo "$REPOSITORIES" | jq -r '.repositories | map(select(.namespace != null and .name != null)) | .[] | "\(.namespace) \(.name)"' | while read -r NS   REPO; do
+    TAGS=$(curl -ks -H "Authorization: Bearer ${REGISTRY_TOKEN}" "https://${REGISTRY_URL}/api/v1/repository/${NS}/${REPO}/tag/" | jq -r '.tags | map(select(.  name != null)) | .[].name')
+    if [ -n "$TAGS" ]; then
+      for TAG in $TAGS; do
+        # Print image address
+        IMAGE_URI="${REGISTRY_URL}/${NS}/${REPO}:${TAG}"
+        echo "Image URI: $IMAGE_URI"
+  
+        # Perform roxctl check for each image
+        roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS" image check --image="$IMAGE_URI"
+      done
+    fi
   done
   ```
 ### More [RHCAS configurations](https://github.com/rhthsa/openshift-demo/blob/main/acs.md#scan-and-check-image-with-roxctl)
