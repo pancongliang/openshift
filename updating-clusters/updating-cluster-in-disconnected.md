@@ -106,6 +106,11 @@
   oc adm upgrade --allow-explicit-upgrade \
      --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@${RELEASE_DIGEST}
 
+  # Or identify the image through icsp
+
+  oc adm upgrade --allow-explicit-upgrade \
+     --to-image quay.io/openshift-release-dev/ocp-release@${RELEASE_DIGEST}
+  
   oc get pod,job -n openshift-cluster-version
   NAME                                            READY   STATUS     RESTARTS   AGE
   pod/cluster-version-operator-7444474bc4-jmkms   1/1     Running    11         252d
