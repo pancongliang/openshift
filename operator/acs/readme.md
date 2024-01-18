@@ -210,13 +210,13 @@
   for REPOSITORY in $REPOSITORIES
   do
       # Try to get tags
-      TAGS=$(curl -s -u "$REGISTRY_ID:$REGISTRY_PW" "https://$REGISTRY_URL/v2/$REPOSITORY/tags/list" | jq -r '.tags  []' || echo "latest")
+      TAGS=$(curl -s -u "$REGISTRY_ID:$REGISTRY_PW" "https://$REGISTRY_URL/v2/$REPOSITORY/tags/list" | jq -r '.tags  []' 2>/dev/null || echo "latest")
   
       # If no tags, get digest
       if [ "$TAGS" == "latest" ]; then
-          DIGEST=$(curl -s -u "$REGISTRY_ID:$REGISTRY_PW" "https://$REGISTRY_URL/v2/$REPOSITORY/manifests/  latest" | jq -r '.config.digest')
+          DIGEST=$(curl -s -u "$REGISTRY_ID:$REGISTRY_PW" "https://$REGISTRY_URL/v2/$REPOSITORY/manifests/latest" | jq -r '.config.digest')
           IMAGE_URI="$REGISTRY_URL/$REPOSITORY@$DIGEST"
-      else
+      elif [ -n "$TAGS" ] && [ "$TAGS" != "null" ]; then
           # Output image URI with tags
           for TAG in $TAGS
           do
@@ -224,7 +224,7 @@
               echo "Image URI: $IMAGE_URI"
   
               # Perform roxctl check for each image
-              roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS" image check --image="$IMAGE_URI" 
+              roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS" image check --image="$IMAGE_URI"
           done
       fi
   done
