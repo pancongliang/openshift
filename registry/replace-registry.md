@@ -339,7 +339,6 @@ elasticsearch-operator.v5.6.12   OpenShift Elasticsearch Operator   5.6.12    el
 $ ssh core@worker01.ocp4.example.com
 [core@worker01 ~]$ sudo -i
 [root@worker01 ~]# podman images
-REPOSITORY                                                           TAG         IMAGE ID      CREATED        SIZE
 REPOSITORY                                                            TAG         IMAGE ID      CREATED        SIZE
 docker.registry.example.com:5000/redhat/redhat-operator-index         v4.11       8b8e0d11fee9  15 hours ago   2.1 GB
 quay.io/minio/minio                                                   latest      603e753a418c  4 days ago     148 MB
