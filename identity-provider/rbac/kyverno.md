@@ -150,3 +150,34 @@ RBAC Role has no deny rules, so can use third-party software <kyverno> to deny s
           conditions: []
   EOF
   ```
+
+* Block a cluster role delete pod
+  ```
+  apiVersion: kyverno.io/v1
+  kind: ClusterPolicy
+  metadata:
+    name: nebulapolicy-protect-resources
+  spec:
+    background: false
+    rules:
+    - match:
+        all:
+        - clusterRoles:
+          - test-admin     # Specify role name
+          resources:
+            kinds:
+            - Pod          # Specify resources name
+      name: nebula-protect-cluster-critical-namespaces
+      validate:
+        deny:
+          conditions:
+          - key: '{{request.operation}}'
+            operator: In
+            value:
+            - DELETE       # Specify operations
+            - UPDATE
+            - CREATE
+            - CONNECT
+        message: "The cluster-admin role cannot remove pod."  # Specify message
+    validationFailureAction: enforce
+  ```
