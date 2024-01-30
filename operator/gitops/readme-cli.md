@@ -65,7 +65,7 @@
 
 * Create application
   ```
-   cat << EOF | oc apply -f -
+  cat << EOF | oc apply -f -
   apiVersion: argoproj.io/v1alpha1
   kind: Application
   metadata:
