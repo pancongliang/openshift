@@ -53,6 +53,12 @@
     name: spring-dev
     namespace: openshift-gitops
   spec:
+    clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+    destinations:
+    - namespace: '*'
+      server: '*'
     sourceRepos:
     - '*'
   EOF
