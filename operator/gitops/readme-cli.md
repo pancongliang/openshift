@@ -6,7 +6,9 @@
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/gitops/01-deploy-operator.yaml | envsubst | oc apply -f -
 
-  oc patch installplan $(oc get ip -n openshift-operators  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
+  sleep 6
+
+  oc patch installplan $(oc get ip -n openshift-gitops-operator -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-gitops-operator --type merge --patch '{"spec":{"approved":true}}'
 
   oc get ip -n openshift-operators
 
