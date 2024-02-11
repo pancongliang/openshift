@@ -37,7 +37,7 @@ run_command "[add authentication information to pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
 cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
-run_command "Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json]"
+run_command "[save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create ImageSetConfiguration directory
 mkdir ${IMAGE_SET_CONFIGURATION_PATH}
