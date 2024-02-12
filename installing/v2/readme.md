@@ -109,7 +109,7 @@
   [root@bastion ~]# export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
   [root@bastion ~]# oc get csr
   [root@bastion ~]# oc get node
-  [root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
+  [root@bastion ~]# oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
   [root@bastion ~]# oc get co | grep -v '.True.*False.*False'
   ```
 
