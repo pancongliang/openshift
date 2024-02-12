@@ -70,12 +70,11 @@
 
 * Install bootstrap
 
-  After mounting the ISO, start the bootstrap node and execute the following command.
-  If the node cannot communicate, manually enter the content in set-*.sh.
-  
+  After mounting the ISO, start the `bootstrap` node and execute the following command.
+  If the node cannot communicate, manually enter the content in `set-*.sh`.
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://$BASTION_IP:8080/pre/set-bootstrap.sh | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-bootstrap.sh | sh
   [root@localhost ~]$ reboot
   ···
   # Wait for the reboot to complete and check for error messages
@@ -89,28 +88,41 @@
   ```
 
 * Install all master
+  After mounting the ISO, start the `master` node and execute the following command.
+  If the node cannot communicate, manually enter the content in `set-*.sh`.
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://$BASTION_IP:8080/pre/set-master01.sh | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-master01.sh | sh
   [root@localhost ~]$ reboot
   ···Install all master nodes in sequence···
   ```
 
 * Install all worker
+  After mounting the ISO, start the `worker` node and execute the following command.
+  If the node cannot communicate, manually enter the content in `set-*.sh`.
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://$BASTION_IP:8080/pre/set-worker01.sh | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-worker01.sh | sh
   [root@localhost ~]$ reboot
   ···Install all worker nodes in sequence···
   ```
 
 * Approve csr and wait for 30 minutes to check whether the cluster is normal
   ```
-  [root@bastion ~]# export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
-  [root@bastion ~]# oc get csr
-  [root@bastion ~]# oc get node
-  [root@bastion ~]# oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
-  [root@bastion ~]# oc get co | grep -v '.True.*False.*False'
+  # Bastion Terminal-1:
+  source 01-set-ocp-install-parameters.sh
+  export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+  while true; do
+    oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
+    sleep 10
+  done
+  ```
+  ```
+  # Bastion Terminal-2(Close Terminal-1 after the status of all nodes is Ready):
+  source 01-set-ocp-install-parameters.sh
+  export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+  oc get node
+  oc get co | grep -v '.True.*False.*False'
   ```
 
 ### Configure image-registry-operator data persistence and registry trustedCA
