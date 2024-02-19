@@ -58,14 +58,14 @@
 * Create a bucket by accessing the Minio Console (Default ID/PW: minioadmin)
  
   ```
-  oc get route minio-console -n minio -o jsonpath='http://{.spec.host}'
+  oc get route minio-console -n ${NAMESPACE} -o jsonpath='http://{.spec.host}'
   ```
 
 * Create bucket through Minio Client (Default ID/PW: minioadmin)
   
   Create an alias named "my-minio" and Access Minio, After creating/using an "alias", the Minio url can be ignored the next time visit.
   ```    
-  export MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
+  export MINIO_ADDR=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
   
   mc alias set my-minio ${MINIO_ADDR} minioadmin minioadmin
   ``` 
