@@ -58,7 +58,7 @@
 * Create a bucket by accessing the Minio Console (Default ID/PW: minioadmin)
  
   ```
-  oc get route minio-console -n ${NAMESPACE} -o jsonpath='http://{.spec.host}'
+  oc get route minio-console -n ${NAMESPACE} -o jsonpath='http://{.spec.host}{"\n"}'
   ```
 
 * Create bucket through Minio Client (Default ID/PW: minioadmin)
