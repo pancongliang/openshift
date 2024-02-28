@@ -507,8 +507,7 @@ ns1     IN      A       ${DNS_SERVER_IP}
 helper  IN      A       ${DNS_SERVER_IP}
 helper.ocp4     IN      A       ${DNS_SERVER_IP}
 ;
-; The api identifies the IP of your load balancer.
-;
+; The api identifies the IP of load balancer.
 $(format_dns_entry "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
 $(format_dns_entry "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
 ;
@@ -565,7 +564,7 @@ cat << EOF > "$reverse_zone_input_file"
 ; The syntax is "last octet" and the host must have an FQDN
 ; with a trailing dot.
 ;
-; The api identifies the IP of your load balancer.
+; The api identifies the IP of load balancer.
 ${API_IP}                IN      PTR     api.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ${API_INT_IP}            IN      PTR     api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ;
