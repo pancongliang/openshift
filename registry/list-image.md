@@ -48,19 +48,19 @@ Create OAuth access token
 ```
 ```
 #!/bin/bash
-export REGISTRY_TOKEN="BGz3ExbSNb5RPewDNvVEZW3EUghHACVBgZ4ijq2q"
-export REGISTRY_URL='https://mirror.registry.example.com:8443'
+export USER_TOKEN="hSMLaKaCMUS99VCbAkUbTM0k2oVkHxbDG36EDtei"
+export QUAY_URL='https://mirror.registry.example.com:8443'
 
 # View public repositories in the registry and retrieve namespace and name fields
-REPOSITORIES=$(curl -ks -H "Authorization: Bearer ${REGISTRY_TOKEN}" "${REGISTRY_URL}/api/v1/repository?public=true")
+REPOSITORIES=$(curl -ks -H "Authorization: Bearer ${USER_TOKEN}" "${QUAY_URL}/api/v1/repository?public=true")
 
 # Extract namespace and repository fields
 echo "$REPOSITORIES" | jq -r '.repositories | map(select(.namespace != null and .name != null)) | .[] | "\(.namespace) \(.name)"' | while read -r NS   REPO; do
-  TAGS=$(curl -ks -H "Authorization: Bearer ${REGISTRY_TOKEN}" "${REGISTRY_URL}/api/v1/repository/${NS}/${REPO}/tag/" | jq -r '.tags | map(select(.name != null)) | .[].name')
+  TAGS=$(curl -ks -H "Authorization: Bearer ${USER_TOKEN}" "${QUAY_URL}/api/v1/repository/${NS}/${REPO}/tag/" | jq -r '.tags | map(select(.name != null)) | .[].name')
   if [ -n "$TAGS" ]; then
     for TAG in $TAGS; do
       # Print image address
-      IMAGE_URI="${REGISTRY_URL}/${NS}/${REPO}:${TAG}"
+      IMAGE_URI="${QUAY_URL}/${NS}/${REPO}:${TAG}"
       echo "Image URI: $IMAGE_URI"
     done
   fi
