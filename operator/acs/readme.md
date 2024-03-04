@@ -3,7 +3,7 @@
 * Install the Operator using the default namespace
   ```
   export CHANNEL_NAME="stable"
-  export CATALOG_SOURCE_NAME="redhat-operator"
+  export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/acs/01-operator.yaml | envsubst | oc create -f -
 
   sleep 6
