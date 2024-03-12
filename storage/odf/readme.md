@@ -75,29 +75,9 @@
    ```
    export NAMESPACE="openshift-logging"
    export OBC_NAME="loki-bucket-odf"
-   export GENERATEBUCKETNAME="${OBC_NAME}"
-   export OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
-   ```
-   ```
-   cat << EOF | envsubst | oc apply -f -
-   apiVersion: objectbucket.io/v1alpha1
-   kind: ObjectBucketClaim
-   metadata:
-     finalizers:
-     - objectbucket.io/finalizer
-     labels:
-       app: noobaa
-       bucket-provisioner: openshift-storage.noobaa.io-obc
-       noobaa-domain: openshift-storage.noobaa.io
-     name: ${OBC_NAME}
-     namespace: ${NAMESPACE}
-   spec:
-     additionalConfig:
-       bucketclass: noobaa-default-bucket-class
-     generateBucketName: ${GENERATEBUCKETNAME}
-     objectBucketName: ${OBJECTBUCKETNAM}
-     storageClassName: openshift-storage.noobaa.io
-   EOF
+   export GENERATE_BUCKET_NAME="${OBC_NAME}"
+   export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
+   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-objectbucketclaim.yaml | envsubst | oc apply -f -
    ```
 
 * Create Object Storage secret
@@ -113,6 +93,7 @@
    export ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
    export SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
    ```
+
 * Create an Object Storage secret with keys as follows
    ```
    oc create -n ${NAMESPACE} secret generic ${OBC_NAME}-credentials \
@@ -120,5 +101,12 @@
       --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
       --from-literal=bucketnames="${BUCKET_NAME}" \
       --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
+   ```
+
+* Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
+   ```
+  export STORAGE_CLASS_NAME="ocs-storagecluster-cephfs"
+  export BUCKET_NAME"${OBC_NAME}"
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-deploy-loki-stack.yaml | envsubst | oc apply -f -
    ```
 
