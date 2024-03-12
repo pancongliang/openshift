@@ -43,7 +43,8 @@
   oc get po -n openshift-logging 
   ```
 
-#### Install lokistack ODF
+####  Install lokistack using ODF
+* Install and configure [odf-operator](https://github.com/pancongliang/openshift/blob/main/storage/odf/readme.md)
 
 * Create ObjectBucketClaim
    ```
@@ -52,27 +53,6 @@
    export GENERATE_BUCKET_NAME="${OBC_NAME}"
    export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
    curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-objectbucketclaim.yaml | envsubst | oc apply -f -
-   ```
-   ```
-   cat << EOF | envsubst | oc apply -f -
-   apiVersion: objectbucket.io/v1alpha1
-   kind: ObjectBucketClaim
-   metadata:
-     finalizers:
-     - objectbucket.io/finalizer
-     labels:
-       app: noobaa
-       bucket-provisioner: openshift-storage.noobaa.io-obc
-       noobaa-domain: openshift-storage.noobaa.io
-     name: ${OBC_NAME}
-     namespace: ${NAMESPACE}
-   spec:
-     additionalConfig:
-       bucketclass: noobaa-default-bucket-class
-     generateBucketName: ${GENERATEBUCKETNAME}
-     objectBucketName: ${OBJECTBUCKETNAM}
-     storageClassName: openshift-storage.noobaa.io
-   EOF
    ```
 
 * Create Object Storage secret
