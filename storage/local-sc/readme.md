@@ -15,8 +15,21 @@
 
 ### Automating discovery and provisioning for local storage devices
 
-* Add disk to worker node
+* Add disk to worker node(If it is used for ODF, must add disks and label them for at least three worker nodes.)
 
+
+* Add a label to the node where the disk is added
+  ```
+  export NODE_NAME01=worker01.ocp4.example.com
+  oc label node ${NODE_NAME01} cluster.ocs.openshift.io/openshift-storage=''
+
+  export NODE_NAME02=worker02.ocp4.example.com
+  oc label node ${NODE_NAME02} cluster.ocs.openshift.io/openshift-storage=''
+
+  export NODE_NAME03=worker03.ocp4.example.com
+  oc label node ${NODE_NAME03} cluster.ocs.openshift.io/openshift-storage=''
+  ```
+  
 * Create LocalVolumeDiscovery
   ```
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/02-localvolumediscovery.yaml
