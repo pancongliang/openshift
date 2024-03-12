@@ -33,6 +33,8 @@
 * Create LocalVolumeDiscovery
   ```
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/02-localvolumediscovery.yaml
+
+  oc get localvolumediscoveryresults -n openshift-local-storage
   ```  
 
 * Create a LocalVolumeSet
@@ -45,6 +47,9 @@
   # Volume mode is "FileSystem"
   export FSTYPE=xfs
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/03-localvolumeset-fs.yaml | envsubst | oc create -f -
+
+  oc get pods -n openshift-local-storage | grep "diskmaker-manager"
+  oc get pv -n openshift-local-storage
   ```
 
   
