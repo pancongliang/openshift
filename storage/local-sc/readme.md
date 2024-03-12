@@ -13,6 +13,25 @@
   oc get ip -n openshift-local-storage
   ```
 
-### Provisioning local volumes by using the Local Storage Operator
+### Automating discovery and provisioning for local storage devices
 
-* 
+* Add disk to worker node
+
+* Create LocalVolumeDiscovery
+  ```
+  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/02-localvolumediscovery.yaml
+  ```  
+
+* Create a LocalVolumeSet
+  ```
+  # Volume mode is "Block"(ODF)
+  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/03-localvolumeset-block.yaml
+
+  # or
+
+  # Volume mode is "FileSystem"
+  export FSTYPE=xfs
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/03-localvolumeset-fs.yaml | envsubst | oc create -f -
+  ```
+
+  
