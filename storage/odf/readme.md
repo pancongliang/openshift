@@ -1,8 +1,9 @@
 ## Install and configure ODF
 
 ### Install and configure local storage operator
-* Install and configure [local storage operator](https://github.com/pancongliang/openshift/blob/main/storage/local-sc/readme.md),Please note that requires at least 3 worker nodes and add at least 100GB disk to each node.
-
+* Install and configure [local storage operator](https://github.com/pancongliang/openshift/blob/main/storage/local-sc/readme.md),
+* There must be at least three worker nodes or infrastructure nodes in the OCP cluster. Each node should contain 1 disk and require 3 disks (PV), each disk is at least 100GB.
+  
 ### Install Red Hat OpenShift Data Foundation
 * Install the Operator using the default namespace
   ```
