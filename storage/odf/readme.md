@@ -1,0 +1,118 @@
+## Install and configure ODF
+
+### Install and configure local storage operator
+* Install and configure [local storage operator](https://github.com/pancongliang/openshift/blob/main/storage/local-sc/readme.md),Please note that requires at least 3 worker nodes and add at least 100GB disk to each node.
+
+### Install Red Hat OpenShift Data Foundation
+* Install the Operator using the default namespace
+  ```
+  export CHANNEL_NAME="stable-4.12"
+  export CATALOG_SOURCE_NAME="redhat-operators"
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/01-operator.yaml | envsubst | oc create -f -
+
+  sleep 6
+  
+  oc patch installplan $(oc get ip -n openshift-storage -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-storage --type merge --patch '{"spec":{"approved":true}}'
+
+  oc get ip -n openshift-storage
+  ```
+
+
+### Add a label to the node where the disk is added
+* The ocs label needs to be added to each ocp node that has a storage device. ODF operators look for this label to learn which nodes can be targeted for scheduling by ODF components.
+* If the label has been marked during the configuration of `local storage operator`, can skip it.
+  ```
+  export NODE_NAME01=worker01.ocp4.example.com
+  oc label node ${NODE_NAME01} cluster.ocs.openshift.io/openshift-storage=''
+
+  export NODE_NAME02=worker02.ocp4.example.com
+  oc label node ${NODE_NAME02} cluster.ocs.openshift.io/openshift-storage=''
+
+  export NODE_NAME03=worker03.ocp4.example.com
+  oc label node ${NODE_NAME03} cluster.ocs.openshift.io/openshift-storage=''
+  ```
+
+### Create StorageCluster
+* Create StorageCluster after specifying variables
+  ```
+  export LOACL_PV_SIZE=100Gi  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
+  export STORAGE_CLASS_NAME=localblock
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/02-storagecluster.yaml | envsubst | oc create -f -
+  ```
+
+### Verifying the Installation
+* Verifying the Installation
+  ```
+  oc get pods -n openshift-storage
+  oc get sc
+  ```
+  
+* Use `ocs-storagecluster-ceph-rbd` sc to create pv/pvc and mount
+  ```
+  oc new-project test
+  oc new-app --name=mysql \
+   --docker-image registry.access.redhat.com/rhscl/mysql-57-rhel7:latest \
+   -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb \
+   -e MYSQL_ROOT_PASSWORD=r00tpa55
+
+  oc set volumes deployment/mysql \
+   --add --name mysql-storage --type pvc --claim-class ocs-storagecluster-ceph-rbd \
+   --claim-mode RWO --claim-size 10Gi --mount-path /var/lib/mysql/data \
+   --claim-name mysql-storage
+
+  export POD_NAME=$(oc get pods -n test -o=jsonpath='{.items[*].metadata.name}')
+  oc -n test rsh ${POD_NAME} df -h
+  ```
+
+### Create ObjectBucketClaim and Object Storage secret 
+* Create ObjectBucketClaim
+   ```
+   NAMESPACE="openshift-logging"
+   OBC_NAME="loki-bucket-odf"
+   GENERATEBUCKETNAME="${OBC_NAME}"
+   OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
+   ```
+   ```
+   cat << EOF | envsubst | oc apply -f -
+   apiVersion: objectbucket.io/v1alpha1
+   kind: ObjectBucketClaim
+   metadata:
+     finalizers:
+     - objectbucket.io/finalizer
+     labels:
+       app: noobaa
+       bucket-provisioner: openshift-storage.noobaa.io-obc
+       noobaa-domain: openshift-storage.noobaa.io
+     name: ${OBC_NAME}
+     namespace: ${NAMESPACE}
+   spec:
+     additionalConfig:
+       bucketclass: noobaa-default-bucket-class
+     generateBucketName: ${GENERATEBUCKETNAME}
+     objectBucketName: ${OBJECTBUCKETNAM}
+     storageClassName: openshift-storage.noobaa.io
+   EOF
+   ```
+
+* Create Object Storage secret
+
+  Get bucket properties from the associated ConfigMap
+   ```
+   BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
+   BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
+   BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
+   ```
+  Get bucket access key from the associated Secret
+   ```
+   ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+   SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+   ```
+* Create an Object Storage secret with keys as follows
+   ```
+   oc create -n ${NAMESPACE} secret generic ${OBC_NAME}-credentials \
+      --from-literal=access_key_id="${ACCESS_KEY_ID}" \
+      --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
+      --from-literal=bucketnames="${BUCKET_NAME}" \
+      --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
+   ```
+
