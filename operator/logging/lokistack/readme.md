@@ -102,5 +102,5 @@
    ```
   export STORAGECLASS_NAME="ocs-storagecluster-cephfs"
   export BUCKET_NAME"${OBC_NAME}"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-deploy-loki-stack-minio.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-deploy-loki-stack.yaml | envsubst | oc apply -f -
    ```
