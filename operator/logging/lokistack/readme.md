@@ -38,7 +38,7 @@
 * Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
   ```
   export STORAGECLASS_NAME="managed-nfs-storage"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-deploy-loki-stack-minio.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-deploy-loki-stack.yaml | envsubst | oc apply -f -
 
   oc get po -n openshift-logging 
   ```
