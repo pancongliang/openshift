@@ -49,9 +49,9 @@
    ```
    export NAMESPACE="openshift-logging"
    export OBC_NAME="loki-bucket-odf"
-   export GENERATEBUCKETNAME="${OBC_NAME}"
-   export OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
-   export BUCKET_NAME"${OBC_NAME}"
+   export GENERATE_BUCKET_NAME="${OBC_NAME}"
+   export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
+   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-objectbucketclaim.yaml | envsubst | oc apply -f -
    ```
    ```
    cat << EOF | envsubst | oc apply -f -
@@ -101,6 +101,6 @@
 * Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
    ```
   export STORAGECLASS_NAME="ocs-storagecluster-cephfs"
-  export BUCKET_NAME="loki-bucket"
+  export BUCKET_NAME"${OBC_NAME}"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-deploy-loki-stack-minio.yaml | envsubst | oc apply -f -
    ```
