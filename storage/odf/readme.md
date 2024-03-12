@@ -45,10 +45,15 @@
 * Verifying the Installation
   ```
   oc get pods -n openshift-storage
+
   oc get sc
+  ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete  Immediate  true  8m  # Block storage
+  ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete  Immediate  false 9m  # RGW Object storage
+  ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete  Immediate  true  8m  # FS storage
+  openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete  Immediate  false 8m  # NooBaa Object storage
   ```
-  
-* Use `ocs-storagecluster-ceph-rbd` sc to create pv/pvc and mount
+    
+* Use `ocs-storagecluster-cephfs` sc to create filesystem pvc and mount
   ```
   oc new-project test
   oc new-app --name=mysql \
@@ -57,21 +62,21 @@
    -e MYSQL_ROOT_PASSWORD=r00tpa55
 
   oc set volumes deployment/mysql \
-   --add --name mysql-storage --type pvc --claim-class ocs-storagecluster-ceph-rbd \
+   --add --name mysql-storage --type pvc --claim-class ocs-storagecluster-cephfs \
    --claim-mode RWO --claim-size 10Gi --mount-path /var/lib/mysql/data \
    --claim-name mysql-storage
 
   export POD_NAME=$(oc get pods -n test -o=jsonpath='{.items[*].metadata.name}')
-  oc -n test rsh ${POD_NAME} df -h
+  oc -n test rsh ${POD_NAME} df -h |grep "/var/lib/mysql/data"
   ```
 
 ### Create ObjectBucketClaim and Object Storage secret 
 * Create ObjectBucketClaim
    ```
-   NAMESPACE="openshift-logging"
-   OBC_NAME="loki-bucket-odf"
-   GENERATEBUCKETNAME="${OBC_NAME}"
-   OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
+   export NAMESPACE="openshift-logging"
+   export OBC_NAME="loki-bucket-odf"
+   export GENERATEBUCKETNAME="${OBC_NAME}"
+   export OBJECTBUCKETNAME="obc-${NAMESPACE}-${OBC_NAME}"
    ```
    ```
    cat << EOF | envsubst | oc apply -f -
@@ -99,14 +104,14 @@
 
   Get bucket properties from the associated ConfigMap
    ```
-   BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
-   BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
-   BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
+   export BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
+   export BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
+   export BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
    ```
   Get bucket access key from the associated Secret
    ```
-   ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
-   SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+   export ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+   export SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
    ```
 * Create an Object Storage secret with keys as follows
    ```
