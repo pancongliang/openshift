@@ -15,7 +15,7 @@
 
 ### Automating discovery and provisioning for local storage devices
 
-* Add disk to worker node(If it is used for ODF, must add disks and label them for at least three worker nodes.)
+* Add disk to worker node(If used for ODF, you must need at least three working nodes, add at least 100GB disk to each node, and then add label.)
 
 
 * Add a label to the node where the disk is added
@@ -50,6 +50,7 @@
 
   oc get pods -n openshift-local-storage | grep "diskmaker-manager"
   oc get pv -n openshift-local-storage
+  oc get sc
   ```
 
   
