@@ -24,7 +24,7 @@
 
 * Create ClusterLogging instance
   ```
-  export STORAGECLASS_NAME="managed-nfs-storage"
+  export STORAGE_CLASS_NAME="managed-nfs-storage"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-deploy-instance.yaml | envsubst | oc apply -f -
 
   oc get po -n openshift-logging
