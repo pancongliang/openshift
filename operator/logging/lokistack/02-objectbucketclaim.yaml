@@ -12,6 +12,6 @@ metadata:
 spec:
   additionalConfig:
     bucketclass: noobaa-default-bucket-class
-  generateBucketName: ${GENERATEBUCKETNAME}
-  objectBucketName: ${OBJECTBUCKETNAM}
+  generateBucketName: ${GENERATE_BUCKET_NAME}
+  objectBucketName: ${OBJECT_BUCKET_NAME}
   storageClassName: openshift-storage.noobaa.io
