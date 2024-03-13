@@ -77,7 +77,7 @@
    export OBC_NAME="loki-bucket-odf"
    export GENERATE_BUCKET_NAME="${OBC_NAME}"
    export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
-   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-objectbucketclaim.yaml | envsubst | oc apply -f -
+   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/03-objectbucketclaim.yaml | envsubst | oc apply -f -
    ```
 
 * Create Object Storage secret
