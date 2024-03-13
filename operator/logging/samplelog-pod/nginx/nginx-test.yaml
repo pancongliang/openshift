@@ -22,9 +22,7 @@ data:
             }
         }
     }
-
 ---
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -43,9 +41,7 @@ data:
       <p>This HTML content is served by Nginx from a ConfigMap.</p>
     </body>
     </html>
-
 ---
-
 apiVersion: v1
 kind: Secret
 metadata:
@@ -53,9 +49,7 @@ metadata:
 type: Opaque
 data:
   auth: YWRtaW46JGFwcjEkRjdCaHJSZTMkL0hPa01TSGxJUVhOQk5YejVjVGhKLgo=
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -95,9 +89,7 @@ spec:
         - name: nginx-secret
           secret:
             secretName: nginx-secret
-
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -113,9 +105,7 @@ spec:
     deployment: nginx
   sessionAffinity: None
   type: ClusterIP
-
-  ---
-
+---
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
