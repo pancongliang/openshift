@@ -12,6 +12,9 @@ spec:
       labels:
         app: nginx
     spec:
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
       containers:
         - name: nginx
           image: quay.io/redhattraining/hello-world-nginx:v1.0
