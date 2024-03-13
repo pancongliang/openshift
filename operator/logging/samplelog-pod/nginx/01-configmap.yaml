@@ -10,7 +10,7 @@ data:
   
     http {
         server {
-            listen 80;
+            listen 8080;
             server_name localhost;
 
             location / {
