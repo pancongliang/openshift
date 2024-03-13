@@ -7,7 +7,7 @@ data:
     events {
         worker_connections  1024;
     }
-
+  
     http {
         server {
             listen 80;
@@ -23,6 +23,13 @@ data:
         }
     }
 
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-html-files
+data:
   index.html: |
     <!DOCTYPE html>
     <html lang="en">
