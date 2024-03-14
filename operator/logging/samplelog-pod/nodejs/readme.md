@@ -12,7 +12,7 @@ podman push docker.registry.example.com:5000/nodejs/nodejs-app:latest
 ~~~
 oc new-project nodejs-log
 oc new-app --name nodejs-log --docker-image docker.registry.example.com:5000/nodejs/nodejs-app:latest
-oc expose svc nodejs-app --hostname nodejs.apps.ocp4.example.com
+oc expose svc nodejs-log --hostname nodejs.apps.ocp4.example.com
 
 curl http://nodejs.apps.ocp4.example.com
 Hello World
