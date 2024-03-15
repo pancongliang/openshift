@@ -20,17 +20,14 @@ curl -s ${ROUTE} |grep Hello
     <h1>Hello, world from nginx!</h1>
 
 oc logs sample-log-app-d857dd4bf-lqpfv
-2024-03-15T09:37:53+00:00 hello world
+2024-03-15T09:45:31+00:00 Hello World
 
-or
-
+# Or generate multiple logs, such as 10 logs
 yum install httpd-tools
 ab -n 10 -c 1 ${ROUTE}/
 
-oc logs sample-log-app-d857dd4bf-lqpfv
-2024-03-15T09:37:53+00:00 hello world
-2024-03-15T09:39:27+00:00 hello world
-2024-03-15T09:40:32+00:00 hello world
-2024-03-15T09:40:32+00:00 hello world
-2024-03-15T09:40:32+00:00 hello world
+oc logs sample-log-app-d857dd4bf-wkjkk
+2024-03-15T09:45:31+00:00 Hello World
+2024-03-15T09:46:24+00:00 Hello World
+···
 ~~~
