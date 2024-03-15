@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: jboos-app-configmap
+  name: jboos-configmap
 data:
   index.jsp: |
     <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
@@ -21,7 +21,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jboos-app
+  name: jboos
 spec:
   replicas: 1
   selector:
@@ -74,7 +74,7 @@ spec:
     protocol: TCP
     targetPort: 9404
   selector:
-    deployment: jboos-app
+    deployment: jboos
   sessionAffinity: None
   type: ClusterIP
 ---
