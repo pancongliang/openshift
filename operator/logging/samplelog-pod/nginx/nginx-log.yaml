@@ -63,7 +63,6 @@ spec:
       - configMap:
           name: nginx-config
         name: nginx-config-volume
-
 ---
 apiVersion: v1
 kind: Service
