@@ -87,6 +87,6 @@ spec:
     targetPort: 8080-tcp
   to:
     kind: Service
-    name: jboos
+    name: jboos-service
     weight: 100
   wildcardPolicy: None
