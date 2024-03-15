@@ -1,88 +1,96 @@
-# nginx-config.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nginx-config
 data:
   nginx.conf: |
+    worker_processes  1;
+
     events {
         worker_connections  1024;
     }
+
     http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+
+        error_log /dev/null crit;
+
+        log_format log_stdout '$time_iso8601 hello world';
+
+        sendfile        on;
+        keepalive_timeout  65;
+
         server {
-            listen 80;
-            server_name localhost;
+            listen       8080;
+            server_name  localhost;
+
+            access_log /dev/stdout log_stdout;
 
             location / {
-                root /usr/share/nginx/html;
-                index index.html;
+                root   /usr/share/nginx/html;
+                index  index.html index.htm;
             }
         }
     }
-  index.html: |
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Hello World</title>
-    </head>
-    <body>
-        <h1>Hello World</h1>
-    </body>
-    </html>
 ---
-# nginx.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: sample-log-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      deployment: sample-log-app
   template:
     metadata:
       labels:
-        app: nginx
+        deployment: sample-log-app
     spec:
       containers:
-      - name: nginx-container
-        image: nginx:latest
+      - image: quay.io/redhattraining/hello-world-nginx:v1.0
+        imagePullPolicy: IfNotPresent
+        name: sample-log-app
         ports:
         - containerPort: 8080
+          protocol: TCP
         volumeMounts:
-        - name: nginx-config-volume
-          mountPath: /etc/nginx
+        - mountPath: /etc/nginx/nginx.conf
+          name: nginx-config-volume
+          subPath: nginx.conf
       volumes:
-      - name: nginx-config-volume
-        configMap:
+      - configMap:
           name: nginx-config
+        name: nginx-config-volume
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx
+  name: sample-log-app
+  labels:
+    app: sample-log-app
 spec:
-  selector:
-    app: nginx
   ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
+  - name: 8080-tcp
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
   selector:
-    deployment: nginx
-  sessionAffinity: None
+    deployment: sample-log-app
   type: ClusterIP
 ---
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: nginx
+  name: sample-log-app
 spec:
   port:
-    targetPort: 8080
+    targetPort: 8080-tcp
   to:
     kind: Service
-    name: nginx
+    name: sample-log-app
     weight: 100
   wildcardPolicy: None
+
