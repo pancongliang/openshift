@@ -16,7 +16,7 @@ data:
 
         error_log /dev/null crit;
 
-        log_format log_stdout '$time_iso8601 hello world';
+        log_format log_stdout '$time_iso8601 Hello World';
 
         sendfile        on;
         keepalive_timeout  65;
