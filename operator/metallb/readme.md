@@ -27,11 +27,13 @@
   ```
 
 ### Create an address pool
+* Specify address pool
+  ```
+  export ADDRESSES="10.74.251.175-10.74.251.176"
+  ```
 * Create an address pool
   ```
-  export ADDRESSES='10.74.251.175-10.74.251.176'
-
-  cat << EOF | envsubst | oc apply -f 
+  cat << EOF | envsubst | oc apply -f -
   apiVersion: metallb.io/v1alpha1
   kind: AddressPool
   metadata:
@@ -40,7 +42,7 @@
   spec:
     protocol: layer2
     addresses:
-    - $[ADDRESSES]
+    - ${ADDRESSES}
     autoAssign: true
   EOF
   ```
