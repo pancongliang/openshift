@@ -16,7 +16,7 @@
   oc get svc -n example-ex-ip
   ```
 
-* 
+* Or set ip in the node
   ```
   # ExternalIP address block configuration
   oc patch networks.config cluster --type=merge -p '{"spec":{"externalIP":{"autoAssignCIDRs":["10.74.251.180/30"]}}}'
@@ -44,7 +44,8 @@
   ```
 
 ### Test external-IP service
-~~~
-curl -s $HOST_IP:8080 |grep Hello
-    <h1>Hello, world from nginx!</h1>
-~~~
+* Test external-IP service
+  ```
+  curl -s $HOST_IP:8080 |grep Hello
+      <h1>Hello, world from nginx!</h1>
+  ```
