@@ -14,6 +14,8 @@
   oc -n example-ex-ip patch svc example-ex-ip -p '{"spec":{"externalIPs":["'"$HOST_IP"'"]}}'
 
   oc get svc -n example-ex-ip
+  NAME            TYPE        CLUSTER-IP       EXTERNAL-IP    PORT(S)    AGE
+  example-ex-ip   ClusterIP   172.30.157.231   10.72.94.246   8080/TCP   27m
   ```
 
 * Or set ip in the node
