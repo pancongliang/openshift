@@ -18,7 +18,6 @@ metadata:
 spec:
   loadBalancerIP:
   loadBalancerSourceRanges:
-  - 10.74.251.175/31
   ports:
   - name: 8080-tcp
     port: 8080
@@ -29,9 +28,9 @@ spec:
   type: LoadBalancer
 EOF
 
-oc get svc example-ex-lb
-NAME           TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)          AGE
-example-ex-lb  LoadBalancer   172.30.227.234   10.74.251.175   8080:32229/TCP   23m
+oc get svc example-ex-lb -n example-lb
+NAME            TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)          AGE
+example-ex-lb   LoadBalancer   172.30.63.187   10.72.94.138   8080:30062/TCP   23s
 
 # Or change the existing svc type to LoadBalancer
 
@@ -40,8 +39,8 @@ oc patch svc example-lb --type=merge -p '{"spec": {"type": "LoadBalancer"}}'
 
 ### Test node-port service
 ~~~
-export EXTERNAL_IP=$(oc get svc example-ex-lb -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+export LB_IP=$(oc -n example-lb get svc example-ex-lb -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-curl $EXTERNAL_IP:8080 |grep Hello
+curl -s $LB_IP:8080 |grep Hello
     <h1>Hello, world from nginx!</h1>
 ~~~
