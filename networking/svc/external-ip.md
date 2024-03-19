@@ -8,10 +8,12 @@
 ### Change the existing svc type to externalip
 * Use node ip as externalIP  
   ```
-  export POD_NAME=$(oc get po -o=jsonpath='{.items[*].metadata.name}')
-  export HOST_IP=$(oc get pod $POD_NAME -o=jsonpath='{.status.hostIP}')
-  oc patch svc example-ex-ip -p '{"spec":{"externalIPs":["${HOST_IP}"]}}'
-  oc get svc
+  export POD_NAME=$(oc -n example-ex-ip get po -o=jsonpath='{.items[*].metadata.name}')
+  export HOST_IP=$(oc -n example-ex-ip get pod $POD_NAME -o=jsonpath='{.status.hostIP}')
+
+  oc -n example-ex-ip patch svc example-ex-ip -p '{"spec":{"externalIPs":["'"$HOST_IP"'"]}}'
+
+  oc get svc -n example-ex-ip
   ```
 
 * 
@@ -43,6 +45,6 @@
 
 ### Test external-IP service
 ~~~
-curl $HOST_IP:8080 |grep Hello
+curl -s $HOST_IP:8080 |grep Hello
     <h1>Hello, world from nginx!</h1>
 ~~~
