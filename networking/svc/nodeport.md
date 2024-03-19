@@ -2,6 +2,7 @@
 ~~~
 oc new-project example-nodeport
 oc new-app --name example-nodeport --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+~~~
 
 ### Create a node-port service
 ~~~
