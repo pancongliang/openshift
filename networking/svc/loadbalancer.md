@@ -28,8 +28,8 @@ spec:
 EOF
 
 oc get svc example-ex-lb -n example-lb
-NAME            TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)          AGE
-example-ex-lb   LoadBalancer   172.30.63.187   10.72.94.138   8080:30062/TCP   23s
+NAME            TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)          AGE
+example-ex-lb   LoadBalancer   172.30.36.34   10.72.94.242   8080:30303/TCP   2m29s
 
 # Or change the existing svc type to LoadBalancer
 
