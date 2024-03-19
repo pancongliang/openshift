@@ -14,6 +14,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-ex-lb
+  namespace: example-lb
 spec:
   loadBalancerIP:
   loadBalancerSourceRanges:
