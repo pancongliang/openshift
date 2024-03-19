@@ -4,7 +4,7 @@
 ### Create a test pod
 ~~~
 oc new-project example-lb
-oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+oc new-app --name example-lb --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
 ~~~
 
 ### Create a node-port service
@@ -16,8 +16,7 @@ metadata:
   name: example-ex-lb
   namespace: example-lb
 spec:
-  loadBalancerIP:
-  loadBalancerSourceRanges:
+  loadBalancerIP: 10.72.94.242
   ports:
   - name: 8080-tcp
     port: 8080
@@ -34,7 +33,7 @@ example-ex-lb   LoadBalancer   172.30.63.187   10.72.94.138   8080:30062/TCP   2
 
 # Or change the existing svc type to LoadBalancer
 
-oc patch svc example-lb --type=merge -p '{"spec": {"type": "LoadBalancer"}}'
+oc -n example-lb patch svc example-lb --type=merge -p '{"spec": {"type": "LoadBalancer"}}'
 ~~~
 
 ### Test node-port service
