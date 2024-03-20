@@ -174,23 +174,16 @@
   loadtest-cff78c6f6-j2q4j        Running   ip-10-0-54-224.ap-northeast-2.compute.internal   10.128.4.13
   todo-http-957579ff5-tcmlc       Running   ip-10-0-54-224.ap-northeast-2.compute.internal   10.128.4.12
   ```
-
-* In addition, whether the pod is evicted or not has nothing to do with `spec.MachineHealthCheck.unhealthyConditions.type.timeout`
+### Pod eviction rules when replacing failed nodes
+* If the spec.MachineHealthCheck.unhealthyConditions.type.timeout value is less than the pod's default eviction time, the pod will be evicted early. 
   ```
-  $ oc edit -n openshift-machine-api MachineHealthCheck my-machine-health-check
-  apiVersion: machine.openshift.io/v1beta1
-  kind: MachineHealthCheck
-  metadata:
-    name: my-machine-health-check
-    namespace: openshift-machine-api
-  spec:
-  ···
-    unhealthyConditions:
-    - type:    "Ready"
-      timeout: "300s" 
-      status: "False"
-    - type:    "Ready"
-      timeout: "300s" 
-      status: "Unknown"
-    maxUnhealthy: "50%"   # The machineset must contain two or more machines
-EOF
+  For example: `spec.MachineHealthCheck.unhealthy:150s`
+  will not wait until the default pod eviction time,but will start evicting pods around the 150s
+  ```
+* If the spec.MachineHealthCheck.unhealthyConditions.type.timeout value is greater than the pod's default eviction time, it will be evicted according to the pod's default eviction mechanism (5 minutes, 40~50 seconds)
+
+  ```
+  For example: `spec.MachineHealthCheck.unhealthy:6000s`
+  will evict the pod according to the pod’s default eviction mechanism (5 minutes 40~50 seconds)
+  ```
+
