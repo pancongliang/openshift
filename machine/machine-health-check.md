@@ -10,7 +10,7 @@
 
 * Create a MachineHealthCheck object
   ```
-    cat << EOF | oc apply -f -
+  cat << EOF | oc apply -f -
   apiVersion: machine.openshift.io/v1beta1
   kind: MachineHealthCheck
   metadata:
