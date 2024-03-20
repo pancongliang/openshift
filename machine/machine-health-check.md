@@ -183,7 +183,7 @@
 * If the spec.MachineHealthCheck.unhealthyConditions.type.timeout value is greater than the pod's default eviction time, it will be evicted according to the pod's default eviction mechanism (5 minutes, 40~50 seconds)
 
   ```
-  For example: `spec.MachineHealthCheck.unhealthy:6000s`
+  For example: `spec.MachineHealthCheck.unhealthy:600s`
   will evict the pod according to the pod’s default eviction mechanism (5 minutes 40~50 seconds)
   ```
 
