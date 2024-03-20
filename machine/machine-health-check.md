@@ -175,12 +175,12 @@
   todo-http-957579ff5-tcmlc       Running   ip-10-0-54-224.ap-northeast-2.compute.internal   10.128.4.12
   ```
 ### Pod eviction rules when replacing failed nodes
-* If the MachineHealthCheck.spec.unhealthyConditions.timeout value is less than the pod's default eviction time, the pod will be evicted early. 
+* If the `MachineHealthCheck.spec.unhealthyConditions.timeout` value is less than the pod's default eviction time, the pod will be evicted early. 
   ```
   For example: `MachineHealthCheck.spec.unhealthyConditions.timeout:150s`
   will not wait until the default pod eviction time,but will start evicting pods around the 150s
   ```
-* If the MachineHealthCheck.spec.unhealthyConditions.timeout value is greater than the pod's default eviction time, it will be evicted according to the pod's default eviction mechanism (5 minutes, 40~50 seconds)
+* If the `MachineHealthCheck.spec.unhealthyConditions.timeout` value is greater than the pod's default eviction time, it will be evicted according to the pod's default eviction mechanism (5 minutes, 40~50 seconds)
 
   ```
   For example: `MachineHealthCheck.spec.unhealthyConditions.timeout:600s`
