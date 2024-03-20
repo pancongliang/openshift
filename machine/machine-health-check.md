@@ -162,7 +162,6 @@
   todo-http-957579ff5-rfxxq       Running   ip-10-0-11-69.ap-northeast-2.compute.internal    10.131.2.17
   todo-http-957579ff5-tcmlc       Running   ip-10-0-54-224.ap-northeast-2.compute.internal   10.128.4.12
 
-
   $ oc -n test-1 get pods -o custom-columns=POD:metadata.name,STATUS:status.phase,NODE:spec.nodeName,IP:status.podIP
   POD                           STATUS    NODE                                             IP
   mysql-6ddb7bf95f-j5zt2        Running   ip-10-0-54-224.ap-northeast-2.compute.internal   10.128.4.18
@@ -176,3 +175,22 @@
   todo-http-957579ff5-tcmlc       Running   ip-10-0-54-224.ap-northeast-2.compute.internal   10.128.4.12
   ```
 
+* In addition, whether the pod is evicted or not has nothing to do with `spec.MachineHealthCheck.unhealthyConditions.type.timeout`
+  ```
+  $ oc edit -n openshift-machine-api MachineHealthCheck my-machine-health-check
+  apiVersion: machine.openshift.io/v1beta1
+  kind: MachineHealthCheck
+  metadata:
+    name: my-machine-health-check
+    namespace: openshift-machine-api
+  spec:
+  ···
+    unhealthyConditions:
+    - type:    "Ready"
+      timeout: "300s" 
+      status: "False"
+    - type:    "Ready"
+      timeout: "300s" 
+      status: "Unknown"
+    maxUnhealthy: "50%"   # The machineset must contain two or more machines
+EOF
