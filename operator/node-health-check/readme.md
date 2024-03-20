@@ -87,9 +87,16 @@
   worker01.ocp4.example.com   NotReady   worker   30d   v1.25.11+1485cc9
   worker01.ocp4.example.com   NotReady,SchedulingDisabled   worker   30d   v1.25.11+1485cc9
   worker01.ocp4.example.com   NotReady,SchedulingDisabled   worker   30d   v1.25.11+1485cc9
+
+  $ ssh core@wworker01.ocp4.example.com
+  "System is booting up. Unprivileged users are not permitted to log in yet. Please come back later. For technical details, see 
+  pam_nologin(8)."
+  Connection closed by 10.74.251.58 port 22
+
+  $ oc get node worker01.ocp4.example.com -w
+  NAME                        STATUS   ROLES    AGE   VERSION
   worker01.ocp4.example.com   Ready,SchedulingDisabled      worker   30d   v1.25.11+1485cc9
   worker01.ocp4.example.com   Ready                         worker   30d   v1.25.11+1485cc9
-  
   ```
   $ oc describe NodeHealthCheck nodehealthcheck-sample
   Normal   Enabled             8m9s               NodeHealthCheck  [remediation] No issues found, NodeHealthCheck is enabled.
