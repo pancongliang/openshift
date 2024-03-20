@@ -144,7 +144,7 @@
   copan-swqdc-worker-ap-northeast-2b-pzq57   Running   running   ip-10-0-54-224.ap-northeast-2.compute.internal
   ```
 
-* During the node replacement process, due to the default mechanism of node failover being triggered (when the notReady state lasts for more than 5 minutes 40 to 50 seconds), the application pod will be rescheduled to other normal nodes.
+* During the node replacement process, due to the default mechanism of node failover being triggered (when the notReady state lasts for more than 5 ~ 6 minutes), the application pod will be rescheduled to other normal nodes.
   ```
   $ oc -n test-1 get pods -o custom-columns=POD:metadata.name,STATUS:status.phase,NODE:spec.nodeName,IP:status.podIP
   mysql-6ddb7bf95f-j5zt2        Running   ip-10-0-54-224.ap-northeast-2.compute.internal   10.128.4.18
@@ -180,10 +180,10 @@
   For example: `MachineHealthCheck.spec.unhealthyConditions.timeout:150s`
   will not wait until the default pod eviction time,but will start evicting pods around the 150s
   ```
-* If the `MachineHealthCheck.spec.unhealthyConditions.timeout` value is greater than the pod's default eviction time, it will be evicted according to the pod's default eviction mechanism (5 minutes, 40~50 seconds)
+* If the `MachineHealthCheck.spec.unhealthyConditions.timeout` value is greater than the pod's default eviction time, it will be evicted according to the pod's default eviction mechanism (5 ~ 6 minutes)
 
   ```
   For example: `MachineHealthCheck.spec.unhealthyConditions.timeout:600s`
-  will evict the pod according to the pod’s default eviction mechanism (5 minutes 40~50 seconds)
+  will evict the pod according to the pod’s default eviction mechanism (5 ~ 6 minutes)
   ```
 
