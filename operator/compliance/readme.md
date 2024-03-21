@@ -57,7 +57,6 @@
 
 * View the rules contained in the Profile named "rhcos4-e8".
   ```
-~~~
   $ oc get profile.compliance rhcos4-e8 -n openshift-compliance -o json | jq .rules
   [
     "rhcos4-accounts-no-uid-except-zero",
