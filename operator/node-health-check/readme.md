@@ -97,7 +97,7 @@
   NAME                        STATUS   ROLES    AGE   VERSION
   worker01.ocp4.example.com   Ready,SchedulingDisabled      worker   30d   v1.25.11+1485cc9
   worker01.ocp4.example.com   Ready                         worker   30d   v1.25.11+1485cc9
-  ```
+
   $ oc describe NodeHealthCheck nodehealthcheck-sample
   Normal   Enabled             8m9s               NodeHealthCheck  [remediation] No issues found, NodeHealthCheck is enabled.
   Normal   DetectedUnhealthy   92s (x3 over 92s)  NodeHealthCheck  [remediation] Node matches unhealthy condition. Node "worker01.ocp4.example.com", condition type "Ready", condition status "Unknown"
