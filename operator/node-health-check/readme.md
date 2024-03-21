@@ -104,7 +104,7 @@
   Normal   RemediationCreated  92s                NodeHealthCheck  [remediation] Created remediation object for node worker01.ocp4.example.com
   Normal   DetectedUnhealthy   33s (x5 over 3m37s)  NodeHealthCheck  [remediation] Node matches unhealthy condition. Node "worker01.ocp4.example.com", condition type "Ready", condition status "Unknown"
   Normal   RemediationRemoved  0s                   NodeHealthCheck  [remediation] Deleted remediation CR of kind SelfNodeRemediation with name worker01.ocp4.example.com
-  
+  ```  
 * View the pod eviction process.
   ```
   $ oc -n test get pods -o custom-columns=POD:metadata.name,STATUS:status.phase,NODE:spec.nodeName,IP:status.podIP
