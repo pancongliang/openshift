@@ -87,20 +87,6 @@
   nginx-655ddf5fb7-blg8j             Running   ip-10-0-32-243.ap-northeast-2.compute.internal   10.130.6.25
   ```
   
-* There are also pods created in advance, which have no `requests and limits`
-  ```
-  $ oc -n test-1 get pods -o custom-columns=POD:metadata.name,STATUS:status.phase,NODE:spec.nodeName,IP:status.podIP
-  POD                           STATUS    NODE                                             IP
-  mysql-6ddb7bf95f-f692d        Running   ip-10-0-32-243.ap-northeast-2.compute.internal   10.130.6.21
-  nginx-5bc755d967-f8gl8        Running   ip-10-0-32-243.ap-northeast-2.compute.internal   10.130.6.22
-  postgresql-5687bd8948-4vxr6   Running   ip-10-0-12-135.ap-northeast-2.compute.internal   10.130.2.26
-
-  $ oc -n test-2 get pods -o custom-columns=POD:metadata.name,STATUS:status.phase,NODE:spec.nodeName,IP:status.podIP
-  POD                         STATUS    NODE                                             IP
-  loadtest-cff78c6f6-w5825    Running   ip-10-0-12-135.ap-northeast-2.compute.internal   10.130.2.27
-  todo-http-957579ff5-949lm   Running   ip-10-0-12-135.ap-northeast-2.compute.internal   10.130.2.28  
-  ```
-
 * Expand the number of Pod replicas to trigger the cluster auto-scaling function
   ```
   $ oc scale deployment/nginx --replicas=5
@@ -218,11 +204,149 @@
   nginx-655ddf5fb7-8k9b7   Running   ip-10-0-19-29.ap-northeast-2.compute.internal    10.129.10.5
   nginx-655ddf5fb7-blg8j   Running   ip-10-0-32-243.ap-northeast-2.compute.internal   10.130.6.25
   nginx-655ddf5fb7-x2tr4   Running   ip-10-0-32-243.ap-northeast-2.compute.internal   10.130.6.26
-
-  oc -n test-1 get pods -o custom-columns=POD:metadata.name,STATUS:status.phase,NODE:spec.nodeName,IP:status.podIP
-
+  ```
 
 
-  oc -n test-2 get pods -o custom-columns=POD:metadata.name,STATUS:status.phase,NODE:spec.nodeName,IP:status.podIP
+```
+  $ cat << EOF | oc apply -f -
+  apiVersion: "autoscaling.openshift.io/v1"
+  kind: "ClusterAutoscaler"
+  metadata:
+    name: "default"
+  spec:
+    podPriorityThreshold: 10 
+    resourceLimits:
+      cores:
+        max: 128
+        min: 8
+      maxNodesTotal: 24
+      memory:
+        max: 512
+        min: 8
+    scaleDown:
+      delayAfterAdd: 10m
+      delayAfterDelete: 5m
+      delayAfterFailure: 30s
+      enabled: true
+      unneededTime: 5m
+  EOF
 
+  $ cat << EOF | oc apply -f -
+  apiVersion: scheduling.k8s.io/v1
+  kind: PriorityClass
+  metadata:
+    name: low-priority
+  value: 1
+  preemptionPolicy: PreemptLowerPriority 
+  globalDefault: false 
+  description: "This priority class should be used for XYZ service pods only."
+  EOF
+  
+  $ cat << EOF | oc apply -f -
+  apiVersion: scheduling.k8s.io/v1
+  kind: PriorityClass
+  metadata:
+    name: medium-priority
+  value: 10
+  preemptionPolicy: PreemptLowerPriority 
+  globalDefault: false 
+  description: "This priority class should be used for XYZ service pods only."
+  EOF
+  
+  $ cat << EOF | oc apply -f -
+  apiVersion: scheduling.k8s.io/v1
+  kind: PriorityClass
+  metadata:
+    name: high-priority
+  value: 1000
+  preemptionPolicy: PreemptLowerPriority 
+  globalDefault: false 
+  description: "This priority class should be used for XYZ service pods only."
+  EOF
+  
+  $ oc new-project test
+  
+  $ oc new-app --name high-priority --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+  $ oc patch deployment/high-priority \
+    --type='json' \
+    --patch='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value": {"limits":  {"memory":"1Gi","cpu": 1},"requests":{"memory":"1Gi","cpu": 1}}}]'
+  $ oc patch deployment high-priority -p '{"spec":{"template":{"spec":{"priorityClassName":"high-priority"}}}}'
+  
+  $ oc new-app --name medium-priority --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+  $ oc patch deployment/medium-priority \
+    --type='json' \
+    --patch='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value": {"limits":  {"memory":"1Gi","cpu": 1},"requests":{"memory":"1Gi","cpu": 1}}}]'
+  $ oc patch deployment medium-priority -p '{"spec":{"template":{"spec":{"priorityClassName":"medium-priority"}}}}'
+  
+  
+  $ oc new-app --name low-priority --docker-image quay.io/redhattraining/hello-openshift
+  $ oc patch deployment low-priority -p '{"spec":{"template":{"spec":{"priorityClassName":"low-priority"}}}}'
+  $ oc patch deployment/low-priority \
+    --type='json' \
+    --patch='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value": {"limits":  {"memory":"1Gi","cpu": 1},"requests":{"memory":"1Gi","cpu": 1}}}]'
+  $ oc patch deployment low-priority -p '{"spec":{"template":{"spec":{"priorityClassName":"low-priority"}}}}'
+  
+  $ oc new-app --name no-priority --docker-image quay.io/redhattraining/loadtest:v1.0
+  $ oc patch deployment/no-priority \
+    --type='json' \
+    --patch='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value": {"limits":  {"memory":"1Gi","cpu": 1},"requests":{"memory":"1Gi","cpu": 1}}}]' 
+  
+  $ oc get node -l node-role.kubernetes.io/worker
+  NAME                                             STATUS   ROLES    AGE    VERSION
+  ip-10-0-12-135.ap-northeast-2.compute.internal   Ready    worker   4d3h   v1.27.10+c79e5e2
+  ip-10-0-32-243.ap-northeast-2.compute.internal   Ready    worker   4d     v1.27.10+c79e5e2
+  
+  $ oc scale deployment/no-priority --replicas=15
+  
+  $ oc get po -n test |grep no-priority
+  NAME                               READY   STATUS    RESTARTS   AGE
+  no-priority-544b74bb7d-dqjv6       0/1     Pending   0          11m
+  no-priority-544b74bb7d-h677m       0/1     Pending   0          11m
+  no-priority-544b74bb7d-j8lgf       1/1     Running   0          19m
+  ···
+  
+  $ oc describe po no-priority-544b74bb7d-dqjv6 -n test
+  Events:
+    Type     Reason            Age                    From               Message
+    ----     ------            ----                   ----               -------
+    Warning  FailedScheduling  11m                    default-scheduler  0/5 nodes are available: 2 Insufficient cpu, 3   node(s) had untolerated taint {node-role.kubernetes.io/master: }. preemption: 0/5 nodes are available: 2 No   preemption victims found for incoming pod, 3 Preemption is not helpful for scheduling..
+  
+  $ oc get machine -n openshift-machine-api -o custom-columns=NAME:metadata.name,PHASE:status.phase,STATE:status.  providerStatus.instanceState,HOSTNAME:status.nodeRef.name |grep worker
+  copan-swqdc-worker-ap-northeast-2a-p5gcv   Running   running   ip-10-0-12-135.ap-northeast-2.compute.internal
+  copan-swqdc-worker-ap-northeast-2b-gqqlc   Running   running   ip-10-0-32-243.ap-northeast-2.compute.internal
+  
+  $ oc scale deployment/low-priority --replicas=15
+  $ oc get po |grep low-priority -n test
+  low-priority-dc8966dfd-nvbql       0/1     Pending       0          7s
+  low-priority-dc8966dfd-qd49v       0/1     Pending       0          7s
+  low-priority-dc8966dfd-s2tnr       1/1     Running       0          17m
+  ···
+  
+  $ oc describe po low-priority-dc8966dfd-nvbql -n test
+  Events:
+    Type     Reason            Age                    From               Message
+    ----     ------            ----                   ----               -------
+    Warning  FailedScheduling  11m                    default-scheduler  0/5 nodes are available: 2 Insufficient cpu, 3   node(s) had untolerated taint {node-role.kubernetes.io/master: }. preemption: 0/5 nodes are available: 1   Insufficient cpu, 1 No preemption victims found for incoming pod, 3 Preemption is not helpful for scheduling..
+  
+  $ oc get machine -n openshift-machine-api -o custom-columns=NAME:metadata.name,PHASE:status.phase,STATE:status.  providerStatus.instanceState,HOSTNAME:status.nodeRef.name |grep worker
+  copan-swqdc-worker-ap-northeast-2a-p5gcv   Running   running   ip-10-0-12-135.ap-northeast-2.compute.internal
+  copan-swqdc-worker-ap-northeast-2b-gqqlc   Running   running   ip-10-0-32-243.ap-northeast-2.compute.internal
+  
+  $ oc scale deployment medium-priority  --replicas=5
+  $ oc get po -n test |grep medium-priority
+  medium-priority-5746d975c9-82bdn   1/1     Running   0          5m12s
+  medium-priority-5746d975c9-8sncz   1/1     Running   0          5m12s
+  medium-priority-5746d975c9-jg9r7   1/1     Running   0          5m12s
+  medium-priority-5746d975c9-ssmqp   1/1     Running   0          39m
+  medium-priority-5746d975c9-x46dz   1/1     Running   0          5m12s
+  
+  $ oc get machine -n openshift-machine-api -o custom-columns=NAME:metadata.name,PHASE:status.phase,STATE:status.  providerStatus.instanceState,HOSTNAME:status.nodeRef.name |grep worker
+  copan-swqdc-worker-ap-northeast-2a-dt94x   Running   running   ip-10-0-29-151.ap-northeast-2.compute.internal
+  copan-swqdc-worker-ap-northeast-2a-p5gcv   Running   running   ip-10-0-12-135.ap-northeast-2.compute.internal
+  copan-swqdc-worker-ap-northeast-2b-gqqlc   Running   running   ip-10-0-32-243.ap-northeast-2.compute.internal
+  
+  $ oc scale deployment/high-priority --replicas=5
+  
+  
+  $ watch oc get machine -n openshift-machine-api -o custom-columns=NAME:metadata.name,PHASE:status.phase,STATE:status.  providerStatus.instanceState,HOSTNAME:status.nodeRef.name
   ```
