@@ -76,6 +76,7 @@ machine-config                             4.10.20   True        True          T
 **5.将etcd备份目录复制到恢复主机中**
 
 **6.停止非恢复主机的static pod**
+
 a.在非恢复主机中将现有的etcd pod文件移出kubelet清单目录
 ~~~
 - 在非恢复主机master02中将现有的etcd pod文件移出kubelet清单目录
@@ -126,6 +127,7 @@ static-pod-resources/kube-scheduler-pod-9/kube-scheduler-pod.yaml
 ~~~
 
 **8.还原完成后，检查节点以确保它们处于Ready状态，并验证集群以还原**
+
 a.检查节点状态
 ~~~
 $ ssh core@master01.ocp4.example.net
@@ -159,6 +161,7 @@ openshift-dns                                      Active   8d
 ~~~
 
 **9.在所有master节点中重启kubelet服务**
+
 a.首先从恢复主机运行以下命令：
 ~~~
 $ ssh core@master01.ocp4.example.net sudo systemctl restart kubelet.service
