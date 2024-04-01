@@ -17,7 +17,7 @@ PRINT_TASK() {
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
 # List of RPM packages to install
-packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "httpd-manual")
+packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "conmon" "httpd-manual")
 
 # Install the RPM package and return the execution result
 for package in "${packages[@]}"; do
