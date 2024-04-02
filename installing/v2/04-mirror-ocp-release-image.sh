@@ -32,6 +32,7 @@ echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
 run_command "[create a temporary file to store the pull secret]"
 
 # Login to the registry
+rm -rf $XDG_RUNTIME_DIR/containers
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
 run_command "[add authentication information to pull-secret]"
