@@ -28,7 +28,7 @@ read -p "Please input the pull secret string from https://cloud.redhat.com/opens
 
 # Create a temporary file to store the pull secret
 PULL_SECRET=$(mktemp -p /tmp)
-echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}" &>/dev/null
+echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
 run_command "[create a temporary file to store the pull secret]"
 
 # Login to the registry
@@ -37,7 +37,7 @@ podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${
 run_command "[add authentication information to pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json &>/dev/null
+cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
 run_command "[save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create ImageSetConfiguration directory
