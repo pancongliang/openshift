@@ -8,7 +8,7 @@
 
   sleep 6
 
-  oc patch installplan $(oc get ip -n openshift-operators -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
+  oc patch installplan $(oc get ip -n openshift-gitops-operator -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-gitops-operator --type merge --patch '{"spec":{"approved":true}}'
 
   oc get ip -n openshift-gitops
 
