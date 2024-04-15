@@ -326,7 +326,6 @@ pkcs11:id=%08%1C%EC%B8%7A%0E%25%AE%62%DA%51%64%F9%0A%55%C5%B5%D1%4B%71;type=cert
     vi $HOME/pull-secret
     ```
 
-
 ### Login to your mirror registry
 
 Login to your mirror registry and Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
@@ -335,6 +334,7 @@ Login to your mirror registry and Save the PULL_SECRET file either as $XDG_RUNTI
 podman login -u init -p $(cat quay_creds) $HOSTNAME:8443
 podman login -u init -p $(cat quay_creds) --authfile $HOME/pull-secret $HOSTNAME:8443
 cat $HOME/pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
+```
 
 ### Mirror the OCP image repository
 
@@ -362,7 +362,6 @@ EOF
 
 oc mirror --config=$HOME/imageset-config.yaml docker://$HOSTNAME:8443 --dest-skip-tls
 ```
-
 
 
 ## Prepare to create OCP cluster
