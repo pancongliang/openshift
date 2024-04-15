@@ -5,7 +5,7 @@
 
 ### Create VPC
 
-For this example, we'll use the name `my-dc1` for resources related to this vpc.
+For this example, we'll use the name `copan-dc1` for resources related to this vpc.
 
 Go to
 [https://console.aws.amazon.com/vpc/home?region=us-east-1#vpcs:](https://console.aws.amazon.com/vpc/home?region=us-east-1#vpcs:)
@@ -13,9 +13,9 @@ Go to
 Click "Create VPC"
 
 - For "Resources to create", select "VPC, subnets, etc."
-- For "Name tag auto-generation", enter `my-dc1`
+- For "Name tag auto-generation", enter `copan-dc1`
 - Change "Availability Zones" to 1.
-- Expand "Customize AZs" and change availability zone to `us-east-1b`
+- Expand "Customize AZs" and change availability zone to `ap-northeast-1a`
 - Ensure "Number of public subnets" is set to 1
 - Expand "Customize public subnets CIDR blocks" and enter `10.0.0.0/24`
 - Ensure "Number of private subnets" is set to 1
@@ -40,9 +40,9 @@ Go to
 
 Click "Create security group"
 
-- For "Name", use `my-dc1-sg`
+- For "Name", use `copan-dc1-sg`
 - For "Description", use `External SSH and all internal traffic`
-- For "VPC", select `my-dc1-vpc`
+- For "VPC", select `copan-dc1-vpc`
 - Under Inbound Rules, click "Add rule"
   - Type: SSH
   - Source: 0.0.0.0/0
@@ -54,7 +54,7 @@ Click "Create security group"
   - Destination: 0.0.0.0/0
 - Under Tags, click "Add new tag"
   - Key: Name
-  - Value: my-dc1-sg
+  - Value: copan-dc1-sg
 
 ### Create ec2 endpoint in VPC
 
@@ -63,15 +63,15 @@ Go to
 
 Click "Create endpoint"
 
-- For "Name tag", use `my-dc1-vpce-ec2`
+- For "Name tag", use `copan-dc1-vpce-ec2`
 - For "Service category", select "AWS services"
 - Enter "ec2" in the "Filter services" search box
-- Select the service "com.amazonaws.us-east-1.ec2"
+- Select the service "com.amazonaws.ap-northeast-1.ec2"
 - For "VPC", select your VPC
 - Under "VPC", expand "Additional settings" and ensure "Enable DNS name" is checked.
-- In "Subnets", check Availability Zone "us-east-1b"
-- In "Subnets", for the "us-east-1b" AZ, select your private subnet
-- In "Security groups", check the `my-dc1-sg` group
+- In "Subnets", check Availability Zone "ap-northeast-1a"
+- In "Subnets", for the "ap-northeast-1a" AZ, select your private subnet
+- In "Security groups", check the `copan-dc1-sg` group
 - In "Policy", ensure "Full access" is checked
 
 Click "Create endpoint"
@@ -83,15 +83,15 @@ Go to
 
 Click "Create endpoint"
 
-- For "Name tag", use `my-dc1-vpce-elb`
+- For "Name tag", use `copan-dc1-vpce-elb`
 - For "Service category", select "AWS services"
 - Enter "load" in the "Filter services" search box
 - Select the service "com.amazonaws.us-east-1.elasticloadbalancing"
 - For "VPC", select your VPC
 - Under "VPC", expand "Additional settings" and ensure "Enable DNS name" is checked.
-- In "Subnets", check Availability Zone "us-east-1b"
-- In "Subnets", for the "us-east-1b" AZ, select your private subnet
-- In "Security groups", check the `my-dc1-sg` group
+- In "Subnets", check Availability Zone "ap-northeast-1a"
+- In "Subnets", for the "ap-northeast-1a" AZ, select your private subnet
+- In "Security groups", check the `copan-dc1-sg` group
 - In "Policy", ensure "Full access" is checked
 
 Click "Create endpoint"
@@ -103,7 +103,7 @@ Go to
 
 Click "Create hosted zone"
 
-- For domain name, enter `my-dc1.dev01.red-chesterfield.com`
+- For domain name, enter `copan-dc1.dev01.red-chesterfield.com`
 - Change the Type to "Private hosted zone"
 - In the "Region" box, select us-east-1 region
 - In the VPC ID box, select the vpc you created above
@@ -141,11 +141,11 @@ Click "Launch instances"
 - Step 5: Add Tags
   - Click "Add Tag"
   - Set Key to "Name"
-  - Set Value to `my-dc1-jumpbox`
+  - Set Value to `copan-dc1-jumpbox`
   - Click "Next: Configure Security Group"
 - Step 6: Configure Security Group
   - Select "Select an existing security group"
-  - Select the security group named `my-dc1-sg1`
+  - Select the security group named `copan-dc1-sg1`
   - Click "Review and Launch"
 - Step 7: Review Instance Launch
   - Click "Launch"
@@ -157,7 +157,7 @@ Click "Launch instances"
   - If you do not have a key pair stored:
     - Select "Create a new key pair"
     - For "Key pair type", select RSA
-    - For "Key pair name", enter `my-dc1-vpc-keypair`
+    - For "Key pair name", enter `copan-dc1-vpc-keypair`
     - Click "Download Key Pair" and save the `.pem` file
     - Click "Launch Instance"
 
@@ -233,13 +233,22 @@ sudo mv oc kubectl /usr/bin
 rm oc.tgz README.md
 ```
 
-### Install the opm command
+### Install the openshift-install command
 
 ```bash
-curl -L -o opm.tgz https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/opm-linux.tar.gz
-tar xf opm.tgz
+export OCP_RELEASE_VERSION="4.14.16"
+curl -O https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_RELEASE_VERSION/openshift-install-linux.tar.gz
+sudo tar xvf openshift-install-linux.tar.gz -C /usr/local/bin/
+sudo rm -rf openshift-install-linux.tar.gz
+```
+
+### Install the oc-mirror command
+
+```bash
+curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
+sudo tar -xvf oc-mirror.tar.gz -C /usr/local/bin/ && sudo chmod a+x /usr/local/bin/oc-mirror
 sudo mv opm /usr/bin
-rm opm.tgz
+sudo rm -rf oc-mirror.tar.gz
 ```
 
 ### Install AWS CLI
@@ -248,7 +257,7 @@ rm opm.tgz
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
-rm -rf aws awscliv2.zip
+sudo rm -rf aws awscliv2.zip
 ```
 
 ### Store your AWS credentials
@@ -279,7 +288,7 @@ Run
 curl -L -o mirror.tgz https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/mirror-registry/1.0/mirror-registry.tar.gz
 tar xf mirror.tgz
 sudo ./mirror-registry install -v --quayHostname $HOSTNAME | tee quay-install.log
-sudo rm *.tar mirror-registry mirror.tgz
+sudo rm -f *.tar mirror-registry mirror.tgz
 ```
 
 ### Extract quay password from install log
@@ -299,9 +308,9 @@ trust list | grep -C 2 "$HOSTNAME"
 You should see output similar to this:
 
 ```yaml
-pkcs11:id=%83%C4%E2%B6%EA%D2%C5%21%45%38%15%A9%3A%19%59%E8%0A%AD%04%93;type=cert
+pkcs11:id=%08%1C%EC%B8%7A%0E%25%AE%62%DA%51%64%F9%0A%55%C5%B5%D1%4B%71;type=cert
   type: certificate
-  label: ip-10-0-1-161.ec2.internal
+  label: ip-10-0-0-223.ap-northeast-1.compute.internal
   trust: anchor
   category: authority
 ```
@@ -314,107 +323,52 @@ pkcs11:id=%83%C4%E2%B6%EA%D2%C5%21%45%38%15%A9%3A%19%59%E8%0A%AD%04%93;type=cert
 - In your jumpbox, run
 
     ```bash
-    vi auth.json
+    vi $HOME/pull-secret
     ```
 
-- Paste your pull secret into vi, save the file and exit.
-- Make this file the default auth file, run
-
-    ```bash
-    export REGISTRY_AUTH_FILE=$HOME/auth.json
-    echo export REGISTRY_AUTH_FILE=$REGISTRY_AUTH_FILE >> $HOME/.bash_profile
-    ```
-
-**Note:** Environment variables will also be stored in `$HOME/.bash_profile` so they'll be
-recreated if you need to log out and back in to the jumpbox.
 
 ### Login to your mirror registry
 
-This also compacts the auth.json file back down to a single line json file which is needed for openshift-install later.
+Login to your mirror registry and Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
 
 ```bash
 podman login -u init -p $(cat quay_creds) $HOSTNAME:8443
-jq -c . auth.json > auth.json.tmp && mv auth.json.tmp auth.json
-```
+podman login -u init -p $(cat quay_creds) --authfile $HOME/pull-secret $HOSTNAME:8443
+cat $HOME/pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
 
 ### Mirror the OCP image repository
-
-Go to this site to pick your version and architecture of OCP:
-
-- [https://quay.io/repository/openshift-release-dev/ocp-release?tab=tags](https://quay.io/repository/openshift-release-dev/ocp-release?tab=tags)
-
-For this example, we'll use `4.9.23-x86_64`.
 
 Run:
 
 ```bash
-export OCP_TAG=4.9.23-x86_64
-export OCP_REPO=quay.io/openshift-release-dev/ocp-release
-export LOCAL_REPO=$HOSTNAME:8443/ocp4/openshift4
+export OCP_RELEASE_CHANNEL="$(echo $OCP_RELEASE_VERSION | cut -d. -f1,2)"
+cat << EOF > $HOME/imageset-config.yaml
+apiVersion: mirror.openshift.io/v1alpha2
+kind: ImageSetConfiguration
+storageConfig:
+ registry:
+   imageURL: $HOSTNAME:8443/mirror/metadata
+   skipTLS: false
+mirror:
+  platform:
+    channels:
+      - name: stable-${OCP_RELEASE_CHANNEL}
+        minVersion: ${OCP_RELEASE_VERSION}
+        maxVersion: ${OCP_RELEASE_VERSION}
+        shortestPath: true
+EO
 
-cat <<EOF >>$HOME/.bash_profile
-export OCP_TAG=$OCP_TAG
-export OCP_REPO=$OCP_REPO
-export LOCAL_REPO=$LOCAL_REPO
-EOF
-
-oc adm release mirror -a auth.json \
-    --from=$OCP_REPO:$OCP_TAG \
-    --to=$LOCAL_REPO \
-    --to-release-image=$LOCAL_REPO/ocp-release:$OCP_TAG
+oc mirror --config=$HOME/imageset-config.yaml docker://$HOSTNAME:8443 --dest-skip-tls
 ```
 
-### Prune and Mirror the Operator Catalog
 
-Run
-
-```bash
-export INDEX_IMAGE=redhat-operator-index:v4.9
-export INDEX_REPO=registry.redhat.io/redhat/$INDEX_IMAGE
-export LOCAL_INDEX_REPO=$HOSTNAME:8443/ocp4/$INDEX_IMAGE
-export LOCAL_OLM_REPO=$HOSTNAME:8443/ocp4/openshift4/olm-mirror
-
-cat <<EOF >>$HOME/.bash_profile
-export INDEX_IMAGE=$INDEX_IMAGE
-export INDEX_REPO=$INDEX_REPO
-export LOCAL_INDEX_REPO=$LOCAL_INDEX_REPO
-export LOCAL_OLM_REPO=$LOCAL_OLM_REPO
-EOF
-
-opm index prune --from-index $INDEX_REPO --tag $LOCAL_INDEX_REPO \
-    --packages advanced-cluster-management,multicluster-engine
-
-podman push $LOCAL_INDEX_REPO
-
-oc adm catalog mirror -a auth.json $LOCAL_INDEX_REPO $LOCAL_OLM_REPO
-
-sudo rm -rf index_tmp_*
-```
-
-You should see a directory with a name similar to `manifests-redhat-operator-index-1646254114`.
-
-Save a reference to this directory for later use:
-
-```bash
-export MANIFESTS=$HOME/manifests-redhat-operator-index-1646254114
-echo export MANIFESTS=$MANIFESTS >> $HOME/.bash_profile
-```
 
 ## Prepare to create OCP cluster
-
-### Extract the OCP installer
-
-```bash
-oc adm release extract -a auth.json \
-    --command=openshift-install $LOCAL_REPO/ocp-release:$OCP_TAG 
-```
 
 ### Generate SSH key for cluster nodes
 
 ```bash
-ssh-keygen -t ed25519 -N '' -f .ssh/id_cluster
-eval "$(ssh-agent -s)"
-ssh-add .ssh/id_cluster
+ssh-keygen -N '' -f $HOME/.ssh/id_rsa
 ```
 
 ### Create install files
@@ -465,7 +419,7 @@ compute:
         type: io1
       type: m5.xlarge
       zones:
-      - us-east-1b
+      - ap-northeast-1a
 ```
 
 The `controlPlane` stanza should be
@@ -484,7 +438,7 @@ controlPlane:
         type: io1
       type: m5.xlarge
       zones:
-      - us-east-1b
+      - ap-northeast-1a
   replicas: 3
 ```
 
@@ -575,7 +529,7 @@ compute:
         type: io1
       type: m5.xlarge
       zones:
-      - us-east-1b
+      - ap-northeast-1a
   replicas: 3
 controlPlane:
   architecture: amd64
@@ -590,11 +544,11 @@ controlPlane:
         type: io1
       type: m5.xlarge
       zones:
-      - us-east-1b
+      - ap-northeast-1a
   replicas: 3
 metadata:
   creationTimestamp: null
-  name: my-dc1
+  name: copan-dc1
 networking:
   clusterNetwork:
   - cidr: 10.128.0.0/14
@@ -656,7 +610,7 @@ echo alias oc=\"oc --kubeconfig=$INSTALL/auth/kubeconfig\" >> $HOME/.bash_profil
 Once you see this entry on the install logs:
 
 ```bash
-INFO Waiting up to 40m0s for the cluster at https://api.my-dc1.dev01.red-chesterfield.com:6443 to initialize...
+INFO Waiting up to 40m0s for the cluster at https://api.copan-dc1.dev01.red-chesterfield.com:6443 to initialize...
 ```
 
 You will need to complete the "Configure cluster DNS" steps below before the 40 minutes are up
@@ -676,7 +630,7 @@ DEBUG bootstrap_ip = 10.0.1.203
 ```
 
 You can watch the EC2 instances for the creation of the bootstrap node. It will have a
-name similar to `my-dc1-ab123-bootstrap`.
+name similar to `copan-dc1-ab123-bootstrap`.
 
 Once the bootstrap node is running, you can ssh into the boostrap node from
 the jumpbox by running
@@ -726,7 +680,7 @@ In the installer output, once the bootstrap node has been destroyed, you should 
 line like this in the log:
 
 ```bash
-INFO Waiting up to 40m0s for the cluster at https://api.my-dc1.dev01.red-chesterfield.com:6443 to initialize...
+INFO Waiting up to 40m0s for the cluster at https://api.copan-dc1.dev01.red-chesterfield.com:6443 to initialize...
 ```
 
 Once this appears, go to
@@ -761,7 +715,7 @@ metadata:
   resourceVersion: "24778"
   uid: 200759e9-3f21-4cb3-8802-ac1221e6ebf9
 spec:
-  baseDomain: my-dc1.dev01.red-chesterfield.com
+  baseDomain: copan-dc1.dev01.red-chesterfield.com
 status: {}
 ```
 
@@ -770,7 +724,7 @@ Save your changes.
 Go to
 [https://console.aws.amazon.com/route53/v2/hostedzones#](https://console.aws.amazon.com/route53/v2/hostedzones#)
 
-Click on the hosted zone you created for your VPC. In this example, its name would be `my-dc1.dev01.red-chesterfield.com`
+Click on the hosted zone you created for your VPC. In this example, its name would be `copan-dc1.dev01.red-chesterfield.com`
 
 Click "Create record"
 
@@ -970,5 +924,5 @@ MultiClusterHub resource to reach the Running phase.
 ```bash
 $ oc get -n $ACM_NAMESPACE routes
 NAME                 HOST/PORT                                                   PATH   SERVICES             PORT    TERMINATION          WILDCARD
-multicloud-console   multicloud-console.apps.my-dc1.dev01.red-chesterfield.com          management-ingress   https   reencrypt/Redirect   None
+multicloud-console   multicloud-console.apps.copan-dc1.dev01.red-chesterfield.com          management-ingress   https   reencrypt/Redirect   None
 ```
