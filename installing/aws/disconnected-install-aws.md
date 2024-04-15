@@ -238,8 +238,8 @@ rm oc.tgz README.md
 ```bash
 export OCP_RELEASE_VERSION="4.14.16"
 curl -O https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_RELEASE_VERSION/openshift-install-linux.tar.gz
-sudo tar xvf openshift-install-linux.tar.gz -C /usr/local/bin/
-sudo rm -rf openshift-install-linux.tar.gz
+sudo tar xvf openshift-install-linux.tar.gz
+sudo rm -rf openshift-install-linux.tar.gz README.md
 ```
 
 ### Install the oc-mirror command
@@ -341,7 +341,9 @@ cat $HOME/pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
 Run:
 
 ```bash
+export OCP_RELEASE_VERSION="4.14.16"
 export OCP_RELEASE_CHANNEL="$(echo $OCP_RELEASE_VERSION | cut -d. -f1,2)"
+
 cat << EOF > $HOME/imageset-config.yaml
 apiVersion: mirror.openshift.io/v1alpha2
 kind: ImageSetConfiguration
@@ -356,7 +358,7 @@ mirror:
         minVersion: ${OCP_RELEASE_VERSION}
         maxVersion: ${OCP_RELEASE_VERSION}
         shortestPath: true
-EO
+EOF
 
 oc mirror --config=$HOME/imageset-config.yaml docker://$HOSTNAME:8443 --dest-skip-tls
 ```
@@ -364,6 +366,10 @@ oc mirror --config=$HOME/imageset-config.yaml docker://$HOSTNAME:8443 --dest-ski
 
 
 ## Prepare to create OCP cluster
+
+export OCP_RELEASE_VERSION="4.14.16"
+oc adm release extract -a $HOME/pull-secret \
+    --command=openshift-install quay.io/openshift-release-dev/ocp-release/ocp-release:$OCP_RELEASE_VERSION
 
 ### Generate SSH key for cluster nodes
 
@@ -373,163 +379,48 @@ ssh-keygen -N '' -f $HOME/.ssh/id_rsa
 
 ### Create install files
 
-Note: You may want to have a second terminal open on the jumpbox to be able to copy your auth.json file.
-
 ```bash
 export INSTALL="$HOME/ocp-install"
-echo export INSTALL="$INSTALL" >> $HOME/.bash_profile
-
 mkdir -p "$INSTALL"
 
-./openshift-install create install-config --dir "$INSTALL"
-```
+export BASEDOMAIN=copan-test.com
+export CLUSTER_NAME=ocp
+export REGION=ap-northeast-1
+export ZONE=ap-northeast-1a
 
-- Select the id_cluster ssh key you created in the previous step and press enter.
-- Select `aws` and press enter.
-- Select use-east-1 as the AWS region and press enter.
-- Select dev01.red-chesterfield.com as the base domain and press enter.
-- Enter a name for the cluster, such as `my-dc`, and press enter.
-- Paste your pull secret from the `auth.json` file and press enter.
+export PRIVATE_SUBNET=subnet-093a41cb8b591d94f
+export HOSTED_ZONE=Z10124192ZYQ7PDC4IW9S
+
+export SSH_PUB_STR="$(cat ${HOME}/.ssh/id_rsa.pub)"
+export AUTH_VALUE=$(jq -r ".auths[\"$HOSTNAME:8443\"].auth" $HOME/pull-secret)
+
+sudo cp "/etc/quay-install/quay-rootCA/rootCA.pem" "/etc/quay-install/quay-rootCA/rootCA.pem.bak"
+sudo sed -i 's/^/  /' /etc/quay-install/quay-rootCA/rootCA.pem.bak
+export export REGISTRY_CA_CERT_FORMAT="$(cat /etc/quay-install/quay-rootCA/rootCA.pem.bak)"
+```
 
 ### Edit install-config.yaml
 
-```bash
-vi $INSTALL/install-config.yaml
-```
-
-The `credentialsMode` field should be set to `Passthrough`:
 
 ```yaml
-credentialsMode: Passthrough
-```
-
-The `compute` stanza should be
-
-```yaml
-compute:
-- architecture: amd64
-  hyperthreading: Enabled
-  name: worker
-  platform:
-    aws:
-      region: us-east-1
-      rootVolume:
-        iops: 2000
-        size: 500
-        type: io1
-      type: m5.xlarge
-      zones:
-      - ap-northeast-1a
-```
-
-The `controlPlane` stanza should be
-
-```yaml
-controlPlane:
-  architecture: amd64
-  hyperthreading: Enabled
-  name: master
-  platform:
-    aws:
-      region: us-east-1
-      rootVolume:
-        iops: 4000
-        size: 500
-        type: io1
-      type: m5.xlarge
-      zones:
-      - ap-northeast-1a
-  replicas: 3
-```
-
-The `networking` stanza should be
-
-```yaml
-networking:
-  clusterNetwork:
-  - cidr: 10.128.0.0/14
-    hostPrefix: 23
-  machineNetwork:
-  - cidr: 10.0.0.0/16
-  networkType: OpenShiftSDN
-  serviceNetwork:
-  - 172.30.0.0/16
-```
-
-The `platform` stanza should be similar to
-
-```yaml
-platform:
-  aws:
-    region: us-east-1
-    subnets:
-    - subnet-0f375b056978b34a6
-    hostedZone: Z01757232ECSNQXVSUVVJ
-```
-
-The subnet value should be the subnet ID for the private subnet in your VPC.
-
-The hostedZone value should be the hosted zone ID for the Route 53 private
-hosted zone you created when configuring your VPC.
-
-The `publish` field should be
-
-```yaml
-publish: Internal
-```
-
-Save your changes to the file.
-
-### Add the trust bundle for your Quay mirror registry to the install files
-
-Copy the contents of the file `/etc/quay-install/quay-rootCA/rootCA.pem` into the
-`additionalTrustBundle` field of the install file.
-
-```bash
-cat <<EOF >>$INSTALL/install-config.yaml
-additionalTrustBundle: |
-$(sed 's/^/  /' /etc/quay-install/quay-rootCA/rootCA.pem)
-EOF
-```
-
-### Add your quay mirror registry as an image content source to the install files
-
-```bash
-cat <<EOF >>$INSTALL/install-config.yaml
-imageContentSources:
-  - mirrors:
-    - $LOCAL_REPO
-    - $LOCAL_REPO/ocp-release
-    source: quay.io/openshift-release-dev/ocp-release
-  - mirrors:
-    - $LOCAL_REPO
-    - $LOCAL_REPO/ocp-release
-    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
-EOF
-```
-
-### Verify contents of install-config.yaml
-
-Your `$INSTALL/install-config.yaml` file should be similar to this one:
-
-```yaml
+cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
-baseDomain: dev01.red-chesterfield.com
-credentialsMode: Mint
+baseDomain: $BASEDOMAIN
+credentialsMode: Passthrough
 compute:
 - architecture: amd64
   hyperthreading: Enabled
   name: worker
   platform:
     aws:
-      region: us-east-1
+      region: $REGION
       rootVolume:
         iops: 2000
         size: 500
         type: io1
       type: m5.xlarge
       zones:
-      - ap-northeast-1a
+      - $ZONE
   replicas: 3
 controlPlane:
   architecture: amd64
@@ -537,50 +428,46 @@ controlPlane:
   name: master
   platform:
     aws:
-      region: us-east-1
+      region: $REGION
       rootVolume:
         iops: 4000
         size: 500
         type: io1
       type: m5.xlarge
       zones:
-      - ap-northeast-1a
+      - $ZONE
   replicas: 3
 metadata:
   creationTimestamp: null
-  name: copan-dc1
+  name: $CLUSTER_NAME
 networking:
   clusterNetwork:
   - cidr: 10.128.0.0/14
     hostPrefix: 23
   machineNetwork:
   - cidr: 10.0.0.0/16
-  networkType: OpenShiftSDN
+  networkType: OVNKubernetes
   serviceNetwork:
   - 172.30.0.0/16
 platform:
   aws:
-    region: us-east-1
+    region: $REGION
     subnets:
-    - subnet-0f375b056978b34a6
-    hostedZone: Z01757232ECSNQXVSUVVJ
+    - $PRIVATE_SUBNET
+    hostedZone: $HOSTED_ZONE
 publish: Internal
-pullSecret: '<PULL SECRET>'
-sshKey: |
-  ssh-ed25519 AAAAC3N... ec2-user@ip-10-0-0-20.ec2.internal
-additionalTrustBundle: |
-  -----BEGIN CERTIFICATE-----
-  <QUAY MIRROR REGISTY TRUST BUNDLE>
-  -----END CERTIFICATE-----
+pullSecret: '{"auths":{"$HOSTNAME:8443": {"auth": "$AUTH_VALUE","email": "test@redhat.com"}}}'
+sshKey: '${SSH_PUB_STR}'
+additionalTrustBundle: | 
+${REGISTRY_CA_CERT_FORMAT}
 imageContentSources:
-  - mirrors:
-    - ip-10-0-0-20.ec2.internal:8443/ocp4/openshift4
-    - ip-10-0-0-20.ec2.internal:8443/ocp4/openshift4/ocp-release
-    source: quay.io/openshift-release-dev/ocp-release
-  - mirrors:
-    - ip-10-0-0-20.ec2.internal:8443/ocp4/openshift4
-    - ip-10-0-0-20.ec2.internal:8443/ocp4/openshift4/ocp-release
-    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+- mirrors:
+  - $HOSTNAME:8443/openshift/release
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+- mirrors:
+  - $HOSTNAME:8443/openshift/release-images
+  source: quay.io/openshift-release-dev/ocp-release
+EOF
 ```
 
 ### Backup your install-config.yaml file
@@ -604,7 +491,7 @@ echo alias oc=\"oc --kubeconfig=$INSTALL/auth/kubeconfig\" >> $HOME/.bash_profil
 ### Run the installer to create your cluster
 
 ```bash
-./openshift-install create cluster --dir $INSTALL --log-level=debug
+./openshift-install create cluster --dir $INSTALL --log-level=info
 ```
 
 Once you see this entry on the install logs:
