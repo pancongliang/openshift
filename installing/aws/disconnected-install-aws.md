@@ -128,7 +128,7 @@ Click "Launch instances"
   - Under "Red Hat Enterprise Linux 8 (HVM), SSD Volume Type" ensure "64-bit (x86)" is selected
   - Click "Select" for "Red Hat Enterprise Linux 8 (HVM), SSD Volume Type"
 - Step 2: Choose an instance type
-  - Select "t3.medium"
+  - Select "t3.large"
   - Click "Next: Configure Instance Details"
 - Step 3: Configure Instance Details
   - For "Network", select your VPC
