@@ -111,8 +111,7 @@ Click "Create hosted zone"
 Click "Create hosted zone"
 
 **Note:** Expand the "Hosted zone details" section and record the "Hosted zone ID"
-
-`Z01757232ECSNQXVSUVVJ`
+`Z10124192ZYQ7PDC4IW9S`
 
 ## Setup jumpbox EC2 instance in VPC
 
@@ -366,17 +365,13 @@ oc mirror --config=$HOME/imageset-config.yaml docker://$HOSTNAME:8443 --dest-ski
 
 ## Prepare to create OCP cluster
 
-export OCP_RELEASE_VERSION="4.14.16"
-oc adm release extract -a $HOME/pull-secret \
-    --command=openshift-install quay.io/openshift-release-dev/ocp-release/ocp-release:$OCP_RELEASE_VERSION
-
 ### Generate SSH key for cluster nodes
 
 ```bash
 ssh-keygen -N '' -f $HOME/.ssh/id_rsa
 ```
 
-### Create install files
+### Set variable parameters
 
 ```bash
 export INSTALL="$HOME/ocp-install"
@@ -387,8 +382,11 @@ export CLUSTER_NAME=ocp
 export REGION=ap-northeast-1
 export ZONE=ap-northeast-1a
 
-export PRIVATE_SUBNET=subnet-093a41cb8b591d94f
-export HOSTED_ZONE=Z10124192ZYQ7PDC4IW9S
+export VPC_NAME=copan-dc1
+export PRIVATE_SUBNET=$(aws ec2 describe-subnets --region $REGION --filters "Name=tag:Name,Values=$VPC_NAME-subnet-private1-$ZONE" | jq -r '.Subnets[0].SubnetId')
+
+export HOSTED_ZONE_NAME=copan-test.com
+export HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name $HOSTED_ZONE_NAME --max-items 1 | jq -r '.HostedZones[0].Id' | sed 's#/hostedzone/##')
 
 export SSH_PUB_STR="$(cat ${HOME}/.ssh/id_rsa.pub)"
 export AUTH_VALUE=$(jq -r ".auths[\"$HOSTNAME:8443\"].auth" $HOME/pull-secret)
@@ -398,9 +396,7 @@ sudo sed -i 's/^/  /' /etc/quay-install/quay-rootCA/rootCA.pem.bak
 export export REGISTRY_CA_CERT_FORMAT="$(cat /etc/quay-install/quay-rootCA/rootCA.pem.bak)"
 ```
 
-### Edit install-config.yaml
-
-
+### Create install-config.yaml
 ```yaml
 cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
@@ -452,7 +448,7 @@ platform:
     region: $REGION
     subnets: 
     - $PRIVATE_SUBNET
-    hostedZone: $HOSTED_ZONE
+    hostedZone: $HOSTED_ZONE_ID
 fips: false
 publish: Internal
 pullSecret: '{"auths":{"$HOSTNAME:8443": {"auth": "$AUTH_VALUE","email": "test@redhat.com"}}}'
@@ -496,7 +492,7 @@ echo alias oc=\"oc --kubeconfig=$INSTALL/auth/kubeconfig\" >> $HOME/.bash_profil
 Once you see this entry on the install logs:
 
 ```bash
-INFO Waiting up to 40m0s for the cluster at https://api.copan-dc1.dev01.red-chesterfield.com:6443 to initialize...
+INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.copan-test.com:6443 to initialize... 
 ```
 
 You will need to complete the "Configure cluster DNS" steps below before the 40 minutes are up
@@ -566,7 +562,7 @@ In the installer output, once the bootstrap node has been destroyed, you should 
 line like this in the log:
 
 ```bash
-INFO Waiting up to 40m0s for the cluster at https://api.copan-dc1.dev01.red-chesterfield.com:6443 to initialize...
+INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.copan-test.com:6443 to initialize... 
 ```
 
 Once this appears, go to
@@ -585,7 +581,6 @@ Make a note of the load balancer's name. You'll need to select it from a list in
 Open another terminal to the jumpbox and run:
 
 ```bash
-oc project openshift-ingress-operator
 oc edit dnses.config/cluster
 ```
 
@@ -610,7 +605,7 @@ Save your changes.
 Go to
 [https://console.aws.amazon.com/route53/v2/hostedzones#](https://console.aws.amazon.com/route53/v2/hostedzones#)
 
-Click on the hosted zone you created for your VPC. In this example, its name would be `copan-dc1.dev01.red-chesterfield.com`
+Click on the hosted zone you created for your VPC. In this example, its name would be `copan-test.com`
 
 Click "Create record"
 
@@ -618,10 +613,10 @@ Click "Create record"
 - For "Record type", ensure `A - Routes traffic to an IPv4 address and some AWS resources` is selected..
 - For "Value", click the toggle to enable "Alias"
   - For "Choose endpoint", select `Alias to Application and Classic Load Balancer`
-  - For "Choose region", select `US East (N. Virginia) [us-east-1]`
+  - For "Choose region", select `Asia Pacific (Tokyo)`
   - For "Choose load balancer", select your internal load balancer. Note: Its name in
     this list will be prefixed with `dualstack.`. For example:
-    `dualstack.internal-a41440f20f34e42c194bcbf23206a4a0-1042296570.us-east-1.elb.amazonaws.com`
+    `dualstack.internal-a745b7e80d92f49dd86fd3b133e8e879-2040312595.ap-northeast-1.elb.amazonaws.com`
 
 Click "Create Record"
 
