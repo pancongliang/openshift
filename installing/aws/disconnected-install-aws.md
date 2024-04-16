@@ -406,38 +406,37 @@ cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
 baseDomain: $BASEDOMAIN
 credentialsMode: Passthrough
-compute:
-- architecture: amd64
-  hyperthreading: Enabled
-  name: worker
-  platform:
-    aws:
-      region: $REGION
-      rootVolume:
-        iops: 2000
-        size: 500
-        type: io1
-      type: m5.xlarge
-      zones:
-      - $ZONE
-  replicas: 3
-controlPlane:
-  architecture: amd64
-  hyperthreading: Enabled
+controlPlane:   
+  hyperthreading: Enabled 
   name: master
   platform:
     aws:
-      region: $REGION
+      zones:
+      - $ZONE
       rootVolume:
         iops: 4000
         size: 500
-        type: io1
-      type: m5.xlarge
+        type: io1 
+      metadataService:
+        authentication: Optional 
+      type: m6i.xlarge
+  replicas: 3
+compute: 
+- hyperthreading: Enabled 
+  name: worker
+  platform:
+    aws:
+      rootVolume:
+        iops: 2000
+        size: 500
+        type: io1 
+      metadataService:
+        authentication: Optional 
+      type: c5.4xlarge
       zones:
       - $ZONE
   replicas: 3
 metadata:
-  creationTimestamp: null
   name: $CLUSTER_NAME
 networking:
   clusterNetwork:
@@ -445,21 +444,22 @@ networking:
     hostPrefix: 23
   machineNetwork:
   - cidr: 10.0.0.0/16
-  networkType: OVNKubernetes
+  networkType: OVNKubernetes 
   serviceNetwork:
   - 172.30.0.0/16
 platform:
   aws:
     region: $REGION
-    subnets:
+    subnets: 
     - $PRIVATE_SUBNET
     hostedZone: $HOSTED_ZONE
+fips: false
 publish: Internal
 pullSecret: '{"auths":{"$HOSTNAME:8443": {"auth": "$AUTH_VALUE","email": "test@redhat.com"}}}'
 sshKey: '${SSH_PUB_STR}'
 additionalTrustBundle: | 
 ${REGISTRY_CA_CERT_FORMAT}
-imageContentSources:
+imageContentSources: 
 - mirrors:
   - $HOSTNAME:8443/openshift/release
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
