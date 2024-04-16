@@ -6,7 +6,7 @@
 
 ### Install oc command
 
-```bash
+```
 curl -L -o oc.tgz https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz
 tar xf oc.tgz
 sudo mv oc kubectl /usr/bin
@@ -15,7 +15,7 @@ rm oc.tgz README.md
 
 ### Install the openshift-install command
 
-```bash
+```
 export OCP_RELEASE_VERSION="4.14.16"
 curl -O https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_RELEASE_VERSION/openshift-install-linux.tar.gz
 sudo tar xvf openshift-install-linux.tar.gz
@@ -24,7 +24,7 @@ sudo rm -rf openshift-install-linux.tar.gz README.md
 
 ### Install AWS CLI
 
-```bash
+```
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
@@ -33,7 +33,7 @@ sudo rm -rf aws awscliv2.zip
 
 ### Store your AWS credentials
 
-```bash
+```
 cat << EOF > "$HOME/.aws/credentials"
 [default]
 aws_access_key_id = AKI···
@@ -43,14 +43,14 @@ EOF
 
 ### Generate SSH key for cluster nodes
 
-```bash
+```
 ssh-keygen -N '' -f $HOME/.ssh/id_rsa
 ```
 
 ## Create OCP cluster
 
 ### Create install-config.yaml
-```bash
+```
 export INSTALL="$HOME/ocp-install"
 mkdir -p "$INSTALL"
 
@@ -66,7 +66,7 @@ mkdir -p "$INSTALL"
 
 ### Run the installer to create your cluster
 
-```bash
+```
 ./openshift-install create cluster --dir $INSTALL --log-level=info
 
 INFO Credentials loaded from the "default" profile in file "/home/admin/.aws/credentials" 
@@ -87,7 +87,7 @@ INFO Time elapsed: 39m26s
 
 ### Set up an alias to run oc with the new cluster credentials
 
-```bash
+```
 alias oc="oc --kubeconfig=$INSTALL/auth/kubeconfig"
 echo alias oc=\"oc --kubeconfig=$INSTALL/auth/kubeconfig\" >> $HOME/.bash_profile
 
