@@ -50,11 +50,11 @@ ssh-keygen -N '' -f $HOME/.ssh/id_rsa
 ## Create OCP cluster
 
 ### Create install-config.yaml
-~~~
+```bash
 export INSTALL="$HOME/ocp-install"
 mkdir -p "$INSTALL"
 
-openshift-install create install-config --dir "$INSTALL"
+./openshift-install create install-config --dir "$INSTALL"
 
 ? SSH Public Key /home/admin/.ssh/id_rsa.pub
 ? Platform: aws
@@ -62,7 +62,7 @@ openshift-install create install-config --dir "$INSTALL"
 ? Base Domain: example.com
 ? Cluster Name: ocp4
 ? Pull Secret: *************
-
+```
 
 ### Run the installer to create your cluster
 
