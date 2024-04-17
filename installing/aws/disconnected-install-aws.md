@@ -501,31 +501,79 @@ or the install will fail.
 If you don't have your VPC ID, find it before starting the install to help ensure you
 can quickly complete the cluster DNS configuration.
 
-### (Optional) Monitor bootstrap installation
+### Configure cluster DNS
 
-In the installer output, once all the resources have been created and the
-installer is waiting for the kubernetes API to be available, you should see a
+In the installer output, once the bootstrap node has been destroyed, you should see a
 line like this in the log:
 
 ```bash
-DEBUG bootstrap_ip = 10.0.1.203
+INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.copan-test.com:6443 to initialize... 
 ```
 
-You can watch the EC2 instances for the creation of the bootstrap node. It will have a
-name similar to `copan-dc1-ab123-bootstrap`.
+Once this appears, go to
+[https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#LoadBalancers:sort=loadBalancerName](https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#LoadBalancers:sort=loadBalancerName)
 
-Once the bootstrap node is running, you can ssh into the boostrap node from
-the jumpbox by running
+In the search box, enter your VPC ID, such as `vpc-0a35f5fee30dfd101`, to view just the
+load balancers in your VPC.
+
+Or can also view it with the command
+```bash
+export VPC_ID=$(aws ec2 describe-vpcs --region $REGION --filters "Name=tag:Name,Values=$VPC_NAME" | jq -r '.Vpcs[0].VpcId')
+aws elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName"
+```
+
+Watch for a load balancer whose Type is `classic`. This load balancer will have a Name that is a
+long hexidecimal value. Its DNS name will start with `internal-` followed by the Name.
+
+When you see this load balancer (note that it will not have a "State"), follow these steps:
+
+Make a note of the load balancer's name. You'll need to select it from a list in a following step.
+
+Open another terminal to the jumpbox and run:
 
 ```bash
-ssh -i .ssh/id_cluster core@10.0.1.203
+oc edit dnses.config/cluster
 ```
 
-On the bootstrap node, you can watch the cluster creation logs by running
+In the editor, under `spec`, remove the `privateZone` stanza. It should look similar to this:
 
-```bash
-journalctl -b -f -n all -u release-image.service -u bootkube.service
+```yaml
+apiVersion: config.openshift.io/v1
+kind: DNS
+metadata:
+  creationTimestamp: "2022-03-07T14:37:25Z"
+  generation: 2
+  name: cluster
+  resourceVersion: "24778"
+  uid: 200759e9-3f21-4cb3-8802-ac1221e6ebf9
+spec:
+  baseDomain: ocp.copan-test.com
+status: {}
 ```
+
+Save your changes.
+
+Go to
+[https://console.aws.amazon.com/route53/v2/hostedzones#](https://console.aws.amazon.com/route53/v2/hostedzones#)
+
+Click on the hosted zone you created for your VPC. In this example, its name would be `copan-test.com`
+
+Click "Create record"
+
+- For "Record name", enter `*.apps`
+- For "Record type", ensure `A - Routes traffic to an IPv4 address and some AWS resources` is selected..
+- For "Value", click the toggle to enable "Alias"
+  - For "Choose endpoint", select `Alias to Application and Classic Load Balancer`
+  - For "Choose region", select `Asia Pacific (Tokyo)`
+  - For "Choose load balancer", select your internal load balancer. Note: Its name in
+    this list will be prefixed with `dualstack.`. For example:
+    `dualstack.internal-a82826d7a9ba94672b25d211de36ad2c-829981290.ap-northeast-1.elb.amazonaws.com`
+
+Click "Create Record"
+
+Go back to watching the logs from the `openshift-install` command.
+
+The install should complete successfully.
 
 ### (Optional) Monitor cluster initialization
 
@@ -556,77 +604,6 @@ ssh -i .ssh/id_cluster core@10.0.1.231
 journalctl -b -f -n all -u kubelet.service -u crio.service
 ```
 
-### Configure cluster DNS
-
-In the installer output, once the bootstrap node has been destroyed, you should see a
-line like this in the log:
-
-```bash
-INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.copan-test.com:6443 to initialize... 
-```
-
-Once this appears, go to
-[https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#LoadBalancers:sort=loadBalancerName](https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#LoadBalancers:sort=loadBalancerName)
-
-In the search box, enter your VPC ID, such as `vpc-0554d61964eba9fa4`, to view just the
-load balancers in your VPC.
-
-```bash
-aws ec2 describe-vpcs --region $REGION --filters "Name=tag:Name,Values=$VPC_NAME" | jq -r '.Vpcs[0].VpcId')
-```
-
-Watch for a load balancer whose Type is `classic`. This load balancer will have a Name that is a
-long hexidecimal value. Its DNS name will start with `internal-` followed by the Name.
-
-When you see this load balancer (note that it will not have a "State"), follow these steps:
-
-Make a note of the load balancer's name. You'll need to select it from a list in a following step.
-
-Open another terminal to the jumpbox and run:
-
-```bash
-oc edit dnses.config/cluster
-```
-
-In the editor, under `spec`, remove the `privateZone` stanza. It should look similar to this:
-
-```yaml
-apiVersion: config.openshift.io/v1
-kind: DNS
-metadata:
-  creationTimestamp: "2022-03-07T14:37:25Z"
-  generation: 2
-  name: cluster
-  resourceVersion: "24778"
-  uid: 200759e9-3f21-4cb3-8802-ac1221e6ebf9
-spec:
-  baseDomain: copan-dc1.copan-test.com
-status: {}
-```
-
-Save your changes.
-
-Go to
-[https://console.aws.amazon.com/route53/v2/hostedzones#](https://console.aws.amazon.com/route53/v2/hostedzones#)
-
-Click on the hosted zone you created for your VPC. In this example, its name would be `copan-test.com`
-
-Click "Create record"
-
-- For "Record name", enter `*.apps`
-- For "Record type", ensure `A - Routes traffic to an IPv4 address and some AWS resources` is selected..
-- For "Value", click the toggle to enable "Alias"
-  - For "Choose endpoint", select `Alias to Application and Classic Load Balancer`
-  - For "Choose region", select `Asia Pacific (Tokyo)`
-  - For "Choose load balancer", select your internal load balancer. Note: Its name in
-    this list will be prefixed with `dualstack.`. For example:
-    `dualstack.internal-a745b7e80d92f49dd86fd3b133e8e879-2040312595.ap-northeast-1.elb.amazonaws.com`
-
-Click "Create Record"
-
-Go back to watching the logs from the `openshift-install` command.
-
-The install should complete successfully.
 
 ## Configure the OCP cluster after installation
 
@@ -635,179 +612,4 @@ The install should complete successfully.
 ```bash
 oc patch OperatorHub cluster --type json \
     -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
-```
-
-### Setup OCP to use mirrored operator catalog
-
-From the step "Prune and Mirror the Operator Catalog" above, you should have a directory
-on your jumpbox with a name similar to `manifests-redhat-operator-index-1646254114` and the path
-to that directory should be stored in the `$MANIFESTS` environment variable.
-
-In this directory are two YAML files that need to be applied to your cluster to mirrored operator
-catalog. Run:
-
-```bash
-oc apply -f $MANIFESTS/catalogSource.yaml
-oc apply -f $MANIFESTS/imageContentSourcePolicy.yaml
-```
-
-Verify the resources were created sucessfully:
-
-```bash
-$ oc -n openshift-marketplace get catalogsources
-NAME                    DISPLAY               TYPE   PUBLISHER   AGE
-redhat-operator-index                         grpc               17m
-
-$ oc -n openshift-marketplace get pods
-NAME                                    READY   STATUS             RESTARTS       AGE
-marketplace-operator-5777f8869b-b4ngz   1/1     Running            1 (121m ago)   136m
-redhat-operator-index-qvlnl             1/1     Running            0              19m
-```
-
-The `redhat-operator-index-*` pod should be running.
-
-```bash
-$ oc -n openshift-marketplace get packagemanifest
-NAME                          CATALOG   AGE
-multicluster-engine                     20m
-advanced-cluster-management             20m
-```
-
-You should see the operators that you pruned into the operator catalog when you mirrored it.
-
-## Configure the ACM Operator
-
-### Inspect the ACM operator
-
-View the versions of ACM available to install:
-
-```bash
-oc -n openshift-marketplace get packagemanifest advanced-cluster-management -o json > acm.json
-
-jq '.status.channels[].name' acm.json
-```
-
-You'll see the possible versions to install, such as:
-
-```yaml
-"release-2.3"
-"release-2.4"
-```
-
-Save the ACM version you plan on using:
-
-```bash
-export ACM_CHANNEL=release-2.4
-echo export ACM_CHANNEL=$ACM_CHANNEL >> $HOME/.bash_profile
-```
-
-### Create the ACM subscription
-
-```bash
-cat <<EOF >> acm-subscription.yaml
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: acm-operator-subscription
-spec:
-  sourceNamespace: openshift-marketplace
-  source: redhat-operator-index
-  channel: $ACM_CHANNEL
-  installPlanApproval: Automatic
-  name: advanced-cluster-management
-EOF
-
-oc apply -f acm-subscription.yaml
-```
-
-At this point, ACM is available to install.
-
-## Install ACM
-
-### Create the ACM namespace
-
-The default namespace is `open-cluster-management`. Run:
-
-```bash
-export ACM_NAMESPACE=open-cluster-management
-echo export ACM_NAMESPACE=$ACM_NAMESPACE >> $HOME/.bash_profile
-
-oc create namespace $ACM_NAMESPACE
-oc project $ACM_NAMESPACE
-```
-
-### Create the pull secret in the ACM namespace
-
-This pull secret needs to have credentials for the mirror registry. We'll use the
-`auth.json` file we created earlier when we created the mirror registry.
-
-```bash
-export ACM_PULL_SECRET=open-cluster-management-pull-secret
-echo export ACM_PULL_SECRET=$ACM_PULL_SECRET >> $HOME/.bash_profile
-
-oc create secret generic -n $ACM_NAMESPACE $ACM_PULL_SECRET \
-    --from-file=.dockerconfigjson=auth.json \
-    --type=kubernetes.io/dockerconfigjson
-```
-
-### Create an operator group
-
-```bash
-cat <<EOF >> operatorgroup.yaml
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: open-cluster-management-operator-group
-spec:
-  targetNamespaces:
-  - $ACM_NAMESPACE
-EOF
-
-oc apply -f operatorgroup.yaml
-```
-
-### Create the MultiClusterHub custom resource
-
-```bash
-cat <<EOF >> multiclusterhub.yaml
-apiVersion: operator.open-cluster-management.io/v1
-kind: MultiClusterHub
-metadata:
-  name: multiclusterhub
-  namespace: $ACM_NAMESPACE
-spec:
-  imagePullSecret: $ACM_PULL_SECRET
-EOF
-
-oc apply -f multiclusterhub.yaml
-```
-
-### Watch ACM installation
-
-Run:
-
-```bash
-$ oc get -n $ACM_NAMESPACE mch -o=jsonpath='{.items[0].status.phase}' ; echo
-oc get -n open-cluster-management mch -o=jsonpath='{.items[0].status.phase}' ; echo
-Installing
-```
-
-You can also run:
-
-```bash
-watch -n 15 -g oc get --kubeconfig=/home/ec2-user/ocp-install/auth/kubeconfig \
-    -n $ACM_NAMESPACE mch -o=jsonpath='{.items[0].status.phase}'
-```
-
-This will check the status every 15 seconds and exit when the output changes from `Installing`.
-
-When the phase is `Running`, ACM installation will be complete. It may 10 minutes or more for the
-MultiClusterHub resource to reach the Running phase.
-
-### Verify the route has been added
-
-```bash
-$ oc get -n $ACM_NAMESPACE routes
-NAME                 HOST/PORT                                                   PATH   SERVICES             PORT    TERMINATION          WILDCARD
-multicloud-console   multicloud-console.apps.copan-dc1.copan-test.com          management-ingress   https   reencrypt/Redirect   None
 ```
