@@ -401,7 +401,7 @@ export export REGISTRY_CA_CERT_FORMAT="$(cat /etc/quay-install/quay-rootCA/rootC
 cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
-credentialsMode: Mint
+credentialsMode: Passthrough
 controlPlane:   
   hyperthreading: Enabled 
   name: master
