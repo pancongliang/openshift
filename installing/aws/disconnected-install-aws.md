@@ -377,13 +377,13 @@ ssh-keygen -N '' -f $HOME/.ssh/id_rsa
 export INSTALL="$HOME/ocp-install"
 mkdir -p "$INSTALL"
 
-export BASEDOMAIN=copan-test.com
+export BASE_DOMAIN=copan-test.com
 export CLUSTER_NAME=ocp
 export REGION=ap-northeast-1
 export ZONE=ap-northeast-1a
 export VPC_NAME=copan-dc1-vpc
-export VPCNAME=$(echo $VPC_NAME | sed 's/-vpc//')
-export PRIVATE_SUBNET=$(aws ec2 describe-subnets --region $REGION --filters "Name=tag:Name,Values=$VPCNAME-subnet-private1-$ZONE" | jq -r '.Subnets[0].SubnetId')
+export VPC_NAME_RESET=$(echo $VPC_NAME | sed 's/-vpc//')
+export PRIVATE_SUBNET=$(aws ec2 describe-subnets --region $REGION --filters "Name=tag:Name,Values=$VPC_NAME_RESET-subnet-private1-$ZONE" | jq -r '.Subnets[0].SubnetId')
 
 export HOSTED_ZONE_NAME=copan-test.com
 export HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name --dns-name $HOSTED_ZONE_NAME --max-items 1 | jq -r '.HostedZones[0].Id' | sed 's#/hostedzone/##')
@@ -400,7 +400,7 @@ export export REGISTRY_CA_CERT_FORMAT="$(cat /etc/quay-install/quay-rootCA/rootC
 ```yaml
 cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
-baseDomain: $BASEDOMAIN
+baseDomain: $BASE_DOMAIN
 credentialsMode: Mint
 controlPlane:   
   hyperthreading: Enabled 
