@@ -591,21 +591,16 @@ INFO Waiting up to 30m0s for bootstrapping to complete...
 You can find the IP addresses of the master nodes by running:
 
 ```bash
-$ oc get nodes
-NAME                         STATUS   ROLES    AGE   VERSION
-ip-10-0-1-19.ec2.internal    Ready    worker   12m   v1.22.3+b93fd35
-ip-10-0-1-211.ec2.internal   Ready    worker   11m   v1.22.3+b93fd35
-ip-10-0-1-231.ec2.internal   Ready    master   29m   v1.22.3+b93fd35
-ip-10-0-1-244.ec2.internal   Ready    master   29m   v1.22.3+b93fd35
-ip-10-0-1-43.ec2.internal    Ready    master   29m   v1.22.3+b93fd35
-ip-10-0-1-67.ec2.internal    Ready    worker   11m   v1.22.3+b93fd35
-```
+$ oc get node
+NAME                                            STATUS   ROLES                  AGE   VERSION
+ip-10-0-1-199.ap-northeast-1.compute.internal   Ready    worker                 28m   v1.27.10+c79e5e2
+ip-10-0-1-30.ap-northeast-1.compute.internal    Ready    worker                 29m   v1.27.10+c79e5e2
+ip-10-0-1-6.ap-northeast-1.compute.internal     Ready    control-plane,master   44m   v1.27.10+c79e5e2
+ip-10-0-1-84.ap-northeast-1.compute.internal    Ready    control-plane,master   44m   v1.27.10+c79e5e2
+ip-10-0-1-85.ap-northeast-1.compute.internal    Ready    control-plane,master   44m   v1.27.10+c79e5e2
+ip-10-0-1-88.ap-northeast-1.compute.internal    Ready    worker                 28m   v1.27.10+c79e5e2
 
-You can then log in to one of the master nodes and watch the initialization logs by running:
-
-```bash
-ssh -i .ssh/id_cluster core@10.0.1.231
-journalctl -b -f -n all -u kubelet.service -u crio.service
+$ oc get co | grep -v '.True.*False.*False'
 ```
 
 
