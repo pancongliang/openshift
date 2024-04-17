@@ -8,7 +8,7 @@
 For this example, we'll use the name `copan-dc1` for resources related to this vpc.
 
 Go to
-[https://console.aws.amazon.com/vpc/home?region=us-east-1#vpcs:](https://console.aws.amazon.com/vpc/home?region=us-east-1#vpcs:)
+[https://console.aws.amazon.com/vpc/home?region=ap-northeast-1#vpcs:](https://console.aws.amazon.com/vpc/home?region=ap-northeast-1#vpcs:)
 
 Click "Create VPC"
 
@@ -36,7 +36,7 @@ You will need this to filter resources in AWS later.
 ### Create security group for VPC
 
 Go to
-[https://console.aws.amazon.com/vpc/home?region=us-east-1#securityGroups:](https://console.aws.amazon.com/vpc/home?region=us-east-1#securityGroups:)
+[https://console.aws.amazon.com/vpc/home?region=ap-northeast-1#securityGroups:](https://console.aws.amazon.com/vpc/home?region=ap-northeast-1#securityGroups:)
 
 Click "Create security group"
 
@@ -59,7 +59,7 @@ Click "Create security group"
 ### Create ec2 endpoint in VPC
 
 Go to
-[https://console.aws.amazon.com/vpc/home?region=us-east-1#Endpoints:](https://console.aws.amazon.com/vpc/home?region=us-east-1#Endpoints:)
+[https://console.aws.amazon.com/vpc/home?region=ap-northeast-1#Endpoints:](https://console.aws.amazon.com/vpc/home?region=ap-northeast-1#Endpoints:)
 
 Click "Create endpoint"
 
@@ -79,14 +79,14 @@ Click "Create endpoint"
 ### Create ELB endpoint in VPC
 
 Go to
-[https://console.aws.amazon.com/vpc/home?region=us-east-1#Endpoints:](https://console.aws.amazon.com/vpc/home?region=us-east-1#Endpoints:)
+[https://console.aws.amazon.com/vpc/home?region=ap-northeast-1#Endpoints:](https://console.aws.amazon.com/vpc/home?region=ap-northeast-1#Endpoints:)
 
 Click "Create endpoint"
 
 - For "Name tag", use `copan-dc1-vpce-elb`
 - For "Service category", select "AWS services"
 - Enter "load" in the "Filter services" search box
-- Select the service "com.amazonaws.us-east-1.elasticloadbalancing"
+- Select the service "com.amazonaws.ap-northeast-1.elasticloadbalancing"
 - For "VPC", select your VPC
 - Under "VPC", expand "Additional settings" and ensure "Enable DNS name" is checked.
 - In "Subnets", check Availability Zone "ap-northeast-1a"
@@ -103,9 +103,9 @@ Go to
 
 Click "Create hosted zone"
 
-- For domain name, enter `copan-dc1.dev01.red-chesterfield.com`
+- For domain name, enter `copan-dc1.copan-test.com`
 - Change the Type to "Private hosted zone"
-- In the "Region" box, select us-east-1 region
+- In the "Region" box, select ap-northeast-1 region
 - In the VPC ID box, select the vpc you created above
 
 Click "Create hosted zone"
@@ -118,7 +118,7 @@ Click "Create hosted zone"
 ### Create jumpbox instance
 
 Go to
-[https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:v=3](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:v=3)
+[https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#Instances:v=3](https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#Instances:v=3)
 
 Click "Launch instances"
 
@@ -140,7 +140,7 @@ Click "Launch instances"
 - Step 5: Add Tags
   - Click "Add Tag"
   - Set Key to "Name"
-  - Set Value to `copan-dc1-jumpbox`
+  - Set Value to `copan-bastion`
   - Click "Next: Configure Security Group"
 - Step 6: Configure Security Group
   - Select "Select an existing security group"
@@ -381,7 +381,6 @@ export BASEDOMAIN=copan-test.com
 export CLUSTER_NAME=ocp
 export REGION=ap-northeast-1
 export ZONE=ap-northeast-1a
-
 export VPC_NAME=copan-dc1
 export PRIVATE_SUBNET=$(aws ec2 describe-subnets --region $REGION --filters "Name=tag:Name,Values=$VPC_NAME-subnet-private1-$ZONE" | jq -r '.Subnets[0].SubnetId')
 
@@ -566,7 +565,7 @@ INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.c
 ```
 
 Once this appears, go to
-[https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#LoadBalancers:sort=loadBalancerName](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#LoadBalancers:sort=loadBalancerName)
+[https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#LoadBalancers:sort=loadBalancerName](https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#LoadBalancers:sort=loadBalancerName)
 
 In the search box, enter your VPC ID, such as `vpc-0554d61964eba9fa4`, to view just the
 load balancers in your VPC.
@@ -596,7 +595,7 @@ metadata:
   resourceVersion: "24778"
   uid: 200759e9-3f21-4cb3-8802-ac1221e6ebf9
 spec:
-  baseDomain: copan-dc1.dev01.red-chesterfield.com
+  baseDomain: copan-dc1.copan-test.com
 status: {}
 ```
 
@@ -805,5 +804,5 @@ MultiClusterHub resource to reach the Running phase.
 ```bash
 $ oc get -n $ACM_NAMESPACE routes
 NAME                 HOST/PORT                                                   PATH   SERVICES             PORT    TERMINATION          WILDCARD
-multicloud-console   multicloud-console.apps.copan-dc1.dev01.red-chesterfield.com          management-ingress   https   reencrypt/Redirect   None
+multicloud-console   multicloud-console.apps.copan-dc1.copan-test.com          management-ingress   https   reencrypt/Redirect   None
 ```
