@@ -23,6 +23,7 @@ export OCP_RELEASE="4.14.20"
 # OpenShift install-config
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="test.copan.com"
+export CREDENTIALS_MODE="Passthrough"
 
 # AWS credentials
 export AWS_ACCESS_KEY_ID="AKIAQ2FLxxxxx"
@@ -65,6 +66,7 @@ check_all_variables() {
     check_variable "OCP_RELEASE"
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
+    check_variable "CREDENTIALS_MODE"
     check_variable "AWS_ACCESS_KEY_ID"
     check_variable "AWS_SECRET_ACCESS_KEY"
     check_variable "INSTANCE_NAME"
