@@ -39,6 +39,7 @@ export AMI_ID="ami-0014871499315f25a"
 export STORAGE_SIZE="100" 
 
 # === more parameters ===
+export INSTALL="$HOME/ocp-install"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
 export REGISTRY_INSTALL_PATH="/opt/quay-install"
