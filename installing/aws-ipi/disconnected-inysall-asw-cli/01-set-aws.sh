@@ -20,6 +20,17 @@ run_command() {
     fi
 }
 
+
+# === Task: Install AWS CLI ===
+PRINT_TASK "[TASK: Install AWS CLI]"
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install &>/dev/null
+run_command "[Install AWS CLI]"
+sudo rm -rf aws awscliv2.zip
+
+
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
 
@@ -28,6 +39,8 @@ cat << EOF > "$HOME/.aws/credentials"
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
+run_command "[TASK: Set up AWS credentials]"
+
 
 # === Task: Create VPC ===
 PRINT_TASK "[TASK: Create VPC]"
