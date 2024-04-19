@@ -479,8 +479,8 @@ cp "$INSTALL/install-config.yaml" "$HOME/install.yaml.bak"
 ### Set up an alias to run oc with the new cluster credentials
 
 ```bash
-alias oc="oc --kubeconfig=$INSTALL/auth/kubeconfig"
-echo alias oc=\"oc --kubeconfig=$INSTALL/auth/kubeconfig\" >> $HOME/.bash_profile
+echo export KUBECONFIG=$HOME/$INSTALL/auth/kubeconfig >> $HOME/.bash_profile
+source $HOME/.bash_profile
 ```
 
 ### Run the installer to create your cluster
@@ -611,4 +611,9 @@ $ oc get co | grep -v '.True.*False.*False'
 ```bash
 oc patch OperatorHub cluster --type json \
     -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+```
+
+### Enables auto-completion
+```bash
+sudo oc completion bash >> /etc/bash_completion.d/oc_completion
 ```
