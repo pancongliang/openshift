@@ -18,21 +18,24 @@ PRINT_TASK "[TASK: Set environment variables]"
 # No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
 # OpenShift version
-export OCP_RELEASE="4.10.20"
+export OCP_RELEASE="4.14.20"
 
 # OpenShift install-config
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="test.copan.com"
+
+# AWS credentials
+export AWS_ACCESS_KEY_ID="AKIAQ2FLxxxxx"
+export AWS_SECRET_ACCESS_KEY="KiGyRt5EyHJo+z9NWVawgxxxx"
+export VPC_NAME="copan"
+export REGION="ap-northeast-1"
+export AVAILABILITY_ZONE="ap-northeast-1a"
 
 # Bastion instance
 export INSTANCE_NAME="$VPC_NAME-bastion"
 export KEY_PAIR_NAME="$VPC_NAME-KEY"
 export AMI_ID="ami-0014871499315f25a"
 export STORAGE_SIZE="100" 
-
-export VPC_NAME="copan"
-export REGION="ap-northeast-1"
-export AVAILABILITY_ZONE="ap-northeast-1a"
 
 # === more parameters === 
 export DOMAIN_NAME="$BASE_DOMAIN"
@@ -57,6 +60,8 @@ check_all_variables() {
     check_variable "OCP_RELEASE"
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
+    check_variable "AWS_ACCESS_KEY_ID"
+    check_variable "AWS_SECRET_ACCESS_KEY"
     check_variable "INSTANCE_NAME"
     check_variable "KEY_PAIR_NAME"
     check_variable "AMI_ID"
