@@ -11,10 +11,6 @@ PRINT_TASK() {
 }
 # ====================================================
 
-
-# === Task: Create VPC ===
-PRINT_TASK "[TASK: Create VPC]"
-
 # Function to check command success and display appropriate message
 run_command() {
     if [ $? -eq 0 ]; then
@@ -23,6 +19,18 @@ run_command() {
         echo "failed: $1"
     fi
 }
+
+# === Task: Set up AWS credentials ===
+PRINT_TASK "[TASK: Set up AWS credentials]"
+
+cat << EOF > "$HOME/.aws/credentials"
+[default]
+aws_access_key_id = AWS_ACCESS_KEY_ID
+aws_secret_access_key = AWS_SECRET_ACCESS_KEY
+EOF
+
+# === Task: Create VPC ===
+PRINT_TASK "[TASK: Create VPC]"
 
 # Create VPC and get VPC ID
 VPC_ID=$(aws ec2 create-vpc --cidr-block $VPC_CIDR --tag-specifications "ResourceType=vpc,Tags=[{Key=Name,Value=$VPC_NAME}]" --query 'Vpc.VpcId' --output text)
