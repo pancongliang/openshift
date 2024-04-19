@@ -1,0 +1,16 @@
+# Define variables
+VPC_NAME="copan"
+REGION="ap-northeast-1"
+AVAILABILITY_ZONE="ap-northeast-1a"
+DOMAIN_NAME="test.copan.com"
+
+## Bastion instance
+INSTANCE_NAME="$VPC_NAME-bastion"
+KEY_PAIR_NAME="$VPC_NAME-KEY"
+AMI_ID="ami-0014871499315f25a"
+STORAGE_SIZE="100" 
+
+VPC_CIDR="10.0.0.0/16"
+PUBLIC_SUBNET_CIDR="10.0.0.0/24"
+PRIVATE_SUBNET_CIDR="10.0.1.0/24"
+S3_SERVICE_NAME="com.amazonaws.$REGION.s3"
