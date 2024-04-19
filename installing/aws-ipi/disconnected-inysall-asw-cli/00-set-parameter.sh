@@ -37,7 +37,10 @@ export KEY_PAIR_NAME="$VPC_NAME-KEY"
 export AMI_ID="ami-0014871499315f25a"
 export STORAGE_SIZE="100" 
 
-# === more parameters === 
+# === more parameters ===
+export REGISTRY_ID="admin"
+export REGISTRY_PW="password"
+export REGISTRY_INSTALL_PATH="/opt/quay-install"
 export DOMAIN_NAME="$BASE_DOMAIN"
 export VPC_CIDR="10.0.0.0/16"
 export PUBLIC_SUBNET_CIDR="10.0.0.0/24"
@@ -69,6 +72,9 @@ check_all_variables() {
     check_variable "VPC_NAME"
     check_variable "REGION"
     check_variable "AVAILABILITY_ZONE"
+    check_variable "admin"
+    check_variable "password"
+    check_variable "/opt/quay-install"
     check_variable "DOMAIN_NAME"
     check_variable "VPC_CIDR"
     check_variable "PUBLIC_SUBNET_CIDR"
