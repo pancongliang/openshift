@@ -34,7 +34,6 @@ echo
 # ====================================================
 
 
-
 # === Task: Install openshift tool ===
 PRINT_TASK "[TASK: Install openshift tool]"
 
@@ -53,7 +52,6 @@ files=(
 for file in "${files[@]}"; do
     sudo rm -rf $file 2>/dev/null
 done
-
 
 # Step 2: Function to download and install tool
 # ----------------------------------------------------
@@ -110,6 +108,11 @@ for file in "${files[@]}"; do
         fi
     fi
 done
+
+# Add an empty line after the task
+echo
+# ====================================================
+
 
 # === Task: Install mirror registry ===
 PRINT_TASK "[TASK: Install mirror registry]"
