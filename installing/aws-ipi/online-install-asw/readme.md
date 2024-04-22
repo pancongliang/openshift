@@ -1,12 +1,15 @@
 # Installing a cluster quickly on AWS
 
-### Install oc command
+### Install aws and oc command
 
 ```
 export OCP_RELEASE="4.14.20"
 export AWS_ACCESS_KEY_ID="AKIAQ2FLxxxxx"
 export AWS_SECRET_ACCESS_KEY="KiGyRt5EyHJo+z9NWVawgxxxx"
 export INSTALL="$HOME/ocp-install"
+
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online-install-asw/01-install-pre.sh
+source 01-install-pre.sh
 ```
 
 ### Generate SSH key for cluster nodes
@@ -18,11 +21,9 @@ ssh-keygen -N '' -f $HOME/.ssh/id_rsa
 ## Download pull-secret
 [Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
-## Create OCP cluster
+### Create install-config
 
-### Create install-config.yaml
 ```
-export INSTALL="$HOME/ocp-install"
 mkdir -p "$INSTALL"
 
 ./openshift-install create install-config --dir "$INSTALL"
@@ -35,7 +36,7 @@ mkdir -p "$INSTALL"
 ? Pull Secret: *************
 ```
 
-### Run the installer to create your cluster
+### Run the installer to create  cluster
 
 ```
 ./openshift-install create cluster --dir $INSTALL --log-level=info
