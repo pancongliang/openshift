@@ -278,11 +278,6 @@ aws_secret_access_key = QjX...
 
 ### Install a quay mirror registry instance
 
-Docs are at
-[https://docs.openshift.com/container-platform/4.9/installing/installing-mirroring-installation-images.html#installation-about-mirror-registry_installing-mirroring-installation-images](https://docs.openshift.com/container-platform/4.9/installing/installing-mirroring-installation-images.html#installation-about-mirror-registry_installing-mirroring-installation-images)
-
-Run
-
 ```bash
 curl -L -o mirror.tgz https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/mirror-registry/1.0/mirror-registry.tar.gz
 tar xf mirror.tgz
