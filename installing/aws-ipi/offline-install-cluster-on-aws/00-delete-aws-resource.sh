@@ -31,17 +31,6 @@ PRINT_TASK "[TASK: Delete Key Pair]"
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME >/dev/null
 run_command "[Deleting key pair: $KEY_PAIR_NAME]"
 
-# === Delete the network card associated with the VPC ===
-PRINT_TASK "[TASK: Delete the network card associated with the VPC]"
-# Get all network interfaces associated with the VPC
-NETWORK_INTERFACE_IDS=$(aws --region $REGION ec2 describe-network-interfaces --filters "Name=vpc-id,Values=$VPC_ID" --query "NetworkInterfaces[].NetworkInterfaceId" --output text) >/dev/null
-
-# Loop through each network interface and delete them
-for NETWORK_INTERFACE_ID in $NETWORK_INTERFACE_IDS; do
-    aws --region $REGION ec2 delete-network-interface --network-interface-id $NETWORK_INTERFACE_ID >/dev/null
-    run_command "[Deleting network interface: $NETWORK_INTERFACE_ID]"
-done
-
 # === Delete ELB Endpoint ===
 PRINT_TASK "[TASK: Delete ELB Endpoint]"
 aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$ELB_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text) >/dev/null
@@ -62,6 +51,8 @@ PRINT_TASK "[TASK: Delete Private Hosted Zone]"
 aws --region $REGION route53 delete-hosted-zone --id $(aws --region $REGION route53 list-hosted-zones --query "HostedZones[?Name=='$DOMAIN_NAME.'].Id" --output text) >/dev/null
 run_command "[Deleting private hosted zone: $DOMAIN_NAME]"
 
+sleep 300
+
 # === Delete Security Group ===
 PRINT_TASK "[TASK: Delete Security Group]"
 aws --region $REGION ec2 delete-security-group --group-id $(aws --region $REGION ec2 describe-security-groups --filters "Name=tag:Name,Values=$SECURITY_GROUP_NAME" --query "SecurityGroups[].GroupId" --output text) >/dev/null
@@ -76,17 +67,6 @@ run_command "[Deleting private subnet: ${VPC_NAME}-subnet-private1-${AVAILABILIT
 PRINT_TASK "[TASK: Delete Public Subnet]"
 aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
 run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}]"
-
-# === Delete Route Policies ===
-PRINT_TASK "[TASK: Delete Route Policies]"
-# Get all route tables associated with the VPC
-ROUTE_TABLE_IDS=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" --query "RouteTables[].RouteTableId" --output text) >/dev/null
-
-# Loop through each route table and delete the routes
-for ROUTE_TABLE_ID in $ROUTE_TABLE_IDS; do
-    aws --region $REGION ec2 delete-route --route-table-id $ROUTE_TABLE_ID --destination-cidr-block 0.0.0.0/0 >/dev/null
-    run_command "[Deleting default route from route table: $ROUTE_TABLE_ID]"
-done
 
 # === Delete VPC ===
 PRINT_TASK "[TASK: Delete VPC]"
