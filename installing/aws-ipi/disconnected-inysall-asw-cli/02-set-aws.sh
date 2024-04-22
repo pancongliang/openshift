@@ -98,11 +98,8 @@ echo
 # === Task: Create security group ===
 PRINT_TASK "[TASK: Create security group]"
 
-# Define variables
-SECURITY_GROUP_NAME="$VPC_NAME-sg"
-SECURITY_GROUP_DESCRIPTION="External SSH and all internal traffic"
-
 # Create security group and get security group ID
+SECURITY_GROUP_DESCRIPTION="External SSH and all internal traffic"
 SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name "$SECURITY_GROUP_NAME" --description "$SECURITY_GROUP_DESCRIPTION" --vpc-id $VPC_ID --output text)
 run_command "[Create security group and get security group ID: SECURITY_GROUP_ID]"
 
@@ -130,9 +127,6 @@ echo
 # === Task: Create EC2 endpoint===
 PRINT_TASK "[TASK: Create EC2 endpoint]"
 
-# Define variables
-EC2_ENDPOINT_NAME="$VPC_NAME-vpce-ec2"
-
 # Create EC2 endpoint
 aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id $VPC_ID --service-name com.amazonaws.$REGION.ec2 --subnet-ids $PRIVATE_SUBNET_ID --security-group-ids $SECURITY_GROUP_ID --policy-document "{\"Statement\":[{\"Action\":\"*\",\"Effect\":\"Allow\",\"Resource\":\"*\",\"Principal\":\"*\"}]}" --dns-enable --tag-specifications "ResourceType=vpc-endpoint,Tags=[{Key=Name,Value=$EC2_ENDPOINT_NAME}]"
 run_command "[Create EC2 endpoint: $VPC_NAME-vpce-ec2]"
@@ -144,9 +138,6 @@ echo
 
 # === Task: Create ELB endpoint===
 PRINT_TASK "[TASK: Create ELB endpoint]"
-
-# Define variables
-ELB_ENDPOINT_NAME="$VPC_NAME-vpce-elb"
 
 # Create ELB endpoint
 aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id $VPC_ID --service-name com.amazonaws.$REGION.elasticloadbalancing --subnet-ids $PRIVATE_SUBNET_ID --security-group-ids $SECURITY_GROUP_ID --policy-document "{\"Statement\":[{\"Action\":\"*\",\"Effect\":\"Allow\",\"Resource\":\"*\",\"Principal\":\"*\"}]}" --dns-enable --tag-specifications "ResourceType=vpc-endpoint,Tags=[{Key=Name,Value=$ELB_ENDPOINT_NAME}]"
