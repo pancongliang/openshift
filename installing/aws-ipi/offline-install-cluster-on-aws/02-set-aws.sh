@@ -76,6 +76,29 @@ echo
 
 
 
+#!/bin/bash
+
+# Function to print a task with uniform length
+PRINT_TASK() {
+    max_length=110  # Adjust this to your desired maximum length
+    task_title="$1"
+    title_length=${#task_title}
+    stars=$((max_length - title_length))
+
+    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+}
+# ====================================================
+
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
+
 # === Task: Create VPC ===
 PRINT_TASK "[TASK: Create VPC]"
 
@@ -100,6 +123,46 @@ run_command "[Add VPC name to subnet name: ${VPC_NAME}-subnet-public1-${AVAILABI
 
 aws --region $REGION ec2 create-tags --resources $PRIVATE_SUBNET_ID --tags Key=Name,Value="${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}"
 run_command "[Add VPC name to subnet name: ${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}]"
+
+# Create Internet Gateway
+IGW_ID=$(aws --region $REGION ec2 create-internet-gateway --tag-specifications 'ResourceType=internet-gateway,Tags=[{Key=Name,Value="'$TAG_NAME_igw'"}]' --query 'InternetGateway.InternetGatewayId' --output text)
+run_command "[Create Internet Gateway: $IGW_ID]"
+
+# Add tag to Internet Gateway
+aws --region $REGION ec2 create-tags --resources $IGW_ID --tags Key=Name,Value="IGW_NAME"
+run_command "[Add tag to Internet Gateway: IGW_NAME]"
+
+# Attach Internet Gateway to VPC
+aws --region $REGION ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
+run_command "[Attach Internet Gateway $IGW_ID to VPC: $VPC_ID]"
+
+# Create public Route Table
+PUBLIC_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value='$TAG_NAME_public-rtb'}]' --query 'RouteTable.RouteTableId' --output text)
+run_command "[Create public Route Table: $PUBLIC_ROUTE_TABLE_ID]"
+
+# Add tag to public Route Table
+aws --region $REGION ec2 create-tags --resources $PUBLIC_ROUTE_TABLE_ID --tags Key=Name,Value="$PUBLIC_RTB_NAME"
+run_command "[Add tag to public Route Table: $PUBLIC_RTB_NAME]"
+
+# Create private Route Table
+PRIVATE_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value='$TAG_NAME_private-rtb'}]' --query 'RouteTable.RouteTableId' --output text)
+run_command "[Create private Route Table: $PRIVATE_ROUTE_TABLE_ID]"
+
+# Add tag to private Route Table
+aws --region $REGION ec2 create-tags --resources $PRIVATE_ROUTE_TABLE_ID --tags Key=Name,Value="$PRIVATE_RTB_NAME"
+run_command "[Add tag to private Route Table: $PRIVATE_RTB_NAME]"
+
+# Link to Internet Gateway
+aws --region $REGION ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID --route-table-id $PUBLIC_ROUTE_TABLE_ID >/dev/null
+run_command "[Link to Internet Gateway]"
+
+# Associate public Route Table with public subnet
+aws --region $REGION ec2 associate-route-table --subnet-id $PUBLIC_SUBNET_ID --route-table-id $PUBLIC_ROUTE_TABLE_ID >/dev/null
+run_command "[Associate public Route Table with public subnet]"
+
+# Associate private Route Table with private subnet
+aws --region $REGION ec2 associate-route-table --subnet-id $PRIVATE_SUBNET_ID --route-table-id $PRIVATE_ROUTE_TABLE_ID >/dev/null
+run_command "[Associate private Route Table with private subnet]"
 
 # Enable DNS hostnames for the VPC
 aws --region $REGION ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames
@@ -233,7 +296,8 @@ echo
 PRINT_TASK "[TASK: Create bastion instance]"
 
 # Create and download the key pair file
-aws ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > $KEY_PAIR_NAME.pem
+rm -rf $KEY_PAIR_NAME.pem
+aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > $KEY_PAIR_NAME.pem
 run_command "[Create and download the key pair file: $KEY_PAIR_NAME.pem]"
 
 # Retrieves the latest RHEL AMI ID that matches the specified name pattern
