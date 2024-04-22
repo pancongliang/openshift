@@ -30,6 +30,10 @@ sudo ./aws/install &>/dev/null
 run_command "[Install AWS CLI]"
 sudo rm -rf aws awscliv2.zip
 
+# Add an empty line after the task
+echo
+# ====================================================
+
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
@@ -40,6 +44,11 @@ aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "[TASK: Set up AWS credentials]"
+
+# Add an empty line after the task
+echo
+# ====================================================
+
 
 
 # === Task: Create VPC ===
@@ -80,6 +89,10 @@ run_command "[Enable DNS resolution for the VPC: $VPC_ID]"
 S3_ENDPOINT_ID=$(aws ec2 create-vpc-endpoint --vpc-id $VPC_ID --service-name $S3_SERVICE_NAME --query 'VpcEndpoint.VpcEndpointId' --output text)
 run_command "[Create S3 Gateway VPC endpoint]"
 
+# Add an empty line after the task
+echo
+# ====================================================
+
 
 
 # === Task: Create security group ===
@@ -109,6 +122,9 @@ run_command "[Add outbound rule - All traffic]"
 aws ec2 create-tags --resources $SECURITY_GROUP_ID --tags Key=Name,Value=$SECURITY_GROUP_NAME
 run_command "[Add tags: $SECURITY_GROUP_NAME]"
 
+# Add an empty line after the task
+echo
+# ====================================================
 
 
 # === Task: Create EC2 endpoint===
@@ -121,6 +137,9 @@ ENDPOINT_NAME="$VPC_NAME-vpce-ec2"
 aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id $VPC_ID --service-name com.amazonaws.$REGION.ec2 --subnet-ids $PRIVATE_SUBNET_ID --security-group-ids $SECURITY_GROUP_ID --policy-document "{\"Statement\":[{\"Action\":\"*\",\"Effect\":\"Allow\",\"Resource\":\"*\",\"Principal\":\"*\"}]}" --dns-enable --tag-specifications "ResourceType=vpc-endpoint,Tags=[{Key=Name,Value=$ENDPOINT_NAME}]"
 run_command "[Create EC2 endpoint: $VPC_NAME-vpce-ec2]"
 
+# Add an empty line after the task
+echo
+# ====================================================
 
 
 # === Task: Create ELB endpoint===
@@ -135,6 +154,10 @@ run_command "[Create ELB endpoint: $VPC_NAME-vpce-elb]"
 
 aws elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName"
 
+# Add an empty line after the task
+echo
+# ====================================================
+
 
 # === Task: Create private hosted zone===
 PRINT_TASK "[TASK: Create private hosted zone]"
@@ -143,15 +166,17 @@ PRINT_TASK "[TASK: Create private hosted zone]"
 HOSTED_ZONE_ID=$(aws route53 create-private-hosted-zone --name $DOMAIN_NAME --vpc "VPCRegion=$REGION,VPCId=$VPC_ID" --query 'HostedZone.Id' --output text)
 run_command "[Create private hosted zone: $HOSTED_ZONE_ID]"
 
-ELB_DNS_NAMES=$(aws elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName" --output text)
-LOAD_BALANCER_HOSTED_ZONE_ID=$(aws ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.$REGION.elasticloadbalancing" --query "VpcEndpoints[0].ServiceDetails.AvailabilityZones[0].LoadBalancers[0].CanonicalHostedZoneId" --output text)
-
 # Create record
 RECORD_NAME="*.apps.$CLUSTER_NAME"
 RECORD_TYPE="A"
 ELB_DNS_NAME=$(aws elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName" --output text)
 LOAD_BALANCER_HOSTED_ZONE_ID=$(aws ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.$REGION.elasticloadbalancing" --query "VpcEndpoints[0].ServiceDetails.AvailabilityZones[0].LoadBalancers[0].CanonicalHostedZoneId" --output text)
 aws route53 create-record --hosted-zone-id $HOSTED_ZONE_ID --name "$RECORD_NAME.$DOMAIN_NAME" --type $RECORD_TYPE --alias-target "HostedZoneId=$LOAD_BALANCER_HOSTED_ZONE_ID,DNSName=$ELB_DNS_NAME" --region $REGION
+
+# Add an empty line after the task
+echo
+# ====================================================
+
 
 # === Task: Create bastion instance ===
 PRINT_TASK "[TASK: Create bastion instance]"
@@ -181,6 +206,10 @@ while true; do
     sleep 10 
 done
 run_command "[Get the public IP address of the instance: $INSTANCE_IP]"
+
+# Add an empty line after the task
+echo
+# ====================================================
 
 
 # SSH into the instance
