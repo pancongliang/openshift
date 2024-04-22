@@ -237,7 +237,7 @@ aws ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output
 run_command "[Create and download the key pair file: $KEY_PAIR_NAME.pem]"
 
 # Retrieves the latest RHEL AMI ID that matches the specified name pattern
-AMI_ID=$(aws --region $REGION ec2 describe-images \                                                         ✔ 
+AMI_ID=$(aws --region $REGION ec2 describe-images \
     --filters "Name=name,Values=RHEL-9.3.0_HVM-*-x86_64-49-Hourly2-GP3" \
     --query "sort_by(Images, &CreationDate)[-1].ImageId" \
     --output text)
