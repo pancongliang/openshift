@@ -60,8 +60,10 @@ missing_variables=()
 
 # Define a function to check if a variable is set
 check_variable() {
-    if [ -z "${!1}" ]; then
-        missing_variables+=("$1")
+    local var_name="$1"
+    local var_value="$(eval echo \$$var_name)"
+    if [ -z "$var_value" ]; then
+        missing_variables+=("$var_name")
     fi
 }
 
