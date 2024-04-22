@@ -4,7 +4,7 @@
 ### Download the script and install and configure infrastructure services through the script
 
 ```
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/disconnected-inysall-asw-cli/00-download-script.sh | sh
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline-install-cluster-on-aws/00-download-script.sh | sh
 ```
 
 ### Change variable parameters
