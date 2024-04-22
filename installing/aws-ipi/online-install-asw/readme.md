@@ -1,44 +1,12 @@
 # Installing a cluster quickly on AWS
 
-## Download pull-secret
-[Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
-
-
 ### Install oc command
 
 ```
-curl -L -o oc.tgz https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz
-tar xf oc.tgz
-sudo mv oc kubectl /usr/bin
-rm oc.tgz README.md
-```
-
-### Install the openshift-install command
-
-```
-export OCP_RELEASE_VERSION="4.14.16"
-curl -O https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_RELEASE_VERSION/openshift-install-linux.tar.gz
-sudo tar xvf openshift-install-linux.tar.gz
-sudo rm -rf openshift-install-linux.tar.gz README.md
-```
-
-### Install AWS CLI
-
-```
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-sudo rm -rf aws awscliv2.zip
-```
-
-### Store your AWS credentials
-
-```
-cat << EOF > "$HOME/.aws/credentials"
-[default]
-aws_access_key_id = AKI···
-aws_secret_access_key = KiG···
-EOF
+export OCP_RELEASE="4.14.20"
+export AWS_ACCESS_KEY_ID="AKIAQ2FLxxxxx"
+export AWS_SECRET_ACCESS_KEY="KiGyRt5EyHJo+z9NWVawgxxxx"
+export INSTALL="$HOME/ocp-install"
 ```
 
 ### Generate SSH key for cluster nodes
@@ -46,6 +14,9 @@ EOF
 ```
 ssh-keygen -N '' -f $HOME/.ssh/id_rsa
 ```
+
+## Download pull-secret
+[Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
 ## Create OCP cluster
 
