@@ -24,7 +24,7 @@ scripts=(
 )
 
 # Specify the base URL of the GitHub repository
-base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/disconnected-inysall-asw-cli/"
+base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/disconnected-install-asw-cli/"
 
 # Function to download scripts
 download_scripts() {
