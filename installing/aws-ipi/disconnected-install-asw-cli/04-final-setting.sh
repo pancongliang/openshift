@@ -86,6 +86,7 @@ PRINT_TASK "[TASK: Create *.apps.$CLUSTER_NAME record]"
 # Create record
 RECORD_NAME="*.apps"
 RECORD_TYPE="A"
+HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name --query "HostedZones[?Name=='$DOMAIN_NAME.'].Id" --output text)
 ELB_DNS_NAME=$(aws elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName" --output text)
 LOAD_BALANCER_HOSTED_ZONE_ID=$(aws ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.$REGION.elasticloadbalancing" --query "VpcEndpoints[0].ServiceDetails.AvailabilityZones[0].LoadBalancers[0].CanonicalHostedZoneId" --output text)
 aws route53 create-record --hosted-zone-id $HOSTED_ZONE_ID --name "$RECORD_NAME.$CLUSTER_NAME" --type $RECORD_TYPE --alias-target "HostedZoneId=$LOAD_BALANCER_HOSTED_ZONE_ID,DNSName=$ELB_DNS_NAME" --region $REGION
