@@ -22,6 +22,45 @@ run_command() {
 }
 
 
+# === Task: Install AWS CLI ===
+PRINT_TASK "[TASK: Install AWS CLI]"
+
+# Function to install AWS CLI on Linux
+install_awscli_linux() {
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install &>/dev/null || true
+    run_command "[Install AWS CLI]"
+    sudo rm -rf aws awscliv2.zip
+}
+
+# Function to install AWS CLI on macOS
+install_awscli_mac() {
+    curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+    sudo installer -pkg AWSCLIV2.pkg -target / || true
+    run_command "[Install AWS CLI]"
+}
+
+# Function to print a task with uniform length
+run_command() {
+    echo "$1"
+}
+
+# Detecting the operating system
+os=$(uname -s)
+
+# Installing AWS CLI based on the operating system
+case "$os" in
+    Linux*)  install_awscli_linux;;
+    Darwin*) install_awscli_mac;;
+    *) ;;
+esac
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+
 # Task: Kubeconfig login and oc completion
 PRINT_TASK "[TASK: Kubeconfig login]"
 
