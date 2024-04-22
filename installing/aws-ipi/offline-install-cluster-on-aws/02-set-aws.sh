@@ -85,7 +85,7 @@ run_command "[Create VPC and get VPC ID: $VPC_ID]"
 
 # Add tag to VPC
 aws --region $REGION ec2 create-tags --resources $VPC_ID --tags Key=Name,Value=$VPC_NAME
-run_command "[Add tag VPC: $VPC_NAME]"
+run_command "[Add tag to VPC: $VPC_NAME]"
 
 # Create public subnet and get public subnet ID
 PUBLIC_SUBNET_ID=$(aws --region $REGION ec2 create-subnet --vpc-id $VPC_ID --cidr-block $PUBLIC_SUBNET_CIDR --availability-zone $AVAILABILITY_ZONE --query 'Subnet.SubnetId' --output text)
