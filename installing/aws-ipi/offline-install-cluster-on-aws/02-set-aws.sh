@@ -104,7 +104,7 @@ run_command "[Add VPC name to subnet name: ${VPC_NAME}-subnet-private1-${AVAILAB
 
 # Enable DNS hostnames for the VPC
 aws --region $REGION ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames
-run_command "[Enable DNS hostnames for the $VPC_ID VPC]"
+run_command "[Enable DNS hostnames for the VPC: $VPC_ID VPC]"
 
 # Enable DNS resolution for the VPC
 aws --region $REGION ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-support
@@ -116,6 +116,7 @@ run_command "[Create S3 Gateway VPC endpoint]"
 
 # Add tag to S3 Gateway VPC endpoint
 aws --region $REGION ec2 create-tags --resources $S3_ENDPOINT_ID --tags Key=Name,Value="$S3_ENDPOINT_NAME"
+run_command "[Add tag to S3 Gateway VPC endpoint: $S3_ENDPOINT_NAME]"
 
 # Add an empty line after the task
 echo
