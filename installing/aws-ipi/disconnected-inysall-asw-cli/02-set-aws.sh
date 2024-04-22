@@ -131,10 +131,10 @@ echo
 PRINT_TASK "[TASK: Create EC2 endpoint]"
 
 # Define variables
-ENDPOINT_NAME="$VPC_NAME-vpce-ec2"
+EC2_ENDPOINT_NAME="$VPC_NAME-vpce-ec2"
 
 # Create EC2 endpoint
-aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id $VPC_ID --service-name com.amazonaws.$REGION.ec2 --subnet-ids $PRIVATE_SUBNET_ID --security-group-ids $SECURITY_GROUP_ID --policy-document "{\"Statement\":[{\"Action\":\"*\",\"Effect\":\"Allow\",\"Resource\":\"*\",\"Principal\":\"*\"}]}" --dns-enable --tag-specifications "ResourceType=vpc-endpoint,Tags=[{Key=Name,Value=$ENDPOINT_NAME}]"
+aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id $VPC_ID --service-name com.amazonaws.$REGION.ec2 --subnet-ids $PRIVATE_SUBNET_ID --security-group-ids $SECURITY_GROUP_ID --policy-document "{\"Statement\":[{\"Action\":\"*\",\"Effect\":\"Allow\",\"Resource\":\"*\",\"Principal\":\"*\"}]}" --dns-enable --tag-specifications "ResourceType=vpc-endpoint,Tags=[{Key=Name,Value=$EC2_ENDPOINT_NAME}]"
 run_command "[Create EC2 endpoint: $VPC_NAME-vpce-ec2]"
 
 # Add an empty line after the task
@@ -146,10 +146,10 @@ echo
 PRINT_TASK "[TASK: Create ELB endpoint]"
 
 # Define variables
-ENDPOINT_NAME="$VPC_NAME-vpce-elb"
+ELB_ENDPOINT_NAME="$VPC_NAME-vpce-elb"
 
 # Create ELB endpoint
-aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id $VPC_ID --service-name com.amazonaws.$REGION.elasticloadbalancing --subnet-ids $PRIVATE_SUBNET_ID --security-group-ids $SECURITY_GROUP_ID --policy-document "{\"Statement\":[{\"Action\":\"*\",\"Effect\":\"Allow\",\"Resource\":\"*\",\"Principal\":\"*\"}]}" --dns-enable --tag-specifications "ResourceType=vpc-endpoint,Tags=[{Key=Name,Value=$ENDPOINT_NAME}]"
+aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id $VPC_ID --service-name com.amazonaws.$REGION.elasticloadbalancing --subnet-ids $PRIVATE_SUBNET_ID --security-group-ids $SECURITY_GROUP_ID --policy-document "{\"Statement\":[{\"Action\":\"*\",\"Effect\":\"Allow\",\"Resource\":\"*\",\"Principal\":\"*\"}]}" --dns-enable --tag-specifications "ResourceType=vpc-endpoint,Tags=[{Key=Name,Value=$ELB_ENDPOINT_NAME}]"
 run_command "[Create ELB endpoint: $VPC_NAME-vpce-elb]"
 
 aws elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName"
