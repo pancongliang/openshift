@@ -61,6 +61,21 @@ echo
 # ====================================================
 
 
+# === Task: Set up AWS credentials ===
+PRINT_TASK "[TASK: Set up AWS credentials]"
+
+cat << EOF > "$HOME/.aws/credentials"
+[default]
+aws_access_key_id = $AWS_ACCESS_KEY_ID
+aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+EOF
+run_command "[TASK: Set up AWS credentials]"
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+
 # Task: Kubeconfig login and oc completion
 PRINT_TASK "[TASK: Kubeconfig login]"
 
