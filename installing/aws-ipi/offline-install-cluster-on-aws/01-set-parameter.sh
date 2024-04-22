@@ -18,7 +18,7 @@ PRINT_TASK "[TASK: Set environment variables]"
 # No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
 # OpenShift version
-export OCP_RELEASE="4.14.20"
+export OCP_RELEASE_VERSION="4.14.20"
 
 # OpenShift install-config
 export CLUSTER_NAME="copan"
@@ -67,7 +67,7 @@ check_variable() {
 
 # Check all variables that need validation
 check_all_variables() {
-    check_variable "OCP_RELEASE"
+    check_variable "OCP_RELEASE_VERSION"
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "CREDENTIALS_MODE"
