@@ -8,7 +8,7 @@ export AWS_ACCESS_KEY_ID="AKIAQ2FLxxxxx"
 export AWS_SECRET_ACCESS_KEY="KiGyRt5EyHJo+z9NWVawgxxxx"
 export INSTALL="$HOME/ocp-install"
 
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online-install-asw/01-install-pre.sh
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online-Install-cluster-on-aws/01-install-pre.sh
 source 01-install-pre.sh
 ```
 
