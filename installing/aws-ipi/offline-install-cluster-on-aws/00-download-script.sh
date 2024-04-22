@@ -19,12 +19,12 @@ PRINT_TASK "[TASK: Download script]"
 scripts=(
     "01-set-parameters.sh"
     "02-set-aws.sh"
-    "03-create-ocp.sh"
+    "03-install-pre.sh"
     "04-final-setting.sh"
 )
 
 # Specify the base URL of the GitHub repository
-base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/disconnected-install-asw-cli/"
+base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline-install-cluster-on-aws/"
 
 # Function to download scripts
 download_scripts() {
