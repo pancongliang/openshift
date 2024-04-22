@@ -82,7 +82,7 @@ check_all_variables() {
     check_variable "AVAILABILITY_ZONE"
     check_variable "REGISTRY_ID"
     check_variable "REGISTRY_PW"
-    check_variable "/opt/quay-install"
+    check_variable "REGISTRY_INSTALL_PATH"
     check_variable "IMAGE_SET_CONFIGURATION_PATH"
     check_variable "OCP_RELEASE_CHANNEL"
     check_variable "DOMAIN_NAME"
