@@ -140,7 +140,10 @@ run_command() {
 PRINT_TASK "[TASK: Install mirror registry]"
 
 mkdir -p ${REGISTRY_INSTALL_PATH}
+mkdir ${REGISTRY_INSTALL_PATH}/quay-storage
+mkdir ${REGISTRY_INSTALL_PATH}/pg-storage
 run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
+chmod -R 777 ${REGISTRY_INSTALL_PATH}
 
 # Download mirror-registry
 wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
@@ -150,7 +153,11 @@ run_command "[download mirror-registry package]"
 tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
-${REGISTRY_INSTALL_PATH}/mirror-registry install \
+
+
+echo "ok: [start installing mirror-registry]"
+
+${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname $HOSTNAME \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
