@@ -37,8 +37,8 @@ install_awscli_linux() {
 install_awscli_mac() {
     curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
     sudo installer -pkg AWSCLIV2.pkg -target / || true
-    sudo rm -rf AWSCLIV2.pkg
     run_command "[Install AWS CLI]"
+    sudo rm -rf AWSCLIV2.pkg
 }
 
 # Detecting the operating system
@@ -293,7 +293,7 @@ PRINT_TASK "[TASK: Create bastion instance]"
 
 # Create and download the key pair file
 rm -rf $KEY_PAIR_NAME.pem
-aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > $KEY_PAIR_NAME.pem
+aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > $OCP-SCRIPT/$KEY_PAIR_NAME.pem
 run_command "[Create and download the key pair file: $KEY_PAIR_NAME.pem]"
 
 # Retrieves the latest RHEL AMI ID that matches the specified name pattern
@@ -334,6 +334,23 @@ run_command "[Modify permissions for the key pair file: $KEY_PAIR_NAME.pem]"
 INSTANCE_IP=$(aws --region $REGION ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
 run_command "[Get the public IP address of the instance: $INSTANCE_IP]"
 
+# Copy the installation script to the bastion machine
+scp -i $OCP-SCRIPT/$KEY_PAIR_NAME.pem $OCP-SCRIPT/01-set-parameter.sh $OCP-SCRIPT/03-install-pre.sh $OCP-SCRIPT/04-final-setting.sh ec2-user@$INSTANCE_IP:~/
+run_command "[Copy the installation script to the $INSTANCE_NAME]"
+$INSTANCE_NAME
+
+# Create access bastion machine file in $OCP-SCRIPT directory
+cat << EOF > "$OCP-SCRIPT/ocp-bastion.sh"
+ssh -i "$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
+EOF
+run_command "[Create access $INSTANCE_NAME file in $OCP-SCRIPT directory]"
+
+# Modify permissions for the key pair file
+chmod 777 $OCP-SCRIPT/ocp-bastion.sh
+run_command "[Modify permissions for the $INSTANCE_NAME file]"
+
 # Add an empty line after the task
 echo
 # ====================================================
+
+
