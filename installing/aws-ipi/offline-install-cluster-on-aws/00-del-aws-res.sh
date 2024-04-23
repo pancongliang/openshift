@@ -85,7 +85,7 @@ run_command "[Deleting private hosted zone: $DOMAIN_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 200
+sleep 300
 
 # === Delete Security Group ===
 PRINT_TASK "[TASK: Delete Security Group]"
@@ -165,9 +165,14 @@ run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_
 echo
 # ====================================================
 
-sleep 10
+sleep 60
 # === Delete VPC ===
 PRINT_TASK "[TASK: Delete VPC]"
+
+PUBLIC_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$PUBLIC_RTB_NAME" --query 'RouteTables[0].RouteTableId' --output text)
+
+aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_RTB_ID >/dev/null
+
 aws --region $REGION ec2 delete-vpc --vpc-id $(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text) >/dev/null
 run_command "[Deleting VPC: $VPC_NAME]"
 
