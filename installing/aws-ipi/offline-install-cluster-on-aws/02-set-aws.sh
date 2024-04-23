@@ -27,7 +27,7 @@ PRINT_TASK "[TASK: Install AWS CLI]"
 # Function to install AWS CLI on Linux
 install_awscli_linux() {
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 
-    unzip awscliv2.zip
+    unzip awscliv2.zip > /dev/null 
     sudo ./aws/install &>/dev/null || true
     run_command "[Install AWS CLI]"
     sudo rm -rf aws awscliv2.zip
