@@ -16,7 +16,7 @@ PRINT_TASK "[TASK: Enter pull-secret information]"
 
 # Prompt for pull-secret
 read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
-run_command "[Enter pull-secret information]"
+
 
 # Add an empty line after the task
 echo
