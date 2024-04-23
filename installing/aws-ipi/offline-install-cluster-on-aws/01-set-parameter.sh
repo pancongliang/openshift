@@ -82,7 +82,6 @@ check_all_variables() {
     check_variable "AWS_SECRET_ACCESS_KEY"
     check_variable "INSTANCE_NAME"
     check_variable "KEY_PAIR_NAME"
-    check_variable "OCP_SCRIPT"
     check_variable "STORAGE_SIZE"
     check_variable "REGION"
     check_variable "AVAILABILITY_ZONE"
