@@ -337,8 +337,3 @@ run_command "[Get the public IP address of the instance: $INSTANCE_IP]"
 # Add an empty line after the task
 echo
 # ====================================================
-
-
-# SSH into the instance
-ssh -i $KEY_PAIR_NAME.pem ec2-user@$INSTANCE_IP
-
