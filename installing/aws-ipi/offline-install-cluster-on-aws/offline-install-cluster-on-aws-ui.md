@@ -246,7 +246,6 @@ sudo rm -rf openshift-install-linux.tar.gz README.md
 ```bash
 curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
 sudo tar -xvf oc-mirror.tar.gz -C /usr/local/bin/ && sudo chmod a+x /usr/local/bin/oc-mirror
-sudo mv opm /usr/bin
 sudo rm -rf oc-mirror.tar.gz
 ```
 
