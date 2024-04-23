@@ -125,8 +125,8 @@ IGW_ID=$(aws --region $REGION ec2 create-internet-gateway --tag-specifications '
 run_command "[Create Internet Gateway: $IGW_ID]"
 
 # Add tag to Internet Gateway
-aws --region $REGION ec2 create-tags --resources $IGW_ID --tags Key=Name,Value="IGW_NAME"
-run_command "[Add tag to Internet Gateway: IGW_NAME]"
+aws --region $REGION ec2 create-tags --resources $IGW_ID --tags Key=Name,Value="$IGW_NAME"
+run_command "[Add tag to Internet Gateway: $IGW_NAME]"
 
 # Attach Internet Gateway to VPC
 aws --region $REGION ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
