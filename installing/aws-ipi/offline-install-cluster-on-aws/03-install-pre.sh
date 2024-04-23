@@ -77,6 +77,10 @@ install_tar_gz "openshift-install" "https://mirror.openshift.com/pub/openshift-v
 install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
 install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
 
+# Add an empty line after the task
+echo
+# ====================================================
+
 
 # === Task: Delete existing duplicate data ===
 PRINT_TASK "[TASK: Delete existing duplicate data]"
@@ -84,7 +88,7 @@ PRINT_TASK "[TASK: Delete existing duplicate data]"
 # Check if there is an active mirror registry pod
 if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
-    sudo ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
+    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [uninstall the mirror registry]"
@@ -97,7 +101,7 @@ fi
 
 # Delete existing duplicate data
 files=(
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem"
+    "/etc/pki/ca-trust/source/anchors/quay.ca.pem"
     "${REGISTRY_INSTALL_PATH}"
 )
 for file in "${files[@]}"; do
@@ -113,6 +117,7 @@ done
 echo
 # ====================================================
 
+
 # Function to check command success and display appropriate message
 run_command() {
     if [ $? -eq 0 ]; then
@@ -125,18 +130,18 @@ run_command() {
 # === Task: Install mirror registry ===
 PRINT_TASK "[TASK: Install mirror registry]"
 
-sudo mkdir -p ${REGISTRY_INSTALL_PATH}
+mkdir -p ${REGISTRY_INSTALL_PATH}
 run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
-sudo wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
+wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-sudo tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
+tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
-sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install \
+${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --quayHostname $HOSTNAME \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
@@ -175,23 +180,23 @@ PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
 read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
 
 # Create a temporary file to store the pull secret
-PULL_SECRET=$(sudo mktemp -p /tmp)
+PULL_SECRET=$(mktemp -p $HOME)
 echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
 run_command "[create a temporary file to store the pull secret]"
 
 # Login to the registry
-sudo rm -rf $XDG_RUNTIME_DIR/containers
+rm -rf $XDG_RUNTIME_DIR/containers
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "https://${HOSTNAME}:8443" &>/dev/null
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "https://${HOSTNAME}:8443" &>/dev/null
 run_command "[add authentication information to pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-sudo cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
+cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
 run_command "[save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create ImageSetConfiguration directory
-sudo rm -rf ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
-sudo mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
+rm -rf ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
+mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
 run_command "[create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
 
 # Create ImageSetConfiguration file
@@ -213,16 +218,12 @@ EOF
 run_command "[create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
-sudo oc mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
+oc mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
 run_command "[mirroring ocp ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
 sudo rm -f "${PULL_SECRET}"
-if [ $? -eq 0 ]; then
-    echo "ok: [remove temporary pull-secret file]"
-else
-    echo "failed: [remove temporary pull-secret file]"
-fi
+run_command "[remove temporary pull-secret file]"
 
 # Add an empty line after the task
 echo
@@ -234,15 +235,15 @@ echo
 PRINT_TASK "[TASK: Generate a defined install-config file]"
 
 # Backup and format the registry CA certificate
-sudo rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-sudo cp "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
+rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
+cp "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
 run_command "[backup registry CA certificate]"
 
-sudo sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
+sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
 run_command "[format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
-sudo rm -rf ${SSH_KEY_PATH}
+rm -rf ${SSH_KEY_PATH}
 ssh-keygen -N '' -f ${HOME}/.ssh/id_rsa &> /dev/null
 run_command "[create ssh-key for accessing coreos]"
 
@@ -252,8 +253,8 @@ export REGISTRY_AUTH=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
 export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
-sudo rm -rf $INSTALL/install-config.yaml
-sudo mkdir $INSTALL
+rm -rf $INSTALL
+mkdir $INSTALL
 
 cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
@@ -297,7 +298,7 @@ networking:
     hostPrefix: 23
   machineNetwork:
   - cidr: 10.0.0.0/16
-  networkType: OVNKubernetes 
+  networkType: ${NETWORK_TYPE}
   serviceNetwork:
   - 172.30.0.0/16
 platform:
