@@ -78,7 +78,7 @@ run_command "[Deleting private hosted zone: $DOMAIN_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 30
+sleep 100
 
 # === Delete Security Group ===
 PRINT_TASK "[TASK: Delete Security Group]"
@@ -108,39 +108,8 @@ run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 10
 
-# Delete private Route Table
-PRIVATE_ROUTE_TABLE_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=tag:Name,Values='$PRIVATE_TAG_NAME'" --query "RouteTables[0].RouteTableId" --output text)
-aws --region $REGION ec2 delete-route-table --route-table-id $PRIVATE_ROUTE_TABLE_ID >/dev/null
-run_command "[Delete private Route Table]"
-
-# Add an empty line after the task
-echo
-# ====================================================
-sleep 10
-
-# Delete public Route Table
-PUBLIC_ROUTE_TABLE_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=tag:Name,Values='$PUBLIC_TAG_NAME'" --query "RouteTables[0].RouteTableId" --output text)
-aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_ROUTE_TABLE_ID >/dev/null
-run_command "[Delete public Route Table]"
-
-# Add an empty line after the task
-echo
-# ====================================================
-sleep 10
-
-# Delete Internet Gateway
-IGW_ID=$(aws --region $REGION ec2 describe-internet-gateways --filters "Name=tag:Name,Values='$IGW_TAG_NAME'" --query "InternetGateways[0].InternetGatewayId" --output text)
-aws --region $REGION ec2 detach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID >/dev/null
-aws --region $REGION ec2 delete-internet-gateway --internet-gateway-id $IGW_ID >/dev/null
-run_command "[Delete Internet Gateway]"
-
-# Add an empty line after the task
-echo
-# ====================================================
-sleep 10
-
+sleep 100
 # === Delete VPC ===
 PRINT_TASK "[TASK: Delete VPC]"
 aws --region $REGION ec2 delete-vpc --vpc-id $(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text) >/dev/null
