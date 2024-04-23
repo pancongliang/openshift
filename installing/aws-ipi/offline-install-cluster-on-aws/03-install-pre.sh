@@ -139,7 +139,7 @@ run_command() {
 # === Task: Install mirror registry ===
 PRINT_TASK "[TASK: Install mirror registry]"
 
-sudo mkdir -p ${REGISTRY_INSTALL_PATH}
+mkdir -p ${REGISTRY_INSTALL_PATH}
 run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
@@ -209,7 +209,7 @@ run_command "[save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/au
 
 # Create ImageSetConfiguration directory
 sudo rm -rf ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
-sudo mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
+mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
 run_command "[create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
 
 # Create ImageSetConfiguration file
@@ -267,7 +267,7 @@ export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
 sudo rm -rf $INSTALL
-sudo mkdir $INSTALL
+mkdir $INSTALL
 
 sudo cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
