@@ -4,7 +4,7 @@
 ### Download the script and install and configure infrastructure services through the script
 
 ```
-sudo mkdir $OCP-SCRIPT&& cd $OCP-SCRIPT
+mkdir ocp-scrept && cd ocp-scrept
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline-install-cluster-on-aws/00-download-script.sh | sh
 ```
 
