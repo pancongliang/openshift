@@ -36,7 +36,7 @@ aws --region $REGION ec2 wait instance-terminated --instance-ids $INSTANCE_ID >/
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 200
+sleep 300
 
 # === Delete Key Pair ===
 PRINT_TASK "[TASK: Delete Key Pair]"
@@ -85,7 +85,7 @@ run_command "[Deleting private hosted zone: $DOMAIN_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 100
+sleep 200
 
 # === Delete Security Group ===
 PRINT_TASK "[TASK: Delete Security Group]"
