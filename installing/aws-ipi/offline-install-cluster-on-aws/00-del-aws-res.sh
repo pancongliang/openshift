@@ -26,12 +26,12 @@ PRINT_TASK "[TASK: Delete EC2 Instance]"
 INSTANCE_ID=$(aws --region $REGION ec2 describe-instances \
     --filters "Name=tag:Name,Values=$INSTANCE_NAME" \
     --query "Reservations[].Instances[].InstanceId" \
-    --output text)
+    --output text) >/dev/null
 
-aws --region $REGION ec2 terminate-instances --instance-ids $INSTANCE_ID
+aws --region $REGION ec2 terminate-instances --instance-ids $INSTANCE_ID >/dev/null
 run_command "[Terminating instance: $INSTANCE_NAME]"
 
-aws --region $REGION ec2 wait instance-terminated --instance-ids $INSTANCE_ID    
+aws --region $REGION ec2 wait instance-terminated --instance-ids $INSTANCE_ID >/dev/null
 
 # Add an empty line after the task
 echo
@@ -120,8 +120,8 @@ run_command "[Deleting public route table: $PUBLIC_RTB_ID]"
 
 PRIVATE_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$PRIVATE_RTB_NAME" --query 'RouteTables[0].RouteTableId' --output text)
 SUBNET_ASSOCIATIONS=$(aws --region $REGION ec2 describe-route-tables --route-table-id $PRIVATE_RTB_ID --query "RouteTables[0].Associations[].RouteTableAssociationId" --output text)
-aws --region $REGION ec2 disassociate-route-table --association-id $SUBNET_ASSOCIATIONS
-aws --region $REGION ec2 delete-route-table --route-table-id $PRIVATE_RTB_ID
+aws --region $REGION ec2 disassociate-route-table --association-id $SUBNET_ASSOCIATIONS >/dev/null
+aws --region $REGION ec2 delete-route-table --route-table-id $PRIVATE_RTB_ID >/dev/null
 run_command "[Deleting private route table: $PRIVATE_RTB_ID]"
 
 # Add an empty line after the task
@@ -134,10 +134,10 @@ PRINT_TASK "[TASK: Detach and Delete Internet Gateway]"
 # Get Internet Gateway ID, detach, and delete
 IGW_ID=$(aws --region $REGION ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$IGW_NAME" --query 'InternetGateways[0].InternetGatewayId' --output text)
 
-aws --region $REGION ec2 detach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
+aws --region $REGION ec2 detach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID >/dev/null
 run_command "[Detaching internet gateway: $IGW_ID from VPC: $VPC_ID]"
 
-aws --region $REGION ec2 delete-internet-gateway --internet-gateway-id $IGW_ID
+aws --region $REGION ec2 delete-internet-gateway --internet-gateway-id $IGW_ID >/dev/null
 run_command "[Deleting internet gateway: $IGW_ID]"
 
 
