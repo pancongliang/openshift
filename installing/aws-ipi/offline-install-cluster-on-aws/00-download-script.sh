@@ -17,6 +17,7 @@ PRINT_TASK "[TASK: Download script]"
 
 # Declare an array of scripts
 scripts=(
+    "00-del-aws-res.sh"
     "01-set-parameter.sh"
     "02-set-aws.sh"
     "03-install-pre.sh"
