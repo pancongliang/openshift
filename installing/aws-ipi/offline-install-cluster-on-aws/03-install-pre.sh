@@ -180,6 +180,7 @@ run_command "[trust the rootCA certificate]"
 podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${HOSTNAME}:8443 &>/dev/null
 run_command  "[login registry https://${HOSTNAME}:8443]"
 
+sudo rm -rf ./*.tar
 # Add an empty line after the task
 echo
 # ====================================================
