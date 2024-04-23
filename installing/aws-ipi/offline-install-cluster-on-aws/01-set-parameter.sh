@@ -36,7 +36,7 @@ export TAG_NAME="$CLUSTER_NAME"     # Created AWS resource tag name
 
 # === Default parameters ===
 export INSTANCE_NAME="$TAG_NAME-bastion"
-export KEY_PAIR_NAME="$TAG_NAME-key"
+export KEY_PAIR_NAME="$TAG_NAME-ec2-key"
 export STORAGE_SIZE="100" 
 export INSTALL="$HOME/ocp-install"
 export REGISTRY_ID="admin"
