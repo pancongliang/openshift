@@ -95,7 +95,7 @@ echo
 PRINT_TASK "[TASK: Delete existing duplicate data]"
 
 # Check if there is an active mirror registry pod
-if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
+if sudo podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
     ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
@@ -139,25 +139,22 @@ run_command() {
 # === Task: Install mirror registry ===
 PRINT_TASK "[TASK: Install mirror registry]"
 
-mkdir -p ${REGISTRY_INSTALL_PATH}
-mkdir ${REGISTRY_INSTALL_PATH}/quay-storage
-mkdir ${REGISTRY_INSTALL_PATH}/pg-storage
+sudo mkdir -p ${REGISTRY_INSTALL_PATH}
 run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
-chmod -R 777 ${REGISTRY_INSTALL_PATH}
 
 # Download mirror-registry
 wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
+sudo tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
 
 
-echo "ok: [start installing mirror-registry]"
+echo "ok: [start installing mirror-registry...]"
 
-${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
+sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname $HOSTNAME \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
@@ -168,7 +165,7 @@ run_command "[installing mirror-registry...]"
 sleep 60
 
 # Get the status and number of containers for quay-pod
-podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
+sudo podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
 run_command "[mirror registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
@@ -211,8 +208,8 @@ cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
 run_command "[save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create ImageSetConfiguration directory
-rm -rf ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
-mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
+sudo rm -rf ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
+sudo mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
 run_command "[create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
 
 # Create ImageSetConfiguration file
@@ -251,15 +248,15 @@ echo
 PRINT_TASK "[TASK: Generate a defined install-config file]"
 
 # Backup and format the registry CA certificate
-rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-cp "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
+sudo rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
+sudo cp "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
 run_command "[backup registry CA certificate]"
 
-sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
+sudo sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
 run_command "[format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
-rm -rf ${SSH_KEY_PATH}
+sudo rm -rf ${SSH_KEY_PATH}
 ssh-keygen -N '' -f ${HOME}/.ssh/id_rsa &> /dev/null
 run_command "[create ssh-key for accessing coreos]"
 
@@ -269,10 +266,10 @@ export REGISTRY_AUTH=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
 export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
-rm -rf $INSTALL
-mkdir $INSTALL
+sudo rm -rf $INSTALL
+sudo mkdir $INSTALL
 
-cat << EOF > $INSTALL/install-config.yaml
+sudo cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
 credentialsMode: $CREDENTIALS_MODE
@@ -340,7 +337,7 @@ EOF
 run_command "[Generate a defined install-config file]"
 
 # Delete certificate
-rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
+sudo rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
 run_command "[delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
 # Add an empty line after the task
