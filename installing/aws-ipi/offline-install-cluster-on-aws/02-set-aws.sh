@@ -36,7 +36,7 @@ install_awscli_linux() {
 # Function to install AWS CLI on macOS
 install_awscli_mac() {
     curl -s "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
-    sudo installer -pkg AWSCLIV2.pkg -target / || true
+    sudo installer -pkg AWSCLIV2.pkg -target / &>/dev/null || true
     run_command "[Install AWS CLI]"
     sudo rm -rf AWSCLIV2.pkg
 }
