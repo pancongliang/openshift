@@ -293,6 +293,7 @@ PRINT_TASK "[TASK: Create bastion instance]"
 
 # Create and download the key pair file
 rm -rf ./$KEY_PAIR_NAME.pem
+aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME >/dev/null
 aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > ./$KEY_PAIR_NAME.pem
 run_command "[Create and download the key pair file: $KEY_PAIR_NAME.pem]"
 
@@ -335,14 +336,14 @@ INSTANCE_IP=$(aws --region $REGION ec2 describe-instances --instance-ids $INSTAN
 run_command "[Get the public IP address of the instance: $INSTANCE_IP]"
 
 # Copy the installation script to the bastion machine
-scp -i ./$KEY_PAIR_NAME.pem ./01-set-parameter.sh ./03-install-pre.sh ./04-final-setting.sh ec2-user@$INSTANCE_IP:~/
+scp -o StrictHostKeyChecking=no -i ./$KEY_PAIR_NAME.pem ./01-set-parameter.sh ./03-install-pre.sh ./04-final-setting.sh ec2-user@$INSTANCE_IP:~/
 run_command "[Copy the installation script to the $INSTANCE_NAME]"
 
-# Create access bastion machine file in $OCP_SCRIPT directory
+# Create access bastion machine file in current directory
 cat << EOF > "./ocp-bastion.sh"
 ssh -o StrictHostKeyChecking=no -i "$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
 EOF
-run_command "[Create access $INSTANCE_NAME file in $OCP_SCRIPT directory]"
+run_command "[Create access $INSTANCE_NAME file in current directory]"
 
 # Modify permissions for the key pair file
 chmod 777 ./ocp-bastion.sh
