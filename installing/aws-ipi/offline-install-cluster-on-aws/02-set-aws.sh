@@ -293,7 +293,6 @@ PRINT_TASK "[TASK: Create bastion instance]"
 
 # Create and download the key pair file
 rm -rf ./$KEY_PAIR_NAME.pem
-aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME >/dev/null
 aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > ./$KEY_PAIR_NAME.pem
 run_command "[Create and download the key pair file: $KEY_PAIR_NAME.pem]"
 
