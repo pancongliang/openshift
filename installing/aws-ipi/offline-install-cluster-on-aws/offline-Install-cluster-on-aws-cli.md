@@ -22,15 +22,14 @@ source 02-set-aws.sh
 
 #### Access EC2 instance(Bastion)
 ```
-scp -i $KEY_PAIR_NAME.pem source 01-set-parameter.sh 03-create-ocp.sh 04-final-setting.sh ec2-user@$INSTANCE_IP:~/ 
+scp -i $KEY_PAIR_NAME.pem 01-set-parameter.sh 03-install-pre.sh 04-final-setting.sh ec2-user@$INSTANCE_IP:~/ 
 
 ssh -i $KEY_PAIR_NAME.pem ec2-user@$INSTANCE_IP
-
-ls
 ```
 
 ### Install the image registry and image release image on the bastion machine and create the install-config
 ```
+source 01-set-parameter.sh
 source 03-install-pre.sh
 ```
 
