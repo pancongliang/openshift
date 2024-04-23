@@ -4,6 +4,7 @@
 ### Download the script and install and configure infrastructure services through the script
 
 ```
+sudo mkdir $OCP-SCRIPT&& cd $OCP-SCRIPT
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline-install-cluster-on-aws/00-download-script.sh | sh
 ```
 
@@ -22,15 +23,12 @@ source 02-set-aws.sh
 
 #### Access EC2 instance(Bastion)
 ```
-scp -i $KEY_PAIR_NAME.pem 01-set-parameter.sh 03-install-pre.sh 04-final-setting.sh ec2-user@$INSTANCE_IP:~/ 
-
-ssh -i $KEY_PAIR_NAME.pem ec2-user@$INSTANCE_IP
+source ocp-bastion.sh
 ```
 
 ### Install the image registry and image release image on the bastion machine and create the install-config
 ```
-source 01-set-parameter.sh
-source 03-install-pre.sh
+source 01-set-parameter.sh && source 03-install-pre.sh
 ```
 
 ### Create OCP cluster
@@ -49,9 +47,6 @@ INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.c
 ### Create record and Configure cluster DNS
 
 ```bash
-INSTANCE_IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-ssh -i $KEY_PAIR_NAME.pem ec2-user@$INSTANCE_IP
-
-source 01-set-parameter.sh
-source 04-final-setting.sh
+source ocp-bastion.sh
+source 01-set-parameter.sh && source 04-final-setting.sh
 ```
