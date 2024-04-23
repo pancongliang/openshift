@@ -18,31 +18,30 @@ PRINT_TASK "[TASK: Set environment variables]"
 # No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
 # OpenShift version
+export OCP_SCRIPT="$HOME/ocp-script"
 export OCP_RELEASE_VERSION="4.14.20"
 
 # OpenShift install-config
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="test.copan.com"
 export CREDENTIALS_MODE="Passthrough"
+export NETWORK_TYPE="OVNKubernetes"
 
 # AWS credentials
 export AWS_ACCESS_KEY_ID="AKIAQ2Fxxxx"
 export AWS_SECRET_ACCESS_KEY="KiGyRt5EyHJo+zxxx"
 export REGION="ap-northeast-1"
 export AVAILABILITY_ZONE="ap-northeast-1a"
-export TAG_NAME="$CLUSTER_NAME"
+export TAG_NAME="$CLUSTER_NAME"     # Created AWS resource tag name
 
-# Bastion instance
+# === Default parameters ===
 export INSTANCE_NAME="$TAG_NAME-bastion"
-export KEY_PAIR_NAME="$TAG_NAME-KEY"
-export AMI_ID="ami-0014871499315f25a"
+export KEY_PAIR_NAME="$TAG_NAME-key"
 export STORAGE_SIZE="100" 
-
-# === more parameters ===
 export INSTALL="$HOME/ocp-install"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
-export REGISTRY_INSTALL_PATH="/opt/quay-install"
+export REGISTRY_INSTALL_PATH="$HOME/quay-install"
 export IMAGE_SET_CONFIGURATION_PATH="$HOME/OLM"
 export OCP_RELEASE_CHANNEL="$(echo $OCP_RELEASE_VERSION | cut -d. -f1,2)"
 export DOMAIN_NAME="$BASE_DOMAIN"
@@ -82,7 +81,7 @@ check_all_variables() {
     check_variable "AWS_SECRET_ACCESS_KEY"
     check_variable "INSTANCE_NAME"
     check_variable "KEY_PAIR_NAME"
-    check_variable "AMI_ID"
+    check_variable "OCP_SCRIPT"
     check_variable "STORAGE_SIZE"
     check_variable "REGION"
     check_variable "AVAILABILITY_ZONE"
