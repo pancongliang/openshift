@@ -140,6 +140,9 @@ run_command() {
 PRINT_TASK "[TASK: Install mirror registry]"
 
 mkdir -p ${REGISTRY_INSTALL_PATH}
+mkdir ${REGISTRY_INSTALL_PATH}/quay-storage
+mkdir ${REGISTRY_INSTALL_PATH}/pg-storage
+chmod -R 777 ${REGISTRY_INSTALL_PATH}
 run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
@@ -147,9 +150,8 @@ wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/r
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-sudo tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
+tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
-
 
 
 echo "ok: [start installing mirror-registry...]"
