@@ -339,6 +339,7 @@ scp -o StrictHostKeyChecking=no -i ./$KEY_PAIR_NAME.pem ./01-set-parameter.sh ./
 run_command "[Copy the installation script to the $INSTANCE_NAME]"
 
 # Create access bastion machine file in current directory
+rm -rf ./ocp-bastion.sh
 cat << EOF > "./ocp-bastion.sh"
 ssh -o StrictHostKeyChecking=no -i "$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
 EOF
