@@ -68,6 +68,23 @@ PRINT_TASK "[TASK: Delete Public Subnet]"
 aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
 run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}]"
 
+VPC_ID=$(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text)
+# Delete private Route Table
+PRIVATE_ROUTE_TABLE_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=tag:Name,Values='$PRIVATE_TAG_NAME'" --query "RouteTables[0].RouteTableId" --output text)
+aws --region $REGION ec2 delete-route-table --route-table-id $PRIVATE_ROUTE_TABLE_ID >/dev/null
+run_command "[Delete private Route Table]"
+
+# Delete public Route Table
+PUBLIC_ROUTE_TABLE_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=tag:Name,Values='$PUBLIC_TAG_NAME'" --query "RouteTables[0].RouteTableId" --output text)
+aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_ROUTE_TABLE_ID >/dev/null
+run_command "[Delete public Route Table]"
+
+# Delete Internet Gateway
+IGW_ID=$(aws --region $REGION ec2 describe-internet-gateways --filters "Name=tag:Name,Values='$IGW_TAG_NAME'" --query "InternetGateways[0].InternetGatewayId" --output text)
+aws --region $REGION ec2 detach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID >/dev/null
+aws --region $REGION ec2 delete-internet-gateway --internet-gateway-id $IGW_ID >/dev/null
+run_command "[Delete Internet Gateway]"
+
 sleep 60
 # === Delete VPC ===
 PRINT_TASK "[TASK: Delete VPC]"
