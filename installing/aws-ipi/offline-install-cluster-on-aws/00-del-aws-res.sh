@@ -23,13 +23,20 @@ run_command() {
 
 # === Delete EC2 Instance ===
 PRINT_TASK "[TASK: Delete EC2 Instance]"
-aws --region $REGION ec2 terminate-instances --instance-ids $(aws --region $REGION ec2 describe-instances --filters "Name=tag:Name,Values=$INSTANCE_NAME" --query "Reservations[].Instances[].InstanceId" --output text) >/dev/null
+INSTANCE_ID=$(aws --region $REGION ec2 describe-instances \
+    --filters "Name=tag:Name,Values=$INSTANCE_NAME" \
+    --query "Reservations[].Instances[].InstanceId" \
+    --output text)
+
+aws --region $REGION ec2 terminate-instances --instance-ids $INSTANCE_ID
 run_command "[Terminating instance: $INSTANCE_NAME]"
+
+aws --region $REGION ec2 wait instance-terminated --instance-ids $INSTANCE_ID    
 
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 30
+sleep 200
 
 # === Delete Key Pair ===
 PRINT_TASK "[TASK: Delete Key Pair]"
@@ -48,7 +55,7 @@ run_command "[Deleting ELB endpoint: $ELB_ENDPOINT_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 10
+sleep 1
 
 # === Delete EC2 Endpoint ===
 PRINT_TASK "[TASK: Delete EC2 Endpoint]"
@@ -58,7 +65,7 @@ run_command "[Deleting EC2 endpoint: $EC2_ENDPOINT_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 10
+sleep 1
 
 # === Delete S3 Gateway VPC Endpoint ===
 PRINT_TASK "[TASK: Delete S3 Gateway VPC Endpoint]"
@@ -68,7 +75,7 @@ run_command "[Deleting S3 Gateway VPC endpoint: $S3_ENDPOINT_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 10
+sleep 1
 
 # === Delete Private Hosted Zone ===
 PRINT_TASK "[TASK: Delete Private Hosted Zone]"
@@ -88,7 +95,56 @@ run_command "[Deleting security group: $SECURITY_GROUP_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 10
+sleep 1
+
+# === Delete Network ACL ===
+# PRINT_TASK "[TASK: Delete Network ACL]"
+# Get network ACL ID and delete
+# VPC_ID=$(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query 'Vpcs[0].VpcId' --output text)
+# ACL_ID=$(aws --region $REGION ec2 describe-network-acls --filters "Name=vpc-id,Values=$VPC_ID" --query 'NetworkAcls[0].NetworkAclId' --output text)
+# aws --region $REGION ec2 delete-network-acl --network-acl-id $ACL_ID >/dev/null
+# run_command "[Deleting network ACL: $ACL_ID]"
+
+# Add an empty line after the task
+echo
+# ====================================================
+sleep 1
+
+# === Delete Route Tables ===
+PRINT_TASK "[TASK: Delete Route Tables]"
+# Get route table IDs and delete
+PUBLIC_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$PUBLIC_RTB_NAME" --query 'RouteTables[0].RouteTableId' --output text)
+
+aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_RTB_ID
+run_command "[Deleting public route table: $PUBLIC_RTB_ID]"
+
+PRIVATE_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$PRIVATE_RTB_NAME" --query 'RouteTables[0].RouteTableId' --output text)
+SUBNET_ASSOCIATIONS=$(aws --region $REGION ec2 describe-route-tables --route-table-id $PRIVATE_RTB_ID --query "RouteTables[0].Associations[].RouteTableAssociationId" --output text)
+aws --region $REGION ec2 disassociate-route-table --association-id $SUBNET_ASSOCIATIONS
+aws --region $REGION ec2 delete-route-table --route-table-id $PRIVATE_RTB_ID
+run_command "[Deleting private route table: $PRIVATE_RTB_ID]"
+
+# Add an empty line after the task
+echo
+# ====================================================
+sleep 60
+
+# === Detach and Delete Internet Gateway ===
+PRINT_TASK "[TASK: Detach and Delete Internet Gateway]"
+# Get Internet Gateway ID, detach, and delete
+IGW_ID=$(aws --region $REGION ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$IGW_NAME" --query 'InternetGateways[0].InternetGatewayId' --output text)
+
+aws --region $REGION ec2 detach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
+run_command "[Detaching internet gateway: $IGW_ID from VPC: $VPC_ID]"
+
+aws --region $REGION ec2 delete-internet-gateway --internet-gateway-id $IGW_ID
+run_command "[Deleting internet gateway: $IGW_ID]"
+
+
+# Add an empty line after the task
+echo
+# ====================================================
+sleep 1
 
 # === Delete Private Subnet ===
 PRINT_TASK "[TASK: Delete Private Subnet]"
@@ -98,7 +154,7 @@ run_command "[Deleting private subnet: ${VPC_NAME}-subnet-private1-${AVAILABILIT
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 10
+sleep 1
 
 # === Delete Public Subnet ===
 PRINT_TASK "[TASK: Delete Public Subnet]"
@@ -109,7 +165,7 @@ run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_
 echo
 # ====================================================
 
-sleep 100
+sleep 10
 # === Delete VPC ===
 PRINT_TASK "[TASK: Delete VPC]"
 aws --region $REGION ec2 delete-vpc --vpc-id $(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text) >/dev/null
