@@ -77,6 +77,7 @@ check_all_variables() {
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "CREDENTIALS_MODE"
+    check_variable "NETWORK_TYPE"
     check_variable "AWS_ACCESS_KEY_ID"
     check_variable "AWS_SECRET_ACCESS_KEY"
     check_variable "INSTANCE_NAME"
