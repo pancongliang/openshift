@@ -11,7 +11,16 @@ PRINT_TASK() {
 }
 # ====================================================
 
+# Task: Enter pull-secret information
+PRINT_TASK "[TASK: Enter pull-secret information]"
 
+# Prompt for pull-secret
+read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
+run_command "[Enter pull-secret information]"
+
+# Add an empty line after the task
+echo
+# ====================================================
 
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
@@ -177,7 +186,7 @@ echo
 PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
 
 # Prompt for pull-secret
-read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
+# read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
 
 # Create a temporary file to store the pull secret
 PULL_SECRET=$(mktemp -p $HOME)
