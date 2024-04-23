@@ -329,8 +329,3 @@ run_command "[delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 # Add an empty line after the task
 echo
 # ====================================================
-
-# Task: Install OpenShift
-PRINT_TASK "[TASK: Install OpenShift]"
-
-sudo openshift-install create cluster --dir $INSTALL --log-level=info
