@@ -17,7 +17,7 @@ PRINT_TASK() {
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
 # List of RPM packages to install
-packages=("wget" "zip" "vim" "podman" "bind-utils" "bash-completion" "jq" "skopeo" "httpd-tools")
+packages=("wget" "zip" "vim" "podman" "bash-completion" "jq")
 
 # Install the RPM package and return the execution result
 for package in "${packages[@]}"; do
@@ -64,9 +64,9 @@ install_tar_gz() {
     if [ $? -eq 0 ]; then
         echo "ok: [download $tool_name tool]"        
         # Extract the downloaded tool
-        tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
+        sudo tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
         # Remove the downloaded .tar.gz file
-        rm -f "/usr/local/bin/$(basename $tool_url)"
+        sudo rm -f "/usr/local/bin/$(basename $tool_url)"
     else
         echo "failed: [download $tool_name tool]"
     fi
@@ -84,7 +84,7 @@ PRINT_TASK "[TASK: Delete existing duplicate data]"
 # Check if there is an active mirror registry pod
 if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
+    sudo ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [uninstall the mirror registry]"
@@ -102,7 +102,7 @@ files=(
 )
 for file in "${files[@]}"; do
     if [ -e "$file" ]; then
-        rm -rf "$file" 2>/dev/null
+        sudo rm -rf "$file" 2>/dev/null
         if [ $? -eq 0 ]; then
             echo "ok: [delete existing duplicate data: $file]"
         fi
@@ -113,6 +113,14 @@ done
 echo
 # ====================================================
 
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
 
 # === Task: Install mirror registry ===
 PRINT_TASK "[TASK: Install mirror registry]"
@@ -143,11 +151,11 @@ podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/
 run_command "[mirror registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
-cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/quay.ca.pem
+sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/quay.ca.pem
 run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/quay.ca.pem]"
 
 # Trust the rootCA certificate
-update-ca-trust
+sudo update-ca-trust
 run_command "[trust the rootCA certificate]"
 
 # loggin registry
