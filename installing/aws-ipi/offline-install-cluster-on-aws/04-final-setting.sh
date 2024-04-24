@@ -22,56 +22,6 @@ run_command() {
 }
 
 
-# === Task: Install AWS CLI ===
-PRINT_TASK "[TASK: Install AWS CLI]"
-
-# Function to install AWS CLI on Linux
-install_awscli_linux() {
-    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 
-    unzip awscliv2.zip > /dev/null 
-    sudo ./aws/install &>/dev/null || true
-    run_command "[Install AWS CLI]"
-    sudo rm -rf aws awscliv2.zip
-}
-
-# Function to install AWS CLI on macOS
-install_awscli_mac() {
-    curl -s "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
-    sudo installer -pkg AWSCLIV2.pkg -target / &>/dev/null || true
-    run_command "[Install AWS CLI]"
-    sudo rm -rf AWSCLIV2.pkg
-}
-
-# Detecting the operating system
-os=$(uname -s)
-
-# Installing AWS CLI based on the operating system
-case "$os" in
-    Linux*)  install_awscli_linux;;
-    Darwin*) install_awscli_mac;;
-    *) ;;
-esac
-
-# Add an empty line after the task
-echo
-# ====================================================
-
-
-# === Task: Set up AWS credentials ===
-PRINT_TASK "[TASK: Set up AWS credentials]"
-
-cat << EOF > "$HOME/.aws/credentials"
-[default]
-aws_access_key_id = $AWS_ACCESS_KEY_ID
-aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
-EOF
-run_command "[TASK: Set up AWS credentials]"
-
-# Add an empty line after the task
-echo
-# ====================================================
-
-
 # Task: Kubeconfig login and oc completion
 PRINT_TASK "[TASK: Kubeconfig login]"
 
@@ -97,7 +47,8 @@ PRINT_TASK "[TASK: Create *.apps.$CLUSTER_NAME record]"
 # Create record
 RECORD_NAME="*.apps"
 RECORD_TYPE="A"
-HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name --query "HostedZones[?Name=='$DOMAIN_NAME.'].Id" --output text)
+HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name --query "HostedZones[?Name=='$HOSTED_ZONE_NAME.'].Id" --output text)
+VPC_ID=$(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text)
 ELB_DNS_NAME=$(aws elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName" --output text)
 LOAD_BALANCER_HOSTED_ZONE_ID=$(aws ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.$REGION.elasticloadbalancing" --query "VpcEndpoints[0].ServiceDetails.AvailabilityZones[0].LoadBalancers[0].CanonicalHostedZoneId" --output text)
 aws route53 create-record --hosted-zone-id $HOSTED_ZONE_ID --name "$RECORD_NAME.$CLUSTER_NAME" --type $RECORD_TYPE --alias-target "HostedZoneId=$LOAD_BALANCER_HOSTED_ZONE_ID,DNSName=$ELB_DNS_NAME" --region $REGION
