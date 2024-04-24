@@ -24,11 +24,7 @@ run_command() {
 
 # === Delete EC2 Instance ===
 PRINT_TASK "[TASK: Delete EC2 Instance]"
-INSTANCE_ID=$(aws --region $REGION ec2 describe-instances \
-    --filters "Name=tag:Name,Values=$INSTANCE_NAME" \
-    --query "Reservations[].Instances[].InstanceId" \
-    --output text) >/dev/null
-
+INSTANCE_ID=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Name,Values=$INSTANCE_NAME" --query "Reservations[].Instances[].InstanceId" --output text)
 aws --region $REGION ec2 terminate-instances --instance-ids $INSTANCE_ID >/dev/null
 run_command "[Terminating instance: $INSTANCE_NAME]"
 
@@ -50,7 +46,9 @@ echo
 
 # === Delete ELB Endpoint ===
 PRINT_TASK "[TASK: Delete ELB Endpoint]"
-aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$ELB_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text) >/dev/null
+# aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$ELB_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text) >/dev/null
+ELB_ENDPOINT_ID=$(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$ELB_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text)
+aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $ELB_ENDPOINT_ID >/dev/null
 run_command "[Deleting ELB endpoint: $ELB_ENDPOINT_NAME]"
 
 # Add an empty line after the task
@@ -60,7 +58,9 @@ sleep 1
 
 # === Delete EC2 Endpoint ===
 PRINT_TASK "[TASK: Delete EC2 Endpoint]"
-aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$EC2_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text) >/dev/null
+# aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$EC2_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text) >/dev/null
+EC2_ENDPOINT_ID=$(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$EC2_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text)
+aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $EC2_ENDPOINT_ID >/dev/null
 run_command "[Deleting EC2 endpoint: $EC2_ENDPOINT_NAME]"
 
 # Add an empty line after the task
@@ -70,7 +70,9 @@ sleep 1
 
 # === Delete S3 Gateway VPC Endpoint ===
 PRINT_TASK "[TASK: Delete S3 Gateway VPC Endpoint]"
-aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$S3_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text) >/dev/null
+# aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$S3_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text) >/dev/null
+S3_ENDPOINT_ID=$(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=tag:Name,Values=$S3_ENDPOINT_NAME" --query "VpcEndpoints[].VpcEndpointId" --output text)
+aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $S3_ENDPOINT_ID >/dev/null
 run_command "[Deleting S3 Gateway VPC endpoint: $S3_ENDPOINT_NAME]"
 
 # Add an empty line after the task
@@ -80,8 +82,11 @@ sleep 1
 
 # === Delete Private Hosted Zone ===
 PRINT_TASK "[TASK: Delete Private Hosted Zone]"
-aws --region $REGION route53 delete-hosted-zone --id $(aws --region $REGION route53 list-hosted-zones --query "HostedZones[?Name=='$DOMAIN_NAME.'].Id" --output text) >/dev/null
-run_command "[Deleting private hosted zone: $DOMAIN_NAME]"
+# aws --region $REGION route53 delete-hosted-zone --id $(aws --region $REGION route53 list-hosted-zones --query "HostedZones[?Name=='$HOSTED_ZONE_NAME.'].Id" --output text) >/dev/null
+# HOSTED_ZONE_ID=$(aws --region $REGION route53 list-hosted-zones --query "HostedZones[?Name=='$HOSTED_ZONE_NAME.'].Id" --output text)
+HOSTED_ZONE_ID=$(aws --region $REGION route53 list-hosted-zones --query "HostedZones[?Name=='$HOSTED_ZONE_NAME.'].Id" --output text | awk -F'/' '{print $3}')
+aws --region $REGION route53 delete-hosted-zone --id $HOSTED_ZONE_ID >/dev/null
+run_command "[Deleting private hosted zone: $HOSTED_ZONE_NAME]"
 
 # Add an empty line after the task
 echo
@@ -90,7 +95,9 @@ sleep 300
 
 # === Delete Security Group ===
 PRINT_TASK "[TASK: Delete Security Group]"
-aws --region $REGION ec2 delete-security-group --group-id $(aws --region $REGION ec2 describe-security-groups --filters "Name=tag:Name,Values=$SECURITY_GROUP_NAME" --query "SecurityGroups[].GroupId" --output text) >/dev/null
+# aws --region $REGION ec2 delete-security-group --group-id $(aws --region $REGION ec2 describe-security-groups --filters "Name=tag:Name,Values=$SECURITY_GROUP_NAME" --query "SecurityGroups[].GroupId" --output text) >/dev/null
+SECURITY_GROUP_ID=$(aws --region $REGION ec2 describe-security-groups --filters "Name=tag:Name,Values=$SECURITY_GROUP_NAME" --query "SecurityGroups[].GroupId" --output text)
+aws --region $REGION ec2 delete-security-group --group-id $SECURITY_GROUP_ID >/dev/null
 run_command "[Deleting security group: $SECURITY_GROUP_NAME]"
 
 # Add an empty line after the task
@@ -100,7 +107,9 @@ sleep 1
 
 # === Delete Private Subnet ===
 PRINT_TASK "[TASK: Delete Private Subnet]"
-aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
+# aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
+PRIVATE_SUBNET_ID=$(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text)
+aws --region $REGION ec2 delete-subnet --subnet-id $PRIVATE_SUBNET_ID >/dev/null
 run_command "[Deleting private subnet: ${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}]"
 
 # Add an empty line after the task
@@ -110,7 +119,9 @@ sleep 1
 
 # === Delete Public Subnet ===
 PRINT_TASK "[TASK: Delete Public Subnet]"
-aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
+# aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
+PUBLIC_SUBNET_ID=$(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text)
+aws --region $REGION ec2 delete-subnet --subnet-id $PUBLIC_SUBNET_ID >/dev/null
 run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}]"
 
 # Add an empty line after the task
@@ -120,9 +131,10 @@ echo
 # === Delete Route Tables ===
 PRINT_TASK "[TASK: Delete Route Tables]"
 # Get route table IDs and delete
+VPC_ID=$(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text)
 PUBLIC_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$PUBLIC_RTB_NAME" --query 'RouteTables[0].RouteTableId' --output text)
-# PUBLIC_SUBNET_ASSOCIATIONS=$(aws --region $REGION ec2 describe-route-tables --route-table-id $PUBLIC_RTB_ID --query "RouteTables[0].Associations[].RouteTableAssociationId" --output text)
-# aws --region $REGION ec2 disassociate-route-table --association-id $PUBLIC_SUBNET_ASSOCIATIONS >/dev/null
+PUBLIC_SUBNET_ASSOCIATIONS=$(aws --region $REGION ec2 describe-route-tables --route-table-id $PUBLIC_RTB_ID --query "RouteTables[0].Associations[].RouteTableAssociationId" --output text)
+aws --region $REGION ec2 disassociate-route-table --association-id $PUBLIC_SUBNET_ASSOCIATIONS >/dev/null
 aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_RTB_ID >/dev/null
 run_command "[Deleting public route table: $PUBLIC_RTB_ID]"
 
@@ -156,8 +168,9 @@ echo
 sleep 60
 # === Delete VPC ===
 PRINT_TASK "[TASK: Delete VPC]"
-
-aws --region $REGION ec2 delete-vpc --vpc-id $(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text) >/dev/null
+# aws --region $REGION ec2 delete-vpc --vpc-id $(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text) >/dev/null
+VPC_ID=$(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text)
+aws --region $REGION ec2 delete-vpc --vpc-id $VPC_ID >/dev/null
 run_command "[Deleting VPC: $VPC_NAME]"
 
 # Add an empty line after the task
