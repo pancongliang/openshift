@@ -268,7 +268,7 @@ PRINT_TASK "[TASK: Create private hosted zone]"
 
 # Create private hosted zone
 HOSTED_ZONE_ID=$(aws --region $REGION route53 create-hosted-zone \
-    --name $DOMAIN_NAME \
+    --name $HOSTED_ZONE_NAME \
     --caller-reference "$(date +%Y%m%d%H%M%S)" \
     --hosted-zone-config Comment="copan-ocp-test" \
     --vpc "VPCRegion=$REGION,VPCId=$VPC_ID" \
@@ -281,7 +281,7 @@ run_command "[Create private hosted zone and get PHZ: $HOSTED_ZONE_ID]"
 # RECORD_TYPE="A"
 # ELB_DNS_NAME=$(aws --region $REGION elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName" --output text)
 # LOAD_BALANCER_HOSTED_ZONE_ID=$(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.$REGION.elasticloadbalancing" --query "VpcEndpoints[0].ServiceDetails.AvailabilityZones[0].LoadBalancers[0].CanonicalHostedZoneId" --output text)
-# aws route53 create-record --hosted-zone-id $HOSTED_ZONE_ID --name "$RECORD_NAME.$DOMAIN_NAME" --type $RECORD_TYPE --alias-target "HostedZoneId=$LOAD_BALANCER_HOSTED_ZONE_ID,DNSName=$ELB_DNS_NAME" --region $REGION
+# aws route53 create-record --hosted-zone-id $HOSTED_ZONE_ID --name "$RECORD_NAME.$HOSTED_ZONE_NAME" --type $RECORD_TYPE --alias-target "HostedZoneId=$LOAD_BALANCER_HOSTED_ZONE_ID,DNSName=$ELB_DNS_NAME" --region $REGION
 
 # Add an empty line after the task
 echo
