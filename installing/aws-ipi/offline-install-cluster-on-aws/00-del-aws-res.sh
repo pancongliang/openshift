@@ -114,7 +114,7 @@ sleep 1
 PRINT_TASK "[TASK: Delete Route Tables]"
 # Get route table IDs and delete
 PUBLIC_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$PUBLIC_RTB_NAME" --query 'RouteTables[0].RouteTableId' --output text)
-
+aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_RTB_ID >/dev/null
 aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_RTB_ID
 run_command "[Deleting public route table: $PUBLIC_RTB_ID]"
 
@@ -168,10 +168,6 @@ echo
 sleep 60
 # === Delete VPC ===
 PRINT_TASK "[TASK: Delete VPC]"
-
-PUBLIC_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$PUBLIC_RTB_NAME" --query 'RouteTables[0].RouteTableId' --output text)
-
-aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_RTB_ID >/dev/null
 
 aws --region $REGION ec2 delete-vpc --vpc-id $(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text) >/dev/null
 run_command "[Deleting VPC: $VPC_NAME]"
