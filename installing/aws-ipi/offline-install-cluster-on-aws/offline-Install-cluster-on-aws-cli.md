@@ -45,7 +45,7 @@ oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker:/
 
 #### Run the installer to create cluster
 ```
-sudo openshift-install create cluster --dir $INSTALL --log-level=info
+openshift-install create cluster --dir $INSTALL --log-level=info
 ```
 
 #### Once this entry is seen in the installation log execute script 04-final-setting.sh
