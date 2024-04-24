@@ -291,7 +291,7 @@ oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker:/
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
-sudo rm -f "${PULL_SECRET}"
+sudo rm -f "${PULL_SECRET}" ./oc-mirror-work*
 run_command "[Remove temporary pull-secret file]"
 
 # Add an empty line after the task
@@ -312,7 +312,7 @@ sudo sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
 run_command "[Format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
-sudo rm -rf ${SSH_KEY_PATH}
+sudo rm -rf ${HOME}/.ssh/id_rsa ${HOME}/.ssh/id_rsa.pub
 ssh-keygen -N '' -f ${HOME}/.ssh/id_rsa &> /dev/null
 run_command "[Create ssh-key for accessing coreos]"
 
