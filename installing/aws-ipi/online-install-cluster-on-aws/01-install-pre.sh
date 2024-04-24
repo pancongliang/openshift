@@ -112,3 +112,11 @@ install_tar_gz() {
 # Install .tar.gz tools
 install_tar_gz "openshift-install" "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE}/openshift-install-linux.tar.gz"
 install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
+
+
+# === Task: Generate SSH key for cluster nodes ===
+PRINT_TASK "[TASK: Generate SSH key for cluster nodes]"
+
+rm -rf $HOME/.ssh/*
+ssh-keygen -N '' -f $HOME/.ssh/id_rsa
+run_command "[Generate SSH key for cluster nodes $HOME/.ssh/]"
