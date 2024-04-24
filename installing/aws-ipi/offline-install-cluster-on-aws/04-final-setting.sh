@@ -27,8 +27,8 @@ PRINT_TASK "[TASK: Install AWS CLI]"
 
 # Function to install AWS CLI on Linux
 install_awscli_linux() {
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
+    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 
+    unzip awscliv2.zip > /dev/null 
     sudo ./aws/install &>/dev/null || true
     run_command "[Install AWS CLI]"
     sudo rm -rf aws awscliv2.zip
@@ -36,14 +36,10 @@ install_awscli_linux() {
 
 # Function to install AWS CLI on macOS
 install_awscli_mac() {
-    curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
-    sudo installer -pkg AWSCLIV2.pkg -target / || true
+    curl -s "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
+    sudo installer -pkg AWSCLIV2.pkg -target / &>/dev/null || true
     run_command "[Install AWS CLI]"
-}
-
-# Function to print a task with uniform length
-run_command() {
-    echo "$1"
+    sudo rm -rf AWSCLIV2.pkg
 }
 
 # Detecting the operating system
