@@ -234,7 +234,7 @@ Create the VPC endpoint for the s3 Service
 PRINT_TASK "[TASK: Create the VPC endpoint for the s3 Service]"
 
 # Create the VPC endpoint for the s3 Service and get endpoint ID
-S3_ENDPOINT_ID=$(aws --region $REGION ec2 create-vpc-endpoint --vpc-endpoint-type Gateway --vpc-id $VPC_ID --service-name $S3_ENDPOINT_NAME --route --route-table-ids $PRIVATE_ROUTE_TABLE_ID --no-private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
+S3_ENDPOINT_ID=$(aws --region $REGION ec2 create-vpc-endpoint --vpc-endpoint-type Gateway --vpc-id $VPC_ID --service-name s3.$REGION.amazonaws.com --route --route-table-ids $PRIVATE_ROUTE_TABLE_ID --no-private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
 run_command "[Create the VPC endpoint for the s3 Service: S3_ENDPOINT_ID]"
 
 # Add tag to S3 Service endpoint
