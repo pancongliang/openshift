@@ -136,8 +136,7 @@ install_tar_gz() {
         # Extract the downloaded tool
         sudo tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
         # Remove the downloaded .tar.gz file
-        sudo rm -f "/usr/local/bin/$(basename $tool_url)" "/usr/local/bin/README.md)"
-        sudo chmod a+x /usr/local/bin/oc-mirror
+        sudo rm -f "/usr/local/bin/$(basename $tool_url)" > /dev/null 
     else
         echo "failed: [Download $tool_name tool]"
     fi
@@ -148,6 +147,9 @@ install_tar_gz "openshift-install" "https://mirror.openshift.com/pub/openshift-v
 install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
 install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
 
+sudo chmod a+x /usr/local/bin/oc-mirror > /dev/null 
+run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
+sudo rm -f /usr/local/bin/README.md > /dev/null 
 # Add an empty line after the task
 echo
 # ====================================================
@@ -291,7 +293,8 @@ oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker:/
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
-sudo rm -f "${PULL_SECRET}" ./oc-mirror-work*
+sudo rm -f "${PULL_SECRET}" 
+sudo rm -f oc-mirror-workspace*
 run_command "[Remove temporary pull-secret file]"
 
 # Add an empty line after the task
