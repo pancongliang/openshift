@@ -70,7 +70,7 @@ echo
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
-
+mkdir -p $HOME/.aws
 cat << EOF > "$HOME/.aws/credentials"
 [default]
 aws_access_key_id = $AWS_ACCESS_KEY_ID
