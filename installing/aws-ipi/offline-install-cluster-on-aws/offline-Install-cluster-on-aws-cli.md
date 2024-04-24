@@ -8,11 +8,13 @@ mkdir ocp-scrept && cd ocp-scrept
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline-install-cluster-on-aws/00-download-script.sh | sh
 ```
 
+
 ### Change variable parameters
 ```
 vim 01-set-parameter.sh
 source 01-set-parameter.sh
 ```
+
 
 ### Create AWS Environment
 
@@ -26,10 +28,18 @@ source 02-set-aws.sh
 source ocp-bastion.sh
 ```
 
-### Install the image registry and image release image on the bastion machine and create the install-config
+### Installation preparation 
+
+#### Install the image registry and image release image on the bastion machine and create the install-config
 ```
 source 01-set-parameter.sh && source 03-install-pre.sh
 ```
+
+#### If the mirroring fails, rerun the following command
+```
+oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls
+```
+
 
 ### Create OCP cluster
 
