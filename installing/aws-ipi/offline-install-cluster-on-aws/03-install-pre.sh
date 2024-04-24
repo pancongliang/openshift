@@ -22,6 +22,7 @@ read -p "Please input the pull secret string from https://cloud.redhat.com/opens
 echo
 # ====================================================
 
+
 # === Task: Install AWS CLI ===
 PRINT_TASK "[TASK: Install AWS CLI]"
 
