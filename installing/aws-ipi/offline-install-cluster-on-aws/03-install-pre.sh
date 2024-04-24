@@ -95,7 +95,7 @@ echo
 PRINT_TASK "[TASK: Delete existing duplicate data]"
 
 # Check if there is an active mirror registry pod
-if sudo podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
+if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
     ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
@@ -140,8 +140,8 @@ run_command() {
 PRINT_TASK "[TASK: Install mirror registry]"
 
 mkdir -p ${REGISTRY_INSTALL_PATH}
-mkdir ${REGISTRY_INSTALL_PATH}/quay-storage
-mkdir ${REGISTRY_INSTALL_PATH}/pg-storage
+mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
+mkdir -p ${REGISTRY_INSTALL_PATH}/pg-storage
 chmod -R 777 ${REGISTRY_INSTALL_PATH}
 run_command "[Create ${REGISTRY_INSTALL_PATH} directory]"
 
@@ -156,18 +156,18 @@ run_command "[Extract the mirror-registry package]"
 
 echo "ok: [Start installing mirror-registry...]"
 
-sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
+${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname $HOSTNAME \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
      --pgStorage ${REGISTRY_INSTALL_PATH}/pg-storage \
      --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} 
-run_command "[Installing mirror-registry...]"
+run_command "[Installation of mirror registry completed]"
 
 sleep 60
 
 # Get the status and number of containers for quay-pod
-sudo podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
+podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
 run_command "[Mirror Registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
@@ -216,7 +216,7 @@ mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
 run_command "[Create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
 
 # Create ImageSetConfiguration file
-sudo cat << EOF > ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml
+cat << EOF > ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml
 apiVersion: mirror.openshift.io/v1alpha2
 kind: ImageSetConfiguration
 storageConfig:
@@ -234,7 +234,7 @@ EOF
 run_command "[Create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
-oc mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
+oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
@@ -266,13 +266,13 @@ run_command "[Create ssh-key for accessing coreos]"
 # Define variables
 export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak)"
 export REGISTRY_AUTH=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
-export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
+export SSH_PUB_STR="$(cat ${HOME}/id_rsa.pub)"
 
 # Generate a defined install-config file
 sudo rm -rf $INSTALL
 mkdir $INSTALL
 
-sudo cat << EOF > $INSTALL/install-config.yaml
+cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
 credentialsMode: $CREDENTIALS_MODE
