@@ -22,6 +22,55 @@ read -p "Please input the pull secret string from https://cloud.redhat.com/opens
 echo
 # ====================================================
 
+# === Task: Install AWS CLI ===
+PRINT_TASK "[TASK: Install AWS CLI]"
+
+# Function to install AWS CLI on Linux
+install_awscli_linux() {
+    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 
+    unzip awscliv2.zip > /dev/null 
+    sudo ./aws/install &>/dev/null || true
+    run_command "[Install AWS CLI]"
+    sudo rm -rf aws awscliv2.zip
+}
+
+# Function to install AWS CLI on macOS
+install_awscli_mac() {
+    curl -s "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
+    sudo installer -pkg AWSCLIV2.pkg -target / &>/dev/null || true
+    run_command "[Install AWS CLI]"
+    sudo rm -rf AWSCLIV2.pkg
+}
+
+# Detecting the operating system
+os=$(uname -s)
+
+# Installing AWS CLI based on the operating system
+case "$os" in
+    Linux*)  install_awscli_linux;;
+    Darwin*) install_awscli_mac;;
+    *) ;;
+esac
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+
+# === Task: Set up AWS credentials ===
+PRINT_TASK "[TASK: Set up AWS credentials]"
+
+cat << EOF > "$HOME/.aws/credentials"
+[default]
+aws_access_key_id = $AWS_ACCESS_KEY_ID
+aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+EOF
+run_command "[Set up AWS credentials]"
+
+# Add an empty line after the task
+echo
+# ====================================================
+
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
@@ -75,7 +124,8 @@ install_tar_gz() {
         # Extract the downloaded tool
         sudo tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
         # Remove the downloaded .tar.gz file
-        sudo rm -f "/usr/local/bin/$(basename $tool_url)"
+        sudo rm -f "/usr/local/bin/$(basename $tool_url)" "/usr/local/bin/README.md)"
+        sudo chmod a+x /usr/local/bin/oc-mirror
     else
         echo "failed: [Download $tool_name tool]"
     fi
@@ -97,7 +147,7 @@ PRINT_TASK "[TASK: Delete existing duplicate data]"
 # Check if there is an active mirror registry pod
 if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
+    sudo ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [Uninstall the mirror registry]"
@@ -156,7 +206,7 @@ run_command "[Extract the mirror-registry package]"
 
 echo "ok: [Start installing mirror-registry...]"
 
-${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
+${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --quayHostname $HOSTNAME \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
@@ -266,7 +316,9 @@ run_command "[Create ssh-key for accessing coreos]"
 # Define variables
 export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak)"
 export REGISTRY_AUTH=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
-export SSH_PUB_STR="$(cat ${HOME}/id_rsa.pub)"
+export SSH_PUB_STR="$(cat ${HOME}/.ssh/id_rsa.pub)"
+export HOSTED_ZONE_ID=$(aws --region $REGION route53 list-hosted-zones --query "HostedZones[?Name=='$HOSTED_ZONE_NAME.'].Id" --output text | awk -F'/' '{print $3}')
+export PRIVATE_SUBNET_ID=$(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text)
 
 # Generate a defined install-config file
 sudo rm -rf $INSTALL
