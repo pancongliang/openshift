@@ -114,12 +114,12 @@ run_command "[Create public subnet and get public subnet ID: $PUBLIC_SUBNET_ID]"
 PRIVATE_SUBNET_ID=$(aws --region $REGION ec2 create-subnet --vpc-id $VPC_ID --cidr-block $PRIVATE_SUBNET_CIDR --availability-zone $AVAILABILITY_ZONE --query 'Subnet.SubnetId' --output text)
 run_command "[Create private subnet and get subnet ID: $PRIVATE_SUBNET_ID]"
 
-# Add VPC name to subnet name
+# Add tag name to subnet name
 aws --region $REGION ec2 create-tags --resources $PUBLIC_SUBNET_ID --tags Key=Name,Value="${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}"
-run_command "[Add VPC name to subnet name: ${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}]"
+run_command "[Add tag name to subnet name: ${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}]"
 
 aws --region $REGION ec2 create-tags --resources $PRIVATE_SUBNET_ID --tags Key=Name,Value="${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}"
-run_command "[Add VPC name to subnet name: ${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}]"
+run_command "[Add tag name to subnet name: ${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}]"
 
 # Create Internet Gateway
 IGW_ID=$(aws --region $REGION ec2 create-internet-gateway --tag-specifications 'ResourceType=internet-gateway,Tags=[{Key=Name,Value="'$TAG_NAME_igw'"}]' --query 'InternetGateway.InternetGatewayId' --output text)
@@ -134,7 +134,8 @@ aws --region $REGION ec2 attach-internet-gateway --internet-gateway-id $IGW_ID -
 run_command "[Attach Internet Gateway $IGW_ID to VPC: $VPC_ID]"
 
 # Create public Route Table
-PUBLIC_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value='$TAG_NAME_public-rtb'}]' --query 'RouteTable.RouteTableId' --output text)
+# PUBLIC_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value='$TAG_NAME_public-rtb'}]' --query 'RouteTable.RouteTableId' --output text)
+PUBLIC_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --query 'RouteTable.RouteTableId' --output text)
 run_command "[Create public Route Table: $PUBLIC_ROUTE_TABLE_ID]"
 
 # Add tag to public Route Table
@@ -142,7 +143,8 @@ aws --region $REGION ec2 create-tags --resources $PUBLIC_ROUTE_TABLE_ID --tags K
 run_command "[Add tag to public Route Table: $PUBLIC_RTB_NAME]"
 
 # Create private Route Table
-PRIVATE_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value='$TAG_NAME_private-rtb'}]' --query 'RouteTable.RouteTableId' --output text)
+# PRIVATE_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value='$TAG_NAME_private-rtb'}]' --query 'RouteTable.RouteTableId' --output text)
+PRIVATE_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --query 'RouteTable.RouteTableId' --output text)
 run_command "[Create private Route Table: $PRIVATE_ROUTE_TABLE_ID]"
 
 # Add tag to private Route Table
@@ -154,7 +156,7 @@ aws --region $REGION ec2 create-route --destination-cidr-block 0.0.0.0/0 --gatew
 run_command "[Link to Internet Gateway]"
 
 # Associate public Route Table with public subnet
-aws --region $REGION ec2 associate-route-table --subnet-id $PUBLIC_SUBNET_ID --route-table-id $PUBLIC_ROUTE_TABLE_ID >/dev/null
+aws --region $REGION ec2 associate-route-table --subnet-id $PUBLIC_SUBNET_ID --route-table-id $PUBLIC_ROUTE_TABLE_ID >/dev/null                 
 run_command "[Associate public Route Table with public subnet]"
 
 # Associate private Route Table with private subnet
