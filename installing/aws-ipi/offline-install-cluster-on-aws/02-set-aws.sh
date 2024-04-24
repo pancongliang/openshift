@@ -335,7 +335,7 @@ INSTANCE_IP=$(aws --region $REGION ec2 describe-instances --instance-ids $INSTAN
 run_command "[Get the public IP address of the instance: $INSTANCE_IP]"
 
 # Copy the installation script to the bastion machine
-scp -o StrictHostKeyChecking=no -i ./$KEY_PAIR_NAME.pem ./01-set-parameter.sh ./03-install-pre.sh ./04-final-setting.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 
+scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i ./$KEY_PAIR_NAME.pem ./01-set-parameter.sh ./03-install-pre.sh ./04-final-setting.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
 run_command "[Copy the installation script to the $INSTANCE_NAME]"
 
 # Create access bastion machine file in current directory
