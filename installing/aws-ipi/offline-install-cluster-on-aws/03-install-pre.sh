@@ -70,6 +70,7 @@ echo
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
+rm -rf $HOME/.aws
 mkdir -p $HOME/.aws
 cat << EOF > "$HOME/.aws/credentials"
 [default]
