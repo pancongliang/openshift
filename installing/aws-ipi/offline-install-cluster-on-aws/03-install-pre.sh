@@ -32,9 +32,9 @@ packages=("wget" "zip" "vim" "podman" "bash-completion" "jq")
 for package in "${packages[@]}"; do
     sudo yum install -y "$package" &>/dev/null
     if [ $? -eq 0 ]; then
-        echo "ok: [install $package package]"
+        echo "ok: [Install $package package]"
     else
-        echo "failed: [install $package package]"
+        echo "failed: [Install $package package]"
     fi
 done
 
@@ -71,13 +71,13 @@ install_tar_gz() {
     # Download the tool
     sudo wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
     if [ $? -eq 0 ]; then
-        echo "ok: [download $tool_name tool]"        
+        echo "ok: [Download $tool_name tool]"        
         # Extract the downloaded tool
         sudo tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
         # Remove the downloaded .tar.gz file
         sudo rm -f "/usr/local/bin/$(basename $tool_url)"
     else
-        echo "failed: [download $tool_name tool]"
+        echo "failed: [Download $tool_name tool]"
     fi
 }
 
@@ -100,12 +100,12 @@ if sudo podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)'
     ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
-        echo "ok: [uninstall the mirror registry]"
+        echo "ok: [Uninstall the mirror registry]"
     else
-        echo "failed: [uninstall the mirror registry]"
+        echo "failed: [Uninstall the mirror registry]"
     fi
 else
-    echo "skipping: [no active mirror registry pod found. skipping uninstallation]"
+    echo "skipping: [No active mirror registry pod found. skipping uninstallation]"
 fi
 
 # Delete existing duplicate data
@@ -117,7 +117,7 @@ for file in "${files[@]}"; do
     if [ -e "$file" ]; then
         sudo rm -rf "$file" 2>/dev/null
         if [ $? -eq 0 ]; then
-            echo "ok: [delete existing duplicate data: $file]"
+            echo "ok: [Delete existing duplicate data: $file]"
         fi
     fi
 done
@@ -143,18 +143,18 @@ mkdir -p ${REGISTRY_INSTALL_PATH}
 mkdir ${REGISTRY_INSTALL_PATH}/quay-storage
 mkdir ${REGISTRY_INSTALL_PATH}/pg-storage
 chmod -R 777 ${REGISTRY_INSTALL_PATH}
-run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
+run_command "[Create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
 wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
-run_command "[download mirror-registry package]"
+run_command "[Download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
 tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
-run_command "[extract the mirror-registry package]"
+run_command "[Extract the mirror-registry package]"
 
 
-echo "ok: [start installing mirror-registry...]"
+echo "ok: [Start installing mirror-registry...]"
 
 sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname $HOSTNAME \
@@ -162,25 +162,25 @@ sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
      --pgStorage ${REGISTRY_INSTALL_PATH}/pg-storage \
      --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} 
-run_command "[installing mirror-registry...]"
+run_command "[Installing mirror-registry...]"
 
 sleep 60
 
 # Get the status and number of containers for quay-pod
 sudo podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
-run_command "[mirror registry Pod is running]"
+run_command "[Mirror Registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
 sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/quay.ca.pem
-run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/quay.ca.pem]"
+run_command "[Copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/quay.ca.pem]"
 
 # Trust the rootCA certificate
 sudo update-ca-trust
-run_command "[trust the rootCA certificate]"
+run_command "[Trust the rootCA certificate]"
 
 # loggin registry
 podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${HOSTNAME}:8443 &>/dev/null
-run_command  "[login registry https://${HOSTNAME}:8443]"
+run_command  "[Login registry https://${HOSTNAME}:8443]"
 
 sudo rm -rf ./*.tar
 # Add an empty line after the task
@@ -198,22 +198,22 @@ PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
 # Create a temporary file to store the pull secret
 PULL_SECRET=$(mktemp -p $HOME)
 echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
-run_command "[create a temporary file to store the pull secret]"
+run_command "[Create a temporary file to store the pull secret]"
 
 # Login to the registry
 rm -rf $XDG_RUNTIME_DIR/containers
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "https://${HOSTNAME}:8443" &>/dev/null
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "https://${HOSTNAME}:8443" &>/dev/null
-run_command "[add authentication information to pull-secret]"
+run_command "[Add authentication information to pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
 cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
-run_command "[save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json]"
+run_command "[Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create ImageSetConfiguration directory
 sudo rm -rf ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
 mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
-run_command "[create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
+run_command "[Create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
 
 # Create ImageSetConfiguration file
 sudo cat << EOF > ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml
@@ -231,15 +231,15 @@ mirror:
         maxVersion: ${OCP_RELEASE_VERSION}
         shortestPath: true
 EOF
-run_command "[create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
+run_command "[Create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
 oc mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
-run_command "[mirroring ocp ${OCP_RELEASE_VERSION} release image]"
+run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
 sudo rm -f "${PULL_SECRET}"
-run_command "[remove temporary pull-secret file]"
+run_command "[Remove temporary pull-secret file]"
 
 # Add an empty line after the task
 echo
@@ -253,15 +253,15 @@ PRINT_TASK "[TASK: Generate a defined install-config file]"
 # Backup and format the registry CA certificate
 sudo rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
 sudo cp "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-run_command "[backup registry CA certificate]"
+run_command "[Backup registry CA certificate]"
 
 sudo sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-run_command "[format registry ca certificate]"
+run_command "[Format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
 sudo rm -rf ${SSH_KEY_PATH}
 ssh-keygen -N '' -f ${HOME}/.ssh/id_rsa &> /dev/null
-run_command "[create ssh-key for accessing coreos]"
+run_command "[Create ssh-key for accessing coreos]"
 
 # Define variables
 export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak)"
@@ -341,7 +341,7 @@ run_command "[Generate a defined install-config file]"
 
 # Delete certificate
 sudo rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
-run_command "[delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
+run_command "[Delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
 # Add an empty line after the task
 echo
