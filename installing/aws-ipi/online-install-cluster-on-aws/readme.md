@@ -1,4 +1,4 @@
-# Installing a cluster quickly on AWS
+## Installing a cluster quickly on AWS
 
 ### Install aws and oc command
 
@@ -13,8 +13,8 @@ source 01-install-pre.sh
 ```
 
 
-## Download pull-secret
-[Download pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
+### Download pull-secret
+Download [pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
 
 ### Create install-config
 
