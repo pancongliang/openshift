@@ -23,6 +23,16 @@ echo
 # ====================================================
 
 
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
+
 # === Task: Install AWS CLI ===
 PRINT_TASK "[TASK: Install AWS CLI]"
 
@@ -177,15 +187,6 @@ done
 echo
 # ====================================================
 
-
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
 
 # === Task: Install mirror registry ===
 PRINT_TASK "[TASK: Install mirror registry]"
