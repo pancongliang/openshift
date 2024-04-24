@@ -20,6 +20,7 @@ run_command() {
     fi
 }
 
+# https://docs.aws.amazon.com/vpc/latest/userguide/delete-vpc.html#delete-vpc-cli
 
 # === Delete EC2 Instance ===
 PRINT_TASK "[TASK: Delete EC2 Instance]"
@@ -97,30 +98,37 @@ echo
 # ====================================================
 sleep 1
 
-# === Delete Network ACL ===
-# PRINT_TASK "[TASK: Delete Network ACL]"
-# Get network ACL ID and delete
-# VPC_ID=$(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query 'Vpcs[0].VpcId' --output text)
-# ACL_ID=$(aws --region $REGION ec2 describe-network-acls --filters "Name=vpc-id,Values=$VPC_ID" --query 'NetworkAcls[0].NetworkAclId' --output text)
-# aws --region $REGION ec2 delete-network-acl --network-acl-id $ACL_ID >/dev/null
-# run_command "[Deleting network ACL: $ACL_ID]"
+# === Delete Private Subnet ===
+PRINT_TASK "[TASK: Delete Private Subnet]"
+aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
+run_command "[Deleting private subnet: ${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}]"
 
 # Add an empty line after the task
 echo
 # ====================================================
 sleep 1
 
+# === Delete Public Subnet ===
+PRINT_TASK "[TASK: Delete Public Subnet]"
+aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
+run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}]"
+
+# Add an empty line after the task
+echo
+# ====================================================
+
 # === Delete Route Tables ===
 PRINT_TASK "[TASK: Delete Route Tables]"
 # Get route table IDs and delete
 PUBLIC_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$PUBLIC_RTB_NAME" --query 'RouteTables[0].RouteTableId' --output text)
+# PUBLIC_SUBNET_ASSOCIATIONS=$(aws --region $REGION ec2 describe-route-tables --route-table-id $PUBLIC_RTB_ID --query "RouteTables[0].Associations[].RouteTableAssociationId" --output text)
+# aws --region $REGION ec2 disassociate-route-table --association-id $PUBLIC_SUBNET_ASSOCIATIONS >/dev/null
 aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_RTB_ID >/dev/null
-aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_RTB_ID
 run_command "[Deleting public route table: $PUBLIC_RTB_ID]"
 
 PRIVATE_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=$PRIVATE_RTB_NAME" --query 'RouteTables[0].RouteTableId' --output text)
-SUBNET_ASSOCIATIONS=$(aws --region $REGION ec2 describe-route-tables --route-table-id $PRIVATE_RTB_ID --query "RouteTables[0].Associations[].RouteTableAssociationId" --output text)
-aws --region $REGION ec2 disassociate-route-table --association-id $SUBNET_ASSOCIATIONS >/dev/null
+PRIVATE_SUBNET_ASSOCIATIONS=$(aws --region $REGION ec2 describe-route-tables --route-table-id $PRIVATE_RTB_ID --query "RouteTables[0].Associations[].RouteTableAssociationId" --output text)
+aws --region $REGION ec2 disassociate-route-table --association-id $PRIVATE_SUBNET_ASSOCIATIONS >/dev/null
 aws --region $REGION ec2 delete-route-table --route-table-id $PRIVATE_RTB_ID >/dev/null
 run_command "[Deleting private route table: $PRIVATE_RTB_ID]"
 
@@ -140,26 +148,6 @@ run_command "[Detaching internet gateway: $IGW_ID from VPC: $VPC_ID]"
 aws --region $REGION ec2 delete-internet-gateway --internet-gateway-id $IGW_ID >/dev/null
 run_command "[Deleting internet gateway: $IGW_ID]"
 
-
-# Add an empty line after the task
-echo
-# ====================================================
-sleep 1
-
-# === Delete Private Subnet ===
-PRINT_TASK "[TASK: Delete Private Subnet]"
-aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
-run_command "[Deleting private subnet: ${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}]"
-
-# Add an empty line after the task
-echo
-# ====================================================
-sleep 1
-
-# === Delete Public Subnet ===
-PRINT_TASK "[TASK: Delete Public Subnet]"
-aws --region $REGION ec2 delete-subnet --subnet-id $(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text) >/dev/null
-run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}]"
 
 # Add an empty line after the task
 echo
