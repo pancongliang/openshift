@@ -293,8 +293,8 @@ oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker:/
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
-sudo rm -f "${PULL_SECRET}" 
-sudo rm -f oc-mirror-workspace*
+sudo rm -f "${PULL_SECRET}" &>/dev/null
+sudo rm -f oc-mirror-workspac* &>/dev/null
 run_command "[Remove temporary pull-secret file]"
 
 # Add an empty line after the task
