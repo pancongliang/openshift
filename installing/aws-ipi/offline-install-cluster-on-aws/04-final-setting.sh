@@ -47,12 +47,32 @@ PRINT_TASK "[TASK: Create *.apps.$CLUSTER_NAME record]"
 # Create record
 RECORD_NAME="*.apps"
 RECORD_TYPE="A"
-HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name --query "HostedZones[?Name=='$HOSTED_ZONE_NAME.'].Id" --output text)
+HOSTED_ZONE_ID=$(aws --region $REGION route53 list-hosted-zones --query "HostedZones[?Name=='$HOSTED_ZONE_NAME.'].Id" --output text | awk -F'/' '{print $3}')
 VPC_ID=$(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text)
-ELB_DNS_NAME=$(aws elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName" --output text)
-LOAD_BALANCER_HOSTED_ZONE_ID=$(aws ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.$REGION.elasticloadbalancing" --query "VpcEndpoints[0].ServiceDetails.AvailabilityZones[0].LoadBalancers[0].CanonicalHostedZoneId" --output text)
-aws route53 create-record --hosted-zone-id $HOSTED_ZONE_ID --name "$RECORD_NAME.$CLUSTER_NAME" --type $RECORD_TYPE --alias-target "HostedZoneId=$LOAD_BALANCER_HOSTED_ZONE_ID,DNSName=$ELB_DNS_NAME" --region $REGION
+ELB_DNS_NAME=$(aws --region $REGION elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName" --output text)
+ELB_HOSTED_ZONE_ID=$(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.$REGION.elasticloadbalancing" --query "VpcEndpoints[0].ServiceDetails.AvailabilityZones[0].LoadBalancers[0].CanonicalHostedZoneId" --output text)
+aws --region $REGION route53 create-record --hosted-zone-id $HOSTED_ZONE_ID --name "$RECORD_NAME.$CLUSTER_NAME" --type $RECORD_TYPE --alias-target "HostedZoneId=$ELB_HOSTED_ZONE_ID,DNSName=$ELB_DNS_NAME"
 run_command "[ Create *.apps.$CLUSTER_NAME record]"
+
+
+aws --region $REGION route53 change-resource-record-sets \
+    --hosted-zone-id $HOSTED_ZONE_ID \
+    --change-batch '{
+        "Changes": [
+            {
+                "Action": "CREATE",
+                "ResourceRecordSet": {
+                    "Name": "*.apps.$CLUSTER_NAME.$BASE_DOMAIN",
+                    "Type": "A",
+                    "AliasTarget": {
+                        "HostedZoneId": "Z2FDTNDATAQYW2",  # Elastic Load Balancer 的固定别名托管区域 ID
+                        "DNSName": "dualstack.$ELB_DNS_NAME",
+                        "EvaluateTargetHealth": false
+                    }
+                }
+            }
+        ]
+    }'
 
 # Add an empty line after the task
 echo
