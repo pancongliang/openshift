@@ -226,11 +226,11 @@ podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/
 run_command "[Mirror Registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
-sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/quay.ca.pem
+sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/quay.ca.pem &>/dev/null
 run_command "[Copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/quay.ca.pem]"
 
 # Trust the rootCA certificate
-sudo update-ca-trust
+sudo update-ca-trust &>/dev/null
 run_command "[Trust the rootCA certificate]"
 
 # loggin registry
@@ -256,7 +256,7 @@ echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
 run_command "[Create a temporary file to store the pull secret]"
 
 # Login to the registry
-rm -rf $XDG_RUNTIME_DIR/containers
+rm -rf $XDG_RUNTIME_DIR/containers &>/dev/null
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "https://${HOSTNAME}:8443" &>/dev/null
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "https://${HOSTNAME}:8443" &>/dev/null
 run_command "[Add authentication information to pull-secret]"
@@ -293,8 +293,8 @@ oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker:/
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
+sudo rm -f ./oc-mirror-workspac* &>/dev/null
 sudo rm -f "${PULL_SECRET}" &>/dev/null
-sudo rm -f oc-mirror-workspac* &>/dev/null
 run_command "[Remove temporary pull-secret file]"
 
 # Add an empty line after the task
