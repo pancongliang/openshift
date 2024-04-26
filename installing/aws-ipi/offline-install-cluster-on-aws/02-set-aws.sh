@@ -72,30 +72,6 @@ echo
 # ====================================================
 
 
-
-#!/bin/bash
-
-# Function to print a task with uniform length
-PRINT_TASK() {
-    max_length=110  # Adjust this to your desired maximum length
-    task_title="$1"
-    title_length=${#task_title}
-    stars=$((max_length - title_length))
-
-    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
-}
-# ====================================================
-
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
-
-
 # === Task: Create VPC ===
 PRINT_TASK "[TASK: Create VPC]"
 
