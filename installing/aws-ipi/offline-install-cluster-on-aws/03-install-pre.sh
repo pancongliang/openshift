@@ -401,6 +401,22 @@ run_command "[Generate a defined install-config file]"
 sudo rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
 run_command "[Delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
+
+# Delete the private zone in the cluster-dns-02-config.yml file
+cat << EOF > $INSTALL/manifests/cluster-dns-02-config.yml
+apiVersion: config.openshift.io/v1
+kind: DNS
+metadata:
+  creationTimestamp: null
+  name: cluster
+spec:
+  baseDomain: $CLUSTER_NAME.$BASE_DOMAIN
+  platform:
+    type: ""
+status: {}
+EOF
+run_command "[Delete the private zone in the manifests/cluster-dns-02-config.yml file]"
+
 # Add an empty line after the task
 echo
 # ====================================================
