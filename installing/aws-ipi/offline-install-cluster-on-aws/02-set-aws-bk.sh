@@ -73,29 +73,6 @@ echo
 
 
 
-#!/bin/bash
-
-# Function to print a task with uniform length
-PRINT_TASK() {
-    max_length=110  # Adjust this to your desired maximum length
-    task_title="$1"
-    title_length=${#task_title}
-    stars=$((max_length - title_length))
-
-    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
-}
-# ====================================================
-
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
-
-
 # === Task: Create VPC ===
 PRINT_TASK "[TASK: Create VPC]"
 
@@ -186,44 +163,70 @@ run_command "[Associate private Route Table with private subnet]"
 
 
 # === Task: Create security group ===
-PRINT_TASK "[TASK: Create security group]"
+# PRINT_TASK "[TASK: Create security group]"
 
 # Create public security group and get public security group ID
-PUBLIC_SECURITY_GROUP_ID=$(aws --region $REGION ec2 create-security-group --group-name "$PUBLIC_SECURITY_GROUP_NAME" --description "$PUBLIC_SECURITY_GROUP_NAME" --vpc-id ${VPC_ID} --query 'GroupId' --output text)
-run_command "[Create public security group: $PUBLIC_SECURITY_GROUP_ID]"
+# PUBLIC_SECURITY_GROUP_ID=$(aws --region $REGION ec2 create-security-group --group-name "$PUBLIC_SECURITY_GROUP_NAME" --description "$PUBLIC_SECURITY_GROUP_NAME" --vpc-id ${VPC_ID} --query 'GroupId' --output text)
+# run_command "[Create public security group: $PUBLIC_SECURITY_GROUP_ID]"
 
 # Add tag to public security group
-aws --region $REGION ec2 create-tags --resources $PUBLIC_SECURITY_GROUP_ID --tags Key=Name,Value="$PUBLIC_SECURITY_GROUP_NAME"
-run_command "[Add tag to public security group: $PUBLIC_SECURITY_GROUP_NAME]"
+# aws --region $REGION ec2 create-tags --resources $PUBLIC_SECURITY_GROUP_ID --tags Key=Name,Value="$PUBLIC_SECURITY_GROUP_NAME"
+# run_command "[Add tag to public security group: $PUBLIC_SECURITY_GROUP_NAME]"
 
 # Add inbound rules SSH for public security group
-aws --region $REGION ec2 authorize-security-group-ingress --group-id ${PublicSecurityGroupId} --protocol tcp --port 22 --cidr 0.0.0.0/0
-run_command "[Add inbound rule - SSH for public security group]"
+# aws --region $REGION ec2 authorize-security-group-ingress --group-id ${PublicSecurityGroupId} --protocol tcp --port 22 --cidr 0.0.0.0/0
+# run_command "[Add inbound rule - SSH for public security group]"
 
 # Add inbound rule All traffic for public security group
-aws --region $REGION ec2 authorize-security-group-ingress --group-id ${PublicSecurityGroupId} --protocol all --cidr 10.0.0.0/16
-run_command "[Add inbound rule - All for public security group]"
+# aws --region $REGION ec2 authorize-security-group-ingress --group-id ${PublicSecurityGroupId} --protocol all --cidr 10.0.0.0/16
+# run_command "[Add inbound rule - All for public security group]"
 
 
 
 # Create private security group and get public security group ID
-PRIVATE_SECURITY_GROUP_ID=$(aws --region $REGION ec2 create-security-group --group-name "$PRIVATE_SECURITY_GROUP_NAME" --description "$PRIVATE_SECURITY_GROUP_NAME" --vpc-id ${VPC_ID} --query 'GroupId' --output text)
-run_command "[Create private security group: $PRIVATE_SECURITY_GROUP_ID]"
+# PRIVATE_SECURITY_GROUP_ID=$(aws --region $REGION ec2 create-security-group --group-name "$PRIVATE_SECURITY_GROUP_NAME" --description "$PRIVATE_SECURITY_GROUP_NAME" --vpc-id ${VPC_ID} --query 'GroupId' --output text)
+# run_command "[Create private security group: $PRIVATE_SECURITY_GROUP_ID]"
 
-# Add tag to private security group
-aws --region $REGION ec2 create-tags --resources $PRIVATE_SECURITY_GROUP_ID --tags Key=Name,Value="$PRIVATE_SECURITY_GROUP_NAME"
-run_command "[Add tag to private security group: $PRIVATE_SECURITY_GROUP_NAME]"
+# # Add tag to private security group
+# aws --region $REGION ec2 create-tags --resources $PRIVATE_SECURITY_GROUP_ID --tags Key=Name,Value="$PRIVATE_SECURITY_GROUP_NAME"
+# run_command "[Add tag to private security group: $PRIVATE_SECURITY_GROUP_NAME]"
 
 # Add inbound rule All traffic for private security group
-aws --region $REGION ec2 authorize-security-group-ingress --group-id ${PRIVATE_SECURITY_GROUP_ID} --protocol all --cidr 10.0.0.0/16
-run_command "[Add inbound rule - All for private security group]"
+# aws --region $REGION ec2 authorize-security-group-ingress --group-id ${PRIVATE_SECURITY_GROUP_ID} --protocol all --cidr 10.0.0.0/16
+# run_command "[Add inbound rule - All for private security group]"
 
 # Add outbound rule All traffic for private security group
-aws --region $REGION ec2 authorize-security-group-egress  --group-id  ${PRIVATE_SECURITY_GROUP_ID} --protocol all  --cidr 10.0.0.0/16
-run_command "[Add outbound rule - All for private security group]"
+# aws --region $REGION ec2 authorize-security-group-egress  --group-id  ${PRIVATE_SECURITY_GROUP_ID} --protocol all  --cidr 10.0.0.0/16
+# run_command "[Add outbound rule - All for private security group]"
 
 # aws --region $REGION ec2 revoke-security-group-egress --group-id ${PRIVATE_SECURITY_GROUP_ID} --protocol all --cidr 0.0.0.0/0
 
+
+# === Task: Create security group ===
+PRINT_TASK "[TASK: Create security group]"
+
+# Create security group and get security group ID
+SECURITY_GROUP_DESCRIPTION="External SSH and all internal traffic"
+SECURITY_GROUP_ID=$(aws --region $REGION ec2 create-security-group --group-name "$SECURITY_GROUP_NAME" --description "$SECURITY_GROUP_DESCRIPTION" --vpc-id $VPC_ID --output text)
+run_command "[Create security group and get security group ID: $SECURITY_GROUP_ID]"
+
+# Add tag to security group
+aws --region $REGION ec2 create-tags --resources $SECURITY_GROUP_ID --tags Key=Name,Value=$SECURITY_GROUP_NAME
+run_command "[Add tag to security group: $SECURITY_GROUP_NAME]"
+
+# Add inbound rule - SSH
+aws --region $REGION ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 >/dev/null
+run_command "[Add inbound rule - SSH]"
+
+# Add inbound rule - All traffic
+aws --region $REGION ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol all --port -1 --cidr 10.0.0.0/16 >/dev/null
+run_command "[Add inbound rule - All traffic]"
+
+# Add outbound rule - All traffic
+# aws --region $REGION ec2 authorize-security-group-egress --group-id $SECURITY_GROUP_ID --protocol all --port all --cidr 0.0.0.0/0 >/dev/null
+# run_command "[Add outbound rule - All traffic]"
+aws --region $REGION ec2 describe-security-groups --group-ids $SECURITY_GROUP_ID | grep -A 5 "IpPermissionsEgress" >/dev/null
+run_command "[Default existing outbound rule - All traffic]"
 
 # Add an empty line after the task
 echo
