@@ -98,20 +98,22 @@ run_command "[Enable DNS resolution for the VPC: $VPC_ID]"
 PUBLIC_SUBNET_ID=$(aws --region $REGION ec2 create-subnet --vpc-id $VPC_ID --cidr-block $PUBLIC_SUBNET_CIDR --availability-zone $AVAILABILITY_ZONE --query 'Subnet.SubnetId' --output text)
 run_command "[Create public subnet and get public subnet ID: $PUBLIC_SUBNET_ID]"
 
-PRIVATE_SUBNET_ID=$(aws --region $REGION ec2 create-subnet --vpc-id $VPC_ID --cidr-block $PRIVATE_SUBNET_CIDR --availability-zone $AVAILABILITY_ZONE --query 'Subnet.SubnetId' --output text)
-run_command "[Create private subnet and get subnet ID: $PRIVATE_SUBNET_ID]"
-
-# Add tag name to subnet name
+# Add tag name to public subnet 
 aws --region $REGION ec2 create-tags --resources $PUBLIC_SUBNET_ID --tags Key=Name,Value="${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}"
 run_command "[Add tag name to subnet name: ${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}]"
 
+# Create priavate subnet and get priavate subnet ID
+PRIVATE_SUBNET_ID=$(aws --region $REGION ec2 create-subnet --vpc-id $VPC_ID --cidr-block $PRIVATE_SUBNET_CIDR --availability-zone $AVAILABILITY_ZONE --query 'Subnet.SubnetId' --output text)
+run_command "[Create private subnet and get subnet ID: $PRIVATE_SUBNET_ID]"
+
+# Add tag name to priavate subnet
 aws --region $REGION ec2 create-tags --resources $PRIVATE_SUBNET_ID --tags Key=Name,Value="${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}"
 run_command "[Add tag name to subnet name: ${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}]"
 
 
 
 # Create Internet Gateway
-IGW_ID=$(aws --region $REGION ec2 create-internet-gateway --tag-specifications 'ResourceType=internet-gateway,Tags=[{Key=Name,Value="'$TAG_NAME_igw'"}]' --query 'InternetGateway.InternetGatewayId' --output text)
+IGW_ID=$(aws --region $REGION ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text)
 run_command "[Create Internet Gateway: $IGW_ID]"
 
 # Add tag to Internet Gateway
@@ -125,7 +127,6 @@ run_command "[Attach Internet Gateway $IGW_ID to VPC: $VPC_ID]"
 
 
 # Create public Route Table
-# PUBLIC_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value='$TAG_NAME_public-rtb'}]' --query 'RouteTable.RouteTableId' --output text)
 PUBLIC_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --query 'RouteTable.RouteTableId' --output text)
 run_command "[Create public Route Table: $PUBLIC_ROUTE_TABLE_ID]"
 
@@ -133,10 +134,7 @@ run_command "[Create public Route Table: $PUBLIC_ROUTE_TABLE_ID]"
 aws --region $REGION ec2 create-tags --resources $PUBLIC_ROUTE_TABLE_ID --tags Key=Name,Value="$PUBLIC_RTB_NAME"
 run_command "[Add tag to public Route Table: $PUBLIC_RTB_NAME]"
 
-
-
 # Create private Route Table
-# PRIVATE_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value='$TAG_NAME_private-rtb'}]' --query 'RouteTable.RouteTableId' --output text)
 PRIVATE_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --query 'RouteTable.RouteTableId' --output text)
 run_command "[Create private Route Table: $PRIVATE_ROUTE_TABLE_ID]"
 
@@ -144,13 +142,9 @@ run_command "[Create private Route Table: $PRIVATE_ROUTE_TABLE_ID]"
 aws --region $REGION ec2 create-tags --resources $PRIVATE_ROUTE_TABLE_ID --tags Key=Name,Value="$PRIVATE_RTB_NAME"
 run_command "[Add tag to private Route Table: $PRIVATE_RTB_NAME]"
 
-
-
-# Link to Internet Gateway
+# Link public Route Table to Internet Gateway
 aws --region $REGION ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID --route-table-id $PUBLIC_ROUTE_TABLE_ID >/dev/null
-run_command "[Link to Internet Gateway]"
-
-
+run_command "[Link public Route Table to Internet Gateway]"
 
 # Associate public Route Table with public subnet
 aws --region $REGION ec2 associate-route-table --subnet-id $PUBLIC_SUBNET_ID --route-table-id $PUBLIC_ROUTE_TABLE_ID >/dev/null                 
@@ -160,46 +154,6 @@ run_command "[Associate public Route Table with public subnet]"
 aws --region $REGION ec2 associate-route-table --subnet-id $PRIVATE_SUBNET_ID --route-table-id $PRIVATE_ROUTE_TABLE_ID >/dev/null
 run_command "[Associate private Route Table with private subnet]"
 
-
-
-# === Task: Create security group ===
-# PRINT_TASK "[TASK: Create security group]"
-
-# Create public security group and get public security group ID
-# PUBLIC_SECURITY_GROUP_ID=$(aws --region $REGION ec2 create-security-group --group-name "$PUBLIC_SECURITY_GROUP_NAME" --description "$PUBLIC_SECURITY_GROUP_NAME" --vpc-id ${VPC_ID} --query 'GroupId' --output text)
-# run_command "[Create public security group: $PUBLIC_SECURITY_GROUP_ID]"
-
-# Add tag to public security group
-# aws --region $REGION ec2 create-tags --resources $PUBLIC_SECURITY_GROUP_ID --tags Key=Name,Value="$PUBLIC_SECURITY_GROUP_NAME"
-# run_command "[Add tag to public security group: $PUBLIC_SECURITY_GROUP_NAME]"
-
-# Add inbound rules SSH for public security group
-# aws --region $REGION ec2 authorize-security-group-ingress --group-id ${PublicSecurityGroupId} --protocol tcp --port 22 --cidr 0.0.0.0/0
-# run_command "[Add inbound rule - SSH for public security group]"
-
-# Add inbound rule All traffic for public security group
-# aws --region $REGION ec2 authorize-security-group-ingress --group-id ${PublicSecurityGroupId} --protocol all --cidr 10.0.0.0/16
-# run_command "[Add inbound rule - All for public security group]"
-
-
-
-# Create private security group and get public security group ID
-# PRIVATE_SECURITY_GROUP_ID=$(aws --region $REGION ec2 create-security-group --group-name "$PRIVATE_SECURITY_GROUP_NAME" --description "$PRIVATE_SECURITY_GROUP_NAME" --vpc-id ${VPC_ID} --query 'GroupId' --output text)
-# run_command "[Create private security group: $PRIVATE_SECURITY_GROUP_ID]"
-
-# # Add tag to private security group
-# aws --region $REGION ec2 create-tags --resources $PRIVATE_SECURITY_GROUP_ID --tags Key=Name,Value="$PRIVATE_SECURITY_GROUP_NAME"
-# run_command "[Add tag to private security group: $PRIVATE_SECURITY_GROUP_NAME]"
-
-# Add inbound rule All traffic for private security group
-# aws --region $REGION ec2 authorize-security-group-ingress --group-id ${PRIVATE_SECURITY_GROUP_ID} --protocol all --cidr 10.0.0.0/16
-# run_command "[Add inbound rule - All for private security group]"
-
-# Add outbound rule All traffic for private security group
-# aws --region $REGION ec2 authorize-security-group-egress  --group-id  ${PRIVATE_SECURITY_GROUP_ID} --protocol all  --cidr 10.0.0.0/16
-# run_command "[Add outbound rule - All for private security group]"
-
-# aws --region $REGION ec2 revoke-security-group-egress --group-id ${PRIVATE_SECURITY_GROUP_ID} --protocol all --cidr 0.0.0.0/0
 
 
 # === Task: Create security group ===
@@ -261,14 +215,18 @@ run_command "[Create the VPC endpoint for the ELB Service: $ELB_ENDPOINT_ID]"
 aws ec2 create-tags --resources $ELB_ENDPOINT_ID --tags Key=Name,Value="$ELB_ENDPOINT_NAME"
 run_command "[Add tags to EC2 Service endpoint: $ELB_ENDPOINT_NAME]"
 
-# Obtain unique security group IDs associated with the ELB endpoint
+# Obtain default security group IDs associated with the ELB endpoint
 ELB_ENDPOINT_SG_DEFAULT=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids $ELB_ENDPOINT_ID | jq -r '.VpcEndpoints[].Groups[].GroupId' | uniq)
+run_command "[Obtain default security group IDs associated with the ELB endpoint]"
 
-# Add the unique security group IDs to the ELB endpoint
+# Add the default security group IDs and the $SECURITY_GROUP_NAME security group ID to the ELB endpoint
 aws ec2 modify-vpc-endpoint --vpc-endpoint-id ${ELB_ENDPOINT_ID} --add-security-group-ids ${ELB_ENDPOINT_SG_DEFAULT} --add-security-group-ids ${SECURITY_GROUP_ID}
+run_command "[Add default security groups and provided security group to ELB endpoint]"
 
-# Remove the previously associated security group IDs from the ELB endpoint
+# Remove default security group IDs from the ELB endpoint
 aws ec2 modify-vpc-endpoint --vpc-endpoint-id ${ELB_ENDPOINT_ID} --remove-security-group-ids ${ELB_ENDPOINT_SG_DEFAULT}
+run_command "[Remove default security group IDs from ELB endpoint]"
+
 
 
 # Add an empty line after the task
@@ -280,12 +238,24 @@ echo
 PRINT_TASK "[TASK: Create the VPC endpoint for the EC2 Service]"
 
 # Create the VPC endpoint for the EC2 Service and get endpoint ID
-EC2_ENDPOINT_ID=$(aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id ${VPC_ID} --service-name com.amazonaws.$REGION.ec2 --security-group-ids ${SECURITY_GROUP_ID} --subnet-ids $PRIVATE_SUBNET_ID --private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
-run_command "[Create EC2 endpoint and get EC2 endpoint: $EC2_ENDPOINT_ID]"
+EC2_ENDPOINT_ID=$(aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id ${VPC_ID} --service-name com.amazonaws.$REGION.ec2 --subnet-ids $PRIVATE_SUBNET_ID --private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
+run_command "[Create the VPC endpoint for the EC2 Service: $EC2_ENDPOINT_ID]"
 
-# Add tag to the EC2 VPC endpoint
+# Add tag to EC2 Service endpoint
 aws ec2 create-tags --resources $EC2_ENDPOINT_ID --tags Key=Name,Value="$EC2_ENDPOINT_NAME"
-run_command "[Add tag to EC2 VPC endpoint: $EC2_ENDPOINT_NAME]"
+run_command "[Add tags to EC2 Service endpoint: $EC2_ENDPOINT_NAME]"
+
+# Obtain default security group IDs associated with the EC2 endpoint
+EC2_ENDPOINT_SG_DEFAULT=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids $EC2_ENDPOINT_ID | jq -r '.VpcEndpoints[].Groups[].GroupId' | uniq)
+run_command "[Obtain default security group IDs associated with the EC2 endpoint]"
+
+# Add the default security group IDs and the $SECURITY_GROUP_NAME security group ID to the EC2 endpoint
+aws ec2 modify-vpc-endpoint --vpc-endpoint-id ${EC2_ENDPOINT_ID} --add-security-group-ids ${EC2_ENDPOINT_SG_DEFAULT} --add-security-group-ids ${SECURITY_GROUP_ID}
+run_command "[Add default security groups and provided security group to EC2 endpoint]"
+
+# Remove default security group IDs from the EC2 endpoint
+aws ec2 modify-vpc-endpoint --vpc-endpoint-id ${EC2_ENDPOINT_ID} --remove-security-group-ids ${EC2_ENDPOINT_SG_DEFAULT}
+run_command "[Remove default security group IDs from EC2 endpoint]"
 
 # Add an empty line after the task
 echo
@@ -299,11 +269,11 @@ PRINT_TASK "[TASK: Create private hosted zone]"
 HOSTED_ZONE_ID=$(aws --region $REGION route53 create-hosted-zone \
     --name $HOSTED_ZONE_NAME \
     --caller-reference "$(date +%Y%m%d%H%M%S)" \
-    --hosted-zone-config Comment="copan-ocp-test" \
+    --hosted-zone-config Comment="$TAG_NAME-test" \
     --vpc "VPCRegion=$REGION,VPCId=$VPC_ID" \
     --query 'HostedZone.Id' \
     --output text)
-run_command "[Create private hosted zone and get PHZ: $HOSTED_ZONE_ID]"
+run_command "[Create private hosted zone and get PHZ ID: $HOSTED_ZONE_ID]"
 
 # Add an empty line after the task
 echo
@@ -323,10 +293,10 @@ AMI_ID=$(aws --region $REGION ec2 describe-images \
     --filters "Name=name,Values=RHEL-9.3.0_HVM-*-x86_64-49-Hourly2-GP3" \
     --query "sort_by(Images, &CreationDate)[-1].ImageId" \
     --output text)
-run_command "[Retrieves the latest RHEL AMI ID that matches the specified name pattern: $AMI_ID]"
+run_command "[Retrieves the latest RHEL9 AMI ID that matches the specified name pattern: $AMI_ID]"
 
 
-# Launch instance
+# Create bastion ec2 instance
 INSTANCE_ID=$(aws --region $REGION ec2 run-instances \
     --image-id $AMI_ID \
     --instance-type t3.large \
@@ -339,7 +309,7 @@ INSTANCE_ID=$(aws --region $REGION ec2 run-instances \
     --query "Instances[0].InstanceId" \
     --output text
 )
-run_command "[Create instance: $INSTANCE_NAME]"
+run_command "[Create bastion ec2 instance: $INSTANCE_NAME]"
 
 # Wait for instance to be in running state
 aws --region $REGION  ec2 wait instance-status-ok --instance-ids $INSTANCE_ID
@@ -352,11 +322,11 @@ run_command "[Wait for $INSTANCE_ID instance to be in running state]"
 chmod 400 $KEY_PAIR_NAME.pem
 run_command "[Modify permissions for the key pair file: $KEY_PAIR_NAME.pem]"
 
-# Get the public IP address of the instance
+# Get the public IP address of the bastion ec2 instance
 INSTANCE_IP=$(aws --region $REGION ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
 run_command "[Get the public IP address of the instance: $INSTANCE_IP]"
 
-# Copy the installation script to the bastion machine
+# Copy the installation script to the bastion ec2 instance
 scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i ./$KEY_PAIR_NAME.pem ./01-set-parameter.sh ./03-install-pre.sh ./04-final-setting.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
 run_command "[Copy the installation script to the $INSTANCE_NAME]"
 
