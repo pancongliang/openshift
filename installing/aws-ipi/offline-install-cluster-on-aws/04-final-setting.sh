@@ -64,7 +64,7 @@ aws --region $REGION route53 change-resource-record-sets \
                     "AliasTarget": {
                         "HostedZoneId": "$ALB_HOSTED_ZONE_IDS",
                         "DNSName": "dualstack.$ELB_DNS_NAME",
-                        "EvaluateTargetHealth": false
+                        "EvaluateTargetHealth": true
                     }
                 }
             }
