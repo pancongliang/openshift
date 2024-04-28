@@ -87,7 +87,7 @@ install_tar_gz() {
         # Extract the downloaded tool
         sudo tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
         # Remove the downloaded .tar.gz file
-        sudo rm -f "/usr/local/bin/$(basename $tool_url)" > /dev/null 
+        sudo rm -rf "/usr/local/bin/$(basename $tool_url)" > /dev/null 
     else
         echo "failed: [Download $tool_name tool]"
     fi
@@ -100,7 +100,7 @@ install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64
 
 sudo chmod a+x /usr/local/bin/oc-mirror > /dev/null 
 run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
-sudo rm -f /usr/local/bin/README.md > /dev/null 
+sudo rm -rf /usr/local/bin/README.md > /dev/null 
 # Add an empty line after the task
 echo
 # ====================================================
@@ -215,7 +215,7 @@ run_command "[Extract the mirror-registry package]"
 echo "ok: [Start installing mirror-registry...]"
 echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
 
-${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
+${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --quayHostname $HOSTNAME \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
@@ -299,8 +299,8 @@ oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker:/
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
-sudo rm -f ./oc-mirror-workspac* &>/dev/null
-sudo rm -f "${PULL_SECRET}" &>/dev/null
+rm -rf oc-mirror-workspac* &>/dev/null
+sudo rm -rf "${PULL_SECRET}" &>/dev/null
 run_command "[Remove temporary pull-secret file]"
 
 # Add an empty line after the task
