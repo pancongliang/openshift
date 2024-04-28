@@ -487,10 +487,6 @@ oc edit dnses.config/cluster
 In the editor, under `spec`, remove the `privateZone` stanza. It should look similar to this:
 
 ```yaml
-oc patch dnses.config.openshift.io/cluster --type=merge --patch='{"spec": {"privateZone": null}}'
-
-or
-
 apiVersion: config.openshift.io/v1
 kind: DNS
 metadata:
