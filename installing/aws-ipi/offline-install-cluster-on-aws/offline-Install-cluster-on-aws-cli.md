@@ -82,4 +82,14 @@ oc get mcp
 oc get co | grep -v '.True.*False.*False'
 ```
 
+### Uninstall the OCP cluster and delete the configured AWS infrastructure
 
+#### Uninstall the OCP cluster
+```bash
+openshift-install destroy cluster --dir $INSTALL --log-level info
+```
+
+#### delete the configured AWS infrastructure
+```bash
+source 01-set-parameter.sh && source 00-del-aws-res.sh
+```
