@@ -33,56 +33,6 @@ run_command() {
 }
 
 
-# === Task: Install AWS CLI ===
-PRINT_TASK "[TASK: Install AWS CLI]"
-
-# Function to install AWS CLI on Linux
-install_awscli_linux() {
-    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 
-    unzip awscliv2.zip > /dev/null 
-    sudo ./aws/install &>/dev/null || true
-    run_command "[Install AWS CLI]"
-    sudo rm -rf aws awscliv2.zip
-}
-
-# Function to install AWS CLI on macOS
-install_awscli_mac() {
-    curl -s "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
-    sudo installer -pkg AWSCLIV2.pkg -target / &>/dev/null || true
-    run_command "[Install AWS CLI]"
-    sudo rm -rf AWSCLIV2.pkg
-}
-
-# Detecting the operating system
-os=$(uname -s)
-
-# Installing AWS CLI based on the operating system
-case "$os" in
-    Linux*)  install_awscli_linux;;
-    Darwin*) install_awscli_mac;;
-    *) ;;
-esac
-
-# Add an empty line after the task
-echo
-# ====================================================
-
-
-# === Task: Set up AWS credentials ===
-PRINT_TASK "[TASK: Set up AWS credentials]"
-rm -rf $HOME/.aws
-mkdir -p $HOME/.aws
-cat << EOF > "$HOME/.aws/credentials"
-[default]
-cli_pager=
-aws_access_key_id = $AWS_ACCESS_KEY_ID
-aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
-EOF
-run_command "[Set up AWS credentials]"
-
-# Add an empty line after the task
-echo
-# ====================================================
 
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
@@ -156,8 +106,60 @@ echo
 # ====================================================
 
 
-# === Task: Delete existing duplicate data ===
-PRINT_TASK "[TASK: Delete existing duplicate data]"
+# === Task: Install AWS CLI ===
+PRINT_TASK "[TASK: Install AWS CLI]"
+
+# Function to install AWS CLI on Linux
+install_awscli_linux() {
+    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 
+    unzip awscliv2.zip > /dev/null 
+    sudo ./aws/install &>/dev/null || true
+    run_command "[Install AWS CLI]"
+    sudo rm -rf aws awscliv2.zip
+}
+
+# Function to install AWS CLI on macOS
+install_awscli_mac() {
+    curl -s "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
+    sudo installer -pkg AWSCLIV2.pkg -target / &>/dev/null || true
+    run_command "[Install AWS CLI]"
+    sudo rm -rf AWSCLIV2.pkg
+}
+
+# Detecting the operating system
+os=$(uname -s)
+
+# Installing AWS CLI based on the operating system
+case "$os" in
+    Linux*)  install_awscli_linux;;
+    Darwin*) install_awscli_mac;;
+    *) ;;
+esac
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+
+# === Task: Set up AWS credentials ===
+PRINT_TASK "[TASK: Set up AWS credentials]"
+rm -rf $HOME/.aws
+mkdir -p $HOME/.aws
+cat << EOF > "$HOME/.aws/credentials"
+[default]
+cli_pager=
+aws_access_key_id = $AWS_ACCESS_KEY_ID
+aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+EOF
+run_command "[Set up AWS credentials]"
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+
+# === Task: Delete existing Mirror-Registry duplicate data ===
+PRINT_TASK "[TASK: Delete existing Mirror-Registry duplicate data]"
 
 # Check if there is an active mirror registry pod
 if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
@@ -192,8 +194,8 @@ echo
 # ====================================================
 
 
-# === Task: Install mirror registry ===
-PRINT_TASK "[TASK: Install mirror registry]"
+# === Task: Install Mirror-Registry ===
+PRINT_TASK "[TASK: Install Mirror-Registry]"
 
 mkdir -p ${REGISTRY_INSTALL_PATH}
 mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
@@ -246,7 +248,7 @@ echo
 
 
 # Task: Mirror ocp image to mirror-registry
-PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
+PRINT_TASK "[TASK: Mirror ocp image to Mirror-Registry]"
 
 # Prompt for pull-secret
 # read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
@@ -402,6 +404,8 @@ run_command "[Generate a defined install-config file]"
 sudo rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
 run_command "[Delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
+openshift-install create manifests --dir $INSTALL
+run_command "[Manifests created in: $INSTALL/manifests $INSTALL/openshift ]"
 
 # Delete the private zone in the cluster-dns-02-config.yml file
 cat << EOF > $INSTALL/manifests/cluster-dns-02-config.yml
@@ -413,10 +417,11 @@ metadata:
 spec:
   baseDomain: $CLUSTER_NAME.$BASE_DOMAIN
   platform:
+    aws: null
     type: ""
 status: {}
 EOF
-run_command "[Delete the private zone in the manifests/cluster-dns-02-config.yml file]"
+run_command "[Delete the private zone in the $INSTALL/manifests/cluster-dns-02-config.yml file]"
 
 # Add an empty line after the task
 echo
