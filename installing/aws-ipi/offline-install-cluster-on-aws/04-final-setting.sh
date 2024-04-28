@@ -29,6 +29,8 @@ PRINT_TASK "[TASK: Kubeconfig login]"
 echo "export KUBECONFIG=${INSTALL}/auth/kubeconfig" >> $HOME/bash_profile
 run_command "[add kubeconfig to $HOME/bash_profile]"
 
+source $HOME/bash_profile
+
 # completion command:
 sudo oc completion bash >> /etc/bash_completion.d/oc_completion
 run_command "[add oc_completion]"
