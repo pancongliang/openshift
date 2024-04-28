@@ -56,7 +56,25 @@ INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.c
 
 ### Create record and Configure cluster DNS
 
+#### Open another terminal session
 ```bash
+./ocp-bastion.sh
+
 source ocp-bastion.sh
 source 01-set-parameter.sh && source 04-final-setting.sh
 ```
+
+### Wait for the OCP cluster installation to complete
+
+```bash
+cat $INSTALL/.openshift_install.log
+
+```
+
+```bash
+oc get node
+oc get mcp
+oc get co | grep -v '.True.*False.*False'
+```
+
+
