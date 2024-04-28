@@ -78,7 +78,7 @@ run_command "[Deleting S3 Gateway VPC endpoint: $S3_ENDPOINT_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-
+sleep 300
 
 # === Delete Private Hosted Zone ===
 PRINT_TASK "[TASK: Delete Private Hosted Zone]"
@@ -91,7 +91,7 @@ run_command "[Deleting private hosted zone: $HOSTED_ZONE_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 360
+
 
 # === Delete Security Group ===
 PRINT_TASK "[TASK: Delete Security Group]"
@@ -103,7 +103,7 @@ run_command "[Deleting security group: $SECURITY_GROUP_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 1
+sleep 10
 
 # === Delete Private Subnet ===
 PRINT_TASK "[TASK: Delete Private Subnet]"
@@ -147,7 +147,7 @@ run_command "[Deleting private route table: $PRIVATE_RTB_ID]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 60
+sleep 20
 
 # === Detach and Delete Internet Gateway ===
 PRINT_TASK "[TASK: Detach and Delete Internet Gateway]"
@@ -165,7 +165,7 @@ run_command "[Deleting internet gateway: $IGW_ID]"
 echo
 # ====================================================
 
-sleep 60
+sleep 20
 # === Delete VPC ===
 PRINT_TASK "[TASK: Delete VPC]"
 # aws --region $REGION ec2 delete-vpc --vpc-id $(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text) >/dev/null
