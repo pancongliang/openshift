@@ -68,7 +68,12 @@ source 01-set-parameter.sh && source 04-final-setting.sh
 
 ```bash
 cat $INSTALL/.openshift_install.log
-
+time="2024-04-28T11:10:48Z" level=debug msg="Cluster is initialized"
+time="2024-04-28T11:10:48Z" level=info msg="Checking to see if there is a route at openshift-console/console..."
+time="2024-04-28T11:10:48Z" level=debug msg="Route found in openshift-console namespace: console"
+time="2024-04-28T11:10:48Z" level=debug msg="OpenShift console route is admitted"
+time="2024-04-28T11:10:48Z" level=info msg="Install complete!"
+···
 ```
 
 ```bash
