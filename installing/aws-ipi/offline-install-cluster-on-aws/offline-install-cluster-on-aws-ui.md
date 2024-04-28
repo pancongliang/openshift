@@ -113,9 +113,9 @@ Click "Create hosted zone"
 **Note:** Expand the "Hosted zone details" section and record the "Hosted zone ID"
 `Z10124192ZYQ7PDC4IW9S`
 
-## Setup jumpbox EC2 instance in VPC
+## Setup bastion EC2 instance in VPC
 
-### Create jumpbox instance
+### Create bastion instance
 
 Go to
 [https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#Instances:v=3](https://console.aws.amazon.com/ec2/v2/home?region=ap-northeast-1#Instances:v=3)
@@ -166,56 +166,11 @@ Find your instance by the name you gave it in the tag "Name".
 
 Wait for it to be in the state "Running".
 
-### SSH into jumpbox
+### SSH into bastion
 
 ```bash
 ssh -i private-key.pem ec2-user@1.2.3.4
 ```
-
-### Disable IPv6
-
-- Edit `/etc/default/grub`
-
-    ```bash
-    sudo vi /etc/default/grub
-    ```
-
-- Add `ip6.disable=1` to the end of the `GRUB_CMDLINE_LINUX` entry.
-- Save the file and exit.
-- Generate the `grub.cfg` file.
-
-    ```bash
-    sudo grub2-mkconfig -o /boot/grub2/grub.cfg
-    ```
-
-- Reboot the jumpbox.
-
-    ```bash
-    sudo reboot
-    ```
-
-- Log back into the jump box.
-
-    ```bash
-    ssh -i private-key.pem ec2-user@1.2.3.4
-    ```
-
-### Verify IPv6 configuration
-
-Run
-
-```bash
-ping -c 1 $HOSTNAME
-```
-
-You should see that the response is coming from your 10.0.0.x IPv4 address, such as
-
-```bash
-PING ip-10-0-1-161.ec2.internal (10.0.1.161) 56(84) bytes of data.
-64 bytes from ip-10-0-1-161.ec2.internal (10.0.1.161): icmp_seq=1 ttl=64 time=0.068 ms
-```
-
-If this doesn't work, verify that you enabled DNS hostname and resolution in your VPC, and that you disabled IPv6 on the jumpbox as described above.
 
 ### Install required utilities
 
@@ -313,7 +268,7 @@ pkcs11:id=%08%1C%EC%B8%7A%0E%25%AE%62%DA%51%64%F9%0A%55%C5%B5%D1%4B%71;type=cert
 - Go to:
   - [https://console.redhat.com/openshift/install/pull-secret](https://console.redhat.com/openshift/install/pull-secret)
 - Select “Copy pull secret”.
-- In your jumpbox, run
+- In your bastion, run
 
     ```bash
     vi $HOME/pull-secret
@@ -523,7 +478,7 @@ When you see this load balancer (note that it will not have a "State"), follow t
 
 Make a note of the load balancer's name. You'll need to select it from a list in a following step.
 
-Open another terminal to the jumpbox and run:
+Open another terminal to the bastion and run:
 
 ```bash
 oc edit dnses.config/cluster
