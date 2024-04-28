@@ -82,7 +82,7 @@ echo
 # Task: Disable the default OperatorHub sources
 PRINT_TASK "[TASK: Disable the default OperatorHub sources]"
 
-oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' > /dev/null
 run_command "[ Disable the default OperatorHub sources]"
 
 
