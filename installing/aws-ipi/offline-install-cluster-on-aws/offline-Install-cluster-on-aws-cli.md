@@ -50,14 +50,14 @@ openshift-install create cluster --dir $INSTALL --log-level=info
 
 #### Once this entry is seen in the installation log execute script 04-final-setting.sh
 
-```bash
+```
 INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.copan-test.com:6443 to initialize... 
 ```
 
 ### Create record and Configure cluster DNS
 
 #### Open another terminal session
-```bash
+```
 ./ocp-bastion.sh
 
 source ocp-bastion.sh
@@ -66,7 +66,7 @@ source 01-set-parameter.sh && source 04-final-setting.sh
 
 ### Wait for the OCP cluster installation to complete
 
-```bash
+```
 cat $INSTALL/.openshift_install.log
 time="2024-04-28T11:10:48Z" level=debug msg="Cluster is initialized"
 time="2024-04-28T11:10:48Z" level=info msg="Checking to see if there is a route at openshift-console/console..."
@@ -76,7 +76,7 @@ time="2024-04-28T11:10:48Z" level=info msg="Install complete!"
 ···
 ```
 
-```bash
+```
 oc get node
 oc get mcp
 oc get co | grep -v '.True.*False.*False'
@@ -85,11 +85,11 @@ oc get co | grep -v '.True.*False.*False'
 ### Uninstall the OCP cluster and delete the configured AWS infrastructure
 
 #### Uninstall the OCP cluster
-```bash
+```
 openshift-install destroy cluster --dir $INSTALL --log-level info
 ```
 
 #### delete the configured AWS infrastructure
-```bash
+```
 source 01-set-parameter.sh && source 00-del-aws-res.sh
 ```
