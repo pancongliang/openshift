@@ -32,11 +32,11 @@ run_command "[add kubeconfig to $HOME/bash_profile]"
 source $HOME/bash_profile
 
 # completion command:
-sudo oc completion bash >> /etc/bash_completion.d/oc_completion
+sudo bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion'
 run_command "[add oc_completion]"
 
 # Effective immediately
-sudo source /etc/bash_completion.d/oc_completion
+source /etc/bash_completion.d/oc_completion
 
 # Add an empty line after the task
 echo
@@ -46,32 +46,32 @@ echo
 # Task: Create record
 PRINT_TASK "[TASK: Create *.apps.$CLUSTER_NAME.$BASE_DOMAIN record]"
 
-# Create record
+# Create *.apps.$CLUSTER_NAME.$BASE_DOMAIN record
 RECORD_NAME="*.apps"
 RECORD_TYPE="A"
 HOSTED_ZONE_ID=$(aws --region $REGION route53 list-hosted-zones --query "HostedZones[?Name=='$HOSTED_ZONE_NAME.'].Id" --output text | awk -F'/' '{print $3}')
 VPC_ID=$(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text)
 ELB_DNS_NAME=$(aws --region $REGION elb describe-load-balancers --query "LoadBalancerDescriptions[?VPCId=='$VPC_ID'].DNSName" --output text)
-ALB_HOSTED_ZONE_IDS=($(aws elb describe-load-balancers --region $REGION | jq -r '.LoadBalancerDescriptions[].CanonicalHostedZoneNameID'))
+ELB_HOSTED_ZONE_ID=$(aws --region $REGION elb describe-load-balancers --query "LoadBalancerDescriptions[?DNSName=='$ELB_DNS_NAME'].CanonicalHostedZoneNameID" --output text)
 
-aws --region $REGION route53 change-resource-record-sets \
-    --hosted-zone-id $HOSTED_ZONE_ID \
-    --change-batch '{
-        "Changes": [
-            {
-                "Action": "CREATE",
-                "ResourceRecordSet": {
-                    "Name": "*.apps.$CLUSTER_NAME.$BASE_DOMAIN",
-                    "Type": "A",
-                    "AliasTarget": {
-                        "HostedZoneId": "$ALB_HOSTED_ZONE_IDS",
-                        "DNSName": "dualstack.$ELB_DNS_NAME",
-                        "EvaluateTargetHealth": true
-                    }
+change_batch='{
+    "Changes": [
+        {
+            "Action": "CREATE",
+            "ResourceRecordSet": {
+                "Name": "*.apps.'$CLUSTER_NAME'.'$BASE_DOMAIN'",
+                "Type": "A",
+                "AliasTarget": {
+                    "HostedZoneId": "'$ELB_HOSTED_ZONE_ID'",
+                    "DNSName": "'dualstack.$ELB_DNS_NAME'",
+                    "EvaluateTargetHealth": true
                 }
             }
-        ]
-    }'
+        }
+    ]
+}'
+
+aws --region $REGION route53 change-resource-record-sets --hosted-zone-id $HOSTED_ZONE_ID --change-batch "$change_batch" > /dev/null
 run_command "[ Create *.apps.$CLUSTER_NAME.$BASE_DOMAIN record]"
 
 # Add an empty line after the task
