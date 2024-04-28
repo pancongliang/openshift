@@ -33,7 +33,7 @@ aws --region $REGION ec2 wait instance-terminated --instance-ids $INSTANCE_ID >/
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 300
+sleep 5
 
 # === Delete Key Pair ===
 PRINT_TASK "[TASK: Delete Key Pair]"
@@ -54,7 +54,7 @@ run_command "[Deleting ELB endpoint: $ELB_ENDPOINT_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 1
+
 
 # === Delete EC2 Endpoint ===
 PRINT_TASK "[TASK: Delete EC2 Endpoint]"
@@ -66,7 +66,7 @@ run_command "[Deleting EC2 endpoint: $EC2_ENDPOINT_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 1
+
 
 # === Delete S3 Gateway VPC Endpoint ===
 PRINT_TASK "[TASK: Delete S3 Gateway VPC Endpoint]"
@@ -78,7 +78,7 @@ run_command "[Deleting S3 Gateway VPC endpoint: $S3_ENDPOINT_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 1
+
 
 # === Delete Private Hosted Zone ===
 PRINT_TASK "[TASK: Delete Private Hosted Zone]"
@@ -91,7 +91,7 @@ run_command "[Deleting private hosted zone: $HOSTED_ZONE_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 300
+sleep 360
 
 # === Delete Security Group ===
 PRINT_TASK "[TASK: Delete Security Group]"
