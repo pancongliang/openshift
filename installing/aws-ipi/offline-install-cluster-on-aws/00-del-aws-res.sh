@@ -94,15 +94,10 @@ S3_ENDPOINT_ID=$(aws --region $REGION ec2 describe-vpc-endpoints --filters "Name
 aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $S3_ENDPOINT_ID > /dev/null
 run_command "[Deleting S3 Gateway VPC endpoint: $S3_ENDPOINT_NAME]"
 
-# Wait for deletion to complete
-aws --region $REGION ec2 wait vpc-endpoint-deleted --vpc-endpoint-ids $ELB_ENDPOINT_ID
-aws --region $REGION ec2 wait vpc-endpoint-deleted --vpc-endpoint-ids $EC2_ENDPOINT_ID
-aws --region $REGION ec2 wait vpc-endpoint-deleted --vpc-endpoint-ids $S3_ENDPOINT_ID
-
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 5
+sleep 360
 
 
 # === Delete Private Hosted Zone ===
@@ -115,7 +110,6 @@ run_command "[Deleting private hosted zone: $HOSTED_ZONE_NAME]"
 # Wait for deletion to complete
 aws --region $REGION route53 wait hosted-zone-deleted --id $HOSTED_ZONE_ID
 
-# Add an empty line after the task
 echo
 # ====================================================
 sleep 5
@@ -126,13 +120,10 @@ SECURITY_GROUP_ID=$(aws --region $REGION ec2 describe-security-groups --filters 
 aws --region $REGION ec2 delete-security-group --group-id $SECURITY_GROUP_ID > /dev/null
 run_command "[Deleting security group: $SECURITY_GROUP_NAME]"
 
-# Wait for deletion to complete
-aws --region $REGION ec2 wait security-group-deleted --group-ids $SECURITY_GROUP_ID
-
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 5
+sleep 10
 
 # === Delete Private Subnet ===
 PRINT_TASK "[TASK: Delete Private Subnet]"
@@ -140,9 +131,6 @@ PRINT_TASK "[TASK: Delete Private Subnet]"
 PRIVATE_SUBNET_ID=$(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text)
 aws --region $REGION ec2 delete-subnet --subnet-id $PRIVATE_SUBNET_ID > /dev/null
 run_command "[Deleting private subnet: ${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}]"
-
-# Wait for deletion to complete
-aws --region $REGION ec2 wait subnet-deleted --subnet-ids $PRIVATE_SUBNET_ID
 
 # Add an empty line after the task
 echo
@@ -155,9 +143,6 @@ PRINT_TASK "[TASK: Delete Public Subnet]"
 PUBLIC_SUBNET_ID=$(aws --region $REGION ec2 describe-subnets --filters "Name=tag:Name,Values=${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}" --query "Subnets[].SubnetId" --output text)
 aws --region $REGION ec2 delete-subnet --subnet-id $PUBLIC_SUBNET_ID > /dev/null
 run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_ZONE}]"
-
-# Wait for deletion to complete
-aws --region $REGION ec2 wait subnet-deleted --subnet-ids $PUBLIC_SUBNET_ID
 
 # Add an empty line after the task
 echo
