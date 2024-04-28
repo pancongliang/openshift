@@ -1,7 +1,7 @@
 
-## Disconnected Install on AWS
+## Installing a cluster on AWS in a restricted network
 
-### Download the script and install and configure infrastructure services through the script
+### Download AWS IPI script
 
 ```
 mkdir ocp-scrept && cd ocp-scrept
