@@ -214,12 +214,12 @@ run_command "[Extract the mirror-registry package]"
 
 echo "ok: [Start installing mirror-registry...]"
 
-${REGISTRY_INSTALL_PATH}/mirror-registry install \
+${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname $HOSTNAME \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
      --pgStorage ${REGISTRY_INSTALL_PATH}/pg-storage \
-     --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} 
+     --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} > ${REGISTRY_INSTALL_PATH}/quay-install.log
 run_command "[Installation of mirror registry completed]"
 
 sleep 60
@@ -292,7 +292,7 @@ EOF
 run_command "[Create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
-oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls
+oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls > ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
