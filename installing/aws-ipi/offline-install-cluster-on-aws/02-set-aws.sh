@@ -62,6 +62,7 @@ rm -rf $HOME/.aws
 mkdir -p $HOME/.aws
 cat << EOF > "$HOME/.aws/credentials"
 [default]
+cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
@@ -92,7 +93,14 @@ run_command "[Enable DNS hostnames for the VPC: $VPC_ID]"
 aws --region $REGION ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-support
 run_command "[Enable DNS resolution for the VPC: $VPC_ID]"
 
+# Add an empty line after the task
+echo
+# ====================================================
 
+
+
+# === Task: Create Subnet ===
+PRINT_TASK "[TASK: Create Subnet]"
 
 # Create public subnet and get public subnet ID
 PUBLIC_SUBNET_ID=$(aws --region $REGION ec2 create-subnet --vpc-id $VPC_ID --cidr-block $PUBLIC_SUBNET_CIDR --availability-zone $AVAILABILITY_ZONE --query 'Subnet.SubnetId' --output text)
@@ -110,7 +118,14 @@ run_command "[Create private subnet and get subnet ID: $PRIVATE_SUBNET_ID]"
 aws --region $REGION ec2 create-tags --resources $PRIVATE_SUBNET_ID --tags Key=Name,Value="${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}"
 run_command "[Add tag name to subnet name: ${VPC_NAME}-subnet-private1-${AVAILABILITY_ZONE}]"
 
+# Add an empty line after the task
+echo
+# ====================================================
 
+
+
+# === Task: Create Internet Gateway ===
+PRINT_TASK "[TASK: Create Internet Gateway]"
 
 # Create Internet Gateway
 IGW_ID=$(aws --region $REGION ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' --output text)
@@ -124,7 +139,14 @@ run_command "[Add tag to Internet Gateway: $IGW_NAME]"
 aws --region $REGION ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID
 run_command "[Attach Internet Gateway $IGW_ID to VPC: $VPC_ID]"
 
+# Add an empty line after the task
+echo
+# ====================================================
 
+
+
+# === Task: Create Routing Table ===
+PRINT_TASK "[TASK: Create Routing Table]"
 
 # Create public Route Table
 PUBLIC_ROUTE_TABLE_ID=$(aws --region $REGION ec2 create-route-table --vpc-id $VPC_ID --query 'RouteTable.RouteTableId' --output text)
@@ -153,6 +175,7 @@ run_command "[Associate public Route Table with public subnet]"
 # Associate private Route Table with private subnet
 aws --region $REGION ec2 associate-route-table --subnet-id $PRIVATE_SUBNET_ID --route-table-id $PRIVATE_ROUTE_TABLE_ID >/dev/null
 run_command "[Associate private Route Table with private subnet]"
+
 
 
 # Add an empty line after the task
@@ -189,7 +212,8 @@ run_command "[Default existing outbound rule - All traffic]"
 echo
 # ====================================================
 
-Create the VPC endpoint for the s3 Service
+
+
 # === Task: Create the VPC endpoint for the s3 Service===
 PRINT_TASK "[TASK: Create the VPC endpoint for the s3 Service]"
 
@@ -201,10 +225,10 @@ run_command "[Create the VPC endpoint for the s3 Service: S3_ENDPOINT_ID]"
 aws --region $REGION ec2 create-tags --resources $S3_ENDPOINT_ID --tags Key=Name,Value="$S3_ENDPOINT_NAME"
 run_command "[Add tag to S3 Service endpoint: $S3_ENDPOINT_NAME]"
 
-
 # Add an empty line after the task
 echo
 # ====================================================
+
 
 
 # === Task: Create the VPC endpoint for the ELB Service ===
@@ -230,11 +254,10 @@ run_command "[Add default security groups and provided security group to ELB end
 aws --region $REGION ec2 modify-vpc-endpoint --vpc-endpoint-id ${ELB_ENDPOINT_ID} --remove-security-group-ids ${ELB_ENDPOINT_SG_DEFAULT}
 run_command "[Remove default security group IDs from ELB endpoint]"
 
-
-
 # Add an empty line after the task
 echo
 # ====================================================
+
 
 
 # === Task: Create the VPC endpoint for the EC2 Service ===
@@ -265,17 +288,11 @@ echo
 # ====================================================
 
 
+
 # === Task: Create private hosted zone===
 PRINT_TASK "[TASK: Create private hosted zone]"
 
 # Create private hosted zone
-# HOSTED_ZONE_ID=$(aws --region $REGION route53 create-hosted-zone \
-#    --name $HOSTED_ZONE_NAME \
-#    --caller-reference "$(date +%Y%m%d%H%M%S)" \
-#    --hosted-zone-config Comment="$TAG_NAME-test" \
-#    --vpc "VPCRegion=$REGION,VPCId=$VPC_ID" \
-#    --query 'HostedZone.Id' \
-#    --output text)
 HOSTED_ZONE_ID=$(aws --region $REGION route53 create-hosted-zone \
     --name $HOSTED_ZONE_NAME \
     --caller-reference "$(date +%Y%m%d%H%M%S)" \
@@ -290,11 +307,13 @@ echo
 # ====================================================
 
 
+
 # === Task: Create bastion instance ===
 PRINT_TASK "[TASK: Create bastion instance]"
 
 # Create and download the key pair file
 rm -rf ./$KEY_PAIR_NAME.pem
+aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME >/dev/null
 aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > ./$KEY_PAIR_NAME.pem
 run_command "[Create and download the key pair file: $KEY_PAIR_NAME.pem]"
 
