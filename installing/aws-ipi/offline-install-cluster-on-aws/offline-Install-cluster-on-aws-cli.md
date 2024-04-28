@@ -4,7 +4,7 @@
 ### Download AWS IPI script
 
 ```
-mkdir ocp-scrept && cd ocp-scrept
+mkdir aws-ipi && cd aws-ipi
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline-install-cluster-on-aws/00-download-script.sh | sh
 ```
 
