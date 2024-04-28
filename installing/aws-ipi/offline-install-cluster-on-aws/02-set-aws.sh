@@ -155,6 +155,9 @@ aws --region $REGION ec2 associate-route-table --subnet-id $PRIVATE_SUBNET_ID --
 run_command "[Associate private Route Table with private subnet]"
 
 
+# Add an empty line after the task
+echo
+# ====================================================
 
 # === Task: Create security group ===
 PRINT_TASK "[TASK: Create security group]"
@@ -191,7 +194,7 @@ Create the VPC endpoint for the s3 Service
 PRINT_TASK "[TASK: Create the VPC endpoint for the s3 Service]"
 
 # Create the VPC endpoint for the s3 Service and get endpoint ID
-S3_ENDPOINT_ID=$(aws --region $REGION ec2 create-vpc-endpoint --vpc-endpoint-type Gateway --vpc-id $VPC_ID --service-name s3.$REGION.amazonaws.com --route --route-table-ids $PRIVATE_ROUTE_TABLE_ID --no-private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
+S3_ENDPOINT_ID=$(aws --region $REGION ec2 create-vpc-endpoint --vpc-endpoint-type Gateway --vpc-id $VPC_ID --service-name com.amazonaws.$REGION.s3 --route --route-table-ids $PRIVATE_ROUTE_TABLE_ID --no-private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
 run_command "[Create the VPC endpoint for the s3 Service: S3_ENDPOINT_ID]"
 
 # Add tag to S3 Service endpoint
@@ -208,23 +211,23 @@ echo
 PRINT_TASK "[TASK: Create the VPC endpoint for the ELB Service]"
 
 # Create the VPC endpoint for the ELB Service and get endpoint ID
-ELB_ENDPOINT_ID=$(aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id ${VPC_ID} --service-name com.amazonaws.$REGION.elasticloadbalancing --subnet-ids ${PRIVATE_SUBNET_ID} --private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
+ELB_ENDPOINT_ID=$(aws --region $REGION ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id ${VPC_ID} --service-name com.amazonaws.$REGION.elasticloadbalancing --subnet-ids ${PRIVATE_SUBNET_ID} --private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
 run_command "[Create the VPC endpoint for the ELB Service: $ELB_ENDPOINT_ID]"
 
 # Add tag to ELB Service endpoint
-aws ec2 create-tags --resources $ELB_ENDPOINT_ID --tags Key=Name,Value="$ELB_ENDPOINT_NAME"
+aws --region $REGION ec2 create-tags --resources $ELB_ENDPOINT_ID --tags Key=Name,Value="$ELB_ENDPOINT_NAME"
 run_command "[Add tags to EC2 Service endpoint: $ELB_ENDPOINT_NAME]"
 
 # Obtain default security group IDs associated with the ELB endpoint
-ELB_ENDPOINT_SG_DEFAULT=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids $ELB_ENDPOINT_ID | jq -r '.VpcEndpoints[].Groups[].GroupId' | uniq)
+ELB_ENDPOINT_SG_DEFAULT=$(aws --region $REGION ec2 describe-vpc-endpoints --vpc-endpoint-ids $ELB_ENDPOINT_ID | jq -r '.VpcEndpoints[].Groups[].GroupId' | uniq)
 run_command "[Obtain default security group IDs associated with the ELB endpoint]"
 
 # Add the default security group IDs and the $SECURITY_GROUP_NAME security group ID to the ELB endpoint
-aws ec2 modify-vpc-endpoint --vpc-endpoint-id ${ELB_ENDPOINT_ID} --add-security-group-ids ${ELB_ENDPOINT_SG_DEFAULT} --add-security-group-ids ${SECURITY_GROUP_ID}
+aws --region $REGION ec2 modify-vpc-endpoint --vpc-endpoint-id ${ELB_ENDPOINT_ID} --add-security-group-ids ${ELB_ENDPOINT_SG_DEFAULT} --add-security-group-ids ${SECURITY_GROUP_ID}
 run_command "[Add default security groups and provided security group to ELB endpoint]"
 
 # Remove default security group IDs from the ELB endpoint
-aws ec2 modify-vpc-endpoint --vpc-endpoint-id ${ELB_ENDPOINT_ID} --remove-security-group-ids ${ELB_ENDPOINT_SG_DEFAULT}
+aws --region $REGION ec2 modify-vpc-endpoint --vpc-endpoint-id ${ELB_ENDPOINT_ID} --remove-security-group-ids ${ELB_ENDPOINT_SG_DEFAULT}
 run_command "[Remove default security group IDs from ELB endpoint]"
 
 
@@ -238,23 +241,23 @@ echo
 PRINT_TASK "[TASK: Create the VPC endpoint for the EC2 Service]"
 
 # Create the VPC endpoint for the EC2 Service and get endpoint ID
-EC2_ENDPOINT_ID=$(aws ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id ${VPC_ID} --service-name com.amazonaws.$REGION.ec2 --subnet-ids $PRIVATE_SUBNET_ID --private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
+EC2_ENDPOINT_ID=$(aws --region $REGION ec2 create-vpc-endpoint --vpc-endpoint-type Interface --vpc-id ${VPC_ID} --service-name com.amazonaws.$REGION.ec2 --subnet-ids $PRIVATE_SUBNET_ID --private-dns-enabled --query 'VpcEndpoint.VpcEndpointId' --output text)
 run_command "[Create the VPC endpoint for the EC2 Service: $EC2_ENDPOINT_ID]"
 
 # Add tag to EC2 Service endpoint
-aws ec2 create-tags --resources $EC2_ENDPOINT_ID --tags Key=Name,Value="$EC2_ENDPOINT_NAME"
+aws --region $REGION ec2 create-tags --resources $EC2_ENDPOINT_ID --tags Key=Name,Value="$EC2_ENDPOINT_NAME"
 run_command "[Add tags to EC2 Service endpoint: $EC2_ENDPOINT_NAME]"
 
 # Obtain default security group IDs associated with the EC2 endpoint
-EC2_ENDPOINT_SG_DEFAULT=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids $EC2_ENDPOINT_ID | jq -r '.VpcEndpoints[].Groups[].GroupId' | uniq)
+EC2_ENDPOINT_SG_DEFAULT=$(aws --region $REGION ec2 describe-vpc-endpoints --vpc-endpoint-ids $EC2_ENDPOINT_ID | jq -r '.VpcEndpoints[].Groups[].GroupId' | uniq)
 run_command "[Obtain default security group IDs associated with the EC2 endpoint]"
 
 # Add the default security group IDs and the $SECURITY_GROUP_NAME security group ID to the EC2 endpoint
-aws ec2 modify-vpc-endpoint --vpc-endpoint-id ${EC2_ENDPOINT_ID} --add-security-group-ids ${EC2_ENDPOINT_SG_DEFAULT} --add-security-group-ids ${SECURITY_GROUP_ID}
+aws --region $REGION ec2 modify-vpc-endpoint --vpc-endpoint-id ${EC2_ENDPOINT_ID} --add-security-group-ids ${EC2_ENDPOINT_SG_DEFAULT} --add-security-group-ids ${SECURITY_GROUP_ID}
 run_command "[Add default security groups and provided security group to EC2 endpoint]"
 
 # Remove default security group IDs from the EC2 endpoint
-aws ec2 modify-vpc-endpoint --vpc-endpoint-id ${EC2_ENDPOINT_ID} --remove-security-group-ids ${EC2_ENDPOINT_SG_DEFAULT}
+aws --region $REGION ec2 modify-vpc-endpoint --vpc-endpoint-id ${EC2_ENDPOINT_ID} --remove-security-group-ids ${EC2_ENDPOINT_SG_DEFAULT}
 run_command "[Remove default security group IDs from EC2 endpoint]"
 
 # Add an empty line after the task
@@ -266,13 +269,20 @@ echo
 PRINT_TASK "[TASK: Create private hosted zone]"
 
 # Create private hosted zone
+# HOSTED_ZONE_ID=$(aws --region $REGION route53 create-hosted-zone \
+#    --name $HOSTED_ZONE_NAME \
+#    --caller-reference "$(date +%Y%m%d%H%M%S)" \
+#    --hosted-zone-config Comment="$TAG_NAME-test" \
+#    --vpc "VPCRegion=$REGION,VPCId=$VPC_ID" \
+#    --query 'HostedZone.Id' \
+#    --output text)
 HOSTED_ZONE_ID=$(aws --region $REGION route53 create-hosted-zone \
     --name $HOSTED_ZONE_NAME \
     --caller-reference "$(date +%Y%m%d%H%M%S)" \
     --hosted-zone-config Comment="$TAG_NAME-test" \
     --vpc "VPCRegion=$REGION,VPCId=$VPC_ID" \
     --query 'HostedZone.Id' \
-    --output text)
+    --output text | sed 's/\/hostedzone\///')    
 run_command "[Create private hosted zone and get PHZ ID: $HOSTED_ZONE_ID]"
 
 # Add an empty line after the task
