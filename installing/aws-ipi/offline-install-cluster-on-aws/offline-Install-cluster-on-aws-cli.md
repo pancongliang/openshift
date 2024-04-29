@@ -28,6 +28,7 @@ source 02-set-aws.sh
 source ocp-bastion.sh
 ```
 
+
 ### Installation preparation 
 
 #### Install the image registry and image release image on the bastion machine and create the install-config
@@ -39,6 +40,7 @@ source 01-set-parameter.sh && source 03-install-pre.sh
 ```
 oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls
 ```
+
 
 
 ### Create OCP cluster
@@ -54,15 +56,19 @@ openshift-install create cluster --dir $INSTALL --log-level=info
 INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.copan-test.com:6443 to initialize... 
 ```
 
+
 ### Create record and Configure cluster DNS
 
-#### Open another terminal session
+#### Open a second terminal session
 ```
 ./ocp-bastion.sh
+```
 
-source ocp-bastion.sh
+#### Create record and Configure cluster DNS
+```
 source 01-set-parameter.sh && source 04-final-setting.sh
 ```
+
 
 ### Wait for the OCP cluster installation to complete
 
@@ -81,6 +87,7 @@ oc get node
 oc get mcp
 oc get co | grep -v '.True.*False.*False'
 ```
+
 
 ### Uninstall the OCP cluster and delete the configured AWS infrastructure
 
