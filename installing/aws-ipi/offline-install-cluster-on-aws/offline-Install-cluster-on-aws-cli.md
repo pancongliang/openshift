@@ -25,7 +25,7 @@ source 02-set-aws.sh
 
 #### Access EC2 instance(Bastion)
 ```
-source ocp-bastion.sh
+./ocp-bastion.sh
 ```
 
 
