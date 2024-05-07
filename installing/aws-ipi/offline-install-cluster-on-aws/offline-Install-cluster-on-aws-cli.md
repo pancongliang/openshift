@@ -31,7 +31,7 @@ source 02-set-aws.sh
 
 ### Installation preparation 
 
-#### Install the Mirror Registry and Mirroring OCP release image on the bastion machine and create the install-config
+#### Install the mirror registry and mirroring ocp release image on the bastion machine and create the install-config
 ```
 source 01-set-parameter.sh && source 03-install-pre.sh
 ```
