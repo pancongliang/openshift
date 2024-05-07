@@ -18,7 +18,7 @@ source 01-set-parameter.sh
 
 ### Create AWS Environment
 
-#### Install AWS CLI(Mac or Linux) and Create VPC, SG, EC2/ELB Endpoint, PHZ, EC2 instance
+#### Install AWS CLI(Mac or Linux) and Create VPC, Subnet, IG, Route Table, SG, Endpoint, PHZ, EC2 instance
 ```
 source 02-set-aws.sh
 ```
@@ -31,7 +31,7 @@ source 02-set-aws.sh
 
 ### Installation preparation 
 
-#### Install the image registry and image release image on the bastion machine and create the install-config
+#### Install the Mirror Registry and Mirroring OCP release image on the bastion machine and create the install-config
 ```
 source 01-set-parameter.sh && source 03-install-pre.sh
 ```
