@@ -89,9 +89,9 @@ run_command "[Add tag to VPC: $VPC_NAME]"
 aws --region $REGION ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames
 run_command "[Enable DNS hostnames for the VPC: $VPC_ID]"
 
-# Enable DNS resolution for the VPC
+# Enable DNS resolve for the VPC
 aws --region $REGION ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-support
-run_command "[Enable DNS resolution for the VPC: $VPC_ID]"
+run_command "[Enable DNS resolve for the VPC: $VPC_ID]"
 
 # Add an empty line after the task
 echo
