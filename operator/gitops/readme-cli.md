@@ -10,9 +10,7 @@
 
   oc patch installplan $(oc get ip -n openshift-gitops-operator -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-gitops-operator --type merge --patch '{"spec":{"approved":true}}'
 
-  oc get ip -n openshift-gitops
-
-  oc get pods -n openshift-gitops
+  oc get ip -n openshift-gitops-operator
   ```
 
 ### Access control and user management
