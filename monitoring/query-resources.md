@@ -26,6 +26,10 @@
   export QUERY="container_network_transmit_bytes_total{namespace='${NAMESPACE}'}"
   export QUERY="pod:container_fs_usage_bytes:sum{namespace='${NAMESPACE}'}"
 
+  export QUERY="min_over_time(pod:container_cpu_usage:sum{namespace='${NAMESPACE}'}[24h])"
+  export QUERY="max_over_time(pod:container_cpu_usage:sum{namespace='${NAMESPACE}'}[24h])"  
+  export QUERY="avg_over_time(pod:container_cpu_usage:sum{namespace='${NAMESPACE}'}[24h])"
+  
   export PVC="minio-pvc"
   export QUERY="kubelet_volume_stats_used_bytes{persistentvolumeclaim='${PVC}'}"
   export QUERY="kubelet_volume_stats_available_bytes{persistentvolumeclaim='${PVC}'}"
