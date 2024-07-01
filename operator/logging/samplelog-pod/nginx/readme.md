@@ -14,7 +14,7 @@ Access URL generation log
 oc new-project samplelog
 oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/nginx/nginx-log.yaml
 
-export ROUTE=$(oc get route sample-log-app -n test -o jsonpath='{"http://"}{.spec.host}{"\n"}')
+export ROUTE=$(oc get route sample-log-app -n samplelog -o jsonpath='{"http://"}{.spec.host}{"\n"}')
 
 curl -s ${ROUTE} |grep Hello
     <h1>Hello, world from nginx!</h1>
