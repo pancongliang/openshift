@@ -14,6 +14,17 @@
   oc get ip -n openshift-nmstate
   ```
 
+
+* Create an instance of the nmstate Operator:
+  ```
+  cat << EOF | oc apply -f -
+  apiVersion: nmstate.io/v1
+  kind: NMState
+  metadata:
+    name: nmstate
+  EOF
+  ```
+
 ### Configure Static IP
 * Configure Static IP for worker03 node
   ```
