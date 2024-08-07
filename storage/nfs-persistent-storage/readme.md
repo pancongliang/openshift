@@ -8,7 +8,7 @@
   export PV_NAME="test-pv"
   export PVC_NAME="test-pvc"
   export STORAGE_SIZE="10Gi"
-  exportACCESS_MODE=ReadWriteOnce
+  exportACCESS_MODE=ReadWriteMany
   ```
   
 * Deploy NFS Persistent Storage
