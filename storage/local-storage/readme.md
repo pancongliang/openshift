@@ -3,7 +3,7 @@
 * Set necessary parameters
 
   ```
-  export PVC_TARGET_NAMESPACE="test"
+  export NAMESPACE="test"
   export PV_NAME="test-pv"
   export PVC_NAME="test-pvc"
   export STORAGE_SIZE="100Gi"
