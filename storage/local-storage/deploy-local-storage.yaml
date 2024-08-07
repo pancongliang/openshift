@@ -32,7 +32,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: ${PVC_NAME}
-  namespace: ${PVC_TARGET_NAMESPACE}
+  namespace: ${NAMESPACE}
 spec:
   accessModes:
   - ReadWriteOnce
