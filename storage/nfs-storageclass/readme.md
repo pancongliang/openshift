@@ -23,15 +23,17 @@
   wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/02-deploy-nfs-storageclass.sh
 
   source 02-deploy-nfs-storageclass.sh
+
+  oc get sc
   ```
   
-* Or deploy NFS StorageClass via yaml
+### Test mount
+* Deploy app and mount nfs sc
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/02-rbac.yaml | envsubst | oc apply -f -
+  oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
 
-  oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner
-
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/03-deployment.yaml | envsubst | oc apply -f -
-
-  oc create https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/04-class.yaml
+  oc set volumes deployment/nginx \
+     --add --name mysql-storage --type pvc --claim-class managed-nfs-storage \
+     --claim-mode RWX --claim-size 5Gi --mount-path /usr/share/nginx/html \
+     --claim-name test-volume
   ```
