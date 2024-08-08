@@ -21,12 +21,18 @@
 ### Deploy ClusterLogging instance
 
 * Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md)
+  ```
+  export STORAGE_CLASS_NAME="managed-nfs-storage"
+  ```
 
 * Create ClusterLogging instance
   ```
-  export STORAGE_CLASS_NAME="managed-nfs-storage"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-deploy-instance.yaml | envsubst | oc apply -f -
+  # fluentd:
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-deploy-instance-fluentd.yaml | envsubst | oc apply -f -
 
+  # or vector 
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-deploy-instance-vector.yaml | envsubst | oc apply -f -
+  
   oc get po -n openshift-logging
   ```
 
