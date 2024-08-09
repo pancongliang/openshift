@@ -38,10 +38,11 @@ openshift-install create cluster --dir $HOME/ocp-install --log-level=info
 ### Set up an alias to run oc with the new cluster credentials
 
 ```
-alias oc="oc --kubeconfig=$INSTALL/auth/kubeconfig"
-echo alias oc=\"oc --kubeconfig=$INSTALL/auth/kubeconfig\" >> $HOME/.bash_profile
+echo export KUBECONFIG=$HOME/ocp-install/auth/kubeconfig >> $HOME/.bash_profile
+```
 
-oc get node
+### Uninstalling a cluster on AWS
 
-oc get co
+```
+openshift-install destroy cluster --dir $HOME/ocp-install --log-level info
 ```
