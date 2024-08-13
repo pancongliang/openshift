@@ -9,6 +9,8 @@ export SNO_IP="10.72.94.209"
 export SNO_GW="10.72.94.254"
 export SNO_NETMASK="255.255.255.0"
 export SNO_DNS="10.74.251.171"
+export SNO_DISK="/dev/sda"
+export SNO_INTERFACE="ens192"
 
 export SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"
 export PULL_SECRET_PATH="$HOME/pull-secret"
@@ -53,7 +55,7 @@ networking:
 platform:
   none: {}
 bootstrapInPlace:
-  installationDisk: /dev/sda
+  installationDisk: $SNO_DISK
 pullSecret: '$(cat $PULL_SECRET_PATH)' 
 sshKey: |
   $(cat $SSH_KEY_PATH)
@@ -72,7 +74,7 @@ openshift-install --dir=ocp create single-node-ignition-config
 ### Embed ignition data into RHCOS ISO
 ~~~
 coreos-installer iso ignition embed -fi ocp/bootstrap-in-place-for-live-iso.ign rhcos-live.iso
-coreos-installer iso kargs modify -a "ip=$SNO_IP::$SNO_GW:$SNO_NETMASK:sno.$CLUSTER_NAME.$BASE_DOMAIN:ens192:off:$SNO_DNS" rhcos-live.iso
+coreos-installer iso kargs modify -a "ip=$SNO_IP::$SNO_GW:$SNO_NETMASK:$CLUSTER_NAME.$BASE_DOMAIN:$SNO_INTERFACE:off:$SNO_DNS" rhcos-live.iso
 ~~~
 
 ### Mount the ISO boot and check the installation progress in the PC client
@@ -92,7 +94,7 @@ systemctl enable dnsmasq
 systemctl restart dnsmasq
 
 cat << EOF > /etc/NetworkManager/dispatcher.d/forcedns
-export IP="10.0.2.230"
+export IP="$SNO_IP"
 export BASE_RESOLV_CONF=/run/NetworkManager/resolv.conf
 if [ "$2" = "dhcp4-change" ] || [ "$2" = "dhcp6-change" ] || [ "$2" = "up" ] || [ "$2" = "connectivity-change" ]; then
     if ! grep -q "$IP" /etc/resolv.conf; then
