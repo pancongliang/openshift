@@ -83,6 +83,7 @@ coreos-installer iso kargs modify -a "ip=$SNO_IP::$SNO_GW:$SNO_NETMASK:$CLUSTER_
 ~~~
 
 ### After the second boot, correct the hostname and DNS settings.
+If the provided DNS does not have reverse domain name resolution, correct the hostname and DNS settings after the second startup.
 ~~~
 cat << EOF > /etc/dnsmasq.d/single-node.conf
 address=/apps.$CLUSTER_NAME.$BASE_DOMAIN/$SNO_IP
