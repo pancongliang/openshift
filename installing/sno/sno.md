@@ -75,6 +75,11 @@ coreos-installer iso ignition embed -fi ocp/bootstrap-in-place-for-live-iso.ign 
 coreos-installer iso kargs modify -a "ip=$SNO_IP::$SNO_GW:$SNO_NETMASK:sno.$CLUSTER_NAME.$BASE_DOMAIN:ens192:off:$SNO_DNS" rhcos-live.iso
 ~~~
 
+### Mount the ISO boot and check the installation progress in the PC client
+~~~
+./openshift-install --dir=ocp wait-for install-complete
+~~~
+
 ### After the second boot, correct the hostname and DNS settings.
 ~~~
 cat << EOF > /etc/dnsmasq.d/single-node.conf
@@ -103,4 +108,11 @@ fi
 EOF
 
 chmod 755 /etc/NetworkManager/dispatcher.d/forcedns
+~~~
+
+### Log in to the cluster using kubeconfig
+~~~
+export KUBECONFIG=ocp/auth/kubeconfig
+oc get nodes
+oc get co
 ~~~
