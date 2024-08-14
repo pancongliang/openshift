@@ -140,7 +140,7 @@ PRINT_TASK "[TASK: Generate an ignition file containing the node hostname]"
 # Copy ignition files with appropriate hostnames
 BOOTSTRAP_HOSTNAME="${BOOTSTRAP_HOSTNAME}"
 MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
-WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}")
+WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
 
 cp "${IGNITION_PATH}/bootstrap.ign" "${IGNITION_PATH}/append-${BOOTSTRAP_HOSTNAME}.ign"
 run_command "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
