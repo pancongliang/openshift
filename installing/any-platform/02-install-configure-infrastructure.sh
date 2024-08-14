@@ -720,6 +720,7 @@ hostnames=(
     "${MASTER03_IP}"
     "${WORKER01_IP}"
     "${WORKER02_IP}"
+    "${WORKER03_IP}"
     "${BOOTSTRAP_IP}"
     "${NSLOOKUP_PUBLIC}"
 )
