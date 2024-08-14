@@ -13,6 +13,7 @@
   master03.ocp4.example.com   | master
   worker01.ocp4.example.com   | worker
   worker02.ocp4.example.com   | worker
+  worker03.ocp4.example.com   | worker
   bootstrap.ocp4.example.com  | bootstrap
   ```
 
@@ -20,7 +21,7 @@
 
 * Download script file
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/v2/00-download-script.sh | sh
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/00-download-script.sh | sh
   ```
 
 * Security settings and register subscriptions
