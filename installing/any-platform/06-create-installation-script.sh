@@ -60,6 +60,7 @@ generate_setup_script "${MASTER02_HOSTNAME}" "${MASTER02_IP}"
 generate_setup_script "${MASTER03_HOSTNAME}" "${MASTER03_IP}"
 generate_setup_script "${WORKER01_HOSTNAME}" "${WORKER01_IP}"
 generate_setup_script "${WORKER02_HOSTNAME}" "${WORKER02_IP}"
+generate_setup_script "${WORKER03_HOSTNAME}" "${WORKER03_IP}"
 
 # Make the script executable
 chmod +x ${IGNITION_PATH}/*.sh
