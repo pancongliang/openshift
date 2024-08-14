@@ -9,7 +9,6 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -19,40 +18,6 @@ run_command() {
         echo "failed: $1"
     fi
 }
-
-
-# === Task: Install AWS CLI ===
-PRINT_TASK "[TASK: Install AWS CLI]"
-
-# Function to install AWS CLI on Linux
-install_awscli_linux() {
-    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 
-    unzip awscliv2.zip > /dev/null 
-    sudo ./aws/install &>/dev/null || true
-    run_command "[Install AWS CLI]"
-    sudo rm -rf aws awscliv2.zip
-}
-
-# Function to install AWS CLI on macOS
-install_awscli_mac() {
-    curl -s "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
-    sudo installer -pkg AWSCLIV2.pkg -target / &>/dev/null || true
-    run_command "[Install AWS CLI]"
-    sudo rm -rf AWSCLIV2.pkg
-}
-
-# Detecting the operating system
-os=$(uname -s)
-
-# Installing AWS CLI based on the operating system
-case "$os" in
-    Linux*)  install_awscli_linux;;
-    Darwin*) install_awscli_mac;;
-    *) ;;
-esac
-
-# Add an empty line after the task
-echo
 # ====================================================
 
 
@@ -62,61 +27,166 @@ rm -rf $HOME/.aws
 mkdir -p $HOME/.aws
 cat << EOF > "$HOME/.aws/credentials"
 [default]
+cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "[Set up AWS credentials]"
 
-# Add an empty line after the task
 echo
 # ====================================================
 
 
+# === Task: Install openshift-install and oc cli===
+PRINT_TASK "[TASK: Install openshift-install adn oc-cli]"
 
-# === Task: Install openshift tool ===
-PRINT_TASK "[TASK: Install openshift tool]"
+wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-mac.tar.gz" &> /dev/null
+run_command "[Download openshift-install]"
 
-# Step 1: Delete openshift tool
-# ----------------------------------------------------
-# Delete openshift tool
-files=(
-    "/usr/local/bin/kubectl"
-    "/usr/local/bin/oc"
-    "/usr/local/bin/openshift-install"
-    "/usr/local/bin/openshift-install-linux.tar.gz"
-    "/usr/local/bin/openshift-client-linux.tar.gz"
-)
-for file in "${files[@]}"; do
-    sudo rm -rf $file 2>/dev/null
+rm -f /usr/local/bin/openshift-install &> /dev/null
+tar -xzf "openshift-install-mac.tar.gz" -C "/usr/local/bin/" &> /dev/null
+run_command "[Install openshift-install]"
+
+
+wget -q "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-mac.tar.gz" &> /dev/null
+run_command "[Download oc-cli]"
+
+rm -f /usr/local/bin/oc &> /dev/null
+rm -f /usr/local/bin/kubectl &> /dev/null
+rm -f //usr/local/bin/README.md &> /dev/null
+
+tar -xzf "openshift-client-mac.tar.gz" -C "/usr/local/bin/" &> /dev/null
+run_command "[Install openshift-install]"
+
+chmod +x /usr/local/bin/oc &> /dev/null
+chmod +x /usr/local/bin/kubectl &> /dev/null
+chmod +x /usr/local/bin/openshift-install &> /dev/null
+
+rm -rf openshift-install-mac.tar.gz openshift-client-mac.tar.gz &> /dev/null
+echo
+# ====================================================
+
+# === Task: Create openshift cluster ===
+PRINT_TASK "[TASK: Create openshift cluster]"
+
+rm -rf $OCP_INSTALL_DIR &> /dev/null
+mkdir -p $OCP_INSTALL_DIR &> /dev/null
+run_command "[Create install dir: $OCP_INSTALL_DIR]"
+
+cat << EOF > $OCP_INSTALL_DIR/install-config.yaml 
+additionalTrustBundlePolicy: Proxyonly
+apiVersion: v1
+baseDomain: $BASE_DOMAIN
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+  platform: {}
+  replicas: 3
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: 3
+metadata:
+  creationTimestamp: null
+  name: $CLUSTER_NAME
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 10.0.0.0/16
+  networkType: OVNKubernetes
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  aws:
+    region: $REGION
+publish: External
+pullSecret: '$(cat $PULL_SECRET_PATH)' 
+sshKey: |
+  $(cat $SSH_KEY_PATH)
+EOF
+run_command "[Create the install-config.yaml file]"
+
+rm -rf $OCP_INSTALL_DIR/install.log
+echo "ok: [Installing the OpenShift cluster]"
+echo "info: [Installation Log: tail -f $OCP_INSTALL_DIR/install.log]"
+openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info &> "$OCP_INSTALL_DIR/install.log"
+run_command "[Install OpenShift AWS IPI completed]"
+
+while true; do
+    operator_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    if echo "$operator_status" | grep -q -v "True False False"; then
+        echo "info: [All cluster operators have not reached the expected status, Waiting...]"
+        sleep 60  
+    else
+        echo "ok: [All cluster operators have reached the expected state]"
+        break
+    fi
 done
 
-# Step 2: Function to download and install tool
-# ----------------------------------------------------
-# Function to download and install .tar.gz tools
-install_tar_gz() {
-    local tool_name="$1"
-    local tool_url="$2"  
-    # Download the tool
-    wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
-    if [ $? -eq 0 ]; then
-        echo "ok: [download $tool_name tool]"        
-        # Extract the downloaded tool
-        tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
-        # Remove the downloaded .tar.gz file
-        rm -f "/usr/local/bin/$(basename $tool_url)"
-    else
-        echo "failed: [download $tool_name tool]"
-    fi
-}
-
-# Install .tar.gz tools
-install_tar_gz "openshift-install" "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE}/openshift-install-linux.tar.gz"
-install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
+echo
+# ====================================================
 
 
-# === Task: Generate SSH key for cluster nodes ===
-PRINT_TASK "[TASK: Generate SSH key for cluster nodes]"
+# === Task: Create htpasswd User ===
+PRINT_TASK "[TASK: Create htpasswd User]"
 
-rm -rf $HOME/.ssh/*
-ssh-keygen -N '' -f $HOME/.ssh/id_rsa
-run_command "[Generate SSH key for cluster nodes $HOME/.ssh/]"
+rm -rf $OCP_INSTALL_DIR/users.htpasswd
+htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
+run_command "[Create a user using the htpasswd tool]"
+
+oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+run_command "[Create a secret using the users.htpasswd file]"
+
+rm -rf $OCP_INSTALL_DIR/users.htpasswd
+
+# Use a here document to apply OAuth configuration to the OpenShift cluster
+cat  <<EOF | oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - htpasswd:
+      fileData:
+        name: htpasswd-secret
+    mappingMethod: claim
+    name: htpasswd-user
+    type: HTPasswd
+EOF
+run_command "[Setting up htpasswd authentication]"
+
+# Grant the 'cluster-admin' cluster role to the user 'admin'
+oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
+run_command "[Grant cluster-admin permissions to the admin user]"
+
+echo "info: [Restarting oauth pod, waiting...]"
+sleep 90
+echo "info: [Restarting oauth pod, waiting...]"
+sleep 90
+echo "info: [Restarting oauth pod, waiting...]"
+sleep 90
+
+echo
+# ====================================================
+
+# === Task: Login OCP Cluster ===
+PRINT_TASK "[TASK: Login OCP Cluster]"
+
+oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443 --insecure-skip-tls-verify &> /dev/null
+run_command "[Log in to the cluster using the htpasswd user]"
+
+echo
+# ====================================================
+
+# === Task: Login cluster information ===
+PRINT_TASK "[TASK: Login cluster information]"
+echo "info: [Log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
+echo "info: [Log in to the cluster using kubeconfig:  export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig]"
+echo
+# ====================================================
