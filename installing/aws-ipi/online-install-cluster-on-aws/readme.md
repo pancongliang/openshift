@@ -1,50 +1,40 @@
 ## Installing a cluster quickly on AWS
 
-### Install aws and oc command
+### Setting Environment Variables
 
 ```
-export OCP_RELEASE="4.14.20"
-export AWS_ACCESS_KEY_ID="AKIAQ2FLxxxxx"
-export AWS_SECRET_ACCESS_KEY="KiGyRt5EyHJo+z9NWVawgxxxx"
-mkdir -p $HOME/ocp-install
-
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online-Install-cluster-on-aws/01-install-pre.sh
-source 01-install-pre.sh
+export OCP_VERSION=4.14.20
+export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
+export SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"
+export PULL_SECRET_PATH="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export CLUSTER_NAME="ocp4"
+export BASE_DOMAIN="example.com"
+export REGION="ap-northeast-1"
+export AWS_ACCESS_KEY_ID="xxxxxxx"
+export AWS_SECRET_ACCESS_KEY="xxxxxx"
 ```
 
-
-### Download pull-secret
-Download [pull-secret](https://cloud.redhat.com/openshift/install/metal/installer-provisioned)
-
-### Create install-config
-
+### Installing a cluster quickly on AWS(Client Mac)
 ```
-openshift-install create install-config --dir $HOME/ocp-install
-
-? SSH Public Key /home/admin/.ssh/id_rsa.pub
-? Platform: aws
-? Region: eu-west-1
-? Base Domain: example.com
-? Cluster Name: ocp4
-? Pull Secret: *************
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online-Install-cluster-on-aws/aws-ipi-install.sh
+source aws-ipi-install.sh
 ```
 
-### Run the installer to create  cluster
-
+### View the installation log
 ```
-openshift-install create cluster --dir $HOME/ocp-install --log-level=info
+export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
+tail -f $OCP_INSTALL_DIR/install.log
 ```
 
 ### Set up an alias to run oc with the new cluster credentials
 
 ```
-echo 'export KUBECONFIG=$HOME/ocp-install/auth/kubeconfig' >> $HOME/.bash_profile
-oc completion bash >> /etc/bash_completion.d/oc_completion
-source $HOME/.bash_profile
+echo 'export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig' >> $HOME/.zshrc
+source $HOME/.zshrc
 ```
 
 ### Uninstalling a cluster on AWS
 
 ```
-openshift-install destroy cluster --dir $HOME/ocp-install --log-level info
+openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
 ```
