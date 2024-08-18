@@ -166,26 +166,27 @@ oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-
 run_command "[Grant cluster-admin permissions to the admin user]"
 
 echo "info: [Restarting oauth pod, waiting...]"
-sleep 90
+sleep 100
 echo "info: [Restarting oauth pod, waiting...]"
-sleep 90
+sleep 100
 echo "info: [Restarting oauth pod, waiting...]"
-sleep 90
+sleep 100
 
 echo
 # ====================================================
 
 # === Task: Login OCP Cluster ===
-PRINT_TASK "[TASK: Login OCP Cluster]"
+#PRINT_TASK "[TASK: Login OCP Cluster]"
 
-oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443 --insecure-skip-tls-verify &> /dev/null
-run_command "[Log in to the cluster using the htpasswd user]"
+#oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443 --insecure-skip-tls-verify &> /dev/null
+#run_command "[Log in to the cluster using the htpasswd user]"
 
-echo
+#echo
 # ====================================================
 
 # === Task: Login cluster information ===
 PRINT_TASK "[TASK: Login cluster information]"
+
 echo "info: [Log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo "info: [Log in to the cluster using kubeconfig:  export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig]"
 echo
