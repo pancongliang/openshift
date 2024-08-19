@@ -29,7 +29,7 @@ scripts=(
 )
 
 # Specify the base URL of the GitHub repository
-base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/"
+base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/offline/"
 
 # Function to download scripts
 download_scripts() {
