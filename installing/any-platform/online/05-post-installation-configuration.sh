@@ -78,28 +78,3 @@ run_command "[leave the claim field blank to allow the automatic creation of an 
 # Add an empty line after the task
 echo
 # ====================================================
-
-
-# Task: Configuring additional trust stores for image registry access
-PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
-
-# Create a configmap containing the CA certificate
-oc create configmap registry-config \
-     --from-file=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem \
-     -n openshift-config &> /dev/null
-run_command "[create a configmap containing the CA certificate]"
-
-# Additional trusted CA
-oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
-run_command "[additional trusted CA]"
-
-# Add an empty line after the task
-echo
-# ====================================================
-
-# Task: Disabling the default OperatorHub sources
-PRINT_TASK "[TASK: Disabling the default OperatorHub sources]"
-
-# Disabling the default OperatorHub sources
-oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
-run_command "[disabling the default OperatorHub sources]"
