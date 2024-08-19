@@ -17,20 +17,22 @@
   bootstrap.ocp4.example.com  | bootstrap
   ```
 
-### Download the script and install and configure infrastructure services through the script
+### Download the installation script
 
 * Download script file
   ```
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/00-download-script.sh | sh
   ```
 
+### Security settings and register subscriptions
+
 * Security settings and register subscriptions
   ```
   source 00-security-setup.sh
   source 00-register-subscription.sh
-
-  reboot
   ```
+
+### Setting Environment Variables
 
 * Execute after modifying the necessary parameters
   ```
@@ -38,6 +40,8 @@
   
   source 01-set-ocp-install-parameters.sh
   ```
+
+### Install and configure infrastructure
 
 * Install rpm/oc and configure httpd/nfs/dns/haproxy
   ```
@@ -54,7 +58,7 @@
   source 04-mirror-ocp-release-image.sh
   ```
 
-### Create ignition file and install bootstrap/master/worker node through script
+### Create ignition files and installation scripts
 
 * Create ignition file
   ```
@@ -68,6 +72,8 @@
   ls ${IGNITION_PATH}/set*
   set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh
   ```
+
+### Install bootstrap
 
 * Install bootstrap
 
@@ -88,6 +94,7 @@
   [root@localhost ~]$ journalctl -b -f -u release-image.service -u bootkube.service
   ```
 
+### Install all master
 * Install all master
   After mounting the ISO, start the `master` node and execute the following command.
   If the node cannot communicate, manually enter the content in `set-*.sh`.
@@ -98,6 +105,7 @@
   ···Install all master nodes in sequence···
   ```
 
+### Install all worker
 * Install all worker
   After mounting the ISO, start the `worker` node and execute the following command.
   If the node cannot communicate, manually enter the content in `set-*.sh`.
@@ -108,6 +116,7 @@
   ···Install all worker nodes in sequence···
   ```
 
+### Approval of CSR
 * Approve csr and wait for 30 minutes to check whether the cluster is normal
   ```
   # Bastion Terminal-1:
