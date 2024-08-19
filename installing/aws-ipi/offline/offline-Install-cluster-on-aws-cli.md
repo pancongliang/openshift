@@ -5,7 +5,7 @@
 
 ```
 mkdir aws-ipi && cd aws-ipi
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline-install-cluster-on-aws/00-download-script.sh | sh
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline/00-download-script.sh | sh
 ```
 
 
