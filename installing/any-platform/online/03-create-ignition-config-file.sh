@@ -25,22 +25,12 @@ run_command() {
 # Task: Generate a defined install-config file
 PRINT_TASK "[TASK: Generate a defined install-config file]"
 
-# Backup and format the registry CA certificate
-rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-cp "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-run_command "[backup registry CA certificate]"
-
-sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-run_command "[format registry ca certificate]"
-
 # Create ssh-key for accessing CoreOS
 rm -rf ${SSH_KEY_PATH}
 ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null
 run_command "[create ssh-key for accessing coreos]"
 
 # Define variables
-export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak)"
-export REGISTRY_AUTH=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
 export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
@@ -69,23 +59,10 @@ networking:
 platform:
   none: {} 
 fips: false
-pullSecret: '{"auths":{"${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443": {"auth": "${REGISTRY_AUTH}","email": "xxx@xxx.com"}}}' 
+pullSecret: '$(cat $PULL_SECRET_PATH)'
 sshKey: '${SSH_PUB_STR}'
-additionalTrustBundle: | 
-${REGISTRY_CA_CERT_FORMAT}
-imageContentSources:
-- mirrors:
-  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/openshift/release
-  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
-- mirrors:
-  - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/openshift/release-images
-  source: quay.io/openshift-release-dev/ocp-release
 EOF
 run_command "[create ${HTTPD_PATH}/install-config.yaml file]"
-
-# Delete certificate
-rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
-run_command "[delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
 # Add an empty line after the task
 echo
