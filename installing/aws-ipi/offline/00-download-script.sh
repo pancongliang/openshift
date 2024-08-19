@@ -25,7 +25,7 @@ scripts=(
 )
 
 # Specify the base URL of the GitHub repository
-base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline-install-cluster-on-aws/"
+base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline/"
 
 # Function to download scripts
 download_scripts() {
