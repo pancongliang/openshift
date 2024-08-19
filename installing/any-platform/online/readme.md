@@ -1,13 +1,13 @@
-## Restricted network installation OpenShift4
+## Installation OpenShift4
 
-* Use scripts to install and configure the infrastructure and download the ocp image to the offline registry.
+* Use scripts to install and configure the infrastructure.
 * The script generates the ignition file, and downloads and executes the script from node to install openshift.
 
 * Required machines for cluster installation
   ```
   Hostname                    | Role
   --- --- --- --- --- --- --- | --- --- --- --- --- --- --- 
-  bastion.ocp4.example.com    | bastion(nfs/registry/haproxy/dns/httpd)
+  bastion.ocp4.example.com    | bastion(nfs/haproxy/dns/httpd)
   master01.ocp4.example.com   | master 
   master02.ocp4.example.com   | master
   master03.ocp4.example.com   | master
@@ -21,15 +21,13 @@
 
 * Download script file
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/00-download-script.sh | sh
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-download-script.sh | sh
   ```
 
 * Security settings and register subscriptions
   ```
   source 00-security-setup.sh
   source 00-register-subscription.sh
-
-  reboot
   ```
 
 * Execute after modifying the necessary parameters
@@ -44,26 +42,17 @@
   source 02-install-configure-infrastructure.sh
   ```
 
-* Install mirror-registry
-  ```
-  source 03-install-mirror-registry.sh
-  ```
-
-* Download ocp image
-  ```
-  source 04-mirror-ocp-release-image.sh
-  ```
 
 ### Create ignition file and install bootstrap/master/worker node through script
 
 * Create ignition file
   ```
-  source 05-create-ignition-config-file.sh
+  source 03-create-ignition-config-file.sh
   ```
   
 * Create node installation script file
   ```
-  source 06-create-installation-script.sh
+  source 04-create-installation-script.sh
 
   ls ${IGNITION_PATH}/set*
   set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh
@@ -131,5 +120,5 @@
 * Configure image-registry-operator data persistence and registry trustedCA through the following script.
 
   ```
-  source 07-post-installation-configuration.sh
+  source 05-post-installation-configuration.sh
   ```
