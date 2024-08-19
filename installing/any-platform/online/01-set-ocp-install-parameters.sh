@@ -24,6 +24,7 @@ export OCP_RELEASE_VERSION="4.12.26"
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="example.com"
 export SSH_KEY_PATH="$HOME/.ssh"
+export PULL_SECRET_PATH="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export NETWORK_TYPE="OVNKubernetes"
 export POD_CIDR="10.128.0.0/14"
 export HOST_PREFIX="23"
@@ -57,16 +58,6 @@ export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
 # === More parameters === 
-# Mirror-Registry is used to mirror ocp image
-export REGISTRY_HOSTNAME="mirror.registry"
-export REGISTRY_ID="admin"
-export REGISTRY_PW="password"                         # 8 characters or more
-export REGISTRY_INSTALL_PATH="/opt/quay-install"
-
-# oc-mirror plug-in for mirror image
-export IMAGE_SET_CONFIGURATION_PATH="/root/oc-mirror"
-export OCP_RELEASE_CHANNEL="$(echo $OCP_RELEASE_VERSION | cut -d. -f1,2)"
-
 # NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
@@ -105,6 +96,7 @@ check_all_variables() {
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
+    check_variable "PULL_SECRET_PATH"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
@@ -130,12 +122,6 @@ check_all_variables() {
     check_variable "BOOTSTRAP_IP"
     check_variable "COREOS_INSTALL_DEV"
     check_variable "NET_IF_NAME"
-    check_variable "REGISTRY_HOSTNAME"
-    check_variable "REGISTRY_ID"
-    check_variable "REGISTRY_PW"
-    check_variable "REGISTRY_INSTALL_PATH"
-    check_variable "IMAGE_SET_CONFIGURATION_PATH"
-    check_variable "OCP_RELEASE_CHANNEL"
     check_variable "NFS_PATH"
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "DNS_SERVER_IP"
