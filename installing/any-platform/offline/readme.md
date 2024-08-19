@@ -21,7 +21,7 @@
 
 * Download script file
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/00-download-script.sh | sh
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/offline/00-download-script.sh | sh
   ```
 
 ### Security settings and register subscriptions
