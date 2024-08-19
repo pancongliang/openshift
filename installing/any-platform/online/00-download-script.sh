@@ -21,15 +21,13 @@ scripts=(
     "00-register-subscription.sh"
     "01-set-ocp-install-parameters.sh"
     "02-install-configure-infrastructure.sh"
-    "03-install-mirror-registry.sh"
-    "04-mirror-ocp-release-image.sh"
-    "05-create-ignition-config-file.sh"
-    "06-create-installation-script.sh"
-    "07-post-installation-configuration.sh"
+    "03-create-ignition-config-file.sh"
+    "04-create-installation-script.sh"
+    "05-post-installation-configuration.sh"
 )
 
 # Specify the base URL of the GitHub repository
-base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/"
+base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/"
 
 # Function to download scripts
 download_scripts() {
