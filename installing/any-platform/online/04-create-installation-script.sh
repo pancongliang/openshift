@@ -31,8 +31,8 @@ generate_setup_script() {
     local HOSTNAME=$1
     local IP_ADDRESS=$2
 
-    # Generate a setup script for the node
-    cat << EOF > "${IGNITION_PATH}/set-${HOSTNAME}.sh"
+# Generate a setup script for the node
+cat << EOF > "${IGNITION_PATH}/set-${HOSTNAME}.sh"
 #!/bin/bash
 # Configure network settings
 nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_SERVER_IP} ipv4.method manual connection.autoconnect yes
