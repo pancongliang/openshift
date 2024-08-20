@@ -113,6 +113,7 @@ elif [ "$rhel_version" -eq 9 ]; then
     oc_mirror="oc-mirror.tar.gz"
 fi
 
+rm -rf /usr/local/bin/oc-mirror" &> /dev/null
 tar -xzf "$oc_mirror" -C "/usr/local/bin/" &> /dev/null
 run_command "[Install oc-mirror tool]"
 
@@ -120,24 +121,6 @@ chmod a+x /usr/local/bin/oc-mirror &> /dev/null
 run_command "[modify /usr/local/bin/oc-mirror permissions]"
 
 rm -rf $oc_mirror &> /dev/null
-
-# Step 3: Checking
-# ----------------------------------------------------
-# Define the list of commands to check
-commands=("openshift-install" "oc" "kubectl" "oc-mirror" "butane")
-
-# Iterate through the list of commands for checking
-for cmd in "${commands[@]}"; do
-    if command -v "$cmd" >/dev/null 2>&1; then
-        echo "ok: [install $cmd tool]"
-    else
-        echo "failed: [install $cmd tool]"
-    fi
-done
-
-# Add an empty line after the task
-echo
-
 
 # Write LANG=en_US.UTF-8 to the ./bash_profile file]
 echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
