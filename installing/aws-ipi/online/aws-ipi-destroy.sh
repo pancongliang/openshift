@@ -31,4 +31,4 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "[Set up AWS credentials]"
 
-openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
+/usr/local/bin/openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
