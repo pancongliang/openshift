@@ -40,7 +40,8 @@ echo 'export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig' >> $HOME/.zshrc
 source $HOME/.zshrc
 
 # RHEL:
-echo "export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig" >> ~/.bash_profile
+echo "export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig" >> ~/.bash_profile
+oc completion bash >> /etc/bash_completion.d/oc_completion
 source ~/.bash_profile
 ```
 
