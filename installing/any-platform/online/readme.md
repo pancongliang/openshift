@@ -100,3 +100,11 @@ oc get co | grep -v '.True.*False.*False'
 ```
 source 03-post-installation-config.sh
 ```
+
+### Login openshift
+
+```
+echo "export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig" >> ~/.bash_profile
+oc completion bash >> /etc/bash_completion.d/oc_completion
+source ~/.bash_profile
+```
