@@ -38,6 +38,15 @@ echo
 # === Task: Install openshift tool ===
 PRINT_TASK "[TASK: Install openshift tool]"
 
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
 # Step 1: Download the openshift-install
 # ----------------------------------------------------
 # Download the openshift-install
