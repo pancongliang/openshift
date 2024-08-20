@@ -38,94 +38,79 @@ echo
 # === Task: Install openshift tool ===
 PRINT_TASK "[TASK: Install openshift tool]"
 
-# Step 1: Delete openshift tool
+# Step 1: Download the openshift-install
 # ----------------------------------------------------
-# Delete openshift tool
-files=(
-    "/usr/local/bin/butane"
-    "/usr/local/bin/kubectl"
-    "/usr/local/bin/oc"
-    "/usr/local/bin/oc-mirror"
-    "/usr/local/bin/openshift-install"
-    "/usr/local/bin/openshift-install-linux.tar.gz"
-    "/usr/local/bin/openshift-client-linux.tar.gz"
-    "/usr/local/bin/oc-mirror.tar.gz"
-)
-for file in "${files[@]}"; do
-    rm -rf $file 2>/dev/null
-done
+# Download the openshift-install
+wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" &> /dev/null
+run_command "[Download openshift-install tool]"
 
+rm -f /usr/local/bin/openshift-install &> /dev/null
+tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" &> /dev/null
+run_command "[Install openshift-install tool]"
 
-# Step 2: Function to download and install tool
+chmod +x /usr/local/bin/openshift-install &> /dev/null
+run_command "[modify /usr/local/bin/openshift-install permissions]"
+
+rm -rf openshift-install-linux.tar.gz &> /dev/null
+
+# Step 2: Download the oc cli
 # ----------------------------------------------------
-# Function to download and install .tar.gz tools
-install_tar_gz() {
-    local tool_name="$1"
-    local tool_url="$2"  
-    # Download the tool
-    wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
-    if [ $? -eq 0 ]; then
-        echo "ok: [download $tool_name tool]"        
-        # Extract the downloaded tool
-        tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
-        # Remove the downloaded .tar.gz file
-        rm -f "/usr/local/bin/$(basename $tool_url)"
-    else
-        echo "failed: [download $tool_name tool]"
-    fi
-}
+# Delete the old version of oc cli
+rm -f /usr/local/bin/oc &> /dev/null
+rm -f /usr/local/bin/kubectl &> /dev/null
+rm -f //usr/local/bin/README.md &> /dev/null
 
-# Install .tar.gz tools
+# Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
-if [ $rhel_version -eq 9 ]; then
-    oc_mirror_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
-else
-    oc_mirror_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.14.10/oc-mirror.tar.gz"
+run_command "[Check RHEL version]"
+
+# Determine the download URL based on the RHEL version
+if [ "$rhel_version" -eq 8 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux-amd64-rhel8.tar.gz"
+    openshift_client="openshift-client-linux-amd64-rhel8.tar.gz"
+elif [ "$rhel_version" -eq 9 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz"
+    openshift_client="openshift-client-linux.tar.gz"
 fi
 
-install_tar_gz "openshift-install" "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz"
-install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
-install_tar_gz "oc-mirror" "$oc_mirror_url"
+# Download the OpenShift client
+wget -q "$download_url" -O "$openshift_client"
+run_command "[Download OpenShift client tool]"
 
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
+# Extract the downloaded tarball to /usr/local/bin/
+tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
+run_command "[Install openshift client tool]"
 
+chmod +x /usr/local/bin/oc &> /dev/null
+run_command "[modify /usr/local/bin/oc permissions]"
 
-# Function to download and install binary files
-install_binary() {
-    local tool_name="$1"
-    local tool_url="$2"    
-    # Download the binary tool
-    wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
-    if [ $? -eq 0 ]; then
-        echo "ok: [download $tool_name tool]"        
-    else
-        echo "failed: [download $tool_name tool]"
-    fi
-}
+chmod +x /usr/local/bin/kubectl &> /dev/null
+run_command "[modify /usr/local/bin/kubectl permissions]"
 
-# Install binary files
-install_binary "butane" "https://mirror.openshift.com/pub/openshift-v4/clients/butane/latest/butane"
+rm -f /usr/local/bin/README.md &> /dev/null
+rm -rf $openshift_client &> /dev/null
 
-# Modify /usr/local/bin/oc-mirror and butane toolpermissions
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
+# Step 3: Download the oc mirror
+# ----------------------------------------------------
+# Get the RHEL version number
+rhel_version=$(rpm -E %{rhel})
+run_command "[Check RHEL version]"
+
+if [ "$rhel_version" -eq 8 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.14.35/oc-mirror.tar.gz"
+    oc_mirror="oc-mirror.tar.gz"
+elif [ "$rhel_version" -eq 9 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
+    oc_mirror="oc-mirror.tar.gz"
+fi
+
+tar -xzf "$oc_mirror" -C "/usr/local/bin/" &> /dev/null
+run_command "[Install oc-mirror tool]"
+
 chmod a+x /usr/local/bin/oc-mirror &> /dev/null
 run_command "[modify /usr/local/bin/oc-mirror permissions]"
 
-chmod a+x /usr/local/bin/butane &> /dev/null
-run_command "[modify /usr/local/bin/butane permissions]"
+rm -rf $oc_mirror &> /dev/null
 
 # Step 3: Checking
 # ----------------------------------------------------
