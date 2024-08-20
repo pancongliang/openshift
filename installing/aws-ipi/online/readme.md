@@ -51,8 +51,8 @@ export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
 export AWS_ACCESS_KEY_ID="xxxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
 
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-destroy.sh
-source aws-ipi-destroy.sh
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninstall.sh
+source aws-ipi-uninstall.sh
 ```
 
 ### Scheduled installation and uninstallation of OpenShift IPI
