@@ -16,9 +16,15 @@ export AWS_SECRET_ACCESS_KEY="xxxxxx"
 
 ### Installing a cluster quickly on AWS(Client Mac)
 ```
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-install.sh
+# Mac:
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-mac.install.sh
+source aws-ipi-install.sh
+
+# RHEL:
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-rhel.install.sh
 source aws-ipi-install.sh
 ```
+
 
 ### View the installation log
 ```
