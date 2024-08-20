@@ -59,12 +59,17 @@ source aws-ipi-destroy.sh
 ```
 timedatectl set-timezone Asia/Shanghai
 hwclock --systohc
+mkdir root/aws-ipi/
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-install-rhel.sh
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-destroy.sh
 
 # Add variables to the script
+vim aws-ipi-install-rhel.sh
+vim aws-ipi-destroy.sh
 
 crontab -e
 0 7 * * 1 /bin/bash /root/aws-ipi/aws-ipi-install-rhel.sh >> /root/aws-ipi/aws-ipi-install-rhel._`date '+\%m-\%d-\%Y'`.log 2>&1
-0 20 * * 3 /bin/bash /root/aws-ipi/aws-ipi-destroy.sh >> /root/aws-ipi/aws-ipi-destroy_`date '+\%m-\%d-\%Y'`.log 2>&1
+0 21 * * 3 /bin/bash /root/aws-ipi/aws-ipi-destroy.sh >> /root/aws-ipi/aws-ipi-destroy_`date '+\%m-\%d-\%Y'`.log 2>&1
 0 7 * * 4 /bin/bash /root/aws-ipi/aws-ipi-install-rhel.sh >> /root/aws-ipi/aws-ipi-install-rhel_`date '+\%m-\%d-\%Y'`.log 2>&1
-0 20 * * 5 /bin/bash /root/aws-ipi/aws-ipi-destroy.sh >> /root/aws-ipi/aws-ipi-destroy_`date '+\%m-\%d-\%Y'`.log 2>&1
+0 21 * * 5 /bin/bash /root/aws-ipi/aws-ipi-destroy.sh >> /root/aws-ipi/aws-ipi-destroy_`date '+\%m-\%d-\%Y'`.log 2>&1
 ```
