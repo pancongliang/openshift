@@ -24,8 +24,8 @@ curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing
 
 ### Setting Environment Variables
 ```
-vim 01-set-ocp-install-parameters.sh
-source 01-set-ocp-install-parameters.sh
+vim 01-set-ocp-parameters.sh
+source 01-set-ocp-parameters.sh
 ```
 
 ### Install infrastructure and create ignition files
@@ -98,5 +98,5 @@ oc get co | grep -v '.True.*False.*False'
 ### Configure image-registry-operator data persistence
 
 ```
-source 03-post-installation-configuration.sh
+source 03-post-installation-config.sh
 ```
