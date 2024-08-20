@@ -142,3 +142,10 @@
   ```
   source 07-post-installation-configuration.sh
   ```
+
+### Login openshift
+  ```
+  echo "export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig" >> ~/.bash_profile
+  oc completion bash >> /etc/bash_completion.d/oc_completion
+  source ~/.bash_profile
+  ```
