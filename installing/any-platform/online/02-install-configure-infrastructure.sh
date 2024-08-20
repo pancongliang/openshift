@@ -105,8 +105,6 @@ rm -rf $openshift_client &> /dev/null
 # ----------------------------------------------------
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
-run_command "[Check RHEL version]"
-
 if [ "$rhel_version" -eq 8 ]; then
     download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.14.35/oc-mirror.tar.gz"
     oc_mirror="oc-mirror.tar.gz"
