@@ -49,6 +49,7 @@ tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" &> /dev/null
 run_command "[Install openshift-install tool]"
 
 chmod +x /usr/local/bin/openshift-install &> /dev/null
+run_command "[modify /usr/local/bin/openshift-install permissions]"
 rm -rf openshift-install-linux.tar.gz &> /dev/null
 
 # Delete the old version of oc cli
@@ -78,7 +79,9 @@ tar -xzf "$tar_filename" -C "/usr/local/bin/" &> /dev/null
 run_command "[Install openshift client tool]"
 
 chmod +x /usr/local/bin/oc &> /dev/null
+run_command "[modify /usr/local/bin/oc permissions]"
 chmod +x /usr/local/bin/kubectl &> /dev/null
+run_command "[modify /usr/local/bin/kubectl permissions]"
 
 rm -f /usr/local/bin/README.md &> /dev/null
 rm -rf $tar_filename &> /dev/null
