@@ -37,26 +37,6 @@ echo
 # ====================================================
 
 
-# === Task: Generate ssh keys===
-PRINT_TASK "[TASK: Generate ssh keys]"
-
-# Check if the SSH key exists
-if [ ! -f "${SSH_KEY_PATH}" ]; then
-    ssh-keygen -N '' -f "${SSH_KEY_PATH}" &> /dev/null
-    run_command "[Generate SSH keys:]"
-else
-    echo "info: [SSH key already exists, skip generation]"
-fi
-
-echo
-# ====================================================
-
-# === Task: Create an installation directory===
-PRINT_TASK "[TASK: Create an installation directory]"
-rm -rf $OCP_INSTALL_DIR
-mkdir -p $OCP_INSTALL_DIR
-run_command "[Create an installation directory: $OCP_INSTALL_DIR]"
-
 # === Task: Install openshift-install and oc cli===
 PRINT_TASK "[TASK: Install openshift-install adn oc-cli]"
 
@@ -87,6 +67,14 @@ echo
 
 # === Task: Create openshift cluster ===
 PRINT_TASK "[TASK: Create openshift cluster]"
+
+# Check if the SSH key exists
+if [ ! -f "${SSH_KEY_PATH}" ]; then
+    ssh-keygen -N '' -f "${SSH_KEY_PATH}" &> /dev/null
+    run_command "[Generate SSH keys:]"
+else
+    echo "info: [SSH key already exists, skip generation]"
+fi
 
 rm -rf $OCP_INSTALL_DIR &> /dev/null
 mkdir -p $OCP_INSTALL_DIR &> /dev/null
