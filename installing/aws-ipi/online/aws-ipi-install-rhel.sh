@@ -122,7 +122,7 @@ run_command "[Create the install-config.yaml file]"
 rm -rf $OCP_INSTALL_DIR/install.log
 echo "ok: [Installing the OpenShift cluster]"
 echo "info: [Installation Log: tail -f $OCP_INSTALL_DIR/install.log]"
-/usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info &> "$OCP_INSTALL_DIR/install.log"
+/usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
 run_command "[Install OpenShift AWS IPI completed]"
 
 while true; do
