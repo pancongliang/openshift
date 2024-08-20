@@ -62,15 +62,15 @@ hwclock --systohc
 mkdir -p /root/aws-ipi/logs && cd /root/aws-ipi/
 
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-install-rhel.sh
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-destroy.sh
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninstall.sh
 
 # Add variables to the script
 vim aws-ipi-install-rhel.sh
-vim aws-ipi-destroy.sh
+vim aws-ipi-uninstall.sh
 
 crontab -e
 0 7 * * 1 /bin/bash /root/aws-ipi/aws-ipi-install-rhel.sh >> /root/aws-ipi/logs/install_`date '+\%m-\%d-\%Y'`.log 2>&1
-0 21 * * 3 /bin/bash /root/aws-ipi/aws-ipi-destroy.sh >> /root/aws-ipi/logs/destroy_`date '+\%m-\%d-\%Y'`.log 2>&1
+0 21 * * 3 /bin/bash /root/aws-ipi/aws-ipi-uninstall.sh >> /root/aws-ipi/logs/uninstall_`date '+\%m-\%d-\%Y'`.log 2>&1
 0 7 * * 4 /bin/bash /root/aws-ipi/aws-ipi-install-rhel.sh >> /root/aws-ipi/logs/install_`date '+\%m-\%d-\%Y'`.log 2>&1
-0 21 * * 5 /bin/bash /root/aws-ipi/aws-ipi-destroy.sh >> /root/aws-ipi/logs/destroy_`date '+\%m-\%d-\%Y'`.log 2>&1
+0 21 * * 5 /bin/bash /root/aws-ipi/aws-ipi-uninstall.sh >> /root/aws-ipi/logs/uninstall_`date '+\%m-\%d-\%Y'`.log 2>&1
 ```
