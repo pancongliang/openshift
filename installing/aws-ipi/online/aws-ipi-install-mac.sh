@@ -69,6 +69,14 @@ echo
 # === Task: Create openshift cluster ===
 PRINT_TASK "[TASK: Create openshift cluster]"
 
+# Check if the SSH key exists
+if [ ! -f "${SSH_KEY_PATH}" ]; then
+    ssh-keygen -N '' -f "${SSH_KEY_PATH}" &> /dev/null
+    run_command "[Generate SSH keys:]"
+else
+    echo "info: [SSH key already exists, skip generation]"
+fi
+
 rm -rf $OCP_INSTALL_DIR &> /dev/null
 mkdir -p $OCP_INSTALL_DIR &> /dev/null
 run_command "[Create install dir: $OCP_INSTALL_DIR]"
