@@ -14,13 +14,13 @@ export AWS_ACCESS_KEY_ID="xxxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
 ```
 
-### Installing a cluster quickly on AWS(Client Mac)
+### Installing a cluster quickly on AWS
 ```
-# Mac:
+# Client Mac:
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-install-mac.sh
 source aws-ipi-install.sh
 
-# RHEL:
+# Client RHEL:
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-install-rhel.sh
 source aws-ipi-install.sh
 ```
@@ -35,11 +35,11 @@ tail -f $OCP_INSTALL_DIR/install.log
 ### Set up an alias to run oc with the new cluster credentials
 
 ```
-# Mac:
+# Client Mac:
 echo 'export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig' >> $HOME/.zshrc
 source $HOME/.zshrc
 
-# RHEL:
+# Client RHEL:
 echo "export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig" >> ~/.bash_profile
 oc completion bash >> /etc/bash_completion.d/oc_completion
 source ~/.bash_profile
