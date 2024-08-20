@@ -47,7 +47,7 @@ rm -f /usr/local/bin/openshift-install &> /dev/null
 tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" &> /dev/null
 run_command "[Install openshift-install]"
 
-wget -q "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz" &> /dev/null
+wget -q "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/${OCP_VERSION}/openshift-client-linux.tar.gz" &> /dev/null
 run_command "[Download oc-cli]"
 
 rm -f /usr/local/bin/oc &> /dev/null
@@ -69,8 +69,9 @@ echo
 PRINT_TASK "[TASK: Create openshift cluster]"
 
 # Check if the SSH key exists
-if [ ! -f "${SSH_KEY_PATH}" ]; then
-    ssh-keygen -N '' -f "${SSH_KEY_PATH}" &> /dev/null
+if [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
+    rm -rf ${SSH_KEY_PATH}
+    ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null &> /dev/null
     run_command "[Generate SSH keys:]"
 else
     echo "info: [SSH key already exists, skip generation]"
@@ -114,7 +115,7 @@ platform:
 publish: External
 pullSecret: '$(cat $PULL_SECRET_PATH)' 
 sshKey: |
-  $(cat $SSH_KEY_PATH)
+  $(cat $SSH_KEY_PATH/id_rsa.pub)
 EOF
 run_command "[Create the install-config.yaml file]"
 
