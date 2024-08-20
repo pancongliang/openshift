@@ -9,8 +9,44 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
+
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
 # ====================================================
 
+# Task: Sign up for a Red Hat Subscription
+PRINT_TASK "[TASK: Sign up for a Red Hat Subscription]"
+
+# Prompt for Red Hat Subscribe UserName
+read -p "Please input the Red Hat Subscribe UserName: " USER
+
+# Prompt for Red Hat Subscribe Password securely (hidden input)
+read -s -p "Please input the Red Hat Subscribe Password: " PASSWD
+
+# Move to a new line after password input
+echo -e "\r"
+
+# Register with subscription-manager
+subscription-manager register --force --user ${USER} --password ${PASSWD} &> /dev/null
+
+# Refresh subscriptions
+subscription-manager refresh &> /dev/null
+
+# Find the desired Pool ID for OpenShift
+POOL_ID=$(subscription-manager list --available --matches '*OpenShift Container Platform*' | grep "Pool ID" | tail -n 1 | awk -F: '{print $2}' | tr -d ' ')
+
+# Attach to the chosen Pool
+subscription-manager attach --pool="$POOL_ID"
+
+# Add an empty line after the task
+echo
+# ====================================================
 
 # === Task: Disable and stop firewalld service ===
 PRINT_TASK "[TASK: Disable and stop firewalld service]"
@@ -73,6 +109,7 @@ fi
 echo
 # ====================================================
 
+
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
@@ -98,21 +135,10 @@ echo
 # === Task: Install openshift tool ===
 PRINT_TASK "[TASK: Install openshift tool]"
 
-#!/bin/bash
-
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
-
 # Step 1: Download the openshift-install
 # ----------------------------------------------------
 # Download the openshift-install
-wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" &> /dev/null
+wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" &> /dev/null
 run_command "[Download openshift-install tool]"
 
 rm -f /usr/local/bin/openshift-install &> /dev/null
@@ -576,6 +602,9 @@ $(format_dns_entry "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WOR
 ;
 ; Create an entry for the bootstrap host.
 $(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
+;
+; Create entries for the mirror registry hosts.
+$(format_dns_entry "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}." "${REGISTRY_IP}")
 EOF
 
 # Verify if the output file was generated successfully
@@ -923,15 +952,6 @@ done
 echo
 # ====================================================
 
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
-
 
 # Task: Generate a defined install-config file
 PRINT_TASK "[TASK: Generate a defined install-config file]"
@@ -1062,17 +1082,9 @@ run_command "[change ignition file permissions]"
 echo
 # ====================================================
 
+
 # Task: Generate setup script file
 PRINT_TASK "[TASK: Generate setup script file]"
-
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
 
 rm -rf ${IGNITION_PATH}/*.sh
 
