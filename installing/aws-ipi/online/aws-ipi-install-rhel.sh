@@ -47,21 +47,21 @@ rm -f /usr/local/bin/openshift-install &> /dev/null
 tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" &> /dev/null
 run_command "[Install openshift-install]"
 
-wget -q "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/${OCP_VERSION}/openshift-client-linux.tar.gz" &> /dev/null
+wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux-amd64-rhel8.tar.gz" &> /dev/null
 run_command "[Download oc-cli]"
 
 rm -f /usr/local/bin/oc &> /dev/null
 rm -f /usr/local/bin/kubectl &> /dev/null
 rm -f //usr/local/bin/README.md &> /dev/null
 
-tar -xzf "openshift-client-linux.tar.gz" -C "/usr/local/bin/" &> /dev/null
+tar -xzf "openshift-client-linux-amd64-rhel8.tar.gz" -C "/usr/local/bin/" &> /dev/null
 run_command "[Install openshift-install]"
 
 chmod +x /usr/local/bin/oc &> /dev/null
 chmod +x /usr/local/bin/kubectl &> /dev/null
 chmod +x /usr/local/bin/openshift-install &> /dev/null
 
-rm -rf openshift-install-linux.tar.gz openshift-client-linux.tar.gz &> /dev/null
+rm -rf openshift-install-linux.tar.gz openshift-client-linux-amd64-rhel8.tar.gz &> /dev/null
 echo
 # ====================================================
 
