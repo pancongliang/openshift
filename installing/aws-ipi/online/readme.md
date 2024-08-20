@@ -6,7 +6,7 @@
 export OCP_VERSION=4.14.20
 export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
-export PULL_SECRET_PATH="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET_PATH="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export REGION="ap-northeast-1"
