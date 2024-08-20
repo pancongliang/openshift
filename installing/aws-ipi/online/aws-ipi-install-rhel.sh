@@ -37,18 +37,19 @@ echo
 # ====================================================
 
 
-# === Task: Install openshift-install and oc cli===
-PRINT_TASK "[TASK: Install openshift-install adn oc-cli]"
+# === Task: Install openshift-install and oc cli tool===
+PRINT_TASK "[TASK: Install openshift-install adn oc-cli tool]"
 
+# Download the openshift-install
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" &> /dev/null
-run_command "[Download openshift-install]"
+run_command "[Download openshift-install tool]"
 
 rm -f /usr/local/bin/openshift-install &> /dev/null
 tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" &> /dev/null
-run_command "[Install openshift-install]"
+run_command "[Install openshift-install tool]"
 
-wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux-amd64-rhel8.tar.gz" &> /dev/null
-run_command "[Download oc-cli]"
+chmod +x /usr/local/bin/openshift-install &> /dev/null
+rm -rf openshift-install-linux.tar.gz &> /dev/null
 
 # Delete the old version of oc cli
 rm -f /usr/local/bin/oc &> /dev/null
@@ -70,18 +71,17 @@ fi
 
 # Download the OpenShift client
 wget -q "$download_url" -O "$tar_filename"
-run_command "[Download OpenShift client]"
+run_command "[Download OpenShift client tool]"
 
 # Extract the downloaded tarball to /usr/local/bin/
 tar -xzf "$tar_filename" -C "/usr/local/bin/" &> /dev/null
-run_command "[Install openshift-install]"
+run_command "[Install openshift client tool]"
 
 chmod +x /usr/local/bin/oc &> /dev/null
 chmod +x /usr/local/bin/kubectl &> /dev/null
-chmod +x /usr/local/bin/openshift-install &> /dev/null
 
-rm -f //usr/local/bin/README.md &> /dev/null
-rm -rf openshift-install-linux.tar.gz openshift-client-linux-amd64-rhel8.tar.gz &> /dev/null
+rm -f /usr/local/bin/README.md &> /dev/null
+rm -rf $tar_filename &> /dev/null
 echo
 # ====================================================
 
