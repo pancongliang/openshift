@@ -52,7 +52,7 @@ run_command() {
 # Step 1: Download the openshift-install
 # ----------------------------------------------------
 # Download the openshift-install
-wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" &> /dev/null
+wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" &> /dev/null
 run_command "[Download openshift-install tool]"
 
 rm -f /usr/local/bin/openshift-install &> /dev/null
