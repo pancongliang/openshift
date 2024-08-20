@@ -57,7 +57,7 @@ rm -f //usr/local/bin/README.md &> /dev/null
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
-run_command "Check RHEL version"
+run_command "[Check RHEL version]"
 
 # Determine the download URL based on the RHEL version
 if [ "$rhel_version" -eq 8 ]; then
@@ -66,14 +66,11 @@ if [ "$rhel_version" -eq 8 ]; then
 elif [ "$rhel_version" -eq 9 ]; then
     download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz"
     tar_filename="openshift-client-linux.tar.gz"
-else
-    echo "Unsupported RHEL version: $rhel_version"
-    exit 1
 fi
 
 # Download the OpenShift client
 wget -q "$download_url" -O "$tar_filename"
-run_command "Download OpenShift client"
+run_command "[Download OpenShift client]"
 
 # Extract the downloaded tarball to /usr/local/bin/
 tar -xzf "$tar_filename" -C "/usr/local/bin/" &> /dev/null
@@ -83,6 +80,7 @@ chmod +x /usr/local/bin/oc &> /dev/null
 chmod +x /usr/local/bin/kubectl &> /dev/null
 chmod +x /usr/local/bin/openshift-install &> /dev/null
 
+rm -f //usr/local/bin/README.md &> /dev/null
 rm -rf openshift-install-linux.tar.gz openshift-client-linux-amd64-rhel8.tar.gz &> /dev/null
 echo
 # ====================================================
