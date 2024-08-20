@@ -35,12 +35,22 @@ tail -f $OCP_INSTALL_DIR/install.log
 ### Set up an alias to run oc with the new cluster credentials
 
 ```
+# Mac:
 echo 'export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig' >> $HOME/.zshrc
 source $HOME/.zshrc
+
+# RHEL:
+echo "export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig" >> ~/.bash_profile
+source ~/.bash_profile
 ```
 
 ### Uninstalling a cluster on AWS
 
 ```
-openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
+export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
+export AWS_ACCESS_KEY_ID="xxxxxxx"
+export AWS_SECRET_ACCESS_KEY="xxxxxx"
+
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-destroy.sh
+source aws-ipi-destroy.sh
 ```
