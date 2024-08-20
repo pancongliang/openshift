@@ -144,6 +144,7 @@
   ```
 
 ### Login openshift
+* Login openshift
   ```
   echo "export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig" >> ~/.bash_profile
   oc completion bash >> /etc/bash_completion.d/oc_completion
