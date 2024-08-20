@@ -18,7 +18,7 @@ PRINT_TASK "[TASK: Set environment variables]"
 # No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
 # OpenShift release version
-export OCP_RELEASE_VERSION="4.12.26"
+export OCP_RELEASE_VERSION="4.12.30"
 
 # OpenShift install-config
 export CLUSTER_NAME="copan"
@@ -44,13 +44,14 @@ export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
 export WORKER03_HOSTNAME="worker03"
 export BASTION_IP="10.184.134.152"
-export MASTER01_IP="10.184.134.160"
-export MASTER02_IP="10.184.134.161"
-export MASTER03_IP="10.184.134.162"
-export WORKER01_IP="10.184.134.163"
-export WORKER02_IP="10.184.134.164"
-export WORKER03_IP="10.184.134.165"
-export BOOTSTRAP_IP="10.184.134.166"
+export BOOTSTRAP_IP="10.184.134.241"
+export MASTER01_IP="10.184.134.247"
+export MASTER02_IP="10.184.134.231"
+export MASTER03_IP="10.184.134.236"
+export WORKER01_IP="10.184.134.209"
+export WORKER02_IP="10.184.134.213"
+export WORKER03_IP="10.184.134.221"
+
 
 # OpenShift Coreos install Dev/Net ifname
 export COREOS_INSTALL_DEV="/dev/sda"
