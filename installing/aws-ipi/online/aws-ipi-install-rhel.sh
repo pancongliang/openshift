@@ -134,7 +134,7 @@ echo
 # === Task: Create htpasswd User ===
 PRINT_TASK "[TASK: Create htpasswd User]"
 
-yum install httpd-tools -y
+yum install httpd-tools -y &> /dev/null
 run_command "[Install htpasswd tool]"
 
 rm -rf $OCP_INSTALL_DIR/users.htpasswd
