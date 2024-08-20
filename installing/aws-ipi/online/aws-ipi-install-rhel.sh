@@ -64,18 +64,18 @@ run_command "[Check RHEL version]"
 # Determine the download URL based on the RHEL version
 if [ "$rhel_version" -eq 8 ]; then
     download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux-amd64-rhel8.tar.gz"
-    tar_filename="openshift-client-linux-amd64-rhel8.tar.gz"
+    openshift_client="openshift-client-linux-amd64-rhel8.tar.gz"
 elif [ "$rhel_version" -eq 9 ]; then
     download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz"
-    tar_filename="openshift-client-linux.tar.gz"
+    openshift_client="openshift-client-linux.tar.gz"
 fi
 
 # Download the OpenShift client
-wget -q "$download_url" -O "$tar_filename"
+wget -q "$download_url" -O "$openshift_client"
 run_command "[Download OpenShift client tool]"
 
 # Extract the downloaded tarball to /usr/local/bin/
-tar -xzf "$tar_filename" -C "/usr/local/bin/" &> /dev/null
+tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
 run_command "[Install openshift client tool]"
 
 chmod +x /usr/local/bin/oc &> /dev/null
@@ -84,7 +84,7 @@ chmod +x /usr/local/bin/kubectl &> /dev/null
 run_command "[modify /usr/local/bin/kubectl permissions]"
 
 rm -f /usr/local/bin/README.md &> /dev/null
-rm -rf $tar_filename &> /dev/null
+rm -rf $openshift_client &> /dev/null
 echo
 # ====================================================
 
