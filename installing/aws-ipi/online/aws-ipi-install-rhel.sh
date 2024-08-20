@@ -122,11 +122,11 @@ run_command "[Create the install-config.yaml file]"
 rm -rf $OCP_INSTALL_DIR/install.log
 echo "ok: [Installing the OpenShift cluster]"
 echo "info: [Installation Log: tail -f $OCP_INSTALL_DIR/install.log]"
-openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info &> "$OCP_INSTALL_DIR/install.log"
+/usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info &> "$OCP_INSTALL_DIR/install.log"
 run_command "[Install OpenShift AWS IPI completed]"
 
 while true; do
-    operator_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     if echo "$operator_status" | grep -q -v "True False False"; then
         echo "info: [All cluster operators have not reached the expected status, Waiting...]"
         sleep 60  
@@ -150,13 +150,13 @@ rm -rf $OCP_INSTALL_DIR/users.htpasswd
 htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[Create a user using the htpasswd tool]"
 
-oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[Create a secret using the users.htpasswd file]"
 
 rm -rf $OCP_INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-cat  <<EOF | oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
+cat  <<EOF | /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -173,7 +173,7 @@ EOF
 run_command "[Setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
+/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
 run_command "[Grant cluster-admin permissions to the admin user]"
 
 echo "info: [Restarting oauth pod, waiting...]"
