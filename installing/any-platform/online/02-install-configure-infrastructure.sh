@@ -38,6 +38,8 @@ echo
 # === Task: Install openshift tool ===
 PRINT_TASK "[TASK: Install openshift tool]"
 
+#!/bin/bash
+
 # Function to check command success and display appropriate message
 run_command() {
     if [ $? -eq 0 ]; then
@@ -67,7 +69,7 @@ rm -rf openshift-install-linux.tar.gz &> /dev/null
 # Delete the old version of oc cli
 rm -f /usr/local/bin/oc &> /dev/null
 rm -f /usr/local/bin/kubectl &> /dev/null
-rm -f //usr/local/bin/README.md &> /dev/null
+rm -f /usr/local/bin/README.md &> /dev/null
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
@@ -113,7 +115,12 @@ elif [ "$rhel_version" -eq 9 ]; then
     oc_mirror="oc-mirror.tar.gz"
 fi
 
-rm -rf /usr/local/bin/oc-mirror" &> /dev/null
+# Download the oc-mirror tool
+wget -q "$download_url" -O "$oc_mirror"
+run_command "[Download oc-mirror tool]"
+
+# Remove the old oc-mirror binary and install the new one
+rm -rf /usr/local/bin/oc-mirror &> /dev/null
 tar -xzf "$oc_mirror" -C "/usr/local/bin/" &> /dev/null
 run_command "[Install oc-mirror tool]"
 
