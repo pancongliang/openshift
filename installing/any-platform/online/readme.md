@@ -22,30 +22,18 @@
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-download-script.sh | sh
 ```
 
-### Security settings and register subscriptions
-```
-source 00-security-setup.sh
-source 00-register-subscription.sh
-```
-
 ### Setting Environment Variables
 ```
 vim 01-set-ocp-install-parameters.sh
 source 01-set-ocp-install-parameters.sh
 ```
 
-### Install and configure infrastructure
+### Install infrastructure and create ignition files
 ```
-source 02-install-configure-infrastructure.sh
-```
-
-### Create ignition files and installation scripts
-```
-source 03-create-ignition-config-file.sh
-source 04-create-installation-script.sh
+source 02-installation-pre.sh
 
 ls ${IGNITION_PATH}/set*
-set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh
+set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh set-worker03.sh
 ```
 
 ### Install bootstrap
@@ -110,5 +98,5 @@ oc get co | grep -v '.True.*False.*False'
 ### Configure image-registry-operator data persistence
 
 ```
-source 05-post-installation-configuration.sh
+source 03-post-installation-configuration.sh
 ```
