@@ -66,8 +66,9 @@ wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninstall.sh
 
 # Add variables to the script
-vim aws-ipi-install-rhel.sh
-vim aws-ipi-uninstall.sh
+chmod 777 /root/aws-ipi/aws-ipi-install-rhel.sh aws-ipi-uninstall.sh
+vim /root/aws-ipi/aws-ipi-install-rhel.sh
+vim /root/aws-ipi/aws-ipi-uninstall.sh
 
 crontab -e
 0 7 * * 1 /bin/bash /root/aws-ipi/aws-ipi-install-rhel.sh >> /root/aws-ipi/logs/install_`date '+\%m-\%d-\%Y'`.log 2>&1
