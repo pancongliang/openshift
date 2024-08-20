@@ -54,3 +54,17 @@ export AWS_SECRET_ACCESS_KEY="xxxxxx"
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-destroy.sh
 source aws-ipi-destroy.sh
 ```
+
+### Scheduled installation and uninstallation of OpenShift IPI
+```
+timedatectl set-timezone Asia/Shanghai
+hwclock --systohc
+
+# Add variables to the script
+
+crontab -e
+0 7 * * 1 /bin/bash /root/aws-ipi/aws-ipi-install-rhel.sh >> /root/aws-ipi/aws-ipi-install-rhel._`date '+\%m-\%d-\%Y'`.log 2>&1
+0 20 * * 3 /bin/bash /root/aws-ipi/aws-ipi-destroy.sh >> /root/aws-ipi/aws-ipi-destroy_`date '+\%m-\%d-\%Y'`.log 2>&1
+0 7 * * 4 /bin/bash /root/aws-ipi/aws-ipi-install-rhel.sh >> /root/aws-ipi/aws-ipi-install-rhel_`date '+\%m-\%d-\%Y'`.log 2>&1
+0 20 * * 5 /bin/bash /root/aws-ipi/aws-ipi-destroy.sh >> /root/aws-ipi/aws-ipi-destroy_`date '+\%m-\%d-\%Y'`.log 2>&1
+```
