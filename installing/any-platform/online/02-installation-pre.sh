@@ -48,6 +48,21 @@ subscription-manager attach --pool="$POOL_ID"
 echo
 # ====================================================
 
+# Task: Prepare the pull-secret
+PRINT_TASK "[TASK: Prepare the pull-secret]"
+
+# Prompt for pull-secret
+read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
+
+# Create a temporary file to store the pull secret
+PULL_SECRET=$(mktemp -p /tmp)
+echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
+run_command "[create a temporary file to store the pull secret]"
+
+# Add an empty line after the task
+echo
+# ====================================================
+
 # === Task: Disable and stop firewalld service ===
 PRINT_TASK "[TASK: Disable and stop firewalld service]"
 
@@ -990,7 +1005,7 @@ networking:
 platform:
   none: {} 
 fips: false
-pullSecret: '$(cat $PULL_SECRET_PATH)'
+pullSecret: '$(cat $PULL_SECRET)'
 sshKey: '${SSH_PUB_STR}'
 EOF
 run_command "[create ${HTTPD_PATH}/install-config.yaml file]"
