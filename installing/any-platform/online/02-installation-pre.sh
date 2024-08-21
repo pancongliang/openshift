@@ -1010,6 +1010,9 @@ sshKey: '${SSH_PUB_STR}'
 EOF
 run_command "[create ${HTTPD_PATH}/install-config.yaml file]"
 
+# Remove the temporary file
+rm -f "${PULL_SECRET}"
+
 # Add an empty line after the task
 echo
 # ====================================================
