@@ -20,33 +20,6 @@ run_command() {
 }
 # ====================================================
 
-# Task: Sign up for a Red Hat Subscription
-PRINT_TASK "[TASK: Sign up for a Red Hat Subscription]"
-
-# Prompt for Red Hat Subscribe UserName
-read -p "Please input the Red Hat Subscribe UserName: " USER
-
-# Prompt for Red Hat Subscribe Password securely (hidden input)
-read -s -p "Please input the Red Hat Subscribe Password: " PASSWD
-
-# Move to a new line after password input
-echo -e "\r"
-
-# Register with subscription-manager
-subscription-manager register --force --user ${USER} --password ${PASSWD} &> /dev/null
-
-# Refresh subscriptions
-subscription-manager refresh &> /dev/null
-
-# Find the desired Pool ID for OpenShift
-POOL_ID=$(subscription-manager list --available --matches '*OpenShift Container Platform*' | grep "Pool ID" | tail -n 1 | awk -F: '{print $2}' | tr -d ' ')
-
-# Attach to the chosen Pool
-subscription-manager attach --pool="$POOL_ID"
-
-# Add an empty line after the task
-echo
-# ====================================================
 
 # Task: Prepare the pull-secret
 PRINT_TASK "[TASK: Prepare the pull-secret]"
