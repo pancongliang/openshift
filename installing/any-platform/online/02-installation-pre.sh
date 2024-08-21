@@ -968,6 +968,15 @@ echo
 # Task: Generate a defined install-config file
 PRINT_TASK "[TASK: Generate a defined install-config file]"
 
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
 # Create ssh-key for accessing CoreOS
 rm -rf ${SSH_KEY_PATH}
 ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null
