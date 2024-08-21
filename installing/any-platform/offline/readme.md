@@ -24,13 +24,6 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/offline/00-download-script.sh | sh
   ```
 
-### Security settings and register subscriptions
-
-* Security settings and register subscriptions
-  ```
-  source 00-security-setup.sh
-  source 00-register-subscription.sh
-  ```
 
 ### Setting Environment Variables
 
@@ -50,27 +43,18 @@
 
 * Install mirror-registry
   ```
-  source 03-install-mirror-registry.sh
+  source 03-Install-registry-and-mirroring.sh
   ```
 
-* Download ocp image
-  ```
-  source 04-mirror-ocp-release-image.sh
-  ```
 
 ### Create ignition files and installation scripts
-
-* Create ignition file
-  ```
-  source 05-create-ignition-config-file.sh
-  ```
   
-* Create node installation script file
+* Create ignition file and installation script file
   ```
-  source 06-create-installation-script.sh
+  source 04-create-ignition-and-script.sh
 
   ls ${IGNITION_PATH}/set*
-  set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh
+  set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh set-worker03.sh
   ```
 
 ### Install bootstrap
@@ -140,7 +124,7 @@
 * Configure image-registry-operator data persistence and registry trustedCA through the following script.
 
   ```
-  source 07-post-installation-configuration.sh
+  source 05-post-installation-config.sh
   ```
 
 ### Login openshift
