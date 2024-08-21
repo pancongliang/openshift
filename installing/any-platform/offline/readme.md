@@ -38,7 +38,7 @@
 
 * Install rpm/oc and configure httpd/nfs/dns/haproxy
   ```
-  source 02-install-configure-infrastructure.sh
+  source 02-install-config-infrastructure.sh
   ```
 
 * Install mirror-registry
