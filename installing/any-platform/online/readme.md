@@ -1,4 +1,4 @@
-## Restricted network installation OpenShift4
+## Online Installation OpenShift4
 
 * Use scripts to install and configure the infrastructure.
 * The script generates the ignition file, and downloads and executes the script from node to install openshift.
