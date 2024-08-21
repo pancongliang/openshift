@@ -24,7 +24,6 @@ export OCP_RELEASE_VERSION="4.12.26"
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="example.com"
 export SSH_KEY_PATH="$HOME/.ssh"
-export PULL_SECRET_PATH="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export NETWORK_TYPE="OVNKubernetes"
 export POD_CIDR="10.128.0.0/14"
 export HOST_PREFIX="23"
@@ -61,6 +60,7 @@ export NET_IF_NAME="'Wired connection 1'"
 # NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
+#export PULL_SECRET_PATH="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 
 # Httpd and ocp ignition dir
 export HTTPD_PATH="/var/www/html/materials"
@@ -96,7 +96,7 @@ check_all_variables() {
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
-    check_variable "PULL_SECRET_PATH"
+   #check_variable "PULL_SECRET_PATH"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
