@@ -1028,7 +1028,7 @@ cp "${HTTPD_PATH}/install-config.yaml" "${IGNITION_PATH}"
 run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
-openshift-install create manifests --dir "${IGNITION_PATH}" &> /dev/null
+/usr/local/bin/openshift-install create manifests --dir "${IGNITION_PATH}" &> /dev/null
 run_command "[generate manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
@@ -1049,7 +1049,7 @@ echo
 PRINT_TASK "[TASK: Generate default ignition file]"
 
 # Generate and modify ignition configuration files
-openshift-install create ignition-configs --dir "${IGNITION_PATH}" &> /dev/null
+/usr/local/bin/openshift-install create ignition-configs --dir "${IGNITION_PATH}" &> /dev/null
 run_command "[generate default ignition file]"
 
 # Add an empty line after the task
