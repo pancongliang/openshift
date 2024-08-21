@@ -18,7 +18,7 @@ PRINT_TASK "[TASK: Download script]"
 # Declare an array of scripts
 scripts=(
     #"00-security-setup.sh"
-    #"00-register-subscription.sh"
+    "00-register-subscription.sh"
     "01-set-ocp-install-parameters.sh"
     "02-install-config-infrastructure.sh"
     "03-Install-registry-and-mirroring.sh"
