@@ -617,9 +617,6 @@ $(format_dns_entry "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WOR
 ;
 ; Create an entry for the bootstrap host.
 $(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
-;
-; Create entries for the mirror registry hosts.
-$(format_dns_entry "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}." "${REGISTRY_IP}")
 EOF
 
 # Verify if the output file was generated successfully
