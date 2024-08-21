@@ -318,22 +318,15 @@ sleep 10
 
 # Step 4: Test
 # ----------------------------------------------------
-# Function to execute a command and check its status
-run_command() {
-    $1
-    if [ $? -eq 0 ]; then
-        echo "ok: [$2]"
-        return 0
-    else
-        echo "failed: [$2]"
-        return 1
-    fi
-}
-
 # Test httpd configuration
-run_command "touch ${HTTPD_PATH}/httpd-test" "create httpd test file"
-run_command "wget -q http://${BASTION_IP}:8080/httpd-test" "test httpd download function"
-run_command "rm -rf httpd-test ${HTTPD_PATH}/httpd-test" "delete the httpd test file"
+touch ${HTTPD_PATH}/httpd-test
+run_command "[create httpd test file]"
+
+wget -q http://${BASTION_IP}:8080/httpd-test
+run_command "[test httpd download function]"
+
+rm -rf httpd-test ${HTTPD_PATH}/httpd-test
+run_command "[delete the httpd test file]"
 
 # Add an empty line after the task
 echo
@@ -940,15 +933,6 @@ echo
 
 # Task: Generate a defined install-config file
 PRINT_TASK "[TASK: Generate a defined install-config file]"
-
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
 
 # Create ssh-key for accessing CoreOS
 rm -rf ${SSH_KEY_PATH}
