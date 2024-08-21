@@ -9,6 +9,16 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
+
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
 # ====================================================
 
 
@@ -37,17 +47,6 @@ echo
 
 # === Task: Install openshift tool ===
 PRINT_TASK "[TASK: Install openshift tool]"
-
-#!/bin/bash
-
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
 
 # Step 1: Download the openshift-install
 # ----------------------------------------------------
