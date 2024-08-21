@@ -25,7 +25,7 @@ scripts=(
     "04-create-ignition-and-script.sh"
     #"05-create-ignition-config-file.sh"
     #"06-create-installation-script.sh"
-    "05-post-installation-configuration.sh"
+    "05-post-installation-config.sh"
 )
 
 # Specify the base URL of the GitHub repository
