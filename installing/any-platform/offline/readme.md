@@ -1,21 +1,17 @@
 ## Restricted network installation OpenShift4
 
-* Use scripts to install and configure the infrastructure and download the ocp image to the offline registry.
-* The script generates the ignition file, and downloads and executes the script from node to install openshift.
-
-* Required machines for cluster installation
-  ```
-  Hostname                    | Role
-  --- --- --- --- --- --- --- | --- --- --- --- --- --- --- 
-  bastion.ocp4.example.com    | bastion(nfs/registry/haproxy/dns/httpd)
-  master01.ocp4.example.com   | master 
-  master02.ocp4.example.com   | master
-  master03.ocp4.example.com   | master
-  worker01.ocp4.example.com   | worker
-  worker02.ocp4.example.com   | worker
-  worker03.ocp4.example.com   | worker
-  bootstrap.ocp4.example.com  | bootstrap
-  ```
+```
+Hostname                    | Role
+--- --- --- --- --- --- --- | --- --- --- --- --- --- --- 
+bastion.ocp4.example.com    | bastion(nfs/registry/haproxy/dns/httpd)
+master01.ocp4.example.com   | master 
+master02.ocp4.example.com   | master
+master03.ocp4.example.com   | master
+worker01.ocp4.example.com   | worker
+worker02.ocp4.example.com   | worker
+worker03.ocp4.example.com   | worker
+bootstrap.ocp4.example.com  | bootstrap
+```
 
 ### Download the installation script
 
