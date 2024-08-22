@@ -5,14 +5,14 @@
 
 ```
 mkdir aws-ipi && cd aws-ipi
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline/00-download-script.sh | sh
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/offline/00-dl-script.sh | sh
 ```
 
 
 ### Change variable parameters
 ```
-vim 01-set-parameter.sh
-source 01-set-parameter.sh
+vim 01-set-params.sh
+source 01-set-params.sh
 ```
 
 
@@ -20,7 +20,7 @@ source 01-set-parameter.sh
 
 #### Install AWS CLI(Mac or Linux) and Create VPC, Subnet, IG, Route Table, SG, Endpoint, PHZ, EC2 instance
 ```
-source 02-set-aws.sh
+source 02-create-aws-res.sh
 ```
 
 #### Access EC2 instance(Bastion)
@@ -33,7 +33,7 @@ source 02-set-aws.sh
 
 #### Install the mirror registry and mirroring ocp release image on the bastion machine and create the install-config
 ```
-source 01-set-parameter.sh && source 03-install-pre.sh
+source 01-set-params.sh && source 03-inst-pre.sh
 ```
 
 #### If the mirroring fails, rerun the following command
@@ -66,7 +66,7 @@ INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.c
 
 #### Create record and Configure cluster DNS
 ```
-source 01-set-parameter.sh && source 04-final-setting.sh
+source 01-set-params.sh && source 04-post-inst-cfg.sh
 ```
 
 
@@ -98,5 +98,5 @@ openshift-install destroy cluster --dir $INSTALL --log-level info
 
 #### delete the configured AWS infrastructure
 ```
-source 01-set-parameter.sh && source 00-del-aws-res.sh
+source 01-set-params.sh && source 00-del-aws-res.sh
 ```
