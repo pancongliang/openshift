@@ -40,29 +40,57 @@ echo
 # === Task: Install openshift-install and oc cli===
 PRINT_TASK "[TASK: Install openshift-install adn oc-cli]"
 
-wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-mac.tar.gz" &> /dev/null
+# Get system architecture
+ARCH=$(uname -m)
+
+# Determine the download URL based on the architecture
+if [ "$ARCH" = "x86_64" ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-mac.tar.gz"
+    openshift_install="openshift-install-mac.tar.gz"
+elif [ "$ARCH" = "arm64" ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-mac-arm64.tar.gz"
+    openshift_install="openshift-install-mac-arm64.tar.gz"
+fi
+
+# Download, install, and clean up OpenShift Installer
+wget -q "$download_url" -O "$openshift_install"
 run_command "[Download openshift-install]"
 
 rm -f /usr/local/bin/openshift-install &> /dev/null
-tar -xzf "openshift-install-mac.tar.gz" -C "/usr/local/bin/" &> /dev/null
+tar -xzf "$openshift_install" -C "/usr/local/bin/" &> /dev/null
 run_command "[Install openshift-install]"
 
+chmod +x /usr/local/bin/openshift-install &> /dev/null
+rm -rf "$openshift_install" &> /dev/null
 
-wget -q "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-mac.tar.gz" &> /dev/null
-run_command "[Download oc-cli]"
+
+# Get system architecture
+ARCH=$(uname -m)
+
+# Determine the download URL based on the architecture
+if [ "$ARCH" = "x86_64" ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-mac.tar.gz"
+    openshift_client="openshift-install-mac.tar.gz"
+elif [ "$ARCH" = "arm64" ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-mac-arm64.tar.gz"
+    openshift_client="openshift-install-mac-arm64.tar.gz"
+fi
+
+# Download, install, and clean up OpenShift Client
+wget -q "$download_url" -O "$openshift_client"
+run_command "[Download openshift-client]"
 
 rm -f /usr/local/bin/oc &> /dev/null
 rm -f /usr/local/bin/kubectl &> /dev/null
-rm -f //usr/local/bin/README.md &> /dev/null
+rm -f /usr/local/bin/README.md &> /dev/null
 
-tar -xzf "openshift-client-mac.tar.gz" -C "/usr/local/bin/" &> /dev/null
-run_command "[Install openshift-install]"
+tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
+run_command "[Install openshift-client]"
 
 chmod +x /usr/local/bin/oc &> /dev/null
 chmod +x /usr/local/bin/kubectl &> /dev/null
-chmod +x /usr/local/bin/openshift-install &> /dev/null
+rm -rf "$openshift_client" &> /dev/null
 
-rm -rf openshift-install-mac.tar.gz openshift-client-mac.tar.gz &> /dev/null
 echo
 # ====================================================
 
