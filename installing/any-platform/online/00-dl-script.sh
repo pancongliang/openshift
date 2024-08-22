@@ -17,10 +17,10 @@ PRINT_TASK "[TASK: Download script]"
 
 # Declare an array of scripts
 scripts=(
-    "00-register-subscription.sh"
-    "01-set-ocp-parameters.sh"
-    "02-installation-pre.sh"
-    "03-post-inst-config.sh"
+    "00-reg-sub.sh"
+    "01-set-params.sh"
+    "02-inst-pre.sh"
+    "03-post-inst-cfg.sh"
 )
 
 # Specify the base URL of the GitHub repository
