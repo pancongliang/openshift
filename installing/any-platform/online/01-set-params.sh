@@ -154,6 +154,16 @@ fi
 echo
 # ====================================================
 
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+# ====================================================
+
 
 # Task: Prepare the pull-secret
 PRINT_TASK "[TASK: Prepare the pull-secret]"
