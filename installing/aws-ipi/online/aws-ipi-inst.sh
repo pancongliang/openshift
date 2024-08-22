@@ -42,10 +42,10 @@ PRINT_TASK "[TASK: Install openshift-install adn oc-cli]"
 
 # Determine the operating system
 OS_TYPE=$(uname -s)
-echo "info: [Operating System: $OS_TYPE]"
+echo "info: [Client Operating System: $OS_TYPE]"
 
 ARCH=$(uname -m)
-echo "info: [Architecture: $ARCH]"
+echo "info: [Client Architecture: $ARCH]"
 
 # Handle macOS
 if [ "$OS_TYPE" = "Darwin" ]; then
