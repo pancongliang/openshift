@@ -1,21 +1,18 @@
 ## Online Installation OpenShift4
 
-* Use scripts to install and configure the infrastructure.
-* The script generates the ignition file, and downloads and executes the script from node to install openshift.
+```
+Hostname                    | Role
+--- --- --- --- --- --- --- | --- --- --- --- --- --- --- 
+bastion.ocp4.example.com    | bastion(nfs/haproxy/dns/httpd)
+master01.ocp4.example.com   | master 
+master02.ocp4.example.com   | master
+master03.ocp4.example.com   | master
+worker01.ocp4.example.com   | worker
+worker02.ocp4.example.com   | worker
+worker03.ocp4.example.com   | worker
+bootstrap.ocp4.example.com  | bootstrap
+```
 
-* Required machines for cluster installation
-  ```
-  Hostname                    | Role
-  --- --- --- --- --- --- --- | --- --- --- --- --- --- --- 
-  bastion.ocp4.example.com    | bastion(nfs/haproxy/dns/httpd)
-  master01.ocp4.example.com   | master 
-  master02.ocp4.example.com   | master
-  master03.ocp4.example.com   | master
-  worker01.ocp4.example.com   | worker
-  worker02.ocp4.example.com   | worker
-  worker03.ocp4.example.com   | worker
-  bootstrap.ocp4.example.com  | bootstrap
-  ```
 
 ### Download the installation script
 ```
@@ -33,7 +30,7 @@ vim 01-set-params.sh
 source 01-set-params.sh
 ```
 
-### Install infrastructure and create ignition files
+### Install infrastructure and generate scripts
 ```
 source 01-set-params.sh
 
@@ -94,7 +91,7 @@ while true; do  # Approve csr and wait for 30 minutes to check whether the clust
 done
 
 # Bastion Terminal-2(Close Terminal-1 after the status of all nodes is Ready):
-source 01-set-ocp-install-parameters.sh
+source 01-set-params.sh
 export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 oc get node
 oc get co | grep -v '.True.*False.*False'
