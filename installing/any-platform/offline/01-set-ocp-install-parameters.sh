@@ -11,7 +11,6 @@ PRINT_TASK() {
 }
 # ====================================================
 
-
 # Task: Set environment variables
 PRINT_TASK "[TASK: Set environment variables]"
 
@@ -164,6 +163,31 @@ if [ ${#missing_variables[@]} -gt 0 ]; then
 else
     echo "ok: [all variables are set]"
 fi
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+# ====================================================
+
+# Task: Prepare the pull-secret
+PRINT_TASK "[TASK: Prepare the pull-secret]"
+
+# Prompt for pull-secret
+read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
+
+# Create a temporary file to store the pull secret
+PULL_SECRET=$(mktemp -p /tmp)
+echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
+run_command "[create a temporary file to store the pull secret]"
 
 # Add an empty line after the task
 echo
