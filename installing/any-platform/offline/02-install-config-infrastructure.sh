@@ -711,7 +711,7 @@ for service in "${services[@]}"; do
 done
 
 # Wait for the service to restart
-sleep 10
+sleep 3
 
 
 # Step 8: Test nslookup
