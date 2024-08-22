@@ -59,7 +59,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Installer
-    wget -q "$download_url" -O "$openshift_install"
+    curl -sL "$download_url" -o "$openshift_install"
     run_command "[Download openshift-install]"
 
     rm -f /usr/local/bin/openshift-install &> /dev/null
@@ -79,7 +79,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Client
-    wget -q "$download_url" -O "$openshift_client"
+    curl -sL "$download_url" -o "$openshift_client"
     run_command "[Download openshift-client]"
 
     rm -f /usr/local/bin/oc &> /dev/null
@@ -96,7 +96,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
 # Handle Linux
 elif [ "$OS_TYPE" = "Linux" ]; then
     # Download the OpenShift Installer
-    wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" &> /dev/null
+    curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "[Download openshift-install tool]"
 
     rm -f /usr/local/bin/openshift-install &> /dev/null
@@ -126,7 +126,7 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     fi
 
     # Download the OpenShift client
-    wget -q "$download_url" -O "$openshift_client"
+    curl -sL "$download_url" -o "$openshift_client"
     run_command "[Download OpenShift client tool]"
 
     # Extract the downloaded tarball to /usr/local/bin/
@@ -140,6 +140,10 @@ elif [ "$OS_TYPE" = "Linux" ]; then
 
     rm -f /usr/local/bin/README.md &> /dev/null
     rm -rf $openshift_client &> /dev/null
+
+    # Install httpd-tools
+    yum install httpd-tools -y &> /dev/null
+    run_command "[Install httpd-tools]"
 fi
 
 
