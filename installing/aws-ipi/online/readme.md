@@ -15,17 +15,11 @@ export AWS_SECRET_ACCESS_KEY="xxxxxx"
 ```
 
 ### Installing a cluster quickly on AWS
+
 ```
 # Client Mac or RHEL:
 curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst.sh
 source aws-ipi-inst.sh
-```
-
-
-### View the installation log
-```
-export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
-tail -f $OCP_INSTALL_DIR/install.log
 ```
 
 ### Set up an alias to run oc with the new cluster credentials
@@ -39,6 +33,9 @@ source $HOME/.zshrc
 echo "export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig" >> ~/.bash_profile
 oc completion bash >> /etc/bash_completion.d/oc_completion
 source ~/.bash_profile
+
+# The script automatically creates a user with the cluster-admin role
+oc login -u admin -p redhat https://redhat api.$CLUSTER_NAME.$BASE_DOMAIN:6443
 ```
 
 ### Uninstalling a cluster on AWS
@@ -63,12 +60,13 @@ curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installi
 
 # Add variables to the script
 chmod 777 /root/aws-ipi/aws-ipi-inst.sh aws-ipi-uninst.sh
-vim /root/aws-ipi/aws-ipi-inst-rhel.sh
+vim /root/aws-ipi/aws-ipi-inst.sh
 vim /root/aws-ipi/aws-ipi-uninst.sh
 
 crontab -e
-0 7 * * 1 /bin/bash /root/aws-ipi/aws-ipi-inst.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
-0 21 * * 3 /bin/bash /root/aws-ipi/aws-ipi-uninst.sh >> /root/aws-ipi/logs/uninst_`date '+\%m-\%d-\%Y'`.log 2>&1
-0 7 * * 4 /bin/bash /root/aws-ipi/aws-ipi-inst.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
-0 21 * * 5 /bin/bash /root/aws-ipi/aws-ipi-uninst.sh >> /root/aws-ipi/logs/uninst_`date '+\%m-\%d-\%Y'`.log 2>&1
+# Scheduled installation and uninstallation of OpenShift IPI
+30 7 * * 1 /bin/bash /root/aws-ipi/aws-ipi-inst.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
+00 21 * * 3 /bin/bash /root/aws-ipi/aws-ipi-uninst.sh >> /root/aws-ipi/logs/uninst_`date '+\%m-\%d-\%Y'`.log 2>&1
+30 7 * * 4 /bin/bash /root/aws-ipi/aws-ipi-inst.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
+00 21 * * 5 /bin/bash /root/aws-ipi/aws-ipi-uninst.sh >> /root/aws-ipi/logs/uninst_`date '+\%m-\%d-\%Y'`.log 2>&1
 ```
