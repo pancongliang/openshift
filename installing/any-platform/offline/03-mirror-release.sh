@@ -22,17 +22,6 @@ run_command() {
 # ====================================================
 
 
-# Task: Prepare the pull-secret
-PRINT_TASK "[TASK: Prepare the pull-secret]"
-
-# Prompt for pull-secret
-read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
-
-# Create a temporary file to store the pull secret
-PULL_SECRET=$(mktemp -p /tmp)
-echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
-run_command "[create a temporary file to store the pull secret]"
-
 # Task: Mirror ocp image to mirror-registry
 PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
 
