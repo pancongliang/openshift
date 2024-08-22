@@ -11,11 +11,11 @@ PRINT_TASK() {
 }
 # ====================================================
 
-
 # Task: Set environment variables
 PRINT_TASK "[TASK: Set environment variables]"
 
 # No need to create any resources, just specify parameters.
+
 # === Set the necessary variables === 
 # OpenShift release version
 export OCP_RELEASE_VERSION="4.12.26"
@@ -149,6 +149,22 @@ if [ ${#missing_variables[@]} -gt 0 ]; then
 else
     echo "ok: [all variables are set]"
 fi
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+
+# Task: Prepare the pull-secret
+PRINT_TASK "[TASK: Prepare the pull-secret]"
+
+# Prompt for pull-secret
+read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
+
+# Create a temporary file to store the pull secret
+PULL_SECRET=$(mktemp -p /tmp)
+echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
+run_command "[create a temporary file to store the pull secret]"
 
 # Add an empty line after the task
 echo
