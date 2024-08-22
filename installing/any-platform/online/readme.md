@@ -19,18 +19,23 @@
 
 ### Download the installation script
 ```
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-download-script.sh | sh
+curl -s https://github.com/pancongliang/openshift/blob/main/installing/any-platform/online/00-dl-script.sh | sh
+```
+
+### Register Subscription
+```
+source 00-reg-sub.sh
 ```
 
 ### Setting Environment Variables
 ```
-vim 01-set-ocp-parameters.sh
-source 01-set-ocp-parameters.sh
+vim 01-set-params.sh
+source 01-set-params.sh
 ```
 
 ### Install infrastructure and create ignition files
 ```
-source 02-installation-pre.sh
+source 01-set-params.sh
 
 ls ${IGNITION_PATH}/set*
 set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh set-worker03.sh
@@ -80,7 +85,7 @@ If the node cannot communicate, manually enter the content in `set-*.sh`.
 
 ```
 # Bastion Terminal-1:
-source 01-set-ocp-install-parameters.sh
+source 01-set-params.sh
 export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 
 while true; do  # Approve csr and wait for 30 minutes to check whether the cluster is normal
@@ -98,7 +103,7 @@ oc get co | grep -v '.True.*False.*False'
 ### Configure image-registry-operator data persistence
 
 ```
-source 03-post-installation-config.sh
+source 03-post-inst-cfg.sh
 ```
 
 ### Login openshift
