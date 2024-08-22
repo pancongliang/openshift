@@ -18,10 +18,10 @@ PRINT_TASK "[TASK: Download script]"
 # Declare an array of scripts
 scripts=(
     "00-del-aws-res.sh"
-    "01-set-parameter.sh"
-    "02-set-aws.sh"
-    "03-install-pre.sh"
-    "04-final-setting.sh"
+    "01-set-params.sh"
+    "02-create-aws-res.sh"
+    "03-inst-pre.sh"
+    "04-post-inst-cfg.sh"
 )
 
 # Specify the base URL of the GitHub repository
