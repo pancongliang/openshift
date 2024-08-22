@@ -16,13 +16,9 @@ export AWS_SECRET_ACCESS_KEY="xxxxxx"
 
 ### Installing a cluster quickly on AWS
 ```
-# Client Mac:
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst-mac.sh
-source aws-ipi-inst-mac.sh
-
-# Client RHEL:
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst-rhel.sh
-source aws-ipi-inst-rhel.sh
+# Client Mac or RHEL:
+curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst.sh
+source aws-ipi-inst.sh
 ```
 
 
@@ -52,7 +48,7 @@ export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
 export AWS_ACCESS_KEY_ID="xxxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
 
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninst.sh
+curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninst.sh
 source aws-ipi-uninst.sh
 ```
 
@@ -62,17 +58,17 @@ timedatectl set-timezone Asia/Shanghai
 hwclock --systohc
 mkdir -p /root/aws-ipi/logs && cd /root/aws-ipi/
 
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst-rhel.sh
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninst.sh
+curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst.sh
+curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninst.sh
 
 # Add variables to the script
-chmod 777 /root/aws-ipi/aws-ipi-inst-rhel.sh aws-ipi-uninst.sh
+chmod 777 /root/aws-ipi/aws-ipi-inst.sh aws-ipi-uninst.sh
 vim /root/aws-ipi/aws-ipi-inst-rhel.sh
 vim /root/aws-ipi/aws-ipi-uninst.sh
 
 crontab -e
-0 7 * * 1 /bin/bash /root/aws-ipi/aws-ipi-inst-rhel.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
+0 7 * * 1 /bin/bash /root/aws-ipi/aws-ipi-inst.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
 0 21 * * 3 /bin/bash /root/aws-ipi/aws-ipi-uninst.sh >> /root/aws-ipi/logs/uninst_`date '+\%m-\%d-\%Y'`.log 2>&1
-0 7 * * 4 /bin/bash /root/aws-ipi/aws-ipi-inst-rhel.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
+0 7 * * 4 /bin/bash /root/aws-ipi/aws-ipi-inst.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
 0 21 * * 5 /bin/bash /root/aws-ipi/aws-ipi-uninst.sh >> /root/aws-ipi/logs/uninst_`date '+\%m-\%d-\%Y'`.log 2>&1
 ```
