@@ -270,11 +270,7 @@ check_virtual_host_configuration
 
 # Create http dir
 mkdir -p ${HTTPD_PATH}
-if [ $? -eq 0 ]; then
-    echo "ok: [create http: ${HTTPD_PATH} director]"
-else
-    echo "failed: [create http: ${HTTPD_PATH} director]"
-fi
+run_command "[create http: ${HTTPD_PATH} director]"
 
 
 # Step 3: Enable and Restart httpd service
@@ -300,27 +296,20 @@ for service in "${services[@]}"; do
 done
 
 # Wait for the service to restart
-sleep 10
+sleep 3
 
 
 # Step 4: Test
 # ----------------------------------------------------
-# Function to execute a command and check its status
-run_command() {
-    $1
-    if [ $? -eq 0 ]; then
-        echo "ok: [$2]"
-        return 0
-    else
-        echo "failed: [$2]"
-        return 1
-    fi
-}
-
 # Test httpd configuration
-run_command "touch ${HTTPD_PATH}/httpd-test" "create httpd test file"
-run_command "wget -q http://${BASTION_IP}:8080/httpd-test" "test httpd download function"
-run_command "rm -rf httpd-test ${HTTPD_PATH}/httpd-test" "delete the httpd test file"
+touch ${HTTPD_PATH}/httpd-test
+run_command "[create httpd test file]"
+
+wget -q http://${BASTION_IP}:8080/httpd-test
+run_command "[test httpd download function]"
+
+rm -rf httpd-test ${HTTPD_PATH}/httpd-test
+run_command "[delete the httpd test file]"
 
 # Add an empty line after the task
 echo
@@ -336,11 +325,7 @@ PRINT_TASK "[TASK: Setup nfs services]"
 # Create NFS directories
 rm -rf ${NFS_PATH}
 mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV}
-if [ $? -eq 0 ]; then
-    echo "ok: [create nfs director: ${NFS_PATH}]"
-else
-    echo "failed: [create nfs director: ${NFS_PATH}]"
-fi
+run_command "[create nfs director: ${NFS_PATH}]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" &>/dev/null; then
@@ -352,18 +337,10 @@ fi
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_PATH}
-if [ $? -eq 0 ]; then
-    echo "ok: [changing ownership of an NFS directory]"
-else
-    echo "failed: [changing ownership of an NFS directory]"
-fi
+run_command "[changing ownership of an NFS directory]"
 
 chmod -R 777 ${NFS_PATH}
-if [ $? -eq 0 ]; then
-    echo "ok: [change NFS directory permissions]"
-else
-    echo "failed: [change NFS directory permissions]"
-fi
+run_command "[change NFS directory permissions]"
 
 # Add NFS export configuration
 export_config_line="${NFS_PATH}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
@@ -398,7 +375,7 @@ for service in "${services[@]}"; do
 done
 
 # Wait for the service to restart
-sleep 10
+sleep 3
 
 
 # Step 3: Test
@@ -704,19 +681,11 @@ fi
 # Add dns ip to resolv.conf
 sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
 sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
-if [ $? -eq 0 ]; then
-    echo "ok: [add DNS_SERVER_IP to /etc/resolv.conf"
-else
-    echo "failed: [add DNS_SERVER_IP to /etc/resolv.conf]"
-fi
+run_command "[add DNS_SERVER_IP to /etc/resolv.conf]"
 
 # Change ownership
 chown named. /var/named/*.zone
-if [ $? -eq 0 ]; then
-    echo "ok: [change ownership /var/named/*.zone]"
-else
-    echo "failed: [change ownership /var/named/*.zone]"
-fi
+run_command "[change ownership /var/named/*.zone]"
 
 
 # Step 7: Enable and Restart named service
