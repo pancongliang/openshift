@@ -61,9 +61,9 @@ if [[ $permanent_status == "enforcing" ]]; then
     # Change SELinux to permissive
     sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
     permanent_status="permissive"
-    echo "OK: [selinux permanent security policy changed to $permanent_status]"
+    echo "ok: [selinux permanent security policy changed to $permanent_status]"
 elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permissive" ]]; then
-    echo "OK: [selinux permanent security policy is $permanent_status]"
+    echo "ok: [selinux permanent security policy is $permanent_status]"
 else
     echo "failed: [selinux permanent security policy is $permanent_status (expected permissive or disabled)]"
 fi
