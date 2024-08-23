@@ -103,3 +103,57 @@ PRINT_TASK "[TASK: Disabling the default OperatorHub sources]"
 # Disabling the default OperatorHub sources
 oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
 run_command "[disabling the default OperatorHub sources]"
+
+
+# === Task: Create htpasswd User ===
+PRINT_TASK "[TASK: Create htpasswd User]"
+
+export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+
+rm -rf $OCP_INSTALL_DIR/users.htpasswd
+htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
+run_command "[Create a user using the htpasswd tool]"
+
+/usr/local/bin/oc create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+run_command "[Create a secret using the users.htpasswd file]"
+
+rm -rf $OCP_INSTALL_DIR/users.htpasswd
+
+# Use a here document to apply OAuth configuration to the OpenShift cluster
+cat  <<EOF | /usr/local/bin/oc apply -f - > /dev/null 2>&1
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - htpasswd:
+      fileData:
+        name: htpasswd-secret
+    mappingMethod: claim
+    name: htpasswd-user
+    type: HTPasswd
+EOF
+run_command "[Setting up htpasswd authentication]"
+
+# Grant the 'cluster-admin' cluster role to the user 'admin'
+/usr/local/bin/oc adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
+run_command "[Grant cluster-admin permissions to the admin user]"
+
+echo "info: [Restarting oauth pod, waiting...]"
+sleep 100
+echo "info: [Restarting oauth pod, waiting...]"
+sleep 100
+echo "info: [Restarting oauth pod, waiting...]"
+sleep 100
+
+echo
+# ====================================================
+
+# === Task: Login cluster information ===
+PRINT_TASK "[TASK: Login cluster information]"
+
+echo "info: [Log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
+echo "info: [Log in to the cluster using kubeconfig:  export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig]"
+echo
+# ====================================================
