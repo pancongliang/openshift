@@ -276,24 +276,9 @@ run_command "[create http: ${HTTPD_PATH} director]"
 # Step 3: Enable and Restart httpd service
 # ----------------------------------------------------
 # List of services to handle
-services=("httpd")
-
-# Loop through each service in the list
-for service in "${services[@]}"; do
-    # Restart the service
-    systemctl restart "$service" &>/dev/null
-    restart_status=$?
-
-    # Enable the service
-    systemctl enable "$service" &>/dev/null
-    enable_status=$?
-
-    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [restart and enable $service service]"
-    else
-        echo "failed: [restart and enable $service service]"
-    fi
-done
+# Enable and start service
+systemctl enable --now httpd
+run_command "[restart and enable httpd service]"
 
 # Wait for the service to restart
 sleep 3
@@ -354,25 +339,9 @@ fi
 
 # Step 2: Enable and Restart nfs-server service
 # ----------------------------------------------------
-# List of services to handle
-services=("nfs-server")
-
-# Loop through each service in the list
-for service in "${services[@]}"; do
-    # Restart the service
-    systemctl restart "$service" &>/dev/null
-    restart_status=$?
-
-    # Enable the service
-    systemctl enable "$service" &>/dev/null
-    enable_status=$?
-
-    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [restart and enable $service service]"
-    else
-        echo "failed: [restart and enable $service service]"
-    fi
-done
+# Enable and start service
+systemctl enable --now nfs-server
+run_command "[restart and enable nfs-server service]"
 
 # Wait for the service to restart
 sleep 3
@@ -499,11 +468,8 @@ include "/etc/named.rfc1912.zones";
 EOF
 
 # Check if the named configuration file was generated successfully
-if [ -f "/etc/named.conf" ]; then
-    echo "ok: [generate named configuration file]"
-else
-    echo "failed: [generate named configuration file]"
-fi
+cat /etc/named.conf
+run_command "[generate named configuration file]"
 
 
 # Step 3: Generate forward zone file
@@ -690,25 +656,9 @@ run_command "[change ownership /var/named/*.zone]"
 
 # Step 7: Enable and Restart named service
 # ----------------------------------------------------
-# List of services to handle
-services=("named")
-
-# Loop through each service in the list
-for service in "${services[@]}"; do
-    # Restart the service
-    systemctl restart "$service" &>/dev/null
-    restart_status=$?
-
-    # Enable the service
-    systemctl enable "$service" &>/dev/null
-    enable_status=$?
-
-    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [restart and enable $service service]"
-    else
-        echo "failed: [restart and enable $service service]"
-    fi
-done
+# Enable and start service
+systemctl enable --now named
+run_command "[restart and enable named service]"
 
 # Wait for the service to restart
 sleep 3
@@ -872,25 +822,9 @@ check_haproxy_config
 
 # Step 3: Enable and Restart haproxy service
 # ----------------------------------------------------
-# List of services to handle
-services=("haproxy")
-
-# Loop through each service in the list
-for service in "${services[@]}"; do
-    # Restart the service
-    systemctl restart "$service" &>/dev/null
-    restart_status=$?
-
-    # Enable the service
-    systemctl enable "$service" &>/dev/null
-    enable_status=$?
-
-    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [restart and enable $service service]"
-    else
-        echo "failed: [restart and enable $service service]"
-    fi
-done
+# Enable and start service
+systemctl enable --now haproxy
+run_command "[restart and enable haproxy service]"
 
 # Add an empty line after the task
 echo
