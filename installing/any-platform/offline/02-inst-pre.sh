@@ -906,6 +906,8 @@ run_command "[trust the rootCA certificate]"
 rm -rf pause.tar postgres.tar quay.tar redis.tar &>/dev/null
 run_command "[Delete the tar package: pause.tar postgres.tar quay.tar redis.tar]"
 
+sleep 5
+
 # Login to the registry
 rm -rf $XDG_RUNTIME_DIR/containers
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
