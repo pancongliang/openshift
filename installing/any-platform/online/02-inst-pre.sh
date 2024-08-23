@@ -63,7 +63,7 @@ if [[ $permanent_status == "enforcing" ]]; then
 elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permissive" ]]; then
     echo "ok: [selinux permanent security policy is $permanent_status]"
 else
-    echo "failed: [selinux permanent security policy is $permanent_status (expected permissive or disabled)]"
+    echo "failed: [selinux permanent security policy is $permanent_status]"
 fi
 
 
