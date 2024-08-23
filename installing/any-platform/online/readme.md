@@ -16,7 +16,7 @@ bootstrap.ocp4.example.com  | bootstrap
 
 ### Download the installation script
 ```
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/offline/00-dl-script.sh | sh
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-dl-script.sh | sh
 ```
 
 ### Register Subscription
