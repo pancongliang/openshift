@@ -13,9 +13,9 @@ PRINT_TASK() {
 # Function to check command success and display appropriate message
 run_command() {
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}ok: $1${NC}"
+        echo "ok: $1"
     else
-        echo -e "${RED}failed: $1${NC}"
+        echo "failed: $1"
     fi
 }
 # ====================================================
