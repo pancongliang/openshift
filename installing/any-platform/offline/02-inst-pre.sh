@@ -27,7 +27,7 @@ run_command() {
 PRINT_TASK "[TASK: Disable and stop firewalld service]"
 
 # Stop and disable firewalld services
-systemctl enable --now firewalld
+systemctl disable --now firewalld
 run_command "[firewalld service stopped and disabled]"
 
 # Add an empty line after the task
