@@ -26,24 +26,9 @@ run_command() {
 # === Task: Disable and stop firewalld service ===
 PRINT_TASK "[TASK: Disable and stop firewalld service]"
 
-# List of services to handle
-services=("firewalld")
-
-# Loop through each service in the list
-for service in "${services[@]}"; do
-    # Disable the service
-    systemctl disable "$service" &>/dev/null
-    disable_status=$?
-    # Stop the service
-    systemctl stop "$service" &>/dev/null
-    stop_status=$?
-    # Check if both disable and stop commands executed successfully
-    if [ $disable_status -eq 0 ] && [ $stop_status -eq 0 ]; then
-        echo "ok: [$service service stopped and disabled]"
-    else
-        echo "failed: [$service service is not stopped or disabled]"
-    fi
-done
+# Stop and disable firewalld services
+systemctl enable --now firewalld
+run_command "[firewalld service stopped and disabled]"
 
 # Add an empty line after the task
 echo
