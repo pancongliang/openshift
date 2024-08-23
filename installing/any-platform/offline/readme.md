@@ -109,12 +109,15 @@ oc get co | grep -v '.True.*False.*False'
 ### Configure image-registry-operator data persistence and registry trustedCA
 
 ```
-  source 04-post-inst-cfg.sh
+source 04-post-inst-cfg.sh
 ```
 
 ### Login openshift
 
 ```
-unset KUBECONFIG
 oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]
+
+or
+
+export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 ```
