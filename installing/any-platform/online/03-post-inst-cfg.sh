@@ -23,28 +23,26 @@ run_command() {
 
 
 # Task: Kubeconfig login and oc completion
-PRINT_TASK "[TASK: Kubeconfig login]"
+#PRINT_TASK "[TASK: Kubeconfig login]"
 
 # kubeconfig login:
-echo "export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig" >> ~/.bash_profile
-run_command "[add kubeconfig to ~/.bash_profile]"
+#echo "export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig" >> ~/.bash_profile
+#run_command "[add kubeconfig to ~/.bash_profile]"
 
 # completion command:
-oc completion bash >> /etc/bash_completion.d/oc_completion
-run_command "[add oc_completion]"
+#oc completion bash >> /etc/bash_completion.d/oc_completion
+#run_command "[add oc_completion]"
 
 # Effective immediately
-source /etc/bash_completion.d/oc_completion
+#source /etc/bash_completion.d/oc_completion
 
 # Add an empty line after the task
-echo
+#echo
 # ====================================================
 
 
 # Task: Configure data persistence for the image-registry operator
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
-
-export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 
 cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
 apiVersion: v1
@@ -63,18 +61,18 @@ spec:
 EOF
 run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
 
-oc apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
+oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
 run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
 
 rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
 run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
-oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
+oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
 run_command "[change the Image registry operator configuration’s managementState from Removed to Managed]"
 
 # Leave the claim field blank to allow the automatic creation of an image-registry-storage PVC.
-oc patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
+oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
 run_command "[leave the claim field blank to allow the automatic creation of an image-registry-storage PVC]"
 
 # Add an empty line after the task
@@ -85,19 +83,17 @@ echo
 # === Task: Create htpasswd User ===
 PRINT_TASK "[TASK: Create htpasswd User]"
 
-export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
-
 rm -rf $OCP_INSTALL_DIR/users.htpasswd
 htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[Create a user using the htpasswd tool]"
 
-/usr/local/bin/oc create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[Create a secret using the users.htpasswd file]"
 
 rm -rf $OCP_INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-cat  <<EOF | /usr/local/bin/oc apply -f - > /dev/null 2>&1
+cat  <<EOF | /usr/local/bin/oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig apply -f - > /dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -114,7 +110,7 @@ EOF
 run_command "[Setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-/usr/local/bin/oc adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
+oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
 run_command "[Grant cluster-admin permissions to the admin user]"
 
 echo "info: [Restarting oauth pod, waiting...]"
