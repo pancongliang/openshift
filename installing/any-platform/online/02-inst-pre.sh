@@ -24,7 +24,8 @@ run_command() {
 # === Task: Disable and stop firewalld service ===
 PRINT_TASK "[TASK: Disable and stop firewalld service]"
 
-systemctl enable --now firewalld
+# Stop and disable firewalld services
+systemctl disable --now firewalld
 run_command "[firewalld service stopped and disabled]"
 
 # Add an empty line after the task
