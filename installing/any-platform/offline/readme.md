@@ -115,7 +115,6 @@ oc get co | grep -v '.True.*False.*False'
 ### Login openshift
 
 ```
-echo "export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig" >> ~/.bash_profile
-oc completion bash >> /etc/bash_completion.d/oc_completion
-source ~/.bash_profile
+unset KUBECONFIG
+oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]
 ```
