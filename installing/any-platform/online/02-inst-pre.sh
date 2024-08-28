@@ -252,14 +252,14 @@ check_virtual_host_configuration() {
 check_virtual_host_configuration
 
 # Create http dir
-mkdir -p ${HTTPD_PATH}
+mkdir -p ${HTTPD_PATH} &> /dev/null
 run_command "[create http: ${HTTPD_PATH} director]"
 
 
 # Step 3: Enable and Restart httpd service
 # ----------------------------------------------------
 # Enable and start service
-systemctl enable --now httpd
+systemctl enable --now httpd &> /dev/null
 run_command "[restart and enable httpd service]"
 
 # Wait for the service to restart
@@ -269,13 +269,13 @@ sleep 3
 # Step 4: Test
 # ----------------------------------------------------
 # Test httpd configuration
-touch ${HTTPD_PATH}/httpd-test
+touch ${HTTPD_PATH}/httpd-test  &> /dev/null
 run_command "[create httpd test file]"
 
 wget -q http://${BASTION_IP}:8080/httpd-test
 run_command "[test httpd download function]"
 
-rm -rf httpd-test ${HTTPD_PATH}/httpd-test
+rm -rf httpd-test ${HTTPD_PATH}/httpd-test  &> /dev/null
 run_command "[delete the httpd test file]"
 
 # Add an empty line after the task
@@ -324,7 +324,7 @@ fi
 # Step 2: Enable and Restart nfs-server service
 # ----------------------------------------------------
 # Enable and start service
-systemctl enable --now nfs-server
+systemctl enable --now nfs-server &> /dev/null
 run_command "[restart and enable nfs-server service]"
 
 # Wait for the service to restart
@@ -640,7 +640,7 @@ run_command "[change ownership /var/named/*.zone]"
 # Step 7: Enable and Restart named service
 # ----------------------------------------------------
 # Enable and start service
-systemctl enable --now named
+systemctl enable --now named  &> /dev/null
 run_command "[restart and enable named service]"
 
 # Wait for the service to restart
@@ -807,7 +807,7 @@ check_haproxy_config
 # ----------------------------------------------------
 # List of services to handle
 # Enable and start service
-systemctl enable --now haproxy
+systemctl enable --now haproxy &> /dev/null
 run_command "[restart and enable haproxy service]"
 
 # Add an empty line after the task
@@ -819,7 +819,7 @@ echo
 PRINT_TASK "[TASK: Generate a defined install-config file]"
 
 # Create ssh-key for accessing CoreOS
-rm -rf ${SSH_KEY_PATH}
+rm -rf ${SSH_KEY_PATH} &> /dev/null
 ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null
 run_command "[create ssh-key for accessing coreos]"
 
@@ -858,7 +858,7 @@ EOF
 run_command "[create ${HTTPD_PATH}/install-config.yaml file]"
 
 # Remove the temporary file
-rm -f "${PULL_SECRET}"
+rm -f "${PULL_SECRET}" &> /dev/null
 
 # Add an empty line after the task
 echo
@@ -869,8 +869,8 @@ echo
 PRINT_TASK "[TASK: Generate a manifests]"
 
 # Create installation directory
-rm -rf "${IGNITION_PATH}"
-mkdir -p "${IGNITION_PATH}"
+rm -rf "${IGNITION_PATH}" &> /dev/null
+mkdir -p "${IGNITION_PATH}" &> /dev/null
 run_command "[create installation directory: ${IGNITION_PATH}]"
 
 # Copy install-config.yaml to installation directory
