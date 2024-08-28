@@ -99,11 +99,11 @@ PRINT_TASK "[TASK: Install openshift tool]"
 # ----------------------------------------------------
 # Download the openshift-install
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" &> /dev/null
-run_command "[Download openshift-install tool]"
+run_command "[download openshift-install tool]"
 
 rm -f /usr/local/bin/openshift-install &> /dev/null
 tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" &> /dev/null
-run_command "[Install openshift-install tool]"
+run_command "[install openshift-install tool]"
 
 chmod +x /usr/local/bin/openshift-install &> /dev/null
 run_command "[modify /usr/local/bin/openshift-install permissions]"
@@ -119,7 +119,7 @@ rm -f /usr/local/bin/README.md &> /dev/null
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
-run_command "[Check RHEL version]"
+run_command "[check RHEL version]"
 
 # Determine the download URL based on the RHEL version
 if [ "$rhel_version" -eq 8 ]; then
@@ -132,11 +132,11 @@ fi
 
 # Download the OpenShift client
 wget -q "$download_url" -O "$openshift_client"
-run_command "[Download OpenShift client tool]"
+run_command "[download OpenShift client tool]"
 
 # Extract the downloaded tarball to /usr/local/bin/
 tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
-run_command "[Install openshift client tool]"
+run_command "[install openshift client tool]"
 
 chmod +x /usr/local/bin/oc &> /dev/null
 run_command "[modify /usr/local/bin/oc permissions]"
@@ -161,12 +161,12 @@ fi
 
 # Download the oc-mirror tool
 wget -q "$download_url" -O "$oc_mirror"
-run_command "[Download oc-mirror tool]"
+run_command "[download oc-mirror tool]"
 
 # Remove the old oc-mirror binary and install the new one
 rm -rf /usr/local/bin/oc-mirror &> /dev/null
 tar -xzf "$oc_mirror" -C "/usr/local/bin/" &> /dev/null
-run_command "[Install oc-mirror tool]"
+run_command "[install oc-mirror tool]"
 
 chmod a+x /usr/local/bin/oc-mirror &> /dev/null
 run_command "[modify /usr/local/bin/oc-mirror permissions]"
@@ -176,19 +176,19 @@ rm -rf $oc_mirror &> /dev/null
 
 # Write LANG=en_US.UTF-8 to the ./bash_profile file]
 echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
-run_command "[Write LANG=en_US.UTF-8 to the ./bash_profile file]"
+run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
 
 # Reload ~/.bash_profile
 source ~/.bash_profile
-run_command "[Reload ~/.bash_profile]"
+run_command "[reload ~/.bash_profile]"
 
 # Change time zone to UTC
 timedatectl set-timezone UTC
-run_command "[Change time zone to UTC]"
+run_command "[change time zone to UTC]"
 
 # Change hostname
 hostnamectl set-hostname ${BASTION_HOSTNAME}
-run_command "[Change hostname to ${BASTION_HOSTNAME}]"
+run_command "[change hostname to ${BASTION_HOSTNAME}]"
 # Add an empty line after the task
 echo
 
