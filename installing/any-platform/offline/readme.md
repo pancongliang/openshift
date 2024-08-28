@@ -36,7 +36,7 @@ source 01-set-params.sh
 ### Install infrastructure and generate scripts
 
 ```
-source 02-inst-pre.she 
+source 02-inst-pre.sh
 ```
 
 
