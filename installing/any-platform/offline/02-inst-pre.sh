@@ -509,7 +509,7 @@ EOF
 
 # Verify if the output file was generated successfully
 if [ -f "/var/named/${FORWARD_ZONE_FILE}" ]; then
-    echo "ok: [generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}"
+    echo "ok: [generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 else
     echo "failed: [generate forward DNS zone file]"
 fi
@@ -777,9 +777,9 @@ EOF
 
 # Verify if the haproxy configuration file was generated successfully
 if [ -f "$haproxy_config_file" ]; then
-    echo "ok: [generate haproxy configuration file"
+    echo "ok: [generate haproxy configuration file]"
 else
-    echo "failed: [generate haproxy configuration file"
+    echo "failed: [generate haproxy configuration file]"
 fi
 
 
