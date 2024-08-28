@@ -142,10 +142,17 @@ run_command "[Grant cluster-admin permissions to the admin user]"
 
 echo "info: [Restarting oauth pod, waiting...]"
 sleep 100
-echo "info: [Restarting oauth pod, waiting...]"
-sleep 100
-echo "info: [Restarting oauth pod, waiting...]"
-sleep 100
+
+while true; do
+    operator_status=$(/usr/local/bin/oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    if echo "$operator_status" | grep -q -v "True False False"; then
+        echo "info: [All cluster operators have not reached the expected status, Waiting...]"
+        sleep 60  
+    else
+        echo "ok: [All cluster operators have reached the expected state]"
+        break
+    fi
+done
 
 echo
 # ====================================================
