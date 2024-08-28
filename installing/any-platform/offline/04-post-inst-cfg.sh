@@ -104,6 +104,8 @@ PRINT_TASK "[TASK: Disabling the default OperatorHub sources]"
 oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
 run_command "[disabling the default OperatorHub sources]"
 
+echo
+# ====================================================
 
 # === Task: Create htpasswd User ===
 PRINT_TASK "[TASK: Create htpasswd User]"
