@@ -11,7 +11,7 @@ PRINT_TASK() {
 }
 
 # Function to check command success and display appropriate message
-() {
+run_command() {
     if [ $? -eq 0 ]; then
         echo "ok: $1"
     else
