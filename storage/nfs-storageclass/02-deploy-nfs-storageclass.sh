@@ -35,7 +35,7 @@ EOF
 oc delete -f namespace.yaml &>/dev/null
 oc create -f namespace.yaml &>/dev/null
 run_command "[create new namespace: ${NAMESPACE}]"
-rm -rf mespace.yaml &>/dev/null
+rm -rf namespace.yaml &>/dev/null
 
 # Create sa and rbac
 cat << EOF > sa_and_rbac.yaml
