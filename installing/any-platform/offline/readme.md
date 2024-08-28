@@ -123,4 +123,6 @@ oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]
 or
 
 export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+
+oc completion bash >> /etc/bash_completion.d/oc_completion
 ```
