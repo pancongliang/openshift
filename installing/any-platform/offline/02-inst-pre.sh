@@ -254,7 +254,7 @@ check_virtual_host_configuration() {
 check_virtual_host_configuration
 
 # Create http dir
-mkdir -p ${HTTPD_PATH}
+mkdir -p ${HTTPD_PATH} &> /dev/null
 run_command "[create http: ${HTTPD_PATH} director]"
 
 
@@ -262,7 +262,7 @@ run_command "[create http: ${HTTPD_PATH} director]"
 # ----------------------------------------------------
 # List of services to handle
 # Enable and start service
-systemctl enable --now httpd
+systemctl enable --now httpd &> /dev/null
 run_command "[restart and enable httpd service]"
 
 # Wait for the service to restart
@@ -272,13 +272,13 @@ sleep 3
 # Step 4: Test
 # ----------------------------------------------------
 # Test httpd configuration
-touch ${HTTPD_PATH}/httpd-test
+touch ${HTTPD_PATH}/httpd-test &> /dev/null
 run_command "[create httpd test file]"
 
 wget -q http://${BASTION_IP}:8080/httpd-test
 run_command "[test httpd download function]"
 
-rm -rf httpd-test ${HTTPD_PATH}/httpd-test
+rm -rf httpd-test ${HTTPD_PATH}/httpd-test &> /dev/null
 run_command "[delete the httpd test file]"
 
 # Add an empty line after the task
@@ -293,8 +293,8 @@ PRINT_TASK "[TASK: Setup nfs services]"
 # Step 1: Create directory /user and change permissions and add NFS export
 # ----------------------------------------------------
 # Create NFS directories
-rm -rf ${NFS_PATH}
-mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV}
+rm -rf ${NFS_PATH} &> /dev/null
+mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV} &> /dev/null
 run_command "[create nfs director: ${NFS_PATH}]"
 
 # Add nfsnobody user if not exists
@@ -306,10 +306,10 @@ else
 fi
 
 # Change ownership and permissions
-chown -R nfsnobody.nfsnobody ${NFS_PATH}
+chown -R nfsnobody.nfsnobody ${NFS_PATH} &> /dev/null
 run_command "[changing ownership of an NFS directory]"
 
-chmod -R 777 ${NFS_PATH}
+chmod -R 777 ${NFS_PATH} &> /dev/null
 run_command "[change NFS directory permissions]"
 
 # Add NFS export configuration
@@ -325,7 +325,7 @@ fi
 # Step 2: Enable and Restart nfs-server service
 # ----------------------------------------------------
 # Enable and start service
-systemctl enable --now nfs-server
+systemctl enable --now nfs-server &> /dev/null
 run_command "[restart and enable nfs-server service]"
 
 # Wait for the service to restart
@@ -451,9 +451,6 @@ zone "." IN {
 
 include "/etc/named.rfc1912.zones";
 EOF
-
-# Check if the named configuration file was generated successfully
-cat /etc/named.conf
 run_command "[generate named configuration file]"
 
 
@@ -630,19 +627,19 @@ fi
 # Step 6: Add dns ip to resolv.conf and change zone permissions
 # ----------------------------------------------------
 # Add dns ip to resolv.conf
-sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
-sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
+sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf &> /dev/null
+sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf &> /dev/null
 run_command "[add DNS_SERVER_IP to /etc/resolv.conf]"
 
 # Change ownership
-chown named. /var/named/*.zone
+chown named. /var/named/*.zone &> /dev/null
 run_command "[change ownership /var/named/*.zone]"
 
 
 # Step 7: Enable and Restart named service
 # ----------------------------------------------------
 # Enable and start service
-systemctl enable --now named
+systemctl enable --now named &> /dev/null
 run_command "[restart and enable named service]"
 
 # Wait for the service to restart
@@ -808,7 +805,7 @@ check_haproxy_config
 # Step 3: Enable and Restart haproxy service
 # ----------------------------------------------------
 # Enable and start service
-systemctl enable --now haproxy
+systemctl enable --now haproxy &> /dev/null
 run_command "[restart and enable haproxy service]"
 
 # Add an empty line after the task
@@ -849,7 +846,7 @@ done
 
 
 # Create installation directory
-mkdir -p ${REGISTRY_INSTALL_PATH}
+mkdir -p ${REGISTRY_INSTALL_PATH} &> /dev/null
 run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
@@ -874,7 +871,7 @@ podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/
 run_command "[mirror registry Pod is running]"
 
 # Restart quay-pod.service/quay-app.service
-systemctl restart quay-pod.service quay-app.service
+systemctl restart quay-pod.service quay-app.service &> /dev/null
 run_command "[restart quay-pod.service quay-app.service]"
 
 sleep 120
@@ -884,7 +881,7 @@ cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anch
 run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
 
 # Trust the rootCA certificate
-update-ca-trust
+update-ca-trust &> /dev/null
 run_command "[trust the rootCA certificate]"
 
 # Delete the tar package generated during installation
@@ -914,7 +911,7 @@ sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
 run_command "[format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
-rm -rf ${SSH_KEY_PATH}
+rm -rf ${SSH_KEY_PATH} &> /dev/null
 ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null
 run_command "[create ssh-key for accessing coreos]"
 
@@ -924,7 +921,7 @@ export REGISTRY_AUTH=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
 export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
-rm -rf ${HTTPD_PATH}/install-config.yaml
+rm -rf ${HTTPD_PATH}/install-config.yaml &> /dev/null
 
 cat << EOF > ${HTTPD_PATH}/install-config.yaml 
 apiVersion: v1
@@ -964,7 +961,7 @@ EOF
 run_command "[create ${HTTPD_PATH}/install-config.yaml file]"
 
 # Delete certificate
-rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
+rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak &> /dev/null
 run_command "[delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
 # Add an empty line after the task
@@ -976,12 +973,12 @@ echo
 PRINT_TASK "[TASK: Generate a manifests]"
 
 # Create installation directory
-rm -rf "${IGNITION_PATH}"
-mkdir -p "${IGNITION_PATH}"
+rm -rf "${IGNITION_PATH}" &> /dev/null
+mkdir -p "${IGNITION_PATH}" &> /dev/null
 run_command "[create installation directory: ${IGNITION_PATH}]"
 
 # Copy install-config.yaml to installation directory
-cp "${HTTPD_PATH}/install-config.yaml" "${IGNITION_PATH}"
+cp "${HTTPD_PATH}/install-config.yaml" "${IGNITION_PATH}" &> /dev/null
 run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
