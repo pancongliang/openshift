@@ -290,8 +290,8 @@ PRINT_TASK "[TASK: Setup nfs services]"
 # Step 1: Create directory /user and change permissions and add NFS export
 # ----------------------------------------------------
 # Create NFS directories
-rm -rf ${NFS_PATH}
-mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV}
+rm -rf ${NFS_PATH} &> /dev/null
+mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV} &> /dev/null
 run_command "[create nfs director: ${NFS_PATH}]"
 
 
@@ -304,10 +304,10 @@ else
 fi
 
 # Change ownership and permissions
-chown -R nfsnobody.nfsnobody ${NFS_PATH}
+chown -R nfsnobody.nfsnobody ${NFS_PATH} &> /dev/null
 run_command "[changing ownership of an NFS directory]"
 
-chmod -R 777 ${NFS_PATH}
+chmod -R 777 ${NFS_PATH} &> /dev/null
 run_command "[change NFS directory permissions]"
 
 
@@ -511,7 +511,7 @@ EOF
 
 # Verify if the output file was generated successfully
 if [ -f "/var/named/${FORWARD_ZONE_FILE}" ]; then
-    echo "ok: [generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}"
+    echo "ok: [generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 else
     echo "failed: [generate forward DNS zone file]"
 fi
@@ -521,7 +521,7 @@ fi
 # ----------------------------------------------------
 #!/bin/bash
 # Clean up: Delete duplicate file
-rm -f /var/named/${REVERSE_ZONE_FILE}
+rm -f /var/named/${REVERSE_ZONE_FILE} &> /dev/null
 
 # Input file containing the original reverse DNS zone configuration
 reverse_zone_input_file="/var/named/reverse_zone_input_file"
@@ -778,9 +778,9 @@ EOF
 
 # Verify if the haproxy configuration file was generated successfully
 if [ -f "$haproxy_config_file" ]; then
-    echo "ok: [generate haproxy configuration file"
+    echo "ok: [generate haproxy configuration file]"
 else
-    echo "failed: [generate haproxy configuration file"
+    echo "failed: [generate haproxy configuration file]"
 fi
 
 
@@ -827,7 +827,7 @@ run_command "[create ssh-key for accessing coreos]"
 export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
-rm -rf ${HTTPD_PATH}/install-config.yaml
+rm -rf ${HTTPD_PATH}/install-config.yaml &> /dev/null
 
 cat << EOF > ${HTTPD_PATH}/install-config.yaml 
 apiVersion: v1
@@ -976,7 +976,7 @@ EOF
     if [ -f "${IGNITION_PATH}/set-${HOSTNAME}.sh" ]; then
         echo "ok: [generate setup script: ${IGNITION_PATH}/set-${HOSTNAME}.sh]"
     else
-        echo "failed: [generate setup script for ${HOSTNAME}"
+        echo "failed: [generate setup script for ${HOSTNAME}]"
     fi
 }
 
