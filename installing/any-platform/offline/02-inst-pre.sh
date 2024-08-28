@@ -11,7 +11,7 @@ PRINT_TASK() {
 }
 
 # Function to check command success and display appropriate message
-run_command() {
+() {
     if [ $? -eq 0 ]; then
         echo "ok: $1"
     else
@@ -851,11 +851,11 @@ run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
 wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
-run_command "[download mirror-registry package]"
+ "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
 tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
-run_command "[extract the mirror-registry package]"
+ "[extract the mirror-registry package]"
 
 # Install mirror-registry
 ${REGISTRY_INSTALL_PATH}/mirror-registry install \
@@ -864,36 +864,36 @@ ${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
      --pgStorage ${REGISTRY_INSTALL_PATH}/pg-storage \
      --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} 
-run_command "[installing mirror-registry...]"
+ "[installing mirror-registry...]"
 
 # Get the status and number of containers for quay-pod
 podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
-run_command "[mirror registry Pod is running]"
+ "[mirror registry Pod is running]"
 
 # Restart quay-pod.service/quay-app.service
 systemctl restart quay-pod.service quay-app.service &> /dev/null
-run_command "[restart quay-pod.service quay-app.service]"
+ "[restart quay-pod.service quay-app.service]"
 
 sleep 120
 
 # Copy the rootCA certificate to the trusted source
 cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
-run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
+ "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
 
 # Trust the rootCA certificate
 update-ca-trust &> /dev/null
-run_command "[trust the rootCA certificate]"
+ "[trust the rootCA certificate]"
 
 # Delete the tar package generated during installation
 rm -rf pause.tar postgres.tar quay.tar redis.tar &>/dev/null
-run_command "[Delete the tar package: pause.tar postgres.tar quay.tar redis.tar]"
+ "[Delete the tar package: pause.tar postgres.tar quay.tar redis.tar]"
 
 sleep 5
 
 # Login to the registry
 rm -rf $XDG_RUNTIME_DIR/containers
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
-run_command  "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
+  "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
 # Add an empty line after the task
 echo
@@ -905,15 +905,15 @@ PRINT_TASK "[TASK: Generate a defined install-config file]"
 # Backup and format the registry CA certificate
 rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
 cp "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-run_command "[backup registry CA certificate]"
+ "[backup registry CA certificate]"
 
 sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-run_command "[format registry ca certificate]"
+ "[format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
 rm -rf ${SSH_KEY_PATH} &> /dev/null
 ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null
-run_command "[create ssh-key for accessing coreos]"
+ "[create ssh-key for accessing coreos]"
 
 # Define variables
 export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak)"
@@ -958,11 +958,11 @@ imageContentSources:
   - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/openshift/release-images
   source: quay.io/openshift-release-dev/ocp-release
 EOF
-run_command "[create ${HTTPD_PATH}/install-config.yaml file]"
+ "[create ${HTTPD_PATH}/install-config.yaml file]"
 
 # Delete certificate
 rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak &> /dev/null
-run_command "[delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
+ "[delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
 # Add an empty line after the task
 echo
@@ -975,15 +975,15 @@ PRINT_TASK "[TASK: Generate a manifests]"
 # Create installation directory
 rm -rf "${IGNITION_PATH}" &> /dev/null
 mkdir -p "${IGNITION_PATH}" &> /dev/null
-run_command "[create installation directory: ${IGNITION_PATH}]"
+ "[create installation directory: ${IGNITION_PATH}]"
 
 # Copy install-config.yaml to installation directory
 cp "${HTTPD_PATH}/install-config.yaml" "${IGNITION_PATH}" &> /dev/null
-run_command "[copy the install-config.yaml file to the installation directory]"
+ "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
 openshift-install create manifests --dir "${IGNITION_PATH}" &> /dev/null
-run_command "[generate manifests]"
+ "[generate manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
 if grep -q "mastersSchedulable: true" "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml"; then
@@ -1004,7 +1004,7 @@ PRINT_TASK "[TASK: Generate default ignition file]"
 
 # Generate and modify ignition configuration files
 openshift-install create ignition-configs --dir "${IGNITION_PATH}" &> /dev/null
-run_command "[generate default ignition file]"
+ "[generate default ignition file]"
 
 # Add an empty line after the task
 echo
@@ -1020,32 +1020,32 @@ MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOST
 WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
 
 cp "${IGNITION_PATH}/bootstrap.ign" "${IGNITION_PATH}/append-${BOOTSTRAP_HOSTNAME}.ign"
-run_command "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
+ "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
 
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
     cp "${IGNITION_PATH}/master.ign" "${IGNITION_PATH}/append-${MASTER_HOSTNAME}.ign"
-    run_command "[copy and customize the master.ign file name: append-${MASTER_HOSTNAME}.ign]"
+     "[copy and customize the master.ign file name: append-${MASTER_HOSTNAME}.ign]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
     cp "${IGNITION_PATH}/worker.ign" "${IGNITION_PATH}/append-${WORKER_HOSTNAME}.ign"
-    run_command "[copy and customize the worker.ign file name: append-${WORKER_HOSTNAME}.ign]"
+     "[copy and customize the worker.ign file name: append-${WORKER_HOSTNAME}.ign]"
 done
 
 # Update hostname in ignition files
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
     sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/append-${MASTER_HOSTNAME}.ign"
-    run_command "[add the appropriate hostname field to the append-${MASTER_HOSTNAME}.ign file]"
+     "[add the appropriate hostname field to the append-${MASTER_HOSTNAME}.ign file]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
     sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/append-${WORKER_HOSTNAME}.ign"
-    run_command "[add the appropriate hostname field to the append-${WORKER_HOSTNAME}.ign file]"
+     "[add the appropriate hostname field to the append-${WORKER_HOSTNAME}.ign file]"
 done
 
 # Set correct permissions
 chmod a+r "${IGNITION_PATH}"/*.ign
-run_command "[change ignition file permissions]"
+ "[change ignition file permissions]"
 
 # Add an empty line after the task
 echo
@@ -1080,7 +1080,7 @@ EOF
     if [ -f "${IGNITION_PATH}/set-${HOSTNAME}.sh" ]; then
         echo "ok: [generate setup script: ${IGNITION_PATH}/set-${HOSTNAME}.sh]"
     else
-        echo "failed: [generate setup script for ${HOSTNAME}"
+        echo "failed: [generate setup script for ${HOSTNAME}]"
     fi
 }
 
@@ -1095,7 +1095,7 @@ generate_setup_script "${WORKER03_HOSTNAME}" "${WORKER03_IP}"
 
 # Make the script executable
 chmod +x ${IGNITION_PATH}/*.sh
-run_command "[change ignition file permissions]"
+ "[change ignition file permissions]"
 
 # Add an empty line after the task
 echo
