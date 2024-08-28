@@ -20,7 +20,7 @@ PRINT_TASK "[TASK: Set environment variables]"
 export OCP_RELEASE_VERSION="4.12.30"
 
 # OpenShift install-config
-export CLUSTER_NAME="copan"
+export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export SSH_KEY_PATH="$HOME/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
