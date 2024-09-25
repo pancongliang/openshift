@@ -58,3 +58,36 @@
   oc get bucketclass -n openshift-storage
 
   ```
+
+### Create ObjectBucketClaim and Object Storage secret 
+* Create ObjectBucketClaim
+   ```
+   export NAMESPACE="openshift-logging"
+   export OBC_NAME="loki-bucket-odf"
+   export GENERATE_BUCKET_NAME="${OBC_NAME}"
+   export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
+   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/04-objectbucketclaim.yaml | envsubst | oc apply -f -
+   ```
+
+* Create Object Storage secret
+
+  Get bucket properties from the associated ConfigMap
+   ```
+   export BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
+   export BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
+   export BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
+   ```
+  Get bucket access key from the associated Secret
+   ```
+   export ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+   export SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+   ```
+
+* Create an Object Storage secret with keys as follows
+   ```
+   oc create -n ${NAMESPACE} secret generic ${OBC_NAME}-credentials \
+      --from-literal=access_key_id="${ACCESS_KEY_ID}" \
+      --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
+      --from-literal=bucketnames="${BUCKET_NAME}" \
+      --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
+   ```
