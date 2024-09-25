@@ -30,7 +30,7 @@
 
 * Create a configuration file that contains access to the MinIO Bucket.
   ```
-  export MINIO_ADDR=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
+  export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
   export ACCESS_KEY_ID="minioadmin"
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="quay-bucket"
