@@ -43,9 +43,9 @@
   oc get po -n openshift-logging 
   ```
 
-####  Install lokistack using ODF
+####  Install lokistack using ODF or MCG/NFS-SC
 * Install and configure [odf-operator](https://github.com/pancongliang/openshift/blob/main/storage/odf/readme.md)
-
+* Install and configure [nfs-sc](https://github.com/pancongliang/openshift/tree/main/storage/nfs-storageclass) and [MCG](https://github.com/pancongliang/openshift/blob/main/storage/mcg/readme.md)
 * Create ObjectBucketClaim
    ```
    export NAMESPACE="openshift-logging"
@@ -80,7 +80,7 @@
 
 * Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
    ```
-  export STORAGE_CLASS_NAME="ocs-storagecluster-cephfs"
+  export STORAGE_CLASS_NAME="ocs-storagecluster-cephfs"  # or  managed-nfs-storage
   export BUCKET_NAME="${OBC_NAME}"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-deploy-loki-stack.yaml | envsubst | oc apply -f -
    ```
