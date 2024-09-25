@@ -32,7 +32,7 @@
   export ACCESS_KEY_ID="minioadmin"
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="loki-bucket"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-minio-credentials.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-config.yaml | envsubst | oc apply -f -
   ```
   
 * Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
