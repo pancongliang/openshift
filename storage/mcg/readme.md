@@ -127,5 +127,5 @@
 * or  
    ```
    wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/05-config.yaml
-   oc create secret generic config-bundle-secret --from-file=config.yaml=<(envsubst < 05-config.yaml) -n ${NAMESPACE}
+   oc create secret generic ${OBC_NAME}-credentials --from-file=config.yaml=<(envsubst < 05-config.yaml) -n ${NAMESPACE}
    ```
