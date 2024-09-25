@@ -124,5 +124,8 @@
       --from-literal=bucketnames="${BUCKET_NAME}" \
       --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
    ```
-
-* 
+* or  
+   ```
+   wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/05-config.yaml
+   oc create secret generic config-bundle-secret --from-file=config.yaml=<(envsubst < 05-config.yaml) -n ${NAMESPACE}
+   ```
