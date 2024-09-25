@@ -95,7 +95,7 @@
 ### Create ObjectBucketClaim and Object Storage secret 
 * Create ObjectBucketClaim
    ```
-   export NAMESPACE="quay-enterprise"
+   export NAMESPACE="openshift-logging"
    export OBC_NAME="loki-bucket-mcg"
    export GENERATE_BUCKET_NAME="${OBC_NAME}"
    export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
@@ -124,3 +124,5 @@
       --from-literal=bucketnames="${BUCKET_NAME}" \
       --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
    ```
+
+* 
