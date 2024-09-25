@@ -8,7 +8,7 @@
   export NAMESPACE=rhsso
   export CHANNEL="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"  
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/01-deploy-operator.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/01-operator.yaml | envsubst | oc apply -f -
 
   oc patch installplan $(oc get ip -n ${NAMESPACE} -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n ${NAMESPACE} --type merge --patch '{"spec":{"approved":true}}'
 
@@ -22,12 +22,12 @@
   ```
   export NFS_PATH="/nfs/pv005"
   export NFS_IP="10.74.251.171"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/02-create-keycloak-pv.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/02-keycloak-pv.yaml | envsubst | oc apply -f -
   ```
   
 * Create Keycloak
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/02-create-keycloak.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/02-keycloak.yaml | envsubst | oc apply -f -
   oc get po -n ${NAMESPACE}
   ```
   
@@ -51,7 +51,7 @@
   > However changes to the admin console are not reflected back and updates of the CR after the realm is created are not supported.
 
   ```  
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/03-create-keycloak-realm.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/03-keycloak-realm.yaml | envsubst | oc apply -f -
   ```
 
 * Create client custom resource
@@ -61,7 +61,7 @@
   ```
   export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
   export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/04-create-keycloak-client.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/04-keycloak-client.yaml | envsubst | oc apply -f -
   ```
   
 * Create RH-SSO user, If need to create multiple users, repeat this step after changing the variable value
@@ -71,7 +71,7 @@
   ```
   export USER_NAME=rhadmin
   export PASSWORD=redhat
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/05-create-keycloak-user.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f -
   ```
 
 ### Create and configure Identity Providers for OpenShift
