@@ -6,7 +6,7 @@
   ```
   export CHANNEL_NAME="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/01-deploy-operator.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/01-operator.yaml | envsubst | oc apply -f -
 
   sleep 6
   
@@ -28,10 +28,10 @@
 * Create ClusterLogging instance
   ```
   # fluentd:
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-deploy-instance-fluentd.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-instance-fluentd.yaml | envsubst | oc apply -f -
 
   # or vector 
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-deploy-instance-vector.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-instance-vector.yaml | envsubst | oc apply -f -
   
   oc get po -n openshift-logging
   ```
