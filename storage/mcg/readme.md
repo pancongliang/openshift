@@ -36,34 +36,67 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/03-backing-store.yaml | envsubst | oc create -f -
   ```
 
+### Verifying the Installation
+* Verifying the Installation
+  ```
+  $ oc get pods -n openshift-storage
+  NAME                                               READY   STATUS    RESTARTS   AGE
+  csi-addons-controller-manager-7fcdf7bfc8-j6h49     2/2     Running   0          76m
+  noobaa-core-0                                      1/1     Running   0          4m8s
+  noobaa-db-pg-0                                     1/1     Running   0          4m8s
+  noobaa-default-backing-store-noobaa-pod-7a4dfe11   1/1     Running   0          2m3s
+  noobaa-endpoint-64c49bc6c5-gvx2q                   1/1     Running   0          3m
+  noobaa-operator-56b6f478b8-qbg8b                   1/1     Running   0          76m
+  noobaa-pv-backing-store-noobaa-pod-7eb3176a        1/1     Running   0          2m54s
+  noobaa-pv-backing-store-noobaa-pod-ddca8962        1/1     Running   0          2m54s
+  ocs-metrics-exporter-595884c-xdx6d                 1/1     Running   0          76m
+  ocs-operator-6f6b6dc894-hll7h                      1/1     Running   0          76m
+  odf-console-97b6d585f-hprl6                        1/1     Running   0          76m
+  odf-operator-controller-manager-84f6d8f9d6-wdnz2   2/2     Running   0          76m
+  rook-ceph-operator-7cbcf4bdbf-dx8zc                1/1     Running   0          76m
+
+  $ oc get storageclass openshift-storage.noobaa.io
+  NAME                          PROVISIONER                       RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+  openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc   Delete          Immediate           false                  2m8s
+  
+  $ oc get pvc -n openshift-storage
+  NAME                                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   
+  STORAGECLASS          AGE
+  db-noobaa-db-pg-0                                  Bound    pvc-e929562a-e8a4-4821-b738-b17fed5767a1   50Gi       RWO            
+  managed-nfs-storage   4m40s
+  noobaa-default-backing-store-noobaa-pvc-7a4dfe11   Bound    pvc-9505f519-0027-4160-b479-bd1d52d109a9   50Gi       RWO            
+  managed-nfs-storage   2m35s
+  noobaa-pv-backing-store-noobaa-pvc-7eb3176a        Bound    pvc-fce5b9e5-f177-4b71-af04-ecde3b2f372a   100Gi      RWO            
+  managed-nfs-storage   3m26s
+  noobaa-pv-backing-store-noobaa-pvc-ddca8962        Bound    pvc-8b4d8e28-6c6c-45bc-bf5a-53069080e6b1   100Gi      RWO            
+  managed-nfs-storage   3m26s
+
+  $ oc get BackingStore -n openshift-storage
+  NAME                           TYPE      PHASE   AGE
+  noobaa-default-backing-store   pv-pool   Ready   3m10s
+  noobaa-pv-backing-store        pv-pool   Ready   4m47s
+
+  $ oc get noobaa -n openshift-storage
+  NAME     S3-ENDPOINTS                       STS-ENDPOINTS                      IMAGE                                                                                                            PHASE   AGE
+  noobaa   ["https://10.184.134.134:31063"]   ["https://10.184.134.134:32692"]   registry.redhat.io/odf4/mcg-core-rhel8@sha256:26a0f925ec82909caee0556c59856fd014397e3ccf4cd00bf82807c1a7cdc8b5   Ready   5m33s
+
+  $ oc get bucketclass -n openshift-storage
+  NAME                          PLACEMENT                                                        NAMESPACEPOLICY   QUOTA   PHASE   AGE
+  noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backing-store"]}]}                             Ready   4m32s
+  ```
+
 ### Update BucketClass to use noobaa-pv-backing-store
 * Update BucketClass to use noobaa-pv-backing-store
   ```
   oc patch bucketclass noobaa-default-bucket-class --patch '{"spec":{"placementPolicy":{"tiers":[{"backingStores":["noobaa-pv-backing-store"]}]}}}' --type merge -n openshift-storage
   ```
-  
-### Verifying the Installation
-* Verifying the Installation
-  ```
-  oc get pods -n openshift-storage
 
-  oc get storageclass openshift-storage.noobaa.io
-
-  oc get pvc -n openshift-storage
-
-  oc get BackingStore -n openshift-storage
-
-  oc get noobaa -n openshift-storage
-
-  oc get bucketclass -n openshift-storage
-
-  ```
 
 ### Create ObjectBucketClaim and Object Storage secret 
 * Create ObjectBucketClaim
    ```
-   export NAMESPACE="openshift-logging"
-   export OBC_NAME="loki-bucket-odf"
+   export NAMESPACE="quay-enterprise"
+   export OBC_NAME="loki-bucket-mcg"
    export GENERATE_BUCKET_NAME="${OBC_NAME}"
    export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
    curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/04-objectbucketclaim.yaml | envsubst | oc apply -f -
