@@ -4,7 +4,7 @@ metadata:
   name: example-registry
   namespace: ${NAMESPACE}
 spec:
-  configBundleSecret: config-bundle-secret
+  configBundleSecret: ${BUCKET_NAME}-credentials
   components:
     - kind: objectstorage
       managed: false
