@@ -58,7 +58,7 @@ Cluster name: source
 URL : https://api.ocp4.example.local:6443   #<-- source cluster api server
 Service account token: # source cluster: oc sa get-token migration-controller -n openshift-migration
 Add cluster
-
+~~~
 
 
 ### Adding a Replication Repository
