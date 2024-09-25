@@ -19,36 +19,42 @@
   ```
 
 
-### Add a label to the node where the disk is added
-* The ocs label needs to be added to each ocp node that has a storage device. ODF operators look for this label to learn which nodes can be targeted for scheduling by ODF components.
-* If the label has been marked during the configuration of `local storage operator`, can skip it.
+### Create SC
+* Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md), if storage class has been deployed,only need to set the variables.
+
+### Create Noobaa
+* Create Noobaa
   ```
-  export NODE_NAME01=worker01.ocp4.example.com
-  oc label node ${NODE_NAME01} cluster.ocs.openshift.io/openshift-storage=''
-
-  export NODE_NAME02=worker02.ocp4.example.com
-  oc label node ${NODE_NAME02} cluster.ocs.openshift.io/openshift-storage=''
-
-  export NODE_NAME03=worker03.ocp4.example.com
-  oc label node ${NODE_NAME03} cluster.ocs.openshift.io/openshift-storage=''
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/02-noobaa.yaml | envsubst | oc create -f -
   ```
 
-### Create StorageCluster
-* Create StorageCluster after specifying variables
+### Create BackingStore
+* Create BackingStore after specifying variables
   ```
-  export LOACL_PV_SIZE=100Gi  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
-  export STORAGE_CLASS_NAME=localblock
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/02-storagecluster.yaml | envsubst | oc create -f -
+  export PVC_SIZE=100Gi
+  export STORAGE_CLASS_NAME=managed-nfs-storage
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/03-backing-store.yaml | envsubst | oc create -f -
   ```
 
+### Update BucketClass to use noobaa-pv-backing-store
+* Update BucketClass to use noobaa-pv-backing-store
+  ```
+  oc patch bucketclass noobaa-default-bucket-class --patch '{"spec":{"placementPolicy":{"tiers":[{"backingStores":["noobaa-pv-backing-store"]}]}}}' --type merge -n openshift-storage
+  ```
+  
 ### Verifying the Installation
 * Verifying the Installation
   ```
   oc get pods -n openshift-storage
 
-  oc get sc
-  ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete  Immediate  true  8m  # Block storage
-  ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete  Immediate  false 9m  # RGW Object storage
-  ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete  Immediate  true  8m  # FS storage
-  openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete  Immediate  false 8m  # NooBaa Object storage
+  oc get storageclass openshift-storage.noobaa.io
+
+  oc get pvc -n openshift-storage
+
+  oc get BackingStore -n openshift-storage
+
+  oc get noobaa -n openshift-storage
+
+  oc get bucketclass -n openshift-storage
+
   ```
