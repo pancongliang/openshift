@@ -65,9 +65,9 @@
   
   Create an alias named "my-minio" and Access Minio, After creating/using an "alias", the Minio url can be ignored the next time visit.
   ```    
-  export MINIO_ADDR=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
+  export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
   
-  mc alias set my-minio ${MINIO_ADDR} minioadmin minioadmin
+  mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
   ``` 
   Create a bucket named "loki-bucket" in the "my-minio" alias
   ```
