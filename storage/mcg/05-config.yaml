@@ -1,10 +1,10 @@
 DISTRIBUTED_STORAGE_CONFIG:
     default:
         - RHOCSStorage
-        - access_key: $ACCESS_KEY_ID
-          secret_key: $SECRET_ACCESS_KEY
-          bucket_name: $BUCKET_NAME
-          hostname: $BUCKET_HOST
+        - access_key: ${ACCESS_KEY_ID}
+          secret_key: ${ACCESS_KEY_SECRET}
+          bucket_name: ${BUCKET_NAME}
+          hostname: ${BUCKET_HOST}
           is_secure: true
           port: "$BUCKET_PORT"
           storage_path: /
