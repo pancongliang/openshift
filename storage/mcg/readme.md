@@ -1,9 +1,5 @@
-## Install and configure ODF
+## Install and configure MCG
 
-### Install and configure local storage operator
-* Install and configure [local storage operator](https://github.com/pancongliang/openshift/blob/main/storage/local-sc/readme.md).
-* There must be at least three worker nodes or infrastructure nodes in the OCP cluster. Each node should contain 1 disk and require 3 disks (PV), each disk is at least 100GB.
-  
 ### Install Red Hat OpenShift Data Foundation
 * Install the Operator using the default namespace
   ```
@@ -21,6 +17,7 @@
 
 ### Create SC
 * Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md), if storage class has been deployed,only need to set the variables.
+
 
 ### Create Noobaa
 * Create Noobaa
