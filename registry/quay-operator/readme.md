@@ -40,7 +40,7 @@
 
 * Create Secret based on config.yaml file.
   ```
-  oc create secret generic config-bundle-secret --from-file=config.yaml=<(envsubst < 02-config.yaml) -n ${NAMESPACE}
+  oc create secret generic ${BUCKET_NAME}-credentials --from-file=config.yaml=<(envsubst < 02-config.yaml) -n ${NAMESPACE}
   ```
 
 ### Create Quay Registry 
