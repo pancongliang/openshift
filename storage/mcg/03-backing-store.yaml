@@ -12,6 +12,6 @@ spec:
     numVolumes: 2
     resources:
       requests:
-        storage: 100Gi
+        storage: ${PVC_SIZE}
     storageClass: ${STORAGE_CLASS_NAME}
   type: pv-pool
