@@ -8,7 +8,7 @@
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/01-operator.yaml | envsubst | oc apply -f -
 
-  sleep 6
+  sleep 20
   
   oc patch installplan $(oc get ip -n openshift-operators-redhat  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
   oc patch installplan $(oc get ip -n openshift-logging  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-logging --type merge --patch '{"spec":{"approved":true}}'
