@@ -47,7 +47,6 @@ EOF
 
 $ systemctl restart httpd
 
-- 测试 httpd 功能:
 $ mkdir -p /var/www/html/materials
 $ touch /var/www/html/materials/testfile
 $ wget http://10.74.251.171:8080/testfile
