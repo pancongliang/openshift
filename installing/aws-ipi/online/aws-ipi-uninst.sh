@@ -22,6 +22,7 @@ run_command() {
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
+
 rm -rf $HOME/.aws
 mkdir -p $HOME/.aws
 cat << EOF > "$HOME/.aws/credentials"
@@ -32,4 +33,12 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "[Set up AWS credentials]"
 
+echo
+
+
+# === Task: Uninstalling a cluster ===
+PRINT_TASK "[TASK: Uninstalling a cluster]"
+
+echo "info: [Uninstalling the cluster, waiting...]"
 /usr/local/bin/openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
+run_command "[Uninstalled cluster]"
