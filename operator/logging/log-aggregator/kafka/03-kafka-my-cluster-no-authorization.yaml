@@ -8,10 +8,10 @@ spec:
     version: 3.3.1
     resources: 
       requests:
-        memory: 4Gi
+        memory: 2Gi
         cpu: "1"
       limits:
-        memory: 4Gi
+        memory: 2Gi
         cpu: "1"
     jvmOptions: 
       -Xms: 1024m
