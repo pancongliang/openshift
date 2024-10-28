@@ -16,10 +16,10 @@
   export NAMESPACE=kafka
   oc new-project $NAMESPACE
 
-  oc process -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/01-og-amqstreams-template.yaml -p AMQ_NAMESPACE=$NAMESPACE |oc create -f -
-  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/02-sub-amq-streams.yaml  
-  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/03-kafka-my-cluster-no-authorization.yaml
-  oc process -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/04-kafka-topics-template.yaml -p KAFKA_TOPIC=topic-logging-app| oc create -f -
+  oc process -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/log-aggregator/kafka/01-og-amqstreams-template.yaml -p AMQ_NAMESPACE=$NAMESPACE |oc create -f -
+  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/log-aggregator/kafka/02-sub-amqstreams.yaml  
+  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/log-aggregator/kafka/03-kafka-my-cluster-no-authorization.yaml
+  oc process -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/log-aggregator/kafka/04-kafka-topics-template.yaml -p KAFKA_TOPIC=topic-logging-app| oc create -f -
 
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/log-aggregator/kafka/05-clusterlogforwarder.yaml | envsubst | oc apply -f -
   
