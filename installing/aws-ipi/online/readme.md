@@ -41,7 +41,8 @@ oc login -u admin -p redhat https://redhat api.$CLUSTER_NAME.$BASE_DOMAIN:6443
 ### SSH OCP Node
 ```
 curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/deploy.sh | bash
-curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/ssh-node.sh
+curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/ssh-node.sh && chmod 777 ssh-node.sh
+
 ssh-node <NODE-NAME>
 ```
 
