@@ -38,6 +38,13 @@ source ~/.bash_profile
 oc login -u admin -p redhat https://redhat api.$CLUSTER_NAME.$BASE_DOMAIN:6443
 ```
 
+### SSH OCP Node
+```
+curl https://raw.githubusercontent.com/eparis/ssh-bastion/master/deploy/deploy.sh | bash
+
+
+```
+
 ### Uninstalling a cluster on AWS
 
 ```
