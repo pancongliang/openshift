@@ -2,7 +2,7 @@
 
 export CLUSTER_NAME="copan"
 export REGION="ap-northeast-1"
-export AWS_ACCESS_KEY_ID="xxxx"
+export AWS_ACCESS_KEY_ID="xxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxx"
 export STORAGE_SIZE="100" 
 
