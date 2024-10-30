@@ -165,13 +165,99 @@ ssh -o StrictHostKeyChecking=no -i "$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
 EOF
 run_command "[Create access $INSTANCE_NAME file in current directory]"
 
-# Copy the installation script to the bastion ec2 instance
-scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i ./$KEY_PAIR_NAME.pem ./file ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
-run_command "[Copy the installation script to the $INSTANCE_NAME]"
-
 # Modify permissions for the key pair file
 chmod 777 ./ocp-bastion.sh > /dev/null
 run_command "[Modify permissions for the $INSTANCE_NAME file]"
+
+# Dowload mirror-registry script
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/deploy-mirror-registry.sh
+cat <<EOF | cat - deploy-mirror-registry.sh > temp && mv temp inst-mirror-registry.sh
+export REGISTRY_DOMAIN_NAME="\$HOSTNAME"
+export REGISTRY_ID="root"
+export REGISTRY_PW="password"                         # 8 characters or more
+export REGISTRY_INSTALL_PATH="/opt/quay-install"
+EOF
+run_command "[Dowload mirror-registry script]"
+
+# Dowload ocp tool script
+cat << 'EOF' > inst-ocp-tool.sh
+#!/bin/bash
+
+# Function to print a task with uniform length
+PRINT_TASK() {
+    max_length=110  # Adjust this to your desired maximum length
+    task_title="$1"
+    title_length=${#task_title}
+    stars=$((max_length - title_length))
+
+    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+}
+# ====================================================
+
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
+# === Task: Install openshift tool ===
+PRINT_TASK "[TASK: Install openshift tool]"
+
+# Step 1: Delete openshift tool
+# ----------------------------------------------------
+# Delete openshift tool
+files=(
+    "/usr/local/bin/kubectl"
+    "/usr/local/bin/oc"
+    "/usr/local/bin/oc-mirror"
+    "/usr/local/bin/openshift-client-linux.tar.gz"
+    "/usr/local/bin/oc-mirror.tar.gz"
+)
+for file in "${files[@]}"; do
+    sudo rm -rf $file 2>/dev/null
+done
+
+# Step 2: Function to download and install tool
+# ----------------------------------------------------
+# Function to download and install .tar.gz tools
+install_tar_gz() {
+    local tool_name="$1"
+    local tool_url="$2"  
+    # Download the tool
+    sudo wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
+    if [ $? -eq 0 ]; then
+        echo "ok: [Download $tool_name tool]"        
+        # Extract the downloaded tool
+        sudo tar xvf "/usr/local/bin/\$(basename \$tool_url)" -C "/usr/local/bin/" &> /dev/null
+        # Remove the downloaded .tar.gz file
+        sudo rm -rf "/usr/local/bin/\$(basename \$tool_url)" > /dev/null 
+    else
+        echo "failed: [Download $tool_name tool]"
+    fi
+}
+
+# Install .tar.gz tools
+install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
+install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
+
+sudo chmod a+x /usr/local/bin/oc-mirror > /dev/null 
+run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
+sudo rm -rf /usr/local/bin/README.md > /dev/null 
+# Add an empty line after the task
+echo
+# ====================================================
+EOF
+run_command "[Dowload ocp tool script]"
+
+# Copy the installation script to the bastion ec2 instance
+scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i ./$KEY_PAIR_NAME.pem ./inst-mirror-registry.sh ./inst-ocp-tool.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
+run_command "[Copy the inst-mirror-registry.sh and inst-ocp-tool.sh script to the $INSTANCE_NAME]"
+
+rm -rf ./inst-mirror-registry.sh
+rm -rf ./inst-ocp-tool.sh
 
 # Add an empty line after the task
 echo
