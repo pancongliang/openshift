@@ -107,7 +107,7 @@ echo
 PRINT_TASK "[TASK: Create Bastion Instance]"
 
 # Create and download the key pair file
-export KEY_PAIR_NAME="bastion-ec2-key"
+export KEY_PAIR_NAME="$CLUSTER_ID-bastion-key"
 rm -rf ./$KEY_PAIR_NAME.pem > /dev/null
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME > /dev/null
 aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > ./$KEY_PAIR_NAME.pem
