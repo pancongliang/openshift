@@ -165,6 +165,10 @@ ssh -o StrictHostKeyChecking=no -i "$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
 EOF
 run_command "[Create access $INSTANCE_NAME file in current directory]"
 
+# Copy the installation script to the bastion ec2 instance
+scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i ./$KEY_PAIR_NAME.pem ./file ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
+run_command "[Copy the installation script to the $INSTANCE_NAME]"
+
 # Modify permissions for the key pair file
 chmod 777 ./ocp-bastion.sh > /dev/null
 run_command "[Modify permissions for the $INSTANCE_NAME file]"
