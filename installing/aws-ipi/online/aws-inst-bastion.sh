@@ -181,7 +181,7 @@ cat <<EOF | cat - inst-mirror-registry.sh > temp && mv temp inst-registry.sh
 export REGISTRY_DOMAIN_NAME="\$HOSTNAME"
 export REGISTRY_ID="root"
 export REGISTRY_PW="password"                         # 8 characters or more
-export REGISTRY_INSTALL_PATH="$HOME/quay-install"
+export REGISTRY_INSTALL_PATH="\$HOME/quay-install"
 EOF
 run_command "[Dowload mirror-registry script]"
 
