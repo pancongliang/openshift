@@ -89,6 +89,9 @@ PRINT_TASK "[TASK: Install mirror registry]"
 
 # Create installation directory
 mkdir -p ${REGISTRY_INSTALL_PATH}
+mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
+mkdir -p ${REGISTRY_INSTALL_PATH}/pg-storage
+chmod -R 777 ${REGISTRY_INSTALL_PATH}
 run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
