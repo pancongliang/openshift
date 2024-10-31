@@ -169,6 +169,12 @@ run_command "[Create access $INSTANCE_NAME file in current directory]"
 chmod 777 ./ocp-bastion.sh > /dev/null
 run_command "[Modify permissions for the $INSTANCE_NAME file]"
 
+# Dowload ocp login script
+cat << EOF > "./ocp-login.sh"
+oc login -u admin -p redhat https://api.$CLUSTER_NAME.apac.aws.cee.support:6443 --insecure-skip-tls-verify=true
+EOF
+run_command "[Create access $INSTANCE_NAME file in current directory]"
+
 # Dowload mirror-registry script
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/inst-mirror-registry.sh
 cat <<EOF | cat - inst-mirror-registry.sh > temp && mv temp inst-registry.sh
@@ -256,12 +262,13 @@ EOF
 run_command "[Dowload ocp tool script]"
 
 # Copy the installation script to the bastion ec2 instance
-scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-registry.sh ./inst-ocp-tool.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
+scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-registry.sh ./inst-ocp-tool.sh ./ocp-login.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
 run_command "[Copy the inst-registry.sh and inst-ocp-tool.sh script to the $INSTANCE_NAME]"
 
 rm -rf ./inst-mirror-registry.sh
 rm -rf ./inst-registry.sh
 rm -rf ./inst-ocp-tool.sh
+rm -rf ./ocp-login.sh
 
 # Add an empty line after the task
 echo
