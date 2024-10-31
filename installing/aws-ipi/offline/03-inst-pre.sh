@@ -199,7 +199,7 @@ PRINT_TASK "[TASK: Install Mirror-Registry]"
 
 mkdir -p ${REGISTRY_INSTALL_PATH}
 mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
-mkdir -p ${REGISTRY_INSTALL_PATH}/pg-storage
+mkdir -p ${REGISTRY_INSTALL_PATH}/sqlite-storage
 chmod -R 777 ${REGISTRY_INSTALL_PATH}
 run_command "[Create ${REGISTRY_INSTALL_PATH} directory]"
 
@@ -217,11 +217,12 @@ echo "ok: [Start installing mirror-registry...]"
 echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
 
 ${REGISTRY_INSTALL_PATH}/mirror-registry install \
-     --quayHostname $HOSTNAME \
+     --quayHostname ${REGISTRY_DOMAIN_NAME} \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
-     --pgStorage ${REGISTRY_INSTALL_PATH}/pg-storage \
-     --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} > ${REGISTRY_INSTALL_PATH}/mirror-registry.log
+     --sqliteStorage ${REGISTRY_INSTALL_PATH}/sqlite-storage \
+     --initUser ${REGISTRY_ID} \
+     --initPassword ${REGISTRY_PW} > ${REGISTRY_INSTALL_PATH}/mirror-registry.log
 run_command "[Installation of mirror registry completed]"
 
 
