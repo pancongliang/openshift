@@ -227,13 +227,14 @@ install_tar_gz() {
     local tool_name="$1"
     local tool_url="$2"  
     # Download the tool
-    sudo wget -P "/usr/local/bin" "$tool_url" &> /dev/null    
+    sudo curl -L -o "/usr/local/bin/$(basename "$tool_url")" "$tool_url" &> /dev/null    
     if [ $? -eq 0 ]; then
         echo "ok: [Download $tool_name tool]"        
         # Extract the downloaded tool
-        sudo tar xvf "/usr/local/bin/\$(basename \$tool_url)" -C "/usr/local/bin/" &> /dev/null
+        sudo tar xvf "/usr/local/bin/$(basename "$tool_url")" -C "/usr/local/bin/" &> /dev/null
+        run_command "[Unzip to /usr/local/bin/$tool_url]"
         # Remove the downloaded .tar.gz file
-        sudo rm -rf "/usr/local/bin/\$(basename \$tool_url)" > /dev/null 
+        sudo rm -rf "/usr/local/bin/$(basename "$tool_url")" > /dev/null 
     else
         echo "failed: [Download $tool_name tool]"
     fi
@@ -245,7 +246,9 @@ install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64
 
 sudo chmod a+x /usr/local/bin/oc-mirror > /dev/null 
 run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
+
 sudo rm -rf /usr/local/bin/README.md > /dev/null 
+
 # Add an empty line after the task
 echo
 # ====================================================
