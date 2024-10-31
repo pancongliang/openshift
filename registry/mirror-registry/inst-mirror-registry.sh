@@ -56,7 +56,7 @@ if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
         echo "failed: [uninstall the mirror registry]"
     fi
 else
-    echo "skipping: [no active mirror registry pod found. skipping uninstallation]"
+    echo "skipping: [no active mirror registry pod found]"
 fi
 
 # Delete existing duplicate data
