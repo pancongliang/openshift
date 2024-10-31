@@ -87,7 +87,9 @@ install_tar_gz() {
         # Extract the downloaded tool
         sudo tar xvf "/usr/local/bin/$(basename $tool_url)" -C "/usr/local/bin/" &> /dev/null
         # Remove the downloaded .tar.gz file
-        sudo rm -rf "/usr/local/bin/$(basename $tool_url)" > /dev/null 
+        sudo rm -rf "/usr/local/bin/openshift-install.tar.gz" > /dev/null 
+        sudo rm -rf "/usr/local/bin/openshift-client.tar.gz" > /dev/null
+        sudo rm -rf "/usr/local/bin/oc-mirror.tar.gz" > /dev/null
     else
         echo "failed: [Download $tool_name tool]"
     fi
@@ -100,7 +102,7 @@ install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64
 
 sudo chmod a+x /usr/local/bin/oc-mirror > /dev/null 
 run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
-sudo rm -rf /usr/local/bin/README.md > /dev/null 
+
 # Add an empty line after the task
 echo
 # ====================================================
