@@ -63,9 +63,13 @@ curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/in
 
 #### Install bastion
 ```
-source <(curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-inst-bastion.sh)
+curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-inst-bastion.sh
 
-bash ./ocp-bstion.sh
+# Changing variable parameters
+vim aws-inst-bastion.sh
+source aws-inst-bastion.sh
+
+./ocp-bstion.sh
 
 ```
 
