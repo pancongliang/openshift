@@ -189,7 +189,7 @@ echo
 # Task: Configuring additional trust stores for image registry access
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
-oc login -u admin -p redhat https://api.\$CLUSTER_NAME.apac.aws.cee.support:6443 --insecure-skip-tls-verify=true
+oc login -u admin -p redhat https://api.$CLUSTER_NAME.apac.aws.cee.support:6443 --insecure-skip-tls-verify=true
 
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > \$HOME/pull-secret
 run_command "[dowload pull-secret]"
@@ -314,9 +314,7 @@ run_command "[Dowload ocp tool script]"
 scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-registry.sh ./inst-ocp-tool.sh ./ocp-login.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
 run_command "[Copy the inst-registry.sh and inst-ocp-tool.sh script to the $INSTANCE_NAME]"
 
-rm -rf ./inst-mirror-registry.sh
-rm -rf ./inst-registry.sh
-rm -rf ./inst-ocp-tool.sh
+rm -rf ./inst-*.sh
 rm -rf ./ocp-login.sh
 
 # Add an empty line after the task
