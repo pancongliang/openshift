@@ -11,6 +11,36 @@ PRINT_TASK() {
 }
 # ====================================================
 
+# Function to check command success and display appropriate message
+run_command() {
+    if [ $? -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
+
+# === Task: Install infrastructure rpm ===
+PRINT_TASK "[TASK: Install infrastructure rpm]"
+
+# List of RPM packages to install
+packages=("wget" "zip" "vim" "podman" "bash-completion" "jq")
+
+# Install the RPM package and return the execution result
+for package in "${packages[@]}"; do
+    sudo yum install -y "$package" &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "ok: [Install $package package]"
+    else
+        echo "failed: [Install $package package]"
+    fi
+done
+
+# Add an empty line after the task
+echo
+# ====================================================
+
 
 # === Task: Delete existing duplicate data ===
 PRINT_TASK "[TASK: Delete existing duplicate data]"
@@ -56,15 +86,6 @@ echo
 
 # === Task: Install mirror registry ===
 PRINT_TASK "[TASK: Install mirror registry]"
-
-# Function to check command success and display appropriate message
-run_command() {
-    if [ $? -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-    fi
-}
 
 # Create installation directory
 mkdir -p ${REGISTRY_INSTALL_PATH}
