@@ -162,17 +162,17 @@ echo
 PRINT_TASK "[TASK: Delete existing Mirror-Registry duplicate data]"
 
 # Check if there is an active mirror registry pod
-if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
+if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
-    sudo ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
+    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
-        echo "ok: [Uninstall the mirror registry]"
+        echo "ok: [uninstall the mirror registry]"
     else
-        echo "failed: [Uninstall the mirror registry]"
+        echo "failed: [uninstall the mirror registry]"
     fi
 else
-    echo "skipping: [No active mirror registry pod found. skipping uninstallation]"
+    echo "skipping: [no active mirror registry pod found. skipping uninstallation]"
 fi
 
 # Delete existing duplicate data
@@ -216,7 +216,7 @@ run_command "[Extract the mirror-registry package]"
 echo "ok: [Start installing mirror-registry...]"
 echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
 
-${REGISTRY_INSTALL_PATH}/mirror-registry install \
+${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
@@ -225,12 +225,7 @@ ${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --initPassword ${REGISTRY_PW} > ${REGISTRY_INSTALL_PATH}/mirror-registry.log
 run_command "[Installation of mirror registry completed]"
 
-
 sleep 60
-
-# Get the status and number of containers for quay-pod
-podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
-run_command "[Mirror Registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
 sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/quay.ca.pem &>/dev/null
