@@ -90,7 +90,7 @@ PRINT_TASK "[TASK: Install mirror registry]"
 # Create installation directory
 mkdir -p ${REGISTRY_INSTALL_PATH}
 mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
-mkdir -p ${REGISTRY_INSTALL_PATH}/pg-storage
+mkdir -p ${REGISTRY_INSTALL_PATH}/sqlite-storage
 chmod -R 777 ${REGISTRY_INSTALL_PATH}
 run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
 
@@ -108,8 +108,9 @@ ${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
-     --pgStorage ${REGISTRY_INSTALL_PATH}/pg-storage \
-     --initUser ${REGISTRY_ID} --initPassword ${REGISTRY_PW} 
+     --sqliteStorage ${REGISTRY_INSTALL_PATH}/sqlite-storage \
+     --initUser ${REGISTRY_ID} \
+     --initPassword ${REGISTRY_PW}
 run_command "[installing mirror-registry...]"
 
 # Get the status and number of containers for quay-pod
