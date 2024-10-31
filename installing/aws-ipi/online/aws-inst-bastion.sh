@@ -295,6 +295,10 @@ run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
 
 sudo rm -rf /usr/local/bin/README.md > /dev/null 
 
+sudo echo -e "\nClientAliveInterval 120\nClientAliveCountMax 720" | sudo tee -a /etc/ssh/sshd_config &> /dev/null
+sudo systemctl restart sshd &> /dev/null
+
+
 # Add an empty line after the task
 echo
 # ====================================================
