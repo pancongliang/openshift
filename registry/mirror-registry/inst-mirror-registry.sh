@@ -111,7 +111,7 @@ ${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --sqliteStorage ${REGISTRY_INSTALL_PATH}/sqlite-storage \
      --initUser ${REGISTRY_ID} \
      --initPassword ${REGISTRY_PW}
-run_command "[installing mirror-registry...]"
+run_command "[Installation of mirror registry completed]"
 
 # Get the status and number of containers for quay-pod
 podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
