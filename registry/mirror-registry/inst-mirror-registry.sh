@@ -103,6 +103,9 @@ run_command "[download mirror-registry package]"
 tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
+echo "ok: [Start installing mirror-registry...]"
+# echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
+
 # Install mirror-registry
 ${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
