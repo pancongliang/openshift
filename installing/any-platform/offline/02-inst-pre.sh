@@ -861,6 +861,9 @@ run_command "[download mirror-registry package]"
 tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
+echo "ok: [Start installing mirror-registry...]"
+echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
+
 # Install mirror-registry
 ${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
@@ -868,8 +871,8 @@ ${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
      --sqliteStorage ${REGISTRY_INSTALL_PATH}/sqlite-storage \
      --initUser ${REGISTRY_ID} \
-     --initPassword ${REGISTRY_PW}
-run_command "[installing mirror-registry...]"
+     --initPassword ${REGISTRY_PW} > ${REGISTRY_INSTALL_PATH}/mirror-registry.log
+run_command "[Installation of mirror registry completed]"
 
 # Get the status and number of containers for quay-pod
 podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
