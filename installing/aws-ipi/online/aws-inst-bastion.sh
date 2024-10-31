@@ -249,6 +249,26 @@ run_command() {
     fi
 }
 
+# === Task: Install infrastructure rpm ===
+PRINT_TASK "[TASK: Install infrastructure rpm]"
+
+# List of RPM packages to install
+packages=("wget" "vim" "bash-completion" "jq")
+
+# Install the RPM package and return the execution result
+for package in "${packages[@]}"; do
+    sudo yum install -y "$package" &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "ok: [Install $package package]"
+    else
+        echo "failed: [Install $package package]"
+    fi
+done
+
+# Add an empty line after the task
+echo
+# ====================================================
+
 # === Task: Install openshift tool ===
 PRINT_TASK "[TASK: Install openshift tool]"
 
@@ -296,6 +316,11 @@ run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
 sudo echo -e "\nClientAliveInterval 120\nClientAliveCountMax 720" | sudo tee -a /etc/ssh/sshd_config &> /dev/null
 sudo systemctl restart sshd &> /dev/null
 
+
+# completion command:
+oc login -u admin -p redhat https://api.$CLUSTER_NAME.apac.aws.cee.support:6443 --insecure-skip-tls-verify=true &> /dev/null
+sudo bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' &> /dev/null
+source /etc/bash_completion.d/oc_completio &> /dev/null
 
 # Add an empty line after the task
 echo
