@@ -57,9 +57,8 @@ source aws-ipi-uninst.sh
 #### SSH OCP node
 ```
 curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/deploy.sh | bash
-curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/ssh-node.sh && chmod 777 ssh-node.sh
 
-./ssh-node.sh <NODE-NAME>
+./ssh.sh <NODE-NAME>
 ```
 
 #### Install bastion
