@@ -75,7 +75,7 @@ sleep 5
 PRINT_TASK "[TASK: Delete Key Pair]"
 
 export KEY_PAIR_NAME="$CLUSTER_ID-bastion-key"
-rm -rf $KEY_PAIR_NAME.pem  > /dev/null
+rm -rf $HOME/.ssh/$KEY_PAIR_NAME.pem  > /dev/null
 rm -rf ocp-bastion.sh > /dev/null
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME > /dev/null
 run_command "[Deleting key pair: $KEY_PAIR_NAME]"
