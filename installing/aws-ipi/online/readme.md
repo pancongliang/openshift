@@ -1,6 +1,8 @@
 ## Installing a cluster quickly on AWS
 
-### Setting Environment Variables
+### Installing
+
+#### Setting Environment Variables
 
 ```
 export OCP_VERSION=4.14.20
@@ -14,7 +16,7 @@ export AWS_ACCESS_KEY_ID="xxxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
 ```
 
-### Installing a cluster quickly on AWS
+#### Installing a cluster quickly on AWS
 
 ```
 # Client Mac or RHEL:
@@ -37,8 +39,9 @@ source ~/.bash_profile
 # The script automatically creates a user with the cluster-admin role
 oc login -u admin -p redhat https://redhat api.$CLUSTER_NAME.$BASE_DOMAIN:6443
 ```
+### Uninstalling
 
-### Uninstalling a cluster on AWS
+#### Uninstalling a cluster on AWS
 
 ```
 export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
