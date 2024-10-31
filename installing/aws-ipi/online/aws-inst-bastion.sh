@@ -259,7 +259,6 @@ files=(
     "/usr/local/bin/kubectl"
     "/usr/local/bin/oc"
     "/usr/local/bin/oc-mirror"
-    "/usr/local/bin/openshift-client-linux.tar.gz"
     "/usr/local/bin/oc-mirror.tar.gz"
 )
 for file in "${files[@]}"; do
@@ -278,9 +277,10 @@ install_tar_gz() {
         echo "ok: [Download $tool_name tool]"        
         # Extract the downloaded tool
         sudo tar xvf "/usr/local/bin/$(basename "$tool_url")" -C "/usr/local/bin/" &> /dev/null
-        run_command "[Unzip to /usr/local/bin/$tool_url]"
+        run_command "[Unzip to /usr/local/bin/$tool_name]"
         # Remove the downloaded .tar.gz file
-        sudo rm -rf "/usr/local/bin/$(basename "$tool_url")" > /dev/null 
+        sudo rm -rf "/usr/local/bin/openshift-client-linux.tar.gz" > /dev/null 
+        sudo rm -rf "/usr/local/bin/oc-mirror.tar.gz" > /dev/null 
     else
         echo "failed: [Download $tool_name tool]"
     fi
@@ -292,9 +292,7 @@ install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64
 
 sudo chmod a+x /usr/local/bin/oc-mirror > /dev/null 
 run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
-
-sudo rm -rf /usr/local/bin/README.md > /dev/null 
-
+ 
 sudo echo -e "\nClientAliveInterval 120\nClientAliveCountMax 720" | sudo tee -a /etc/ssh/sshd_config &> /dev/null
 sudo systemctl restart sshd &> /dev/null
 
