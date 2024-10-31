@@ -178,58 +178,52 @@ run_command "[Create access $INSTANCE_NAME file in current directory]"
 # Dowload mirror-registry script
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/inst-mirror-registry.sh
 cat <<EOF | cat - inst-mirror-registry.sh > temp && mv temp inst-registry.sh
+export CLUSTER_NAME="copan"
 export REGISTRY_DOMAIN_NAME="\$HOSTNAME"
 export REGISTRY_ID="root"
 export REGISTRY_PW="password"                         # 8 characters or more
 export REGISTRY_INSTALL_PATH="\$HOME/quay-install"
 EOF
+run_command "[Dowload mirror-registry script]"
 
 cat <<EOF >> inst-registry.sh
-echo
 # Task: Configuring additional trust stores for image registry access
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
-oc login -u admin -p redhat https://api.$CLUSTER_NAME.apac.aws.cee.support:6443 --insecure-skip-tls-verify=true
+oc login -u admin -p redhat https://api.$CLUSTER_NAME.apac.aws.cee.support:6443 --insecure-skip-tls-verify=true &> /dev/null    
+run_command "[Login ocp cluster]"
 
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > \$HOME/pull-secret
-run_command "[dowload pull-secret]"
+run_command "[Dowload pull-secret]"
 
 podman login -u "\$REGISTRY_ID" -p "\$REGISTRY_PW" --authfile "\$HOME/pull-secret" "\${REGISTRY_DOMAIN_NAME}:8443" &>/dev/null
-run_command "[add authentication information to pull-secret]"
+run_command "[Add authentication information to pull-secret]"
 
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=\$HOME/pull-secret
-run_command "[update pull-secret]"
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=\$HOME/pull-secret &> /dev/null    
+run_command "[Update pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-cat \$HOME/pull-secret | jq . > \${XDG_RUNTIME_DIR}/containers/auth.json
-run_command "[save the pull-secret file either as \$XDG_RUNTIME_DIR/containers/auth.json]"
+cat \$HOME/pull-secret | jq . > \${XDG_RUNTIME_DIR}/containers/auth.json &> /dev/null    
+run_command "[Save the pull-secret file either as \$XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create a configmap containing the CA certificate
 oc create configmap registry-config \
      --from-file=\${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/\${REGISTRY_DOMAIN_NAME}.ca.pem \
      -n openshift-config &> /dev/null
-run_command "[create a configmap containing the CA certificate]"
+run_command "[Create a configmap containing the CA certificate]"
 
 # Additional trusted CA
 oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
-run_command "[additional trusted CA]"
-
-# Add an empty line after the task
-echo
-# ====================================================
-
-# Task: Disabling the default OperatorHub sources
-PRINT_TASK "[TASK: Disabling the default OperatorHub sources]"
+run_command "[Additional trusted CA]"
 
 # Disabling the default OperatorHub sources
 oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
-run_command "[disabling the default OperatorHub sources]"
-
+run_command "[Disabling the default OperatorHub sources]"
 echo
 # ====================================================
 EOF
 run_command "[Update mirror-registry script]"
-rm -rf ./inst-mirror-registry.sh
+
 
 # Dowload ocp tool script
 cat << 'EOF' > inst-ocp-tool.sh
@@ -300,9 +294,6 @@ sudo chmod a+x /usr/local/bin/oc-mirror > /dev/null
 run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
 
 sudo rm -rf /usr/local/bin/README.md > /dev/null 
-
-sudo echo -e "\nClientAliveInterval 120\nClientAliveCountMax 720" | sudo tee -a /etc/ssh/sshd_config &> /dev/null
-sudo systemctl restart sshd &> /dev/null
 
 # Add an empty line after the task
 echo
