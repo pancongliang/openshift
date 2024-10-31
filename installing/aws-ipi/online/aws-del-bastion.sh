@@ -38,6 +38,10 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "[Set up AWS credentials]"
 
+# Add an empty line after the task
+echo
+# ====================================================
+
 # https://docs.aws.amazon.com/vpc/latest/userguide/delete-vpc.html#delete-vpc-cli
 
 # === Delete EC2 Instance ===
