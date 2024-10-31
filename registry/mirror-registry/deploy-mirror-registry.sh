@@ -25,7 +25,7 @@ run_command() {
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
 # List of RPM packages to install
-packages=("wget" "zip" "vim" "podman" "bash-completion" "jq")
+packages=("wget" "vim" "podman" "bash-completion" "jq")
 
 # Install the RPM package and return the execution result
 for package in "${packages[@]}"; do
