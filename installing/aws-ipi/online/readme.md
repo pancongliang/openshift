@@ -22,7 +22,7 @@ curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installi
 source aws-ipi-inst.sh
 ```
 
-### Set up an alias to run oc with the new cluster credentials
+#### Set up an alias to run oc with the new cluster credentials
 
 ```
 # Client Mac:
@@ -38,14 +38,6 @@ source ~/.bash_profile
 oc login -u admin -p redhat https://redhat api.$CLUSTER_NAME.$BASE_DOMAIN:6443
 ```
 
-### SSH OCP Node
-```
-curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/deploy.sh | bash
-curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/ssh-node.sh && chmod 777 ssh-node.sh
-
-./ssh-node.sh <NODE-NAME>
-```
-
 ### Uninstalling a cluster on AWS
 
 ```
@@ -57,7 +49,25 @@ curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installi
 source aws-ipi-uninst.sh
 ```
 
-### Scheduled installation and uninstallation of OpenShift IPI
+### Optional
+
+#### SSH OCP node
+```
+curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/deploy.sh | bash
+curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/ssh-node.sh && chmod 777 ssh-node.sh
+
+./ssh-node.sh <NODE-NAME>
+```
+
+#### Install bastion
+```
+source <(curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-inst-bastion.sh)
+
+bash ./ocp-bstion.sh
+
+```
+
+#### Scheduled installation and uninstallation of OpenShift IPI
 ```
 timedatectl set-timezone Asia/Shanghai
 hwclock --systohc
