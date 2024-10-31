@@ -170,12 +170,12 @@ chmod 777 ./ocp-bastion.sh > /dev/null
 run_command "[Modify permissions for the $INSTANCE_NAME file]"
 
 # Dowload mirror-registry script
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/deploy-mirror-registry.sh
-cat <<EOF | cat - deploy-mirror-registry.sh > temp && mv temp inst-mirror-registry.sh
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/inst-mirror-registry.sh
+cat <<EOF | cat - inst-mirror-registry.sh > temp && mv temp inst-registry.sh
 export REGISTRY_DOMAIN_NAME="\$HOSTNAME"
 export REGISTRY_ID="root"
 export REGISTRY_PW="password"                         # 8 characters or more
-export REGISTRY_INSTALL_PATH="/opt/quay-install"
+export REGISTRY_INSTALL_PATH="$HOME/quay-install"
 EOF
 run_command "[Dowload mirror-registry script]"
 
@@ -256,11 +256,11 @@ EOF
 run_command "[Dowload ocp tool script]"
 
 # Copy the installation script to the bastion ec2 instance
-scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-mirror-registry.sh ./inst-ocp-tool.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
-run_command "[Copy the inst-mirror-registry.sh and inst-ocp-tool.sh script to the $INSTANCE_NAME]"
+scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-registry.sh ./inst-ocp-tool.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
+run_command "[Copy the inst-registry.sh and inst-ocp-tool.sh script to the $INSTANCE_NAME]"
 
-rm -rf ./deploy-mirror-registry.sh
 rm -rf ./inst-mirror-registry.sh
+rm -rf ./inst-registry.sh
 rm -rf ./inst-ocp-tool.sh
 
 # Add an empty line after the task
