@@ -108,10 +108,10 @@ PRINT_TASK "[TASK: Create Bastion Instance]"
 
 # Create and download the key pair file
 export KEY_PAIR_NAME="$CLUSTER_ID-bastion-key"
-rm -rf ./$KEY_PAIR_NAME.pem > /dev/null
+rm -rf $HOME/.ssh/$KEY_PAIR_NAME.pem > /dev/null
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME > /dev/null
-aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > ./$KEY_PAIR_NAME.pem
-run_command "[Create and download the key pair file: $KEY_PAIR_NAME.pem]"
+aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > $HOME/.ssh/$KEY_PAIR_NAME.pem
+run_command "[Create and download the key pair file: $HOME/.ssh/$KEY_PAIR_NAME.pem]"
 
 # Retrieves the latest RHEL AMI ID that matches the specified name pattern
 AMI_ID=$(aws --region $REGION ec2 describe-images \
@@ -151,8 +151,8 @@ echo
 PRINT_TASK "[TASK: Get access to Bastion Instance information]"
 
 # Modify permissions for the key pair file
-chmod 400 $KEY_PAIR_NAME.pem > /dev/null
-run_command "[Modify permissions for the key pair file: $KEY_PAIR_NAME.pem]"
+chmod 400 $HOME/.ssh/$KEY_PAIR_NAME.pem > /dev/null
+run_command "[Modify permissions for the key pair file: $HOME/.ssh/$KEY_PAIR_NAME.pem]"
 
 # Get the public IP address of the bastion ec2 instance
 INSTANCE_IP=$(aws --region $REGION ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
@@ -161,7 +161,7 @@ run_command "[Get the public IP address of the instance: $INSTANCE_IP]"
 # Create access bastion machine file in current directory
 rm -rf ./ocp-bastion.sh > /dev/null
 cat << EOF > "./ocp-bastion.sh"
-ssh -o StrictHostKeyChecking=no -i "$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
+ssh -o StrictHostKeyChecking=no -i "$HOME/.ssh/$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
 EOF
 run_command "[Create access $INSTANCE_NAME file in current directory]"
 
@@ -253,9 +253,10 @@ EOF
 run_command "[Dowload ocp tool script]"
 
 # Copy the installation script to the bastion ec2 instance
-scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i ./$KEY_PAIR_NAME.pem ./inst-mirror-registry.sh ./inst-ocp-tool.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
+scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-mirror-registry.sh ./inst-ocp-tool.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
 run_command "[Copy the inst-mirror-registry.sh and inst-ocp-tool.sh script to the $INSTANCE_NAME]"
 
+rm -rf ./deploy-mirror-registry.sh
 rm -rf ./inst-mirror-registry.sh
 rm -rf ./inst-ocp-tool.sh
 
