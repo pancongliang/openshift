@@ -24,6 +24,13 @@ run_command() {
 # Task: Configure data persistence for the image-registry operator
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
 
+# completion command:
+oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null
+#run_command "[add oc_completion]"
+
+# Effective immediately
+source /etc/bash_completion.d/oc_completion &> /dev/null
+
 cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
 apiVersion: v1
 kind: PersistentVolume
