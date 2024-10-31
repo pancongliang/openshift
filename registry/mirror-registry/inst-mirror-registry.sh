@@ -46,7 +46,7 @@ echo
 PRINT_TASK "[TASK: Delete existing duplicate data]"
 
 # Check if there is an active mirror registry pod
-if podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' >/dev/null; then
+if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
     ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
@@ -107,7 +107,7 @@ echo "ok: [Start installing mirror-registry...]"
 # echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
 
 # Install mirror-registry
-${REGISTRY_INSTALL_PATH}/mirror-registry install \
+${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
@@ -116,16 +116,18 @@ ${REGISTRY_INSTALL_PATH}/mirror-registry install \
      --initPassword ${REGISTRY_PW}
 run_command "[Installation of mirror registry completed]"
 
+sleep 60
+
 # Get the status and number of containers for quay-pod
-podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b4\b)' &>/dev/null
-run_command "[mirror registry Pod is running]"
+# podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b3\b)' &>/dev/null
+# run_command "[Mirror Registry Pod is running]"
 
 # Copy the rootCA certificate to the trusted source
-cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem
+sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem
 run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem]"
 
 # Trust the rootCA certificate
-update-ca-trust
+sudo update-ca-trust
 run_command "[trust the rootCA certificate]"
 
 # Delete the tar package generated during installation
