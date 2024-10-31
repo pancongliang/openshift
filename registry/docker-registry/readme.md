@@ -11,8 +11,8 @@
   export REGISTRY_CERT_PATH="/etc/crts"
   export REGISTRY_INSTALL_PATH="/opt/docker-registry"
   export CONTAINER_NAME="docker-registry"
-  wget -q  https://raw.githubusercontent.com/pancongliang/openshift/main/registry/docker-registry/deploy-docker-registry.sh
+  wget -q  https://raw.githubusercontent.com/pancongliang/openshift/main/registry/docker-registry/inst-docker-registry.sh
   
-  source deploy-docker-registry.sh
+  source inst-docker-registry.sh
   ```
 * Configuring additional [trust](https://github.com/pancongliang/openshift/blob/main/registry/add-trust-registry/readme.md#configuring-additional-trust-stores-for-image-registry-access) stores for image registry access
