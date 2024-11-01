@@ -183,7 +183,9 @@ compute:
 - architecture: amd64
   hyperthreading: Enabled
   name: worker
-  platform: {}
+  platform:
+    aws:
+      type: m6a.2xlarge
   replicas: 3
 controlPlane:
   architecture: amd64
