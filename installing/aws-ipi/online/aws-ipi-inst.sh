@@ -29,6 +29,7 @@ run_command() {
 #export REGION="ap-northeast-1"
 #export AWS_ACCESS_KEY_ID="xxxxxxx"
 #export AWS_SECRET_ACCESS_KEY="xxxxxx"
+export WORKER_INSTANCE_TYPE='m6a.2xlarge'
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
@@ -185,7 +186,7 @@ compute:
   name: worker
   platform:
     aws:
-      type: m6a.2xlarge
+      type: $WORKER_INSTANCE_TYPE
   replicas: 3
 controlPlane:
   architecture: amd64
