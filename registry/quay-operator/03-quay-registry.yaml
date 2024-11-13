@@ -10,3 +10,15 @@ spec:
       managed: false
     - kind: horizontalpodautoscaler
       managed: false
+    - kind: quay
+      managed: true
+      overrides:
+        replicas: 1
+    - kind: clair
+      managed: true
+      overrides:
+        replicas: 1
+    - kind: mirror
+      managed: true
+      overrides:
+        replicas: 1
