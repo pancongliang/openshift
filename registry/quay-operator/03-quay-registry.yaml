@@ -13,12 +13,12 @@ spec:
     - kind: quay
       managed: true
       overrides:
-        replicas: 1
+        replicas: $REPLICAS
     - kind: clair
       managed: true
       overrides:
-        replicas: 1
+        replicas: $REPLICAS
     - kind: mirror
       managed: true
       overrides:
-        replicas: 1
+        replicas: $REPLICAS
