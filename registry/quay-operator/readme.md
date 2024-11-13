@@ -47,7 +47,11 @@
 
 ### Create Quay Registry 
 
-* Create quay registry 
+* The replica count for Quay, Clair, and Mirror pods
+  ```
+  export REPLICAS=1   # 1 or 2
+  ```
+* Create quay registry
   ```
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/03-quay-registry.yaml | envsubst | oc apply -f -
   ```
