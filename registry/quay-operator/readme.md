@@ -4,9 +4,11 @@
 
 * Install the Operator using the default namespace.
   ```
-  export CHANNEL_NAME="stable-3.9"
+  export CHANNEL_NAME="stable-3.13"
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/01-operator.yaml | envsubst | oc apply -f -
+
+  sleep 12
 
   oc patch installplan $(oc get ip -n openshift-operators -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
   oc get ip -n openshift-operators
