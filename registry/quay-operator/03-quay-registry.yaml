@@ -8,11 +8,5 @@ spec:
   components:
     - kind: objectstorage
       managed: false
-    - kind: quay
-      managed: true
-    - kind: clair
-      managed: true
-      overrides:
-        replicas: 2
     - kind: horizontalpodautoscaler
       managed: false
