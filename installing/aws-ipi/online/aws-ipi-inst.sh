@@ -29,7 +29,7 @@ run_command() {
 #export REGION="ap-northeast-1"
 #export AWS_ACCESS_KEY_ID="xxxxxxx"
 #export AWS_SECRET_ACCESS_KEY="xxxxxx"
-export WORKER_INSTANCE_TYPE='m6a.2xlarge'             # https://aws.amazon.com/cn/ec2/instance-types/m6a/
+export WORKER_INSTANCE_TYPE='m6a.2xlarge'             # (m6a.4xlarge vcpu: 16 mem:64)https://aws.amazon.com/cn/ec2/instance-types/m6a/
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
