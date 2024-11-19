@@ -38,6 +38,7 @@
 
   wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/02-config.yaml
   oc create secret generic quay-config --from-file=config.yaml=<(envsubst < 02-config.yaml) -n ${NAMESPACE}
+  rm -rf 02-config.yaml
   ```
 
 ### Create Quay Registry 
