@@ -55,7 +55,7 @@ spec:
   name: cluster-logging
   source: ${CATALOG_SOURCE_NAME}
   sourceNamespace: openshift-marketplace
-  ---
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
