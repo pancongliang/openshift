@@ -16,19 +16,3 @@ spec:
   storageClassName: ${STORAGE_CLASS_NAME}
   tenants:
     mode: openshift-logging
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: logging-collector-logs-writer
-rules:
-- apiGroups:
-  - loki.grafana.com
-  resourceNames:
-  - logs
-  resources:
-  - application
-  - audit
-  - infrastructure
-  verbs:
-  - create
