@@ -20,7 +20,7 @@
   
 ### Install and configure Loki Stack resource
 
-#### Install lokistack using Minio Object Storage and NFS Storage Class
+#### Install Minio Object Storage and NFS Storage Class
 
 * Install and configure [Minio Object Storage and NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-c-deploying-minio-with-nfs-storageclass-as-the-backend-storage).
   If storageclass already exists, only [Minio Object Storage](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-b-deploying-minio-with-local-volume-as-the-backend-storage) will be installed.
@@ -34,13 +34,20 @@
   export BUCKET_NAME="loki-bucket"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-config.yaml | envsubst | oc apply -f -
   ```
+
+#### Install and configure Loki Stack resource
   
-* Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
+* If the operator version is 5.9 or below, create the LokiStack ClusterLogging ClusterLogForwarder resource as follows
   ```
   export STORAGE_CLASS_NAME="managed-nfs-storage"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack.yaml | envsubst | oc apply -f -
 
   oc get po -n openshift-logging 
+  ```
+
+* If the operator version is 6.0 or above, create the LokiStack ClusterLogging ClusterLogForwarder resource as follows:
+  ```
+
   ```
 
 ####  Install lokistack using ODF or MCG/NFS-SC
