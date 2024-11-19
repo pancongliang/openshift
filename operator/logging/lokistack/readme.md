@@ -3,13 +3,13 @@
 
 ### Install Red Hat Openshift Logging and Loki Operator
 
-* Install the Operator using the default namespace.
+* If the operator version is 5.9 or below
   ```
-  export CHANNEL_NAME="stable-5.8"
+  export CHANNEL_NAME="stable-5.9"
   export CATALOG_SOURCE_NAME="redhat-operators"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/01-operator.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/01-operator.yaml | envsubst | oc create -f -
 
-  sleep 6
+  sleep 12
   
   oc patch installplan $(oc get ip -n openshift-operators-redhat  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
   oc patch installplan $(oc get ip -n openshift-logging  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-logging --type merge --patch '{"spec":{"approved":true}}'
@@ -17,6 +17,22 @@
   oc get ip -n openshift-operators-redhat
   oc get ip -n openshift-logging
   ```
+* If the operator version is 6.0 or above
+  ```
+  export CHANNEL_NAME="stable-6.1"
+  export CATALOG_SOURCE_NAME="redhat-operators"
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/01-operator-v6.yaml | envsubst | oc create -f -
+
+  sleep 12
+  
+  oc patch installplan $(oc get ip -n openshift-operators-redhat  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
+  oc patch installplan $(oc get ip -n openshift-logging  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-logging --type merge --patch '{"spec":{"approved":true}}'
+  oc patch installplan $(oc get ip -n openshift-operators  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
+  oc get ip -n openshift-operators-redhat
+  oc get ip -n openshift-operators
+  oc get ip -n openshift-logging
+  ```
+
   
 ### Install and configure Loki Stack resource
 
@@ -47,7 +63,18 @@
 
 * If the operator version is 6.0 or above, create the LokiStack ClusterLogging ClusterLogForwarder resource as follows:
   ```
+  export STORAGE_CLASS_NAME="managed-nfs-storage"
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc create -f -
+  oc get po -n openshift-logging
 
+  oc create sa collector -n openshift-logging
+  oc adm policy add-cluster-role-to-user logging-collector-logs-writer -z collector
+  oc project openshift-logging
+  oc adm policy add-cluster-role-to-user collect-application-logs -z collector
+  oc adm policy add-cluster-role-to-user collect-audit-logs -z collector
+  oc adm policy add-cluster-role-to-user collect-infrastructure-logs -z collector
+
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/04-clf-ui.yaml | envsubst | oc create -f -
   ```
 
 ####  Install lokistack using ODF or MCG/NFS-SC
