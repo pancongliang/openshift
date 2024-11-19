@@ -36,9 +36,7 @@
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="quay-bucket"
 
-  wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/02-config.yaml
-  oc create secret generic quay-config --from-file=config.yaml=<(envsubst < 02-config.yaml) -n ${NAMESPACE}
-  rm -rf 02-config.yaml
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/02-config.yaml | envsubst | oc create secret generic quay-config --from-file=config.yaml=/dev/stdin -n ${NAMESPACE}
   ```
 
 ### Create Quay Registry 
@@ -66,14 +64,32 @@
   ```
 
 * Click `Create Account` to create `quayadmin` user in the quay console page
-  
-* Push the image to quay registry
-  ```
-  export QUAY_HOST=$(oc get route example-registry-quay -n ${NAMESPACE} -o jsonpath='{.spec.host}')
-  export PASSWORD="password"
-  podman login -u quayadmin -p ${PASSWORD} ${QUAY_HOST}
 
-  podman pull quay.io/redhattraining/hello-world-nginx:v1.0
-  podman tag quay.io/redhattraining/hello-world-nginx:v1.0 ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0
-  podman push ${QUAY_HOST}/quayadmin/hello-world-nginx:v1.0 --tls-verify=false
+
+### Option: Change quay config
+
+* Export quay-config file
+  ```
+  QUAY_REGISTRY_NAME=$(oc get quayregistries -n ${NAMESPACE} -o jsonpath='{.items[0].metadata.name}')
+  CONFIG_BUNDLE_SECRET=$(oc get quayregistry example-registry -n ${NAMESPACE} -o jsonpath='{.spec.configBundleSecret}')
+  oc get secret $CONFIG_BUNDLE_SECRET -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d -w0 > config.yaml
+  ```
+  
+* Update config.yaml file
+  ```
+  vim config.yaml
+  ```
+
+* Replace the key config.yaml in the existing Secret with the content of the new config.yaml file
+  ```
+  oc set data secret/$CONFIG_BUNDLE_SECRET --from-file=config.yaml=config.yaml -n ${NAMESPACE}
+
+  # Waiting for pod to be restarted
+  oc -n ${NAMESPACE} get pods -l app=quay
+  ```
+
+* Check whether the update is successful
+  ```
+  QUAY_APP_POD=$(oc -n ${NAMESPACE} get pods -l app=quay -o jsonpath='{.items[0].metadata.name}')
+  oc -n ${NAMESPACE} rsh $QUAY_APP_POD cat /conf/stack/config.yaml
   ```
