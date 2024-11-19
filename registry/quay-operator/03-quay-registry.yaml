@@ -4,7 +4,7 @@ metadata:
   name: example-registry
   namespace: ${NAMESPACE}
 spec:
-  configBundleSecret: ${BUCKET_NAME}-credentials
+  configBundleSecret: quay-config
   components:
     - kind: objectstorage
       managed: false
