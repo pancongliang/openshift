@@ -14,8 +14,7 @@
   oc patch installplan $(oc get ip -n openshift-operators-redhat  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
   oc patch installplan $(oc get ip -n openshift-logging  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-logging --type merge --patch '{"spec":{"approved":true}}'
 
-  oc get ip -n openshift-operators-redhat
-  oc get ip -n openshift-logging
+  oc get ip -A
   ```
 * If the operator version is 6.0 or above
   ```
@@ -28,9 +27,8 @@
   oc patch installplan $(oc get ip -n openshift-operators-redhat  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators-redhat --type merge --patch '{"spec":{"approved":true}}'
   oc patch installplan $(oc get ip -n openshift-logging  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-logging --type merge --patch '{"spec":{"approved":true}}'
   oc patch installplan $(oc get ip -n openshift-operators  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
-  oc get ip -n openshift-operators-redhat
-  oc get ip -n openshift-operators
-  oc get ip -n openshift-logging
+
+  oc get ip -A
   ```
 
   
@@ -48,7 +46,7 @@
   export ACCESS_KEY_ID="minioadmin"
   export ACCESS_KEY_SECRET="minioadmin"
   export BUCKET_NAME="loki-bucket"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-config.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-config.yaml | envsubst | oc create -f -
   ```
 
 #### Install and configure Loki Stack resource
@@ -56,7 +54,7 @@
 * If the operator version is 5.9 or below, create the LokiStack ClusterLogging ClusterLogForwarder resource as follows
   ```
   export STORAGE_CLASS_NAME="managed-nfs-storage"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack.yaml | envsubst | oc create -f -
 
   oc get po -n openshift-logging 
   ```
