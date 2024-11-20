@@ -69,14 +69,11 @@
   
   mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
   ``` 
-  Create a bucket named "loki-bucket" in the "my-minio" alias
+  Create a bucket named "loki-bucket, quay-bucket, oadp-bucket, mtc-bucket" in the "my-minio" alias
   ```
-  export BUCKET_NAME="loki-bucket"   # loki bucket
-  export BUCKET_NAME="quay-bucket"   # quay bucket
-  export BUCKET_NAME="oadp-bucket"   # oadp bucket
-  export BUCKET_NAME="mtc-bucket"    # mtc bucket
-  
-  mc mb my-minio/${BUCKET_NAME}
+  for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
+    mc mb my-minio/$BUCKET_NAME
+  done
   ```
   Commonly used [mc commands](https://min.io/docs/minio/linux/reference/minio-mc.html?ref=docs#command-quick-reference)
   ```
