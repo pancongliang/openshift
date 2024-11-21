@@ -4,7 +4,7 @@ metadata:
   name: logging-loki
   namespace: openshift-logging
 spec:
-  size: 1x.extra-small
+  size: 1x.demo
   storageClassName: ${STORAGE_CLASS_NAME}
   storage:
     secret:
