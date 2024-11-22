@@ -20,7 +20,7 @@ run_command() {
 }
 # ====================================================
 
-#export WORKER_INSTANCE_TYPE='m5.metal'
+#export WORKER_INSTANCE_TYPE='m6i.xlarge'  # Bare Metal: m5.metal  https://aws.amazon.com/cn/ec2/instance-types/
 #export MACHINESET='copan-xrpgm-worker-ap-northeast-1d'   # oc get machinesets -n openshift-machine-api              
 
 # === Task: Replace the instance type of the machine ===
@@ -51,19 +51,19 @@ run_command "[Replace $MACHINESET with the instance of your machine $WORKER_INST
 
 # Scale the machineset to 1 replica
 oc scale --replicas=1 machineset $MACHINESET -n openshift-machine-api > /dev/null
-echo "info: [$MACHINE' machine copy count changed to 1]"
+run_command "[$MACHINE' machine copy count changed to 1]"
 
 # Wait for the machineset to be in the desired state
 while true; do
     # Extract DESIRED, CURRENT, READY, AVAILABLE fields
     DESIRED=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.replicas}')
-    CURRENT=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}')
+    CURRENT=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.fullyLabeledReplicas}')
     READY=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}')
     AVAILABLE=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.availableReplicas}')
 
     # Check if these fields are all 1
     if [[ "$DESIRED" -eq 1 && "$CURRENT" -eq 1 && "$READY" -eq 1 && "$AVAILABLE" -eq 1 ]]; then
-        echo "ok: [The '$MACHINESET' machineset is installed]"
+        echo "ok: [The '$MACHINESET' machineset is installed. Current state: DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
         break
     else
         echo "info: [Wait for the '$MACHINESET' machine installation to complete. Current state: DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
