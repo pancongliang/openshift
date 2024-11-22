@@ -14,9 +14,10 @@ PRINT_TASK() {
 PRINT_TASK "[TASK: Generate a self-signed certificate]"
 
 # Default variable
-# DOMAIN_NAME=""
-CA_CN="Test Workspace Signer"
-OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
+# export DOMAIN_NAME=""
+# export CERTS_PATH="/root/certs"
+export CA_CN="Test Workspace Signer"
+export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 
 # Function to check command success and display appropriate message
 check_command_result() {
