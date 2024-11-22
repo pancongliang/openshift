@@ -60,7 +60,7 @@ source aws-ipi-uninst.sh
 export WORKER_INSTANCE_TYPE='m6i.xlarge'
 
 # oc get machinesets -n openshift-machine-api command confirms the machine of the instance to be replaced.
-export MACHINESET='copan-xrpgm-worker-ap-northeast-1d'
+export MACHINESET='xxxxx-xxxxx-worker-ap-northeast-1d'
 
 # Replace instance              
 sh <(curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-replace-instance.sh)
