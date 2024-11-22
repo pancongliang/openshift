@@ -57,10 +57,10 @@ source aws-ipi-uninst.sh
 #### Replace instance type
 ```
 # Instance Type # https://aws.amazon.com/cn/ec2/instance-types/   # Bare Metal: m5.metal
-export WORKER_INSTANCE_TYPE='m6i.xlarge'  # Bare Metal: m5.metal  https://aws.amazon.com/cn/ec2/instance-types/
+export WORKER_INSTANCE_TYPE='m6i.xlarge'
 
 # oc get machinesets -n openshift-machine-api command confirms the machine of the instance to be replaced.
-export MACHINESET='copan-xrpgm-worker-ap-northeast-1d'   # oc get machinesets -n openshift-machine-api
+export MACHINESET='copan-xrpgm-worker-ap-northeast-1d'
 
 # Replace instance              
 sh <(curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-replace-instance.sh)
