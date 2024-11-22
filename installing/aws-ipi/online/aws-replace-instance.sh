@@ -56,10 +56,10 @@ echo "info: [$MACHINE' machine copy count changed to 1]"
 # Wait for the machineset to be in the desired state
 while true; do
     # Extract DESIRED, CURRENT, READY, AVAILABLE fields
-    DESIRED=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.replicas}' > /dev/null 2>&1)
-    CURRENT=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}' > /dev/null 2>&1)
-    READY=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}' > /dev/null 2>&1)
-    AVAILABLE=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.availableReplicas}' > /dev/null 2>&1)
+    DESIRED=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.replicas}')
+    CURRENT=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}')
+    READY=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}')
+    AVAILABLE=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.availableReplicas}')
 
     # Check if these fields are all 1
     if [[ "$DESIRED" -eq 1 && "$CURRENT" -eq 1 && "$READY" -eq 1 && "$AVAILABLE" -eq 1 ]]; then
@@ -67,6 +67,6 @@ while true; do
         break
     else
         echo "info: [Wait for the '$MACHINESET' machine installation to complete. Current state: DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
-        sleep 30
+        sleep 50
     fi
 done
