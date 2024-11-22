@@ -27,6 +27,9 @@ source aws-ipi-inst.sh
 #### Set up an alias to run oc with the new cluster credentials
 
 ```
+# The script automatically creates a user with the cluster-admin role
+oc login -u admin -p redhat https://redhat api.$CLUSTER_NAME.$BASE_DOMAIN:6443
+
 # Client Mac:
 echo 'export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig' >> $HOME/.zshrc
 source $HOME/.zshrc
@@ -35,9 +38,6 @@ source $HOME/.zshrc
 echo "export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig" >> ~/.bash_profile
 oc completion bash >> /etc/bash_completion.d/oc_completion
 source ~/.bash_profile
-
-# The script automatically creates a user with the cluster-admin role
-oc login -u admin -p redhat https://redhat api.$CLUSTER_NAME.$BASE_DOMAIN:6443
 ```
 ### Uninstalling
 
@@ -54,6 +54,17 @@ source aws-ipi-uninst.sh
 
 ### Optional
 
+#### Replace instance type
+```
+# Instance Type # https://aws.amazon.com/cn/ec2/instance-types/   # Bare Metal: m5.metal
+export WORKER_INSTANCE_TYPE='m6i.xlarge'  # Bare Metal: m5.metal  https://aws.amazon.com/cn/ec2/instance-types/
+
+# oc get machinesets -n openshift-machine-api command confirms the machine of the instance to be replaced.
+export MACHINESET='copan-xrpgm-worker-ap-northeast-1d'   # oc get machinesets -n openshift-machine-api
+
+# Replace instance              
+sh <(curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-replace-instance.sh)
+```
 #### SSH OCP node
 ```
 curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/deploy.sh | bash
@@ -61,7 +72,7 @@ curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/in
 ./ssh.sh <NODE-NAME>
 ```
 
-#### Install bastion
+#### Install bastion and registry
 ```
 curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-inst-bastion.sh
 
