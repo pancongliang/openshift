@@ -23,49 +23,50 @@ run_command() {
 #export WORKER_INSTANCE_TYPE='m5.metal'
 #export MACHINESET='copan-xrpgm-worker-ap-northeast-1d'   # oc get machinesets -n openshift-machine-api              
 
-oc scale --replicas=0 machineset $MACHINESET -n openshift-machine-api
+# === Task: Replace the instance type of the machine ===
+PRINT_TASK "[TASK: Replace the instance type of the machine]"
+
+# Scale the machineset to 0 replicas
+oc scale --replicas=0 machineset $MACHINESET -n openshift-machine-api > /dev/null
 run_command "[Scaling machineset $MACHINESET to 0 replicas]"
 
 MACHINE=$(echo "$MACHINESET" | cut -d'-' -f3-)
 
+# Wait for the machine to be deleted
 while true; do
-    if oc get machines.machine.openshift.io -n openshift-machine-api | grep -q "worker-$MACHINE"; then
-        echo "info: [Delete the 'worker-$MACHINE' machine...]"
-        sleep 60 
+    if oc get machines.machine.openshift.io -n openshift-machine-api | grep -q "$MACHINE"; then
+        echo "info: [Delete the '$MACHINE' machine...]"
+        sleep 30 
     else
-        echo "ok: [Deleted 'worker-$MACHINE' machine]"
+        echo "ok: [Deleted '$MACHINE' machine]"
         break
     fi
 done
 
 sleep 10 
 
-oc -n openshift-machine-api patch machineset $MACHINESET --type=json -p="[{"op": "replace", "path": "/spec/template/spec/providerSpec/value/instanceType", "value": "$WORKER_INSTANCE_TYPE"}]"
+# Patch the machineset to replace instance type
+oc -n openshift-machine-api patch machineset $MACHINESET --type=json -p="[{"op": "replace", "path": "/spec/template/spec/providerSpec/value/instanceType", "value": "$WORKER_INSTANCE_TYPE"}]" > /dev/null
 run_command "[Replace $MACHINESET with the instance of your machine $WORKER_INSTANCE_TYPE]"
 
-oc scale --replicas=1 machineset $MACHINESET -n openshift-machine-api
-echo "info: [Wait for the 'worker-$MACHINE' machine installation to complete...]"
+# Scale the machineset to 1 replica
+oc scale --replicas=1 machineset $MACHINESET -n openshift-machine-api > /dev/null
+echo "info: [$MACHINE' machine copy count changed to 1]"
 
+# Wait for the machineset to be in the desired state
 while true; do
-    MACHINESET_STATUS=$(oc get machinesets -n "openshift-machine-api" | grep "$MACHINESET")
+    # Extract DESIRED, CURRENT, READY, AVAILABLE fields
+    DESIRED=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.replicas}' > /dev/null 2>&1)
+    CURRENT=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}' > /dev/null 2>&1)
+    READY=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}' > /dev/null 2>&1)
+    AVAILABLE=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.availableReplicas}' > /dev/null 2>&1)
 
-    if [[ -n "$MACHINESET_STATUS" ]]; then
-        # Extract DESIRED, CURRENT, READY, AVAILABLE fields
-        DESIRED=$(echo "$MACHINESET_STATUS" | awk '{print $2}')
-        CURRENT=$(echo "$MACHINESET_STATUS" | awk '{print $3}')
-        READY=$(echo "$MACHINESET_STATUS" | awk '{print $4}')
-        AVAILABLE=$(echo "$MACHINESET_STATUS" | awk '{print $5}')
-
-        # Check if these fields are all 1
-        if [[ "$DESIRED" -eq 1 && "$CURRENT" -eq 1 && "$READY" -eq 1 && "$AVAILABLE" -eq 1 ]]; then
-            echo "ok: [The "worker-$MACHINE" machine is installed]"
-            break
-        else
-            echo "info: [Wait for the 'worker-$MACHINE' machine installation to complete]"
-            sleep 10  
-        fi
-    else
-        echo "error: [Machinesets '$MACHINESET' not found]"
+    # Check if these fields are all 1
+    if [[ "$DESIRED" -eq 1 && "$CURRENT" -eq 1 && "$READY" -eq 1 && "$AVAILABLE" -eq 1 ]]; then
+        echo "ok: [The '$MACHINESET' machineset is installed]"
         break
+    else
+        echo "info: [Wait for the '$MACHINESET' machine installation to complete. Current state: DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
+        sleep 30
     fi
 done
