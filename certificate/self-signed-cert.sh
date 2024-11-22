@@ -14,7 +14,7 @@ PRINT_TASK() {
 PRINT_TASK "[TASK: Generate a self-signed certificate]"
 
 # Default variable
-CERTS_FILE_NAME="${DOMAIN_NAME}"
+# DOMAIN_NAME=""
 CA_CN="Test Workspace Signer"
 OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 
@@ -32,16 +32,16 @@ mkdir -p ${CERTS_PATH} > /dev/null 2>&1
 check_command_result "[create certificate directory: ${CERTS_PATH}]"
 
 # Generate the root Certificate Authority (CA) key
-openssl genrsa -out ${CERTS_PATH}/${CERTS_FILE_NAME}.ca.key 4096 > /dev/null 2>&1
+openssl genrsa -out ${CERTS_PATH}/${DOMAIN_NAME}.ca.key 4096 > /dev/null 2>&1
 check_command_result "[generated root certificate authority key]"
 
 # Generate the root CA certificate
 openssl req -x509 \
     -new -nodes \
-    -key ${CERTS_PATH}/${CERTS_FILE_NAME}.ca.key \
+    -key ${CERTS_PATH}/${DOMAIN_NAME}.ca.key \
     -sha256 \
     -days 36500 \
-    -out ${CERTS_PATH}/${CERTS_FILE_NAME}.ca.crt \
+    -out ${CERTS_PATH}/${DOMAIN_NAME}.ca.crt \
     -subj /CN="${CA_CN}" \
     -reqexts SAN \
     -extensions SAN \
@@ -50,17 +50,17 @@ openssl req -x509 \
 check_command_result "[generate the root CA certificate]"
 
 # Generate the domain key
-openssl genrsa -out ${CERTS_PATH}/${CERTS_FILE_NAME}.key 2048 > /dev/null 2>&1
+openssl genrsa -out ${CERTS_PATH}/${DOMAIN_NAME}.key 2048 > /dev/null 2>&1
 check_command_result "[generate the domain key]"
 
 # Generate a certificate signing request (CSR) for the domain
 openssl req -new -sha256 \
-    -key ${CERTS_PATH}/${CERTS_FILE_NAME}.key \
+    -key ${CERTS_PATH}/${DOMAIN_NAME}.key \
     -subj "/O=Local Cert/CN=${DOMAIN_NAME}" \
     -reqexts SAN \
     -config <(cat ${OPENSSL_CNF} \
         <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN_NAME}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
-    -out ${CERTS_PATH}/${CERTS_FILE_NAME}.csr > /dev/null 2>&1
+    -out ${CERTS_PATH}/${DOMAIN_NAME}.csr > /dev/null 2>&1
 check_command_result "[generate the certificate signing request for the domain(CSR)]"
 
 # Generate the domain certificate (CRT)
@@ -69,10 +69,10 @@ openssl x509 \
     -sha256 \
     -extfile <(printf "subjectAltName=DNS:${DOMAIN_NAME}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
     -days 36500 \
-    -in ${CERTS_PATH}/${CERTS_FILE_NAME}.csr \
-    -CA ${CERTS_PATH}/${CERTS_FILE_NAME}.ca.crt \
-    -CAkey ${CERTS_PATH}/${CERTS_FILE_NAME}.ca.key \
-    -CAcreateserial -out ${CERTS_PATH}/${CERTS_FILE_NAME}.crt > /dev/null 2>&1
+    -in ${CERTS_PATH}/${DOMAIN_NAME}.csr \
+    -CA ${CERTS_PATH}/${DOMAIN_NAME}.ca.crt \
+    -CAkey ${CERTS_PATH}/${DOMAIN_NAME}.ca.key \
+    -CAcreateserial -out ${CERTS_PATH}/${DOMAIN_NAME}.crt > /dev/null 2>&1
 check_command_result "[generate the domain certificate(CRT)]"
 
 # self-signed-certificates 
