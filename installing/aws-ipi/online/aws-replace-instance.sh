@@ -26,7 +26,7 @@ run_command() {
 oc scale --replicas=0 machineset $MACHINESET -n openshift-machine-api
 run_command "[Scaling machineset $MACHINESET to 0 replicas]"
 
-MACHINE=$(echo "$LAST_MACHINESET" | cut -d'-' -f3-)
+MACHINE=$(echo "$MACHINESET" | cut -d'-' -f3-)
 
 while true; do
     if oc get machines.machine.openshift.io -n openshift-machine-api | grep -q "worker-$MACHINE"; then
@@ -43,7 +43,7 @@ sleep 10
 oc -n openshift-machine-api patch machineset $MACHINESET --type=json -p="[{"op": "replace", "path": "/spec/template/spec/providerSpec/value/instanceType", "value": "$WORKER_INSTANCE_TYPE"}]"
 run_command "[Replace $MACHINESET with the instance of your machine $WORKER_INSTANCE_TYPE]"
 
-oc scale --replicas=1 machineset $LAST_MACHINESET -n openshift-machine-api
+oc scale --replicas=1 machineset $MACHINESET -n openshift-machine-api
 echo "info: [Wait for the 'worker-$MACHINE' machine installation to complete...]"
 
 while true; do
