@@ -28,7 +28,7 @@ export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="1Gi"
 
 # Print task title
-PRINT_TASK "Install Minio Tool"
+PRINT_TASK "[TASK: Install Minio Tool]"
 
 # Determine the operating system and architecture
 OS_TYPE=$(uname -s)
@@ -68,7 +68,7 @@ run_command "[MC tool installation complete]"
 echo 
 
 # Print task title
-PRINT_TASK "Deploying Minio object"
+PRINT_TASK "[TASK: Deploying Minio object]"
 
 # Deploy Minio with the specified YAML template
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - > /dev/null
