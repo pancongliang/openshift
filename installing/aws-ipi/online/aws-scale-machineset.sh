@@ -20,6 +20,9 @@ run_command() {
 }
 # ====================================================
 
+set -e
+set -o pipefail
+
 # === Task: Scaling machineset ===
 PRINT_TASK "[TASK: Scaling machineset]"
 
