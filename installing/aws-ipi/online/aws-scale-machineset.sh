@@ -23,7 +23,7 @@ run_command() {
 # === Task: Scaling machineset ===
 PRINT_TASK "[TASK: Scaling machineset]"
 
-# ./scale-machineset.sh <Number of replicas>
+# ./aws-scale-machineset.sh <Number of replicas>
 
 # Specifying machinesets 
 #export MACHINESET='xxxxx-xxxxx-worker-ap-northeast-1d'   # oc get machinesets -n openshift-machine-api    
