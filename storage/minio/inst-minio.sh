@@ -28,7 +28,45 @@ export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
 
 # Print task title
-PRINT_TASK "Deploying Minio with Persistent Volume"
+PRINT_TASK "Install Minio Tool"
+
+# Determine the operating system and architecture
+OS_TYPE=$(uname -s)
+ARCH=$(uname -m)
+
+echo "info: [Client Operating System: $OS_TYPE]"
+echo "info: [Client Architecture: $ARCH]"
+
+# Set the download URL based on the OS and architecture
+if [ "$OS_TYPE" = "Darwin" ]; then
+    if [ "$ARCH" = "x86_64" ]; then
+        download_url="https://dl.min.io/client/mc/release/darwin-amd64/mc"
+    elif [ "$ARCH" = "arm64" ]; then
+        download_url="https://dl.min.io/client/mc/release/darwin-arm64/mc"
+    fi
+elif [ "$OS_TYPE" = "Linux" ]; then
+    download_url="https://dl.min.io/client/mc/release/linux-amd64/mc"
+else
+    echo "error: [MC tool installation failed]"
+fi
+
+# Download MC
+curl -sOL "$download_url" 
+run_command "[Downloaded MC tool]"
+
+# Install MC and set permissions
+rm -f /usr/local/bin/mc > /dev/null
+mv mc /usr/local/bin/ > /dev/null
+run_command "[Installed MC tool to /usr/local/bin/]"
+
+chmod +x /usr/local/bin/mc > /dev/null
+run_command "[Set execute permissions for MC tool]"
+
+mc --version > /dev/null
+run_command "[MC tool installation complete]"
+
+# Print task title
+PRINT_TASK "Deploying Minio object"
 
 # Deploy Minio with the specified YAML template
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - > /dev/null
