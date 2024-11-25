@@ -11,6 +11,9 @@ PRINT_TASK() {
 }
 # ====================================================
 
+set -e
+set -o pipefail
+
 # Task: Enter pull-secret information
 PRINT_TASK "[TASK: Enter pull-secret information]"
 
