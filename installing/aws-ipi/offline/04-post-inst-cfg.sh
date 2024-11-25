@@ -9,8 +9,6 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
-
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -20,9 +18,7 @@ run_command() {
         echo "failed: $1"
     fi
 }
-
-set -e
-set -o pipefail
+# ====================================================
 
 # Task: Kubeconfig login and oc completion
 PRINT_TASK "[TASK: Kubeconfig login]"
