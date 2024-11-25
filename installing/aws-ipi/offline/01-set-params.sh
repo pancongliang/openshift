@@ -1,20 +1,5 @@
 #!/bin/bash
 
-# Function to print a task with uniform length
-PRINT_TASK() {
-    max_length=110  # Adjust this to your desired maximum length
-    task_title="$1"
-    title_length=${#task_title}
-    stars=$((max_length - title_length))
-
-    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
-}
-# ====================================================
-
-
-# Task: Set environment variables
-PRINT_TASK "[TASK: Set environment variables]"
-
 # No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
 # OpenShift version
@@ -56,6 +41,22 @@ export VPC_CIDR="10.0.0.0/16"
 export PUBLIC_SUBNET_CIDR="10.0.0.0/24"
 export PRIVATE_SUBNET_CIDR="10.0.1.0/24"
 export S3_SERVICE_NAME="com.amazonaws.$REGION.s3"
+
+
+# Function to print a task with uniform length
+PRINT_TASK() {
+    max_length=110  # Adjust this to your desired maximum length
+    task_title="$1"
+    title_length=${#task_title}
+    stars=$((max_length - title_length))
+
+    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+}
+# ====================================================
+
+
+# Task: Set environment variables
+PRINT_TASK "[TASK: Set environment variables]"
 
 # === Check all variables === 
 # Define variables
