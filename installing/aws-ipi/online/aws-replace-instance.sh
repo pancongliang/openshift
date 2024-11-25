@@ -23,8 +23,6 @@ run_command() {
 }
 # ====================================================
 
-set -e
-set -o pipefail
 
 # === Task: Replace the instance type of the machine ===
 PRINT_TASK "[TASK: Replace the instance type of the machine]"
