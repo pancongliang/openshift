@@ -21,6 +21,8 @@ run_command() {
     fi
 }
 
+set -e
+set -o pipefail
 
 # Task: Kubeconfig login and oc completion
 PRINT_TASK "[TASK: Kubeconfig login]"
