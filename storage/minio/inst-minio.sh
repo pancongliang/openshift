@@ -39,7 +39,7 @@ while true; do
     # Check the status of pods
     if oc get pods -n "$NAMESPACE" --no-headers | awk '{print $3}' | grep -v "Running" > /dev/null; then
         echo "info: [Waiting for pods to be in 'Running' state...]"
-        sleep 10
+        sleep 20
     else
         echo "info: [Pods are running. Proceeding to the next step...]"
         break
