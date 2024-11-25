@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Set environment variables
 #export OCP_VERSION=4.14.20
 #export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
 #export SSH_KEY_PATH="$HOME/.ssh"
