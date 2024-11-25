@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Set environment variables
+export NAMESPACE="minio"
+export STORAGE_CLASS_NAME="gp2-csi"
+export STORAGE_SIZE="50Gi"
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -20,11 +25,6 @@ run_command() {
     fi
 }
 # ====================================================
-
-# Set environment variables
-export NAMESPACE="minio"
-export STORAGE_CLASS_NAME="gp2-csi"
-export STORAGE_SIZE="50Gi"
 
 # Print task title
 PRINT_TASK "[TASK: Install Minio Tool]"
