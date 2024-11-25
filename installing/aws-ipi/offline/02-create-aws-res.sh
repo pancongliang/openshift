@@ -20,6 +20,8 @@ run_command() {
     fi
 }
 
+set -e
+set -o pipefail
 
 # === Task: Install AWS CLI ===
 PRINT_TASK "[TASK: Install AWS CLI]"
