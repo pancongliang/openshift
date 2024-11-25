@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#export WORKER_INSTANCE_TYPE='m6i.xlarge'  # Bare Metal: m5.metal  https://aws.amazon.com/cn/ec2/instance-types/
+#export MACHINESET='xxxxx-xxxxx-worker-ap-northeast-1d'   # oc get machinesets -n openshift-machine-api              
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -20,8 +23,8 @@ run_command() {
 }
 # ====================================================
 
-#export WORKER_INSTANCE_TYPE='m6i.xlarge'  # Bare Metal: m5.metal  https://aws.amazon.com/cn/ec2/instance-types/
-#export MACHINESET='xxxxx-xxxxx-worker-ap-northeast-1d'   # oc get machinesets -n openshift-machine-api              
+set -e
+set -o pipefail
 
 # === Task: Replace the instance type of the machine ===
 PRINT_TASK "[TASK: Replace the instance type of the machine]"
