@@ -47,10 +47,10 @@ while true; do
 
     # Check if these fields are all 1
     if [[ "$DESIRED" -eq $replicas && "$CURRENT" -eq $replicas && "$READY" -eq $replicas && "$AVAILABLE" -eq $replicas ]]; then
-        echo "ok: [The '$MACHINE' machine is installed. Current state: DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
+        echo "ok: [Finished scaling machine set '$MACHINESET' to $replicas replicas.]"
         break
     else
-        echo "info: [Installing machine '$MACHINE'. Current state: DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
+        echo "info: [Scaling machine set '$MACHINESET' to $replicas. DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
         sleep 50
     fi
 done
