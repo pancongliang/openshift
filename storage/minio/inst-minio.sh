@@ -25,7 +25,7 @@ run_command() {
 # Set environment variables
 export NAMESPACE="minio"
 export STORAGE_CLASS_NAME="gp2-csi"
-export STORAGE_SIZE="50Gi"
+export STORAGE_SIZE="1Gi"
 
 # Print task title
 PRINT_TASK "Install Minio Tool"
@@ -65,6 +65,8 @@ run_command "[Set execute permissions for MC tool]"
 mc --version > /dev/null
 run_command "[MC tool installation complete]"
 
+echo 
+
 # Print task title
 PRINT_TASK "Deploying Minio object"
 
@@ -79,7 +81,7 @@ while true; do
         echo "info: [Waiting for pods to be in 'Running' state...]"
         sleep 20
     else
-        echo "info: [Pods are running. Proceeding to the next step...]"
+        echo "ok: [Pods are running. Proceeding to the next step...]"
         break
     fi
 done
@@ -88,6 +90,8 @@ run_command "[Minio pods are in 'Running' state]"
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host}')
 run_command "[Retrieved Minio route host: $BUCKET_HOST]"
+
+sleep 3
 
 # Set Minio client alias
 mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin > /dev/null
@@ -99,5 +103,6 @@ for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
     run_command "[Created bucket $BUCKET_NAME]"
 done
 
-echo "info: [Minio address: http://$BUCKET_HOST]
-echo "info: [Minio default ID/PW: minioadmin/minioadmin]
+# Print Minio address and credentials
+echo "info: [Minio address: http://$BUCKET_HOST]"
+echo "info: [Minio default ID/PW: minioadmin/minioadmin]"
