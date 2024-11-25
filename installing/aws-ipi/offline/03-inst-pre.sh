@@ -33,7 +33,7 @@ run_command() {
     fi
 }
 
-
+# ====================================================
 
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
