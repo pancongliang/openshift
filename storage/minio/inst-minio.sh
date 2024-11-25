@@ -61,6 +61,5 @@ for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
     run_command "[Created bucket $BUCKET_NAME]"
 done
 
-
 echo "info: [Minio address: http://$BUCKET_HOST]
 echo "info: [Minio default ID/PW: minioadmin/minioadmin]
