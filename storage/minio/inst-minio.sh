@@ -9,6 +9,8 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
+# ====================================================
+
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -50,15 +52,15 @@ export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host
 run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 
 # Set Minio client alias
-mc --no-color alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
+mc --no-color alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
 run_command "[Configured Minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
-    mc --no-color mb my-minio/$BUCKET_NAME
+    mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
     run_command "[Created bucket $BUCKET_NAME]"
 done
 
-# Set Minio client alias
+
 echo "info: [Minio address: http://$BUCKET_HOST]
 echo "info: [Minio default ID/PW: minioadmin/minioadmin]
