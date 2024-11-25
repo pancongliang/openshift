@@ -11,7 +11,6 @@ PRINT_TASK() {
 }
 # ====================================================
 
-
 # Function to check command success and display appropriate message
 run_command() {
     if [ $? -eq 0 ]; then
@@ -25,7 +24,7 @@ run_command() {
 # Set environment variables
 export NAMESPACE="minio"
 export STORAGE_CLASS_NAME="gp2-csi"
-export STORAGE_SIZE="1Gi"
+export STORAGE_SIZE="50Gi"
 
 # Print task title
 PRINT_TASK "[TASK: Install Minio Tool]"
@@ -81,11 +80,10 @@ while true; do
         echo "info: [Waiting for pods to be in 'Running' state...]"
         sleep 20
     else
-        echo "ok: [Pods are running. Proceeding to the next step...]"
+        echo "ok: [Minio pods are in 'Running' state]"
         break
     fi
 done
-run_command "[Minio pods are in 'Running' state]"
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host}')
