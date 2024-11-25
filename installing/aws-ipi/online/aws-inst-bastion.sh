@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Set environment variables
 export CLUSTER_NAME="copan"
 export REGION="ap-northeast-1"
 export AWS_ACCESS_KEY_ID="xxxxx"
