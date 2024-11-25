@@ -34,7 +34,7 @@ MACHINE=$(echo "$MACHINESET" | cut -d'-' -f3-)
 
 # Scale the machineset to 1 replica
 replicas=$1
-oc scale --replicas=$replicas machineset $MACHINESET -n openshift-machine-api
+oc scale --replicas=$replicas machineset $MACHINESET -n openshift-machine-api > /dev/null
 run_command "[Scaling machineset $MACHINESET to $replicas replicas]"
 
 # Wait for the machineset to be in the desired state
