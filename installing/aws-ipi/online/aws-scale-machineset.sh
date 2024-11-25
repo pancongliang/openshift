@@ -50,7 +50,7 @@ while true; do
         echo "ok: [Finished scaling machine set '$MACHINESET' to $replicas replicas.]"
         break
     else
-        echo "info: [Scaling machine set '$MACHINESET' to $replicas. DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
+        echo "info: [Scaling machine set '$MACHINESET' to $replicas: DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
         sleep 50
     fi
 done
