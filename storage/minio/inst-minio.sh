@@ -52,7 +52,7 @@ export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host
 run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 
 # Set Minio client alias
-mc --no-color alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
+mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin > /dev/null
 run_command "[Configured Minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
