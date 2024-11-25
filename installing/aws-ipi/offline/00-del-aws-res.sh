@@ -20,6 +20,9 @@ run_command() {
     fi
 }
 
+set -e
+set -o pipefail
+
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
 
