@@ -7,11 +7,10 @@
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/nmstate/operator.yaml | envsubst | oc apply -f -
 
-  sleep 12
+  sleep 30
   
-  oc patch installplan $(oc get ip -n openshift-nmstate  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-nmstate --type merge --patch '{"spec":{"approved":true}}'
- 
   oc get ip -n openshift-nmstate
+  oc patch installplan $(oc get ip -n openshift-nmstate  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-nmstate --type merge --patch '{"spec":{"approved":true}}'
   ```
 
 
