@@ -1,7 +1,7 @@
 
 ### 1.Download Github repository
 ~~~
-git clone https://github.com/liuxiaoyu-git/acs-automation.git
+git clone https://github.com/pancongliang/acs-automation.git
 ~~~
 
 ### 2.Deploy Pipeline resources
