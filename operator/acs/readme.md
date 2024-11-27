@@ -1,3 +1,5 @@
+## Install and configure ACS Operator
+
 ### Install RHACS Operator
 
 * Install the Operator using the default namespace
@@ -101,6 +103,8 @@
   NAME        DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
   collector   6         6         6       6            6           <none>          13m
   ```
+
+## Optional
 
 ### Enabling offline mode and updating Scanner and kernel support packages
 
