@@ -36,7 +36,7 @@ oc create -f PipelineRun/
 ### 6.Check the running status of PipelineRun
 * Check the running status of PipelineRun in the OpenShift console to confirm that all PipelineRuns can be successfully executed.
 ~~~
-OpenShift Console ->
+OpenShift Console -> Pipelines -> Project: rox-ctl-pipeline -> PipelineRuns -> acs-pipeline-example-2-*
 
 # Check the execution log of the "resource-deployment-check" task and confirm that the last display is "Setting overall result to pass".
 # This means that the default PipelineRun only needs RHACS to check "ci/OpenShift-Pipelines/assets-for-validation/namespace.yaml",
@@ -46,17 +46,23 @@ OpenShift Console ->
 ### 7.Modify acs-pipelineRun.yaml
 * Modify the local "ci/OpenShift-Pipelines/PipelineRun/acs-pipelineRun.yaml" file and change the following "fasle" to "true".
 ~~~
+vim acs-automation/ci/OpenShift-Pipelines/PipelineRun/acs-pipelineRun.yaml
+···
  - name: recursive-search
    value: "true"
 ~~~
 
 ### 8.Execute the command again to run the PipelineRun
 ~~~
+cd acs-automation/ci/OpenShift-Pipelines
 oc create -f PipelineRun/
 ~~~
 
 ### 9.Check the running status of PipelineRun
 * Then check the running status of PipelineRun in the OpenShift console and confirm that PipelineRun has only completed the second task. You can check the execution log of the "rox-deployment-check" task and confirm that "assets-for-validation/layer1/layer1-service.yaml", "assets-for-validation/layer1/pod.yml", and "assets-for-validation/layer1/layer1.yaml" all contain violations, which ultimately leads to "Setting overall result to fail".
+~~~
+OpenShift Console -> Pipelines -> Project: rox-ctl-pipeline -> PipelineRuns -> acs-pipeline-example-2-*
+~~~
 ~~~
 Getting roxctl
 Deployment check on file : /files/ci/Tekton/Scenario2/assets-for-validation/namespace.yaml
