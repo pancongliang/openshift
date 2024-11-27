@@ -2,7 +2,7 @@
 
 * Install the Operator using the default namespace
   ```
-  export CHANNEL_NAME="stable"
+  export CHANNEL_NAME="pipelines-1.15"
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/pipeline/01-operator.yaml | envsubst | oc create -f -
 
