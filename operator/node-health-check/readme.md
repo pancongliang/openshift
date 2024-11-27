@@ -10,12 +10,10 @@
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/node-health-check/01-operator.yaml | envsubst | oc apply -f -
 
-  sleep 6
-  
-  oc patch installplan $(oc get ip -n node-health-check -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n node-health-check --type merge --patch '{"spec":{"approved":true}}'
-  
+  sleep 30
+
   oc get ip -n node-health-check
-  oc get sub -n node-health-check
+  oc patch installplan $(oc get ip -n node-health-check -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n node-health-check --type merge --patch '{"spec":{"approved":true}}'
   ```
 
 ### Create NodeHealthCheck object
