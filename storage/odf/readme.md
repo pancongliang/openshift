@@ -12,10 +12,9 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/01-operator.yaml | envsubst | oc create -f -
 
   sleep 12
-  
-  oc patch installplan $(oc get ip -n openshift-storage -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-storage --type merge --patch '{"spec":{"approved":true}}'
 
   oc get ip -n openshift-storage
+  oc patch installplan $(oc get ip -n openshift-storage -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-storage --type merge --patch '{"spec":{"approved":true}}'
   ```
 
 
