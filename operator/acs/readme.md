@@ -45,19 +45,6 @@
   oc get secret central-htpasswd -n stackrox -o jsonpath='{.data.password}' | base64 -d; echo
   ```
 
-### Single Sign-On with OpenShift
-
-* Set Single Sign-On with OpenShift
-  ```
-  ACS Console Platform → Platform Configuration -> Access Control -> Create auth Provider -> OpenShift Auth
-
-  Name: OpenShift
-  Minium access role: Analyst/admin
-  Rules: mapped spcific user to Admin role
-  e.g.  <User=name  Value=admin  Role=Admin>
-  ```  
-* Logout and refresh your browser. OpenShift provider will be available for you to login with OpenShift's user account
-
 
 ### Installing the roxctl CLI
 
@@ -84,7 +71,7 @@
   
 * Creating resources by using the init bundle
   ```
-  oc apply -f cluster_init_bundle.yaml -n stackrox
+  oc apply -f <cluster_init_bundle.yaml> -n stackrox
   secret/collector-tls created
   secret/sensor-tls created
   secret/admission-control-tls created
@@ -276,4 +263,17 @@
     fi
   done
   ```
+
+### Single Sign-On with OpenShift
+
+* Set Single Sign-On with OpenShift
+  ```
+  ACS Console Platform → Platform Configuration -> Access Control -> Create auth Provider -> OpenShift Auth
+
+  Name: OpenShift
+  Minium access role: Analyst/admin
+  Rules: mapped spcific user to Admin role
+  e.g.  <User=name  Value=admin  Role=Admin>
+  ```  
+* Logout and refresh your browser. OpenShift provider will be available for you to login with OpenShift's user account
 ### More [RHACS configurations](https://github.com/rhthsa/openshift-demo/blob/main/acs.md#scan-and-check-image-with-roxctl)
