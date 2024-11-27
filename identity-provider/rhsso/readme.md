@@ -9,6 +9,7 @@
   export CHANNEL="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/01-operator.yaml | envsubst | oc apply -f -
+
   sleep 30
   
   oc get ip -n ${NAMESPACE}
