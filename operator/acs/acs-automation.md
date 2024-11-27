@@ -33,28 +33,30 @@ oc create secret generic acs-secret -n rox-ctl-pipeline \
 oc create -f PipelineRun/
 ~~~
 
-Check the running status of PipelineRun in the OpenShift console to confirm that all PipelineRuns can be successfully executed.
+### 6.Check the running status of PipelineRun
+* Check the running status of PipelineRun in the OpenShift console to confirm that all PipelineRuns can be successfully executed.
 ~~~
 OpenShift Console ->
-
 
 # Check the execution log of the "resource-deployment-check" task and confirm that the last display is "Setting overall result to pass".
 # This means that the default PipelineRun only needs RHACS to check "ci/OpenShift-Pipelines/assets-for-validation/namespace.yaml",
 # so it can pass the security test.
 ~~~
 
-### 6.Modify the local "ci/OpenShift-Pipelines/PipelineRun/acs-pipelineRun.yaml" file and change the following "fasle" to "true".
+### 7.Modify acs-pipelineRun.yaml
+* Modify the local "ci/OpenShift-Pipelines/PipelineRun/acs-pipelineRun.yaml" file and change the following "fasle" to "true".
 ~~~
  - name: recursive-search
    value: "true"
 ~~~
 
-### 7.Execute the command again to run the PipelineRun
+### 8.Execute the command again to run the PipelineRun
 ~~~
 oc create -f PipelineRun/
 ~~~
 
-### 8.Then check the running status of PipelineRun in the OpenShift console and confirm that PipelineRun has only completed the second task. You can check the execution log of the "rox-deployment-check" task and confirm that "assets-for-validation/layer1/layer1-service.yaml", "assets-for-validation/layer1/pod.yml", and "assets-for-validation/layer1/layer1.yaml" all contain violations, which ultimately leads to "Setting overall result to fail".
+### 9.Check the running status of PipelineRun
+* Then check the running status of PipelineRun in the OpenShift console and confirm that PipelineRun has only completed the second task. You can check the execution log of the "rox-deployment-check" task and confirm that "assets-for-validation/layer1/layer1-service.yaml", "assets-for-validation/layer1/pod.yml", and "assets-for-validation/layer1/layer1.yaml" all contain violations, which ultimately leads to "Setting overall result to fail".
 ~~~
 Getting roxctl
 Deployment check on file : /files/ci/Tekton/Scenario2/assets-for-validation/namespace.yaml
