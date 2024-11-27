@@ -7,11 +7,10 @@
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/metallb/operator.yaml | envsubst | oc apply -f -
 
-  sleep 6
-  
-  oc patch installplan $(oc get ip -n metallb-system  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n metallb-system --type merge --patch '{"spec":{"approved":true}}'
- 
+  sleep 30
+
   oc get ip -n metallb-system
+  oc patch installplan $(oc get ip -n metallb-system  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n metallb-system --type merge --patch '{"spec":{"approved":true}}'
   ```
 
 ### Create an instance of MetalLB
