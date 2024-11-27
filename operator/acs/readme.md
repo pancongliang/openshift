@@ -73,7 +73,7 @@
 
 * Creating Init Bundle
   ```
-  ACS Console Platform → Configuration → Integrations → Cluster Init Bundle
+  ACS Console Platform → Platform Configuration → Integrations → Cluster Init Bundle
   → Generate bundle → <cluster_init_bundle.yaml> → Generate → Download Kubernetes Secret File
 
   or
