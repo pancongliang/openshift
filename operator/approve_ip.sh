@@ -11,3 +11,6 @@ while true; do
     fi
     sleep 15
 done
+
+# for i in {1..2}; do curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash; done
+
