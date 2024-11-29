@@ -86,10 +86,7 @@
   ```
 
 ### Configure logout Redirect in OpenShift
-* Specify the URL of the page to load when a user logs out of the web console.
-  If do not specify a value, the user returns to the login page for the web console.
-  Specifying a logoutRedirect URL allows your users to perform single logout (SLO) through the identity provider to destroy their single sign-on session.
-
+* Set up RHSSO logout and redirection for OpenShift Console
   ```
   export NAMESPACE=rhsso
   export KEYCLOAK_HOST=$(oc get route keycloak -n $NAMESPACE -o=jsonpath='{.spec.host}')
@@ -106,5 +103,11 @@
   )"
   ```
 
-* Test whether login and logout are normal
+* Set up RHSSO logout and redirection for OpenShift GitOps
+  ```
+
+
+
+
+  ```
   
