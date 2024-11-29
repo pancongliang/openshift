@@ -97,7 +97,7 @@
   {
     "spec": {
       "authentication": {
-        "logoutRedirect": "https://${OAUTH_HOST}/auth/realms/OpenShift/protocol/openid-connect/logout?post_logout_redirect_uri=https://$  {CONSOLE_HOST}&client_id=openshift-demo"
+        "logoutRedirect": "https://${OAUTH_HOST}/auth/realms/OpenShift/protocol/openid-connect/logout?post_logout_redirect_uri=https://${CONSOLE_HOST}&client_id=openshift-demo"
       }
     }
   }
