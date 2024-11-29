@@ -105,9 +105,46 @@
 
 * Set up RHSSO logout and redirection for OpenShift GitOps
   ```
+  export KEYCLOAK_NAMESPACE=rhsso
+  export KEYCLOAK_CLIENT_NAME='gitops-client'   # oc get keycloakclients -n $KEYCLOAK_NAMESPACE
 
+  # No changes required
+  KEYCLOAK_HOST=$(oc get route keycloak -n ${KEYCLOAK_NAMESPACE} --template='{{.spec.host}}')
+  KEYCLOAK_CLIENT_SECRET=$(oc get keycloakclients.keycloak.org -n $KEYCLOAK_NAMESPACE $KEYCLOAK_CLIENT_NAME -o jsonpath='{.status.secondaryResources.Secret[0]}')
+  KEYCLOAK_REALM_NAME=$(oc get keycloakrealms -n "$KEYCLOAK_NAMESPACE" -o=jsonpath='{.items[0].metadata.name}')
+  REALM=$(oc get keycloakrealms "$KEYCLOAK_REALM_NAME" -n "$KEYCLOAK_NAMESPACE" -o=jsonpath='{.spec.realm.realm}')
+  OPENID_CLIENT_ID=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_ID}' | base64 -d)
+  OPENID_CLIENT_SECRET=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_SECRET}')
+  OPENID_ISSUER="$KEYCLOAK_HOST/auth/realms/$REALM"
+  GITOPS_HOST=$(oc get route openshift-gitops-server -o jsonpath='{.spec.host}' -n openshift-gitops)
+  ARGOCD_CR_NAME=$(oc get argocd -n openshift-gitops -o jsonpath='{.items[0].metadata.name}')
+  oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
+  ROOT_CA=$(cat "tls.crt" | sed 's/^/      /')
+  ```
 
+  ```
+  oc -n openshift-gitops patch $ARGOCD_CR_NAME openshift-gitops --type='json' -p='[{"op": "remove", "path": "/spec/sso"}]'
+  oc patch secret argocd-secret -n openshift-gitops --type merge --patch "{\"data\":{\"oidc.keycloak.clientSecret\":\"$OPENID_CLIENT_SECRET\"}}"
 
+  cat <<EOF > config.yaml
+  apiVersion: argoproj.io/v1beta1
+  kind: ArgoCD
+  metadata:
+    name: $ARGOCD_CR_NAME
+    namespace: openshift-gitops
+  spec:
+    oidcConfig: |
+      name: openid
+      issuer: https://$OPENID_ISSUER
+      clientID: $OPENID_CLIENT_ID
+      clientSecret: $OPENID_CLIENT_SECRET
+      requestedScopes: ["openid", "profile", "email"]
+      logoutURL: https://$OPENID_ISSUER/protocol/openid-connect/logout?post_logout_redirect_uri=https://$GITOPS_HOST&client_id=$OPENID_CLIENT_ID
+      rootCA: |
+  $(cat "tls.crt" | sed 's/^/      /')
+  EOF
 
+  oc apply -f config.yaml 
+  oc -n openshift-gitops rollout restart deployment openshift-gitops-server
   ```
   
