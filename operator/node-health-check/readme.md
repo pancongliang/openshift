@@ -9,11 +9,7 @@
   export CHANNEL_NAME="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/node-health-check/01-operator.yaml | envsubst | oc apply -f -
-
-  sleep 30
-
-  oc get ip -n node-health-check
-  oc patch installplan $(oc get ip -n node-health-check -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n node-health-check --type merge --patch '{"spec":{"approved":true}}'
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
 ### Create NodeHealthCheck object
