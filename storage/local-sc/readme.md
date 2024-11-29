@@ -5,11 +5,7 @@
   export CHANNEL_NAME="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/01-operator.yaml | envsubst | oc create -f -
-
-  sleep 30
-
-  oc get ip -n openshift-local-storage
-  oc patch installplan $(oc get ip -n openshift-local-storage  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-local-storage --type merge --patch '{"spec":{"approved":true}}'
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
 ### Automating discovery and provisioning for local storage devices
