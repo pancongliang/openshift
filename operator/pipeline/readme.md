@@ -5,11 +5,7 @@
   export CHANNEL_NAME="pipelines-1.15"
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/pipeline/01-operator.yaml | envsubst | oc create -f -
-
-  sleep 30
-  
-  oc get ip -n openshift-operators  
-  oc patch installplan $(oc get ip -n openshift-operators -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-operators --type merge --patch '{"spec":{"approved":true}}'
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
   
 ### Install Tekton
