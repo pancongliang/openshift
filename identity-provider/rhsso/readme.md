@@ -10,7 +10,6 @@
   export CATALOG_SOURCE_NAME="redhat-operators"  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/01-operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-
   ```
 
 ### Create Keycloak instance and view the console URL and username/password information
