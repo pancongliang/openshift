@@ -9,5 +9,5 @@ while true; do
         oc patch installplan "$NAME" -n "$NAMESPACE" --type merge --patch '{"spec":{"approved":true}}' 
         break
     fi
-    sleep 5
+    sleep 15
 done
