@@ -9,11 +9,8 @@
   export CHANNEL="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/01-operator.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
 
-  sleep 30
-  
-  oc get ip -n ${NAMESPACE}
-  oc patch installplan $(oc get ip -n ${NAMESPACE} -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n ${NAMESPACE} --type merge --patch '{"spec":{"approved":true}}'
   ```
 
 ### Create Keycloak instance and view the console URL and username/password information
