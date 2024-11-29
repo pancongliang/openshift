@@ -5,11 +5,7 @@
   export CHANNEL_NAME="latest"
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/gitops/01-operator.yaml | envsubst | oc apply -f -
-
-  sleep 30
-
-  oc get ip -n openshift-gitops-operator
-  oc patch installplan $(oc get ip -n openshift-gitops-operator -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-gitops-operator --type merge --patch '{"spec":{"approved":true}}'
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
 ### Access control and user management
