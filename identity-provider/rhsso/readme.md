@@ -71,7 +71,7 @@
   ```
   oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config
   oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
-  oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config
+  oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config && rm -rf tls.crt
   ```
 
 * Configure Identity Providers
