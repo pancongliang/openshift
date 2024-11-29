@@ -91,13 +91,14 @@
   Specifying a logoutRedirect URL allows your users to perform single logout (SLO) through the identity provider to destroy their single sign-on session.
 
   ```
-  export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
+  export NAMESPACE=rhsso
+  export KEYCLOAK_HOST=$(oc get route keycloak -n $NAMESPACE -o=jsonpath='{.spec.host}')
   export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
   oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
   {
     "spec": {
       "authentication": {
-        "logoutRedirect": "https://${OAUTH_HOST}/auth/realms/OpenShift/protocol/openid-connect/logout?post_logout_redirect_uri=https://${CONSOLE_HOST}&client_id=openshift-demo"
+        "logoutRedirect": "https://${KEYCLOAK_HOST}/auth/realms/OpenShift/protocol/openid-connect/logout?post_logout_redirect_uri=https://${CONSOLE_HOST}&client_id=openshift-demo"
       }
     }
   }
