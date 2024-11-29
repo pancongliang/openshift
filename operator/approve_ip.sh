@@ -1,7 +1,7 @@
 #!/bin/bash
 
 while true; do
-    echo "waiting for install plan"
+    echo "waiting for installplan..."
     INSTALLPLAN=$(oc get ip --all-namespaces -o=jsonpath='{range .items[?(@.spec.approved==false)]}{.metadata.name} {.metadata.namespace}{"\n"}{end}')
     if [[ -n "$INSTALLPLAN" ]]; then
         NAME=$(echo "$INSTALLPLAN" | awk '{print $1}')
