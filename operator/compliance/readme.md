@@ -7,11 +7,7 @@
   export CHANNEL_NAME="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/compliance/01-operator.yaml | envsubst | oc apply -f -
-
-  sleep 6
-
-  oc get ip -n openshift-compliance
-  oc patch installplan $(oc get ip -n openshift-compliance -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-compliance --type merge --patch '{"spec":{"approved":true}}'
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
 ### Listing available compliance profiles
