@@ -12,7 +12,6 @@
 #    sleep 15
 #done
 
-# NAMESPACE=("rhsso" "openshift-gitops-operator")
 # NAMESPACE="rhsso"
 
 # Set the maximum number of retries
