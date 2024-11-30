@@ -16,7 +16,7 @@
 # NAMESPACE="rhsso"
 
 # Set the maximum number of retries
-MAX_RETRIES=2
+MAX_RETRIES=10
 RETRY_COUNT=0
 
 # Poll until the maximum retry count is reached
