@@ -6,8 +6,9 @@
   ```
   export CHANNEL_NAME="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"
+  export NAMESPACE=("openshift-logging" "openshift-operators-redhat ")
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/01-operator.yaml | envsubst | oc apply -f -
-  for i in {1..2}; do curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash; done
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
   
 
