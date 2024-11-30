@@ -5,6 +5,7 @@
   ```
   export CHANNEL_NAME="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"
+  export NAMESPACE="metallb-system"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/metallb/operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
