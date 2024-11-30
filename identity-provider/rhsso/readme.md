@@ -5,9 +5,9 @@
 
 * Installing RHSSO Operator from the command line
   ```
-  export NAMESPACE=rhsso
   export CHANNEL="stable"
-  export CATALOG_SOURCE_NAME="redhat-operators"  
+  export CATALOG_SOURCE_NAME="redhat-operators"
+  export NAMESPACE="rhsso"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/01-operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
