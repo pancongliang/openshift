@@ -14,7 +14,8 @@
 
 #!/bin/bash
 
-#NAMESPACE="metallb-system"
+# NAMESPACE=("rhsso" "openshift-gitops-operator")
+# NAMESPACE="rhsso"
 
 while true; do
     echo "waiting for installplan..."
