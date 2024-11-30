@@ -12,17 +12,24 @@
 #    sleep 15
 #done
 
+#!/bin/bash
+
+#NAMESPACE="metallb-system"
+
 while true; do
     echo "waiting for installplan..."
-    INSTALLPLAN=$(oc get ip --all-namespaces -o=jsonpath='{range .items[?(@.spec.approved==false)]}{.metadata.name} {.metadata.namespace}{"\n"}{end}' | tr -d '\r')
+    INSTALLPLANS=$(oc get ip --all-namespaces -o=jsonpath='{range .items[?(@.spec.approved==false)]}{.metadata.name} {.metadata.namespace}{"\n"}{end}' | tr -d '\r')
     
-    if [[ -n "$INSTALLPLAN" ]]; then
-        echo "$INSTALLPLAN" | while read -r NAME NAMESPACE; do
-            if [[ -n "$NAME" && -n "$NAMESPACE" ]]; then
-                echo "Approving InstallPlan: $NAME in namespace: $NAMESPACE"
-                oc patch installplan "$NAME" -n "$NAMESPACE" --type merge --patch '{"spec":{"approved":true}}'
+    if [[ -n "$INSTALLPLANS" ]]; then
+        echo "$INSTALLPLANS" | while read -r INSTALLPLAN_NAME INSTALLPLAN_NAMESPACE; do
+            if [[ -n "$INSTALLPLAN_NAME" && -n "$INSTALLPLAN_NAMESPACE" ]]; then
+                if [[ "$INSTALLPLAN_NAMESPACE" == "$NAMESPACE" ]]; then
+                    echo "Approving INSTALLPLAN: $INSTALLPLAN_NAME in NAMESPACE: $INSTALLPLAN_NAMESPACE"
+                    oc patch installplan "$INSTALLPLAN_NAME" -n "$INSTALLPLAN_NAMESPACE" --type merge --patch '{"spec":{"approved":true}}'
+                else
+                fi
             else
-                echo "Skipping invalid entry: NAME=$NAME, NAMESPACE=$NAMESPACE"
+                echo "Invalid INSTALLPLAN entry: NAME=$INSTALLPLAN_NAME, NAMESPACE=$INSTALLPLAN_NAMESPACE"
             fi
         done
         break
@@ -31,6 +38,4 @@ while true; do
 done
 
 
-
-# for i in {1..2}; do curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash; done
 
