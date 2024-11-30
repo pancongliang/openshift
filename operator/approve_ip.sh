@@ -25,12 +25,8 @@ while true; do
         echo "$INSTALLPLANS" | while read -r INSTALLPLAN_NAME INSTALLPLAN_NAMESPACE; do
             if [[ -n "$INSTALLPLAN_NAME" && -n "$INSTALLPLAN_NAMESPACE" ]]; then
                 if [[ "$INSTALLPLAN_NAMESPACE" == "$NAMESPACE" ]]; then
-                    echo "Approving INSTALLPLAN: $INSTALLPLAN_NAME in NAMESPACE: $INSTALLPLAN_NAMESPACE"
                     oc patch installplan "$INSTALLPLAN_NAME" -n "$INSTALLPLAN_NAMESPACE" --type merge --patch '{"spec":{"approved":true}}'
-                else
                 fi
-            else
-                echo "Invalid INSTALLPLAN entry: NAME=$INSTALLPLAN_NAME, NAMESPACE=$INSTALLPLAN_NAMESPACE"
             fi
         done
         break
