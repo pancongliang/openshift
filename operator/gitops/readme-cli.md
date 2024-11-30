@@ -4,6 +4,7 @@
   ```
   export CHANNEL_NAME="latest"
   export CATALOG_SOURCE_NAME="redhat-operators"
+  export NAMESPACE="openshift-gitops-operator"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/gitops/01-operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
