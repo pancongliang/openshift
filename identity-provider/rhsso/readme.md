@@ -25,13 +25,11 @@
 * Keycloak console URL and username/password information
   ```
   oc get route keycloak -o jsonpath='{.spec.host}' -n ${NAMESPACE}
-  keycloak-rhsso.apps.ocp4.example.com
 
+  # Username
   oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_USERNAME}' -n ${NAMESPACE} | base64 -d && echo
-  admin
-  
+  # Password
   oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${NAMESPACE} | base64 -d && echo
-  pARXgj7Nz7LwQw==
   ```
   
 ### Configuring the Red Hat Single Sign-On Operator
