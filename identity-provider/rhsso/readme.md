@@ -87,13 +87,17 @@
 * Set up RHSSO logout and redirection for OpenShift Console
   ```
   export NAMESPACE=rhsso
-  export KEYCLOAK_HOST=$(oc get route keycloak -n $NAMESPACE -o=jsonpath='{.spec.host}')
-  export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
+  KEYCLOAK_CLIENT_NAME='example-client'     # oc get keycloakclients -n $NAMESPACE
+  KEYCLOAK_CLIENT_SECRET="keycloak-client-secret-${KEYCLOAK_CLIENT_NAME}"
+  OPENID_CLIENT_ID=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_ID}' | base64 -d)
+  KEYCLOAK_HOST=$(oc get route keycloak -n $NAMESPACE -o=jsonpath='{.spec.host}')
+  CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
+
   oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
   {
     "spec": {
       "authentication": {
-        "logoutRedirect": "https://${KEYCLOAK_HOST}/auth/realms/OpenShift/protocol/openid-connect/logout?post_logout_redirect_uri=https://${CONSOLE_HOST}&client_id=openshift-demo"
+        "logoutRedirect": "https://${KEYCLOAK_HOST}/auth/realms/OpenShift/protocol/openid-connect/logout?post_logout_redirect_uri=https://${CONSOLE_HOST}&client_id=${OPENID_CLIENT_ID}"
       }
     }
   }
@@ -103,24 +107,23 @@
 
 * Set up RHSSO logout and redirection for OpenShift GitOps
   ```
-  NAMESPACE=rhsso
+  export NAMESPACE=rhsso
   GITOPS_HOST=$(oc get route openshift-gitops-server -o jsonpath='{.spec.host}' -n openshift-gitops)
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/04-keycloak-gitops-client.yaml | envsubst | oc apply -f -
   
   # No changes required
-  KEYCLOAK_NAMESPACE=$NAMESPACE
-  KEYCLOAK_CLIENT_NAME='gitops-client'
-  KEYCLOAK_HOST=$(oc get route keycloak -n ${KEYCLOAK_NAMESPACE} --template='{{.spec.host}}')
-  KEYCLOAK_CLIENT_SECRET=$(oc get keycloakclients.keycloak.org -n $KEYCLOAK_NAMESPACE $KEYCLOAK_CLIENT_NAME -o jsonpath='{.status.secondaryResources.Secret[0]}')
-  KEYCLOAK_REALM_NAME=$(oc get keycloakrealms -n "$KEYCLOAK_NAMESPACE" -o=jsonpath='{.items[0].metadata.name}')
-  REALM=$(oc get keycloakrealms "$KEYCLOAK_REALM_NAME" -n "$KEYCLOAK_NAMESPACE" -o=jsonpath='{.spec.realm.realm}')
+  KEYCLOAK_CLIENT_NAME='gitops-client'   # oc get keycloakclients -n $NAMESPACE
+  KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
+  KEYCLOAK_CLIENT_SECRET=$(oc get keycloakclients -n $NAMESPACE $KEYCLOAK_CLIENT_NAME -o jsonpath='{.status.secondaryResources.Secret[0]}')
+  KEYCLOAK_CLIENT_SECRET="keycloak-client-secret-${KEYCLOAK_CLIENT_NAME}"
+  KEYCLOAK_REALM_NAME=$(oc get keycloakrealms -n "$NAMESPACE" -o=jsonpath='{.items[0].metadata.name}')
+  REALM=$(oc get keycloakrealms "$KEYCLOAK_REALM_NAME" -n "$NAMESPACE" -o=jsonpath='{.spec.realm.realm}')
   OPENID_CLIENT_ID=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_ID}' | base64 -d)
   OPENID_CLIENT_SECRET=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_SECRET}')
   OPENID_ISSUER="$KEYCLOAK_HOST/auth/realms/$REALM"
   GITOPS_HOST=$(oc get route openshift-gitops-server -o jsonpath='{.spec.host}' -n openshift-gitops)
   ARGOCD_CR_NAME=$(oc get argocd -n openshift-gitops -o jsonpath='{.items[0].metadata.name}')
   oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
-  ROOT_CA=$(cat "tls.crt" | sed 's/^/      /')
   ```
 
   ```
