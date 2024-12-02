@@ -70,7 +70,7 @@
   ```
   QUAY_REGISTRY_NAME=$(oc get quayregistries -n ${NAMESPACE} -o jsonpath='{.items[0].metadata.name}')
   CONFIG_BUNDLE_SECRET=$(oc get quayregistry example-registry -n ${NAMESPACE} -o jsonpath='{.spec.configBundleSecret}')
-  oc get secret $CONFIG_BUNDLE_SECRET -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d -w0 > config.yaml
+  oc get secret $CONFIG_BUNDLE_SECRET -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d > config.yaml
   ```
   
 * Update config.yaml file
