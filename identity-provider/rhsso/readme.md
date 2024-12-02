@@ -130,11 +130,6 @@
   oc -n openshift-gitops patch argocd $ARGOCD_CR_NAME --type='json' -p='[{"op": "remove", "path": "/spec/sso"}]' 
   oc patch secret argocd-secret -n openshift-gitops --type merge --patch "{\"data\":{\"oidc.keycloak.clientSecret\":\"$OPENID_CLIENT_SECRET\"}}"
 
-
-  
-  oc -n openshift-gitops rollout restart deployment openshift-gitops-server
-  rm -rf config.yaml tls.crt
-  ```
   cat << EOF | oc apply -f -
   apiVersion: argoproj.io/v1beta1
   kind: ArgoCD
@@ -152,3 +147,7 @@
       rootCA: |
   $(cat "tls.crt" | sed 's/^/      /')
   EOF
+  
+  oc -n openshift-gitops rollout restart deployment openshift-gitops-server
+  rm -rf config.yaml tls.crt
+  ```
