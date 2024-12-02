@@ -144,11 +144,12 @@
       clientID: $OPENID_CLIENT_ID
       clientSecret: \\\$oidc.keycloak.clientSecret
       requestedScopes: [\"openid\", \"profile\", \"email\"]
-      logoutURL: https://$OPENID_ISSUER/protocol/openid-connect/logout?post_logout_redirect_uri=https://$GITOPS_HOST&client_id=$OPENID_CLIENT_ID
+      logoutURL: https://$OPENID_ISSUER/protocol/openid-connect/logout?id_token_hint={{token}}&post_logout_redirect_uri={{logoutRedirectURL}}
       rootCA: |
   $(cat "tls.crt" | sed 's/^/      /')
   EOF"
-  
+
+
   oc -n openshift-gitops rollout restart deployment openshift-gitops-server
   rm -rf config.yaml tls.crt
   ```
