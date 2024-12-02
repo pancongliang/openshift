@@ -15,6 +15,7 @@ spec:
     implicitFlowEnabled: false
     directAccessGrantsEnabled: true
     redirectUris:
+      - https://${OAUTH_HOST}/*
       - https://${GITOPS_HOST}/*
     defaultClientScopes:
       - acr
