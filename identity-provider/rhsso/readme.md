@@ -148,6 +148,24 @@
   $(cat "tls.crt" | sed 's/^/      /')
   EOF
 
+  cat << EOF | oc apply -f -                         
+  apiVersion: argoproj.io/v1beta1
+  kind: ArgoCD
+  metadata:
+    name: $ARGOCD_CR_NAME
+    namespace: openshift-gitops
+  spec:
+    oidcConfig: |
+      name: openid
+      issuer: https://$OPENID_ISSUER
+      clientID: $OPENID_CLIENT_ID
+      clientSecret: \$oidc.keycloak.clientSecret
+      requestedScopes: ["openid", "profile", "email"]
+      logoutURL: https://$OPENID_ISSUER/protocol/openid-connect/logout\?post_logout_redirect_uri\=https://$GITOPS_HOST\&client_id\=$OPENID_CLIENT_ID
+      rootCA: |
+  $(cat "tls.crt" | sed 's/^/      /') 
+  EOF
+  
   oc -n openshift-gitops rollout restart deployment openshift-gitops-server
   rm -rf config.yaml tls.crt
   ```
