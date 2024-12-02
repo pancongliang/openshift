@@ -60,7 +60,7 @@
   ```
   export USER_NAME=rhadmin
   export PASSWORD=redhat
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/05-keycloak-user.yaml | envsubst | oc create -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f -
   ```
 
 ### Create and configure Identity Providers for OpenShift
