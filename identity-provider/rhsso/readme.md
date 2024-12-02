@@ -127,7 +127,7 @@
   ```
 
   ```
-  oc -n openshift-gitops patch $ARGOCD_CR_NAME openshift-gitops --type='json' -p='[{"op": "remove", "path": "/spec/sso"}]'
+  oc -n openshift-gitops patch argocd $ARGOCD_CR_NAME --type='json' -p='[{"op": "remove", "path": "/spec/sso"}]' 
   oc patch secret argocd-secret -n openshift-gitops --type merge --patch "{\"data\":{\"oidc.keycloak.clientSecret\":\"$OPENID_CLIENT_SECRET\"}}"
 
   cat << EOF | oc apply -f -
