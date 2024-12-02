@@ -108,8 +108,9 @@
 * Set up RHSSO logout and redirection for OpenShift GitOps
   ```
   export NAMESPACE=rhsso
-  GITOPS_HOST=$(oc get route openshift-gitops-server -o jsonpath='{.spec.host}' -n openshift-gitops)
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/04-keycloak-gitops-client.yaml | envsubst | oc apply -f -
+  export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
+  export GITOPS_HOST=$(oc get route openshift-gitops-server -o jsonpath='{.spec.host}' -n openshift-gitops)
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/identity-provider/rhsso/04-keycloak-gitops-client.yaml | envsubst | oc create -f -
   
   # No changes required
   KEYCLOAK_CLIENT_NAME='gitops-client'   # oc get keycloakclients -n $NAMESPACE
