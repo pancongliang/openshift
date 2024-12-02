@@ -141,7 +141,7 @@
       name: openid
       issuer: https://$OPENID_ISSUER
       clientID: $OPENID_CLIENT_ID
-      clientSecret: $OPENID_CLIENT_SECRET
+      clientSecret: $oidc.keycloak.clientSecret 
       requestedScopes: ["openid", "profile", "email"]
       logoutURL: https://$OPENID_ISSUER/protocol/openid-connect/logout?post_logout_redirect_uri=https://$GITOPS_HOST&client_id=$OPENID_CLIENT_ID
       rootCA: |
