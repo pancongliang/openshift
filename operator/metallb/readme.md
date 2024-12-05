@@ -25,7 +25,7 @@
 ### Create an address pool
 * Specify address pool
   ```
-  export ADDRESSES="10.74.251.175-10.74.251.176"
+  export ADDRESSES="10.184.134.135-10.184.134.136"
   ```
 * Create an address pool
   ```
