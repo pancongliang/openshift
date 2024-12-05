@@ -9,6 +9,8 @@ oc new-app --name example-lb --docker-image quay.io/redhattraining/hello-world-n
 
 ### Create a node-port service
 ~~~
+export ADDRESSES="10.74.251.175"
+
 cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Service
@@ -16,7 +18,7 @@ metadata:
   name: example-ex-lb
   namespace: example-lb
 spec:
-  loadBalancerIP: 10.72.94.242
+  loadBalancerIP: $ADDRESSES
   ports:
   - name: 8080-tcp
     port: 8080
