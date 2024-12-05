@@ -9,7 +9,7 @@ oc new-app --name example-lb --docker-image quay.io/redhattraining/hello-world-n
 
 ### Create a node-port service
 ~~~
-export ADDRESSES="10.74.251.175"
+export ADDRESSES="10.184.134.135"
 
 cat << EOF | oc apply -f -
 apiVersion: v1
@@ -18,7 +18,7 @@ metadata:
   name: example-ex-lb
   namespace: example-lb
 spec:
-  loadBalancerIP: $ADDRESSES
+  loadBalancerIP: '$ADDRESSES'
   ports:
   - name: 8080-tcp
     port: 8080
@@ -30,8 +30,8 @@ spec:
 EOF
 
 oc get svc example-ex-lb -n example-lb
-NAME            TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)          AGE
-example-ex-lb   LoadBalancer   172.30.36.34   10.72.94.242   8080:30303/TCP   2m29s
+NAME            TYPE           CLUSTER-IP       EXTERNAL-IP      PORT(S)          AGE
+example-ex-lb   LoadBalancer   172.30.183.116   10.184.134.135   8080:30896/TCP   3s
 
 # Or change the existing svc type to LoadBalancer
 
