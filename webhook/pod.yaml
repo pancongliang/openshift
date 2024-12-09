@@ -2,32 +2,31 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: webhooktest
---- 
-kind: Service
+---
 apiVersion: v1
+kind: Service
 metadata:
- name: webhook
- namespace: webhooktest
-spec:  
- selector:
-  app: webhook
- ports:
- - name: https
-  protocol: TCP
-  port: 443
-  targetPort: 8443
----   
+  name: webhook
+  namespace: webhooktest
+spec:
+  selector:
+    app: webhook
+  ports:
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
+---
 apiVersion: v1
 kind: Pod
 metadata:
- name: webhook
- namespace: webhooktest
- labels:
-  app: webhook
-  # maistra.io/expose-route: "true"  #<--- to allow the traffic from outside.
- annotations:
-  sidecar.istio.io/inject: "true"
-spec:  
- containers:
- - name: webhook
-  image: registry.hub.docker.com/medolika/test-webhook:latest
+  name: webhook
+  namespace: webhooktest
+  labels:
+    app: webhook
+  annotations:
+    sidecar.istio.io/inject: "true"
+spec:
+  containers:
+  - name: webhook
+    image: registry.hub.docker.com/medolika/test-webhook:latest
