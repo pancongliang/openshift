@@ -32,32 +32,11 @@ run_command() {
 # Print task title
 PRINT_TASK "[TASK: Install Minio Tool]"
 
-# Determine the operating system and architecture
-OS_TYPE=$(uname -s)
-ARCH=$(uname -m)
-
-echo "info: [Client Operating System: $OS_TYPE]"
-echo "info: [Client Architecture: $ARCH]"
-
-# Set the download URL based on the OS and architecture
-if [ "$OS_TYPE" = "Darwin" ]; then
-    if [ "$ARCH" = "x86_64" ]; then
-        download_url="https://dl.min.io/client/mc/release/darwin-amd64/mc"
-    elif [ "$ARCH" = "arm64" ]; then
-        download_url="https://dl.min.io/client/mc/release/darwin-arm64/mc"
-    fi
-elif [ "$OS_TYPE" = "Linux" ]; then
-    download_url="https://dl.min.io/client/mc/release/linux-amd64/mc"
-else
-    echo "error: [MC tool installation failed]"
-fi
-
-# Download MC
-curl -sOL "$download_url" 
+curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc  > /dev/null
 run_command "[Downloaded MC tool]"
 
-# Install MC and set permissions
 rm -f /usr/local/bin/mc > /dev/null
+
 mv mc /usr/local/bin/ > /dev/null
 run_command "[Installed MC tool to /usr/local/bin/]"
 
@@ -102,7 +81,10 @@ run_command "[Configured Minio client alias]"
 for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
     mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
     run_command "[Created bucket $BUCKET_NAME]"
-don
+done
+
+# Print task title
+PRINT_TASK "[TASK: Deploying Quay Operator]"
 
 cat << EOF | oc apply -f - &> /dev/null
 apiVersion: operators.coreos.com/v1alpha1
@@ -117,9 +99,13 @@ spec:
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[Install quay-operator]"
+run_command "[Installing Quay Operator...]"
+
+sleep 60
 
 oc new-project ${NAMESPACE}
+run_command "[Create a ${NAMESPACE namespac]"
+
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
 export ACCESS_KEY_ID="minioadmin"
 export ACCESS_KEY_SECRET="minioadmin"
@@ -145,7 +131,6 @@ EOF
 
 oc create secret generic quay-config --from-file=config.yaml -n ${NAMESPACE} &> /dev/null
 run_command "[Create a secret containing quay-config]"
-
 
 cat << EOF | oc apply -f - &> /dev/null
 apiVersion: quay.redhat.com/v1
