@@ -1,6 +1,5 @@
 # Set environment variables
 export CHANNEL_NAME="stable-3.13"
-export NAMESPACE=quay-enterprise
 export NAMESPACE="minio"
 export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
@@ -88,7 +87,7 @@ echo
 # Print task title
 PRINT_TASK "[TASK: Deploying Quay Operator]"
 
-cat << EOF | oc apply -f - &&> /dev/null
+cat << EOF | oc apply -f - &> /dev/null
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -105,8 +104,8 @@ run_command "[Installing Quay Operator...]"
 
 sleep 60
 
-oc new-project ${NAMESPACE}
-run_command "[Create a ${NAMESPACE namespac]"
+oc new-project quay-enterprise &> /dev/null
+run_command "[Create a quay-enterprise namespac]"
 
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
 export ACCESS_KEY_ID="minioadmin"
@@ -131,17 +130,17 @@ SUPER_USERS:
     - quayadmin
 EOF
 
-oc create secret generic quay-config --from-file=config.yaml -n ${NAMESPACE} &&> /dev/null
+oc create secret generic quay-config --from-file=config.yaml -n quay-enterprise &> /dev/null
 run_command "[Create a secret containing quay-config]"
 
-rm -rf config.yaml  &&> /dev/null
+rm -rf config.yaml  &> /dev/null
 
-cat << EOF | oc apply -f - &&> /dev/null
+cat << EOF | oc apply -f - &> /dev/null
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
   name: example-registry
-  namespace: ${NAMESPACE}
+  namespace: quay-enterprise
 spec:
   configBundleSecret: quay-config
   components:
@@ -164,15 +163,17 @@ spec:
 EOF
 run_command "[Create a QuayRegistry]"
 
-
-curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz &&> /dev/null
+curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz &> /dev/null
 run_command "[Download oc-mirror tool]"
 
-tar -xvf oc-mirror.tar.gz &&> /dev/null
-chmod +x ./oc-mirror &&> /dev/null
-rm -rf /usr/local/bin/oc-mirror &&> /dev/null
+tar -xvf oc-mirror.tar.gz &> /dev/null
+chmod +x oc-mirror &> /dev/null
+rm -rf /usr/local/bin/oc-mirror &> /dev/null
 
-mv ./oc-mirror /usr/local/bin/ &&> /dev/null
+mv oc-mirror /usr/local/bin/ &> /dev/null
 run_command "[Install oc-mirror tool]"
 
-echo "info: [Red Hat Quay Operator has been deployed!["
+rm -rf oc-mirror.tar.gz &> /dev/null
+
+echo "info: [Red Hat Quay Operator has been deployed!]"
+echo "info: [Wait for the pod in the quay-enterprise namespace to be in the running state]"
