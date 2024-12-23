@@ -32,18 +32,18 @@ run_command() {
 # Print task title
 PRINT_TASK "[TASK: Install Minio Tool]"
 
-curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc  > /dev/null
+curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc  &> /dev/null
 run_command "[Downloaded MC tool]"
 
-rm -f /usr/local/bin/mc > /dev/null
+rm -f /usr/local/bin/mc &> /dev/null
 
-mv mc /usr/local/bin/ > /dev/null
+mv mc /usr/local/bin/ &> /dev/null
 run_command "[Installed MC tool to /usr/local/bin/]"
 
-chmod +x /usr/local/bin/mc > /dev/null
+chmod +x /usr/local/bin/mc &> /dev/null
 run_command "[Set execute permissions for MC tool]"
 
-mc --version > /dev/null
+mc --version &> /dev/null
 run_command "[MC tool installation complete]"
 
 echo 
@@ -52,13 +52,13 @@ echo
 PRINT_TASK "[TASK: Deploying Minio object]"
 
 # Deploy Minio with the specified YAML template
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - > /dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - &> /dev/null
 run_command "[Applied Minio object]"
 
 # Wait for Minio pods to be in 'Running' state
 while true; do
     # Check the status of pods
-    if oc get pods -n "$NAMESPACE" --no-headers | awk '{print $3}' | grep -v "Running" > /dev/null; then
+    if oc get pods -n "$NAMESPACE" --no-headers | awk '{print $3}' | grep -v "Running" &> /dev/null; then
         echo "info: [Waiting for pods to be in 'Running' state...]"
         sleep 20
     else
@@ -74,19 +74,19 @@ run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 sleep 3
 
 # Set Minio client alias
-mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin > /dev/null
+mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin &> /dev/null
 run_command "[Configured Minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
-    mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
+    mc --no-color mb my-minio/$BUCKET_NAME &> /dev/null
     run_command "[Created bucket $BUCKET_NAME]"
 done
 
 # Print task title
 PRINT_TASK "[TASK: Deploying Quay Operator]"
 
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc apply -f - &&> /dev/null
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -129,10 +129,10 @@ SUPER_USERS:
     - quayadmin
 EOF
 
-oc create secret generic quay-config --from-file=config.yaml -n ${NAMESPACE} &> /dev/null
+oc create secret generic quay-config --from-file=config.yaml -n ${NAMESPACE} &&> /dev/null
 run_command "[Create a secret containing quay-config]"
 
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc apply -f - &&> /dev/null
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
@@ -161,14 +161,14 @@ EOF
 run_command "[Create a QuayRegistry]"
 
 
-curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz &> /dev/null
+curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz &&> /dev/null
 run_command "[Download oc-mirror tool]"
 
-tar -xvf oc-mirror.tar.gz &> /dev/null
-chmod +x ./oc-mirror &> /dev/null
-rm -rf /usr/local/bin/oc-mirror &> /dev/null
+tar -xvf oc-mirror.tar.gz &&> /dev/null
+chmod +x ./oc-mirror &&> /dev/null
+rm -rf /usr/local/bin/oc-mirror &&> /dev/null
 
-mv ./oc-mirror /usr/local/bin/ &> /dev/null
+mv ./oc-mirror /usr/local/bin/ &&> /dev/null
 run_command "[Install oc-mirror tool]"
 
 echo "Red Hat Quay Operator has been deployed!"
