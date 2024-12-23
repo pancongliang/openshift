@@ -32,7 +32,7 @@ run_command() {
 # Print task title
 PRINT_TASK "[TASK: Install Minio Tool]"
 
-curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc  &> /dev/null
+curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc &> /dev/null
 run_command "[Downloaded MC tool]"
 
 rm -f /usr/local/bin/mc &> /dev/null
@@ -83,6 +83,8 @@ for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
     run_command "[Created bucket $BUCKET_NAME]"
 done
 
+echo 
+
 # Print task title
 PRINT_TASK "[TASK: Deploying Quay Operator]"
 
@@ -132,6 +134,8 @@ EOF
 oc create secret generic quay-config --from-file=config.yaml -n ${NAMESPACE} &&> /dev/null
 run_command "[Create a secret containing quay-config]"
 
+rm -rf config.yaml  &&> /dev/null
+
 cat << EOF | oc apply -f - &&> /dev/null
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
@@ -171,4 +175,4 @@ rm -rf /usr/local/bin/oc-mirror &&> /dev/null
 mv ./oc-mirror /usr/local/bin/ &&> /dev/null
 run_command "[Install oc-mirror tool]"
 
-echo "Red Hat Quay Operator has been deployed!"
+echo "info: [Red Hat Quay Operator has been deployed!["
