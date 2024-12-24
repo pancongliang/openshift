@@ -57,6 +57,7 @@ else
 fi
 
 echo 
+# ====================================================
 
 # Print task title
 PRINT_TASK "[TASK: Deploying Minio object]"
@@ -96,10 +97,12 @@ for BUCKET_NAME in "quay-bucket"; do
 done
 
 echo 
+# ====================================================
 
 # Print task title
 PRINT_TASK "[TASK: Deploying Quay Operator]"
 
+# Create a Subscription
 cat << EOF | oc apply -f - &> /dev/null
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -115,11 +118,31 @@ spec:
 EOF
 run_command "[Installing Quay Operator...]"
 
-sleep 60
+sleep 30
 
+# Chek Quay operator pod
+EXPECTED_READY="1/1"
+EXPECTED_STATUS="Running"
+
+while true; do
+    # Get the status of pods matching quay-operator in the openshift-operators namespace
+    pod_status=$(oc get po -n openshift-operators --no-headers | grep "quay-operator" | awk '{print $2, $3}')
+
+    # Check if all matching pods have reached the expected Ready and Status values
+    if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
+        echo "info: [Quay operator pods have not reached the expected status, waiting...]"
+        sleep 20
+    else
+        echo "ok: [Quay operator pods have reached the expected state]"
+        break
+    fi
+done
+
+# Create a namespace
 oc new-project quay-enterprise &> /dev/null
 run_command "[Create a quay-enterprise namespac]"
 
+# Create a quay config
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
 export ACCESS_KEY_ID="minioadmin"
 export ACCESS_KEY_SECRET="minioadmin"
@@ -143,11 +166,14 @@ SUPER_USERS:
     - quayadmin
 EOF
 
+sleep 3
+# Create a secret containing the quay config
 oc create secret generic quay-config --from-file=config.yaml -n quay-enterprise &> /dev/null
 run_command "[Create a secret containing quay-config]"
 
 rm -rf config.yaml  &> /dev/null
 
+# Create a Quay Registry
 cat << EOF | oc apply -f - &> /dev/null
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
@@ -176,7 +202,26 @@ spec:
 EOF
 run_command "[Create a QuayRegistry]"
 
+# Check quay pod status
+EXPECTED_READY="1/1" 
+EXPECTED_STATUS="Running"
+
+while true; do
+    # Get the status of all pods excluding those in Completed state
+    pod_status=$(oc get po -n quay-enterprise --no-headers | awk '$3 != "Completed" {print $2, $3}')
+
+    # Check if any pod does not meet the expected conditions
+    if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
+        echo "info: [Not all pods have reached the expected status, waiting...]"
+        sleep 30
+    else
+        echo "ok: [All pods in namespace quay-enterprise have reached the expected state]"
+        break
+    fi
+done
+
 echo 
+# ====================================================
 
 # Print task title
 PRINT_TASK "[TASK: Install oc-mirror tool]"
@@ -211,6 +256,7 @@ else
 fi
 
 echo 
+# ====================================================
 
 # Print task title
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
@@ -219,7 +265,7 @@ PRINT_TASK "[TASK: Configuring additional trust stores for image registry access
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator &> /dev/null 
 run_command "[Export the router-ca certificate]"
 
-sleep 50
+sleep 10
 
 # Create a configmap containing the CA certificate
 export QUAY_HOST=$(oc get route example-registry-quay -n quay-enterprise --template='{{.spec.host}}')
@@ -232,8 +278,8 @@ run_command "[Additional trusted CA]"
 
 rm -rf tls.crt &> /dev/null
 
-
 echo 
+# ====================================================
 
 # Print task title
 PRINT_TASK "[TASK: Update pull-secret]"
@@ -276,8 +322,8 @@ run_command "[Update pull-secret]"
 rm -rf tmp-authfile &> /dev/null
 rm -rf pull-secret &> /dev/null
 
-
 echo 
+# ====================================================
 
 # Print task title
 PRINT_TASK "[TASK: Check status]"
@@ -306,26 +352,12 @@ while true; do
     fi
 done
 
+echo 
+# ====================================================
 
-# Check quay pod status
-EXPECTED_READY="1/1" 
-EXPECTED_STATUS="Running"
+# Print task title
+PRINT_TASK "[TASK: Manually create a user]"
 
-while true; do
-    # Get the status of all pods excluding those in Completed state
-    pod_status=$(oc get po -n quay-enterprise --no-headers | awk '$3 != "Completed" {print $2, $3}')
-
-    # Check if any pod does not meet the expected conditions
-    if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
-        echo "info: [Not all pods have reached the expected status, waiting...]"
-        sleep 30
-    else
-        echo "ok: [All pods in namespace quay-enterprise have reached the expected state]"
-        break
-    fi
-done
-
-
-echo "info: [Red Hat Quay Operator has been deployed]"
-echo "info: [Wait for the pod in the quay-enterprise namespace to be in the running state]"
+echo "note: [***You need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
+echo "note: [***You need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
 echo "note: [***You need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
