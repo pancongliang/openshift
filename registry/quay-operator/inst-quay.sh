@@ -126,7 +126,7 @@ EXPECTED_STATUS="Running"
 
 while true; do
     # Get the status of pods matching quay-operator in the openshift-operators namespace
-    pod_status=$(oc get po -n openshift-operators --no-headers | grep "quay-operator" | awk '{print $2, $3}')
+    pod_status=$(oc get po -n openshift-operators --no-headers &> /dev/null | grep "quay-operator" | awk '{print $2, $3}')
 
     # Check if all matching pods have reached the expected Ready and Status values
     if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
@@ -202,13 +202,15 @@ spec:
 EOF
 run_command "[Create a QuayRegistry]"
 
+sleep 30
+
 # Check quay pod status
 EXPECTED_READY="1/1" 
 EXPECTED_STATUS="Running"
 
 while true; do
     # Get the status of all pods excluding those in Completed state
-    pod_status=$(oc get po -n quay-enterprise --no-headers | awk '$3 != "Completed" {print $2, $3}')
+    pod_status=$(oc get po -n quay-enterprise --no-headers &> /dev/null | awk '$3 != "Completed" {print $2, $3}')
 
     # Check if any pod does not meet the expected conditions
     if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
@@ -313,11 +315,11 @@ else
 }
 EOF
 fi
-echo "info: [Authentication information for $REGISTRY added to $AUTHFILE]"
+echo "ok: [Authentication information for Quay Registry added to $AUTHFILE]"
 
 # Update pull-secret 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret &> /dev/null
-run_command "[Update pull-secret]"
+run_command "[Update pull-secret for the cluster]"
 
 rm -rf tmp-authfile &> /dev/null
 rm -rf pull-secret &> /dev/null
