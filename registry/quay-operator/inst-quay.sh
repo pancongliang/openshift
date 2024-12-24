@@ -255,7 +255,7 @@ if [ -f "$AUTHFILE" ]; then
   jq --arg registry "$REGISTRY" \
      --arg auth "$AUTH" \
      '.auths[$registry] = {auth: $auth}' \
-     "$AUTHFILE" > tmp-authfile && mv -y tmp-authfile "$AUTHFILE"
+     "$AUTHFILE" > tmp-authfile && mv -f tmp-authfile "$AUTHFILE"
 else
   cat <<EOF > $AUTHFILE
 {
@@ -269,20 +269,58 @@ EOF
 fi
 echo "info: [Authentication information for $REGISTRY added to $AUTHFILE]"
 
-# Update pull-secret
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret
+# Update pull-secret 
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret &> /dev/null
 run_command "[Update pull-secret]"
 
 rm -rf tmp-authfile &> /dev/null
 rm -rf pull-secret &> /dev/null
 
+
+echo 
+
+# Print task title
+PRINT_TASK "[TASK: Check status]"
+
+# Check cluser operator status
 while true; do
-    operator_status=$(/usr/local/bin/oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(oc get co --no-headers | awk '{print $3, $4, $5}')
     if echo "$operator_status" | grep -q -v "True False False"; then
-        echo "info: [all cluster operators have not reached the expected status, Waiting...]"
-        sleep 60  
+        echo "info: [All cluster operators have not reached the expected status, Waiting...]"
+        sleep 30  
     else
-        echo "ok: [all cluster operators have reached the expected state]"
+        echo "ok: [All cluster operators have reached the expected state]"
+        break
+    fi
+done
+
+# Check MCP status
+while true; do
+    mcp_status=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
+    if echo "$mcp_status" | grep -q -v "True False False"; then
+        echo "info: [All MCP have not reached the expected status, Waiting...]"
+        sleep 30  
+    else
+        echo "ok: [All MCP have reached the expected state]"
+        break
+    fi
+done
+
+
+# Check quay pod status
+EXPECTED_READY="1/1" 
+EXPECTED_STATUS="Running"
+
+while true; do
+    # Get the status of all pods excluding those in Completed state
+    pod_status=$(oc get po -n quay-enterprise --no-headers | awk '$3 != "Completed" {print $2, $3}')
+
+    # Check if any pod does not meet the expected conditions
+    if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
+        echo "info: [Not all pods have reached the expected status, waiting...]"
+        sleep 30
+    else
+        echo "ok: [All pods in namespace quay-enterprise have reached the expected state]"
         break
     fi
 done
@@ -290,4 +328,4 @@ done
 
 echo "info: [Red Hat Quay Operator has been deployed]"
 echo "info: [Wait for the pod in the quay-enterprise namespace to be in the running state]"
-echo "note: [You need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>]"
+echo "note: [***You need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
