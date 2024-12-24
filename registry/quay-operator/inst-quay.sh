@@ -255,7 +255,7 @@ if [ -f "$AUTHFILE" ]; then
   jq --arg registry "$REGISTRY" \
      --arg auth "$AUTH" \
      '.auths[$registry] = {auth: $auth}' \
-     "$AUTHFILE" > tmp-authfile && mv tmp-authfile "$AUTHFILE"
+     "$AUTHFILE" > tmp-authfile && mv -y tmp-authfile "$AUTHFILE"
 else
   cat <<EOF > $AUTHFILE
 {
@@ -273,6 +273,7 @@ echo "info: [Authentication information for $REGISTRY added to $AUTHFILE]"
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret
 run_command "[Update pull-secret]"
 
+rm -rf tmp-authfile &> /dev/null
 rm -rf pull-secret &> /dev/null
 
 while true; do
