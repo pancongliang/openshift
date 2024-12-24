@@ -80,7 +80,10 @@ curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/ma
 vim aws-inst-bastion.sh
 source aws-inst-bastion.sh
 
-./ocp-bastion.sh
+ssh ocp-bastion.sh
+# Run one by one 
+ls
+inst-registry.sh inst-ocp-tool.sh ocp-login.sh
 ```
 
 #### Scheduled installation and uninstallation of OpenShift IPI
