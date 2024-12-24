@@ -2,6 +2,7 @@
 
 # Set environment variables
 export CLUSTER_NAME="copan"
+export CLUSTER_API="api.$CLUSTER_NAME.apac.aws.cee.support"
 export REGION="ap-northeast-1"
 export AWS_ACCESS_KEY_ID="xxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxx"
@@ -172,7 +173,7 @@ run_command "[Modify permissions for the $INSTANCE_NAME file]"
 
 # Dowload ocp login script
 cat << EOF > "./ocp-login.sh"
-oc login -u admin -p redhat https://api.$CLUSTER_NAME.apac.aws.cee.support:6443 --insecure-skip-tls-verify=true
+oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true
 EOF
 run_command "[Create access $INSTANCE_NAME file in current directory]"
 
@@ -191,7 +192,7 @@ cat <<EOF >> inst-registry.sh
 # Task: Configuring additional trust stores for image registry access
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
-oc login -u admin -p redhat https://api.$CLUSTER_NAME.apac.aws.cee.support:6443 --insecure-skip-tls-verify=true &> /dev/null    
+oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true &> /dev/null    
 run_command "[Login ocp cluster]"
 
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > \$HOME/pull-secret
@@ -319,7 +320,7 @@ sudo systemctl restart sshd &> /dev/null
 
 
 # completion command:
-oc login -u admin -p redhat https://api.$CLUSTER_NAME.apac.aws.cee.support:6443 --insecure-skip-tls-verify=true &> /dev/null
+oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true &> /dev/null
 sudo bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' &> /dev/null
 source /etc/bash_completion.d/oc_completio &> /dev/null
 
