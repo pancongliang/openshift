@@ -176,6 +176,8 @@ spec:
 EOF
 run_command "[Create a QuayRegistry]"
 
+echo 
+
 # Print task title
 PRINT_TASK "[TASK: Install oc-mirror tool]"
 
@@ -216,6 +218,8 @@ PRINT_TASK "[TASK: Configuring additional trust stores for image registry access
 # Export the router-ca certificate
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator &> /dev/null 
 run_command "[Export the router-ca certificate]"
+
+sleep 50
 
 # Create a configmap containing the CA certificate
 export QUAY_HOST=$(oc get route example-registry-quay -n quay-enterprise --template='{{.spec.host}}')
