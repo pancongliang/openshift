@@ -1,9 +1,7 @@
 # Set environment variables
 export CHANNEL_NAME="stable-3.13"
-export NAMESPACE="minio"
 export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
-
 
 #!/bin/bash
 
@@ -31,19 +29,32 @@ run_command() {
 # Print task title
 PRINT_TASK "[TASK: Install Minio Tool]"
 
-curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc &> /dev/null
-run_command "[Downloaded MC tool]"
+# Check if mc is already installed and operational
+if mc --version &> /dev/null; then
+    run_command "[MC tool already installed, skipping installation]"
+else
+    # Download the MC tool
+    curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc &> /dev/null
+    run_command "[Downloaded MC tool]"
 
-rm -f /usr/local/bin/mc &> /dev/null
+    # Remove the old version (if it exists)
+    rm -f /usr/local/bin/mc &> /dev/null
 
-mv mc /usr/local/bin/ &> /dev/null
-run_command "[Installed MC tool to /usr/local/bin/]"
+    # Move the new version to /usr/local/bin
+    mv mc /usr/local/bin/ &> /dev/null
+    run_command "[Installed MC tool to /usr/local/bin/]"
 
-chmod +x /usr/local/bin/mc &> /dev/null
-run_command "[Set execute permissions for MC tool]"
+    # Set execute permissions for the tool
+    chmod +x /usr/local/bin/mc &> /dev/null
+    run_command "[Set execute permissions for MC tool]"
 
-mc --version &> /dev/null
-run_command "[MC tool installation complete]"
+    # Verify the installation
+    if mc --version &> /dev/null; then
+        run_command "[MC tool installation complete]"
+    else
+        run_command "[Failed to install MC tool, proceeding without it]"
+    fi
+fi
 
 echo 
 
@@ -51,6 +62,8 @@ echo
 PRINT_TASK "[TASK: Deploying Minio object]"
 
 # Deploy Minio with the specified YAML template
+export NAMESPACE="minio"
+
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - &> /dev/null
 run_command "[Applied Minio object]"
 
@@ -163,17 +176,113 @@ spec:
 EOF
 run_command "[Create a QuayRegistry]"
 
-curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz &> /dev/null
-run_command "[Download oc-mirror tool]"
+# Print task title
+PRINT_TASK "[TASK: Install oc-mirror tool]"
 
-tar -xvf oc-mirror.tar.gz &> /dev/null
-chmod +x oc-mirror &> /dev/null
-rm -rf /usr/local/bin/oc-mirror &> /dev/null
+# Check if oc-mirror is already installed and operational
+if oc-mirror -h &> /dev/null; then
+    run_command "[The oc-mirror tool already installed, skipping installation]"
+else
+    # Download the oc-mirror tool
+    curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz &> /dev/null
+    run_command "[Downloaded oc-mirror tool]"
 
-mv oc-mirror /usr/local/bin/ &> /dev/null
-run_command "[Install oc-mirror tool]"
+    # Remove the old version (if it exists)
+    rm -f /usr/local/bin/oc-mirror &> /dev/null
 
-rm -rf oc-mirror.tar.gz &> /dev/null
+    tar -xvf oc-mirror.tar.gz &> /dev/null
 
-echo "info: [Red Hat Quay Operator has been deployed!]"
+    # Set execute permissions for the tool
+    chmod +x oc-mirror &> /dev/null
+    run_command "[Set execute permissions for oc-mirror tool]"
+
+    # Move the new version to /usr/local/bin
+    mv oc-mirror /usr/local/bin/ &> /dev/null
+    run_command "[Installed oc-mirror tool to /usr/local/bin/]"
+
+    # Verify the installation
+    if oc-mirror -h &> /dev/null; then
+        run_command "[oc-mirror tool installation complete]"
+    else
+        run_command "[Failed to install oc-mirror tool, proceeding without it]"
+    fi
+fi
+
+echo 
+
+# Print task title
+PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
+
+# Export the router-ca certificate
+oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator &> /dev/null 
+run_command "[Export the router-ca certificate]"
+
+# Create a configmap containing the CA certificate
+export QUAY_HOST=$(oc get route example-registry-quay -n quay-enterprise --template='{{.spec.host}}')
+oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config &> /dev/null
+run_command "[Create a configmap containing the CA certificate]"
+
+# Additional trusted CA
+oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
+run_command "[Additional trusted CA]"
+
+rm -rf tls.crt &> /dev/null
+
+
+echo 
+
+# Print task title
+PRINT_TASK "[TASK: Update pull-secret]"
+
+# Export pull-secret
+oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
+run_command "[Export pull-secret]"
+
+# Update pull-secret file
+export AUTHFILE="pull-secret"
+export REGISTRY=$(oc get route example-registry-quay -n quay-enterprise --template='{{.spec.host}}')
+export USERNAME="quayadmin"
+export PASSWORD="password"
+
+# Base64 encode the username:password
+AUTH=$(echo -n "$USERNAME:$PASSWORD" | base64)
+
+if [ -f "$AUTHFILE" ]; then
+  jq --arg registry "$REGISTRY" \
+     --arg auth "$AUTH" \
+     '.auths[$registry] = {auth: $auth}' \
+     "$AUTHFILE" > tmp-authfile && mv tmp-authfile "$AUTHFILE"
+else
+  cat <<EOF > $AUTHFILE
+{
+    "auths": {
+        "$REGISTRY": {
+            "auth": "$AUTH"
+        }
+    }
+}
+EOF
+fi
+echo "info: [Authentication information for $REGISTRY added to $AUTHFILE]"
+
+# Update pull-secret
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret
+run_command "[Update pull-secret]"
+
+rm -rf pull-secret &> /dev/null
+
+while true; do
+    operator_status=$(/usr/local/bin/oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    if echo "$operator_status" | grep -q -v "True False False"; then
+        echo "info: [all cluster operators have not reached the expected status, Waiting...]"
+        sleep 60  
+    else
+        echo "ok: [all cluster operators have reached the expected state]"
+        break
+    fi
+done
+
+
+echo "info: [Red Hat Quay Operator has been deployed]"
 echo "info: [Wait for the pod in the quay-enterprise namespace to be in the running state]"
+echo "note: [You need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>]"
