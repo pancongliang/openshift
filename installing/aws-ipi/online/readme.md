@@ -28,7 +28,7 @@ source aws-ipi-inst.sh
 
 ```
 # The script automatically creates a user with the cluster-admin role
-oc login -u admin -p redhat https://redhat api.$CLUSTER_NAME.$BASE_DOMAIN:6443
+oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443
 
 # Client Mac:
 echo 'export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig' >> $HOME/.zshrc
