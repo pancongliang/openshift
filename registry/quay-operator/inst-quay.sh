@@ -90,7 +90,7 @@ mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin &> 
 run_command "[Configured Minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
-for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
+for BUCKET_NAME in "quay-bucket"; do
     mc --no-color mb my-minio/$BUCKET_NAME &> /dev/null
     run_command "[Created bucket $BUCKET_NAME]"
 done
