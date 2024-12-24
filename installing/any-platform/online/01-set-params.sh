@@ -1,21 +1,6 @@
 #!/bin/bash
 
-# Function to print a task with uniform length
-PRINT_TASK() {
-    max_length=110  # Adjust this to your desired maximum length
-    task_title="$1"
-    title_length=${#task_title}
-    stars=$((max_length - title_length))
-
-    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
-}
-# ====================================================
-
-# Task: Set environment variables
-PRINT_TASK "[TASK: Set environment variables]"
-
 # No need to create any resources, just specify parameters.
-
 # === Set the necessary variables === 
 # OpenShift release version
 export OCP_RELEASE_VERSION="4.12.26"
@@ -78,6 +63,20 @@ export LB_IP="$BASTION_IP"
 
 # Nslookup public network
 export NSLOOKUP_PUBLIC="redhat.com"
+
+# Function to print a task with uniform length
+PRINT_TASK() {
+    max_length=110  # Adjust this to your desired maximum length
+    task_title="$1"
+    title_length=${#task_title}
+    stars=$((max_length - title_length))
+
+    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+}
+# ====================================================
+
+# Task: Set environment variables
+PRINT_TASK "[TASK: Set environment variables]"
 
 # === Check all variables === 
 # Define variables
