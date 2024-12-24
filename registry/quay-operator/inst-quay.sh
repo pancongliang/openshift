@@ -272,7 +272,7 @@ sleep 10
 # Create a configmap containing the CA certificate
 export QUAY_HOST=$(oc get route example-registry-quay -n quay-enterprise --template='{{.spec.host}}')
 oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config &> /dev/null
-run_command "[Create a configmap containing the CA certificate]"
+run_command "[Create a configmap containing the Route CA certificate]"
 
 # Additional trusted CA
 oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
