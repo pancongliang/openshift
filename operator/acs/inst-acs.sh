@@ -60,7 +60,7 @@ metadata:
   namespace: rhacs-operator
 spec:
   channel: ${CHANNEL_NAME}
-  installPlanApproval: Automatic
+  installPlanApproval: "Manual"
   source: redhat-operators
   name: rhacs-operator
   sourceNamespace: openshift-marketplace
