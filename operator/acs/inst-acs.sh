@@ -69,6 +69,11 @@ run_command "[Installing RHACS Operator...]"
 
 sleep 30
 
+# Approval IP
+export NAMESPACE="rhacs-operator"
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash &> /dev/null
+run_command "[Approve rhacs-operator install plan]"
+
 # Chek Quay operator pod
 EXPECTED_READY="1/1"
 EXPECTED_STATUS="Running"
@@ -233,19 +238,18 @@ run_command "[Create a secured cluster]"
 sleep 20
 
 # Check pod status
-EXPECTED_READY="1/1" 
 EXPECTED_STATUS="Running"
 
 while true; do
-    # Get the status of all pods excluding those in Completed state
-    pod_status=$(oc get po -n stackrox --no-headers &> /dev/null | awk '$3 != "Completed" {print $2, $3}')
-
-    # Check if any pod does not meet the expected conditions
-    if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
+    # Check if all pods meet the expected READY and STATUS
+    if oc get po -n openshift-logging --no-headers &> /dev/null | awk '$3 != "Completed" {
+        split($2, ready, "/");
+        if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
+    }' | grep -q "waiting"; then
         echo "info: [Not all pods have reached the expected status, waiting...]"
         sleep 30
     else
-        echo "ok: [All pods in namespace stackrox have reached the expected state]"
+        echo "ok: [All pods in namespace openshift-logging have reached the expected state]"
         break
     fi
 done
