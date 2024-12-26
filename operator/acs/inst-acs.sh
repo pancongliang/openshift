@@ -37,7 +37,7 @@ EOF
 run_command "[Create a rhacs-operator namespace]"
 
 # Create a Subscription
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc create -f - &> /dev/null
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
