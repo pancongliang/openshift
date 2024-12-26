@@ -111,12 +111,17 @@ metadata:
   namespace: openshift-operators
 spec:
   channel: ${CHANNEL_NAME}
-  installPlanApproval: Automatic
+  installPlanApproval: "Manual"
   name: quay-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[Installing Quay Operator...]"
+
+# Approval IP
+export NAMESPACE="openshift-operators"
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash &> /dev/null
+run_command "[Approve openshift-operators install plan]"
 
 sleep 30
 
