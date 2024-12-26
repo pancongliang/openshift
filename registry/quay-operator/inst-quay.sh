@@ -68,10 +68,12 @@ export NAMESPACE="minio"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - &> /dev/null
 run_command "[Create Minio object]"
 
+sleep 20
+
 # Wait for Minio pods to be in 'Running' state
 while true; do
     # Check the status of pods
-    if oc get pods -n "$NAMESPACE" --no-headers | awk '{print $3}' | grep -v "Running" &> /dev/null; then
+    if oc get pods -n "$NAMESPACE" --no-headers &> /dev/null | awk '{print $3}' | grep -v "Running" &> /dev/null; then
         echo "info: [Waiting for pods to be in 'Running' state...]"
         sleep 20
     else
@@ -210,15 +212,14 @@ run_command "[Create a QuayRegistry]"
 sleep 30
 
 # Check quay pod status
-EXPECTED_READY="1/1" 
 EXPECTED_STATUS="Running"
 
 while true; do
-    # Get the status of all pods excluding those in Completed state
-    pod_status=$(oc get po -n quay-enterprise --no-headers &> /dev/null | awk '$3 != "Completed" {print $2, $3}')
-
-    # Check if any pod does not meet the expected conditions
-    if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
+    # Check if all pods meet the expected READY and STATUS
+    if oc get po -n quay-enterprise --no-headers &> /dev/null | awk '$3 != "Completed" {
+        split($2, ready, "/");
+        if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
+    }' | grep -q "waiting"; then
         echo "info: [Not all pods have reached the expected status, waiting...]"
         sleep 30
     else
