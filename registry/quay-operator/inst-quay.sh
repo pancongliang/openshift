@@ -66,7 +66,7 @@ PRINT_TASK "[TASK: Deploying Minio object]"
 export NAMESPACE="minio"
 
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - &> /dev/null
-run_command "[Applied Minio object]"
+run_command "[Create Minio object]"
 
 # Wait for Minio pods to be in 'Running' state
 while true; do
