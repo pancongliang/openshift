@@ -202,6 +202,8 @@ export NAMESPACE="openshift-operators"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash &> /dev/null
 run_command "[Approve cluster-observability-operator install plan]"
 
+sleep 30
+
 # Create Object Storage secret credentials
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
 export ACCESS_KEY_ID="minioadmin"
