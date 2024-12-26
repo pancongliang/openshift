@@ -1,3 +1,4 @@
+# Set environment variables
 export CHANNEL_NAME="stable"
 
 #!/bin/bash
@@ -25,7 +26,6 @@ run_command() {
 
 # Print task title
 PRINT_TASK "[TASK: Install RHACS Operator]"
-
 
 # Create a namespace
 cat << EOF | oc apply -f - &> /dev/null
@@ -87,7 +87,6 @@ while true; do
     fi
 done
 
-
 # Create a namespace
 cat << EOF | oc apply -f - &> /dev/null
 apiVersion: v1
@@ -96,7 +95,6 @@ metadata:
   name: stackrox
 EOF
 run_command "[Create a stackrox namespace]"
-
 
 # Create a Central
 cat << EOF | oc apply -f - &> /dev/null
@@ -136,7 +134,6 @@ spec:
 EOF
 run_command "[Create a central instance]"
 
-
 sleep 30
 
 # Check pod status
@@ -156,7 +153,6 @@ while true; do
         break
     fi
 done
-
 
 # Check if roxctl is already installed and operational
 if roxctl -h &> /dev/null; then
@@ -186,15 +182,12 @@ else
     fi
 fi
 
-echo 
-
 # Creating resources by using the init bundle
 export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
 roxctl -e "$ROX_CENTRAL_ADDRESS" central init-bundles generate cluster_init_bundle.yaml --output-secrets cluster_init_bundle.yaml
 sleep 10
 oc apply -f cluster_init_bundle.yaml -n stackrox
 run_command "[Creating resources by using the init bundle]"
-
 
 sleep 10
 
@@ -236,6 +229,8 @@ spec:
     scannerComponent: AutoSense
 EOF
 run_command "[Create a secured cluster]"
+
+sleep 20
 
 # Check pod status
 EXPECTED_READY="1/1" 
