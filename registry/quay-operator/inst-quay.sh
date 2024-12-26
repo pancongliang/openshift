@@ -133,7 +133,7 @@ EXPECTED_STATUS="Running"
 
 while true; do
     # Get the status of pods matching quay-operator in the openshift-operators namespace
-    pod_status=$(oc get po -n openshift-operators --no-headers &> /dev/null | grep "quay-operator" | awk '{print $2, $3}')
+    pod_status=$(oc get po -n openshift-operators --no-headers | grep "quay-operator" | awk '{print $2, $3}')
 
     # Check if all matching pods have reached the expected Ready and Status values
     if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
