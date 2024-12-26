@@ -142,15 +142,14 @@ run_command "[Create a central instance]"
 sleep 30
 
 # Check pod status
-EXPECTED_READY="1/1" 
 EXPECTED_STATUS="Running"
 
 while true; do
-    # Get the status of all pods excluding those in Completed state
-    pod_status=$(oc get po -n stackrox --no-headers &> /dev/null | awk '$3 != "Completed" {print $2, $3}')
-
-    # Check if any pod does not meet the expected conditions
-    if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
+    # Check if all pods meet the expected READY and STATUS
+    if oc get po -n stackrox --no-headers &> /dev/null | awk '$3 != "Completed" {
+        split($2, ready, "/");
+        if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
+    }' | grep -q "waiting"; then
         echo "info: [Not all pods have reached the expected status, waiting...]"
         sleep 30
     else
@@ -189,7 +188,7 @@ fi
 
 # Creating resources by using the init bundle
 export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
-roxctl -e "$ROX_CENTRAL_ADDRESS" central init-bundles generate cluster_init_bundle.yaml --output-secrets cluster_init_bundle.yaml
+roxctl -e "$ROX_CENTRAL_ADDRESS" central init-bundles generate cluster_init_bundle.yaml --output-secrets cluster_init_bundle.yaml &> /dev/null
 sleep 10
 oc apply -f cluster_init_bundle.yaml -n stackrox
 run_command "[Creating resources by using the init bundle]"
@@ -242,14 +241,14 @@ EXPECTED_STATUS="Running"
 
 while true; do
     # Check if all pods meet the expected READY and STATUS
-    if oc get po -n openshift-logging --no-headers &> /dev/null | awk '$3 != "Completed" {
+    if oc get po -n stackrox --no-headers &> /dev/null | awk '$3 != "Completed" {
         split($2, ready, "/");
         if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
     }' | grep -q "waiting"; then
         echo "info: [Not all pods have reached the expected status, waiting...]"
         sleep 30
     else
-        echo "ok: [All pods in namespace openshift-logging have reached the expected state]"
+        echo "ok: [All pods in namespace stackrox have reached the expected state]"
         break
     fi
 done
