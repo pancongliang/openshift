@@ -80,7 +80,7 @@ EXPECTED_STATUS="Running"
 
 while true; do
     # Get the status of pods matching quay-operator in the openshift-operators namespace
-    pod_status=$(oc get po -n rhacs-operator --no-headers &> /dev/null | grep "rhacs" | awk '{print $2, $3}')
+    pod_status=$(oc get po -n rhacs-operator --no-headers | grep "rhacs" | awk '{print $2, $3}')
 
     # Check if all matching pods have reached the expected Ready and Status values
     if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
@@ -146,7 +146,7 @@ EXPECTED_STATUS="Running"
 
 while true; do
     # Check if all pods meet the expected READY and STATUS
-    if oc get po -n stackrox --no-headers &> /dev/null | awk '$3 != "Completed" {
+    if oc get po -n stackrox --no-headers | awk '$3 != "Completed" {
         split($2, ready, "/");
         if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
     }' | grep -q "waiting"; then
@@ -241,7 +241,7 @@ EXPECTED_STATUS="Running"
 
 while true; do
     # Check if all pods meet the expected READY and STATUS
-    if oc get po -n stackrox --no-headers &> /dev/null | awk '$3 != "Completed" {
+    if oc get po -n stackrox --no-headers | awk '$3 != "Completed" {
         split($2, ready, "/");
         if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
     }' | grep -q "waiting"; then
