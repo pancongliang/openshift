@@ -2,6 +2,8 @@
 export CHANNEL_NAME="stable-6.1"
 export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
+export CATALOG_SOURCE=cs-redhat-operator-index
+#export CATALOG_SOURCE=redhat-operators
 
 #!/bin/bash
 
@@ -145,7 +147,7 @@ spec:
   channel: ${CHANNEL_NAME}
   installPlanApproval: "Manual"
   name: loki-operator
-  source: redhat-operators
+  source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[Create a loki operator]"
@@ -169,7 +171,7 @@ spec:
   channel: ${CHANNEL_NAME}
   installPlanApproval: "Manual"
   name: cluster-logging
-  source: redhat-operators
+  source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[Create a cluster-logging operator]"
@@ -184,7 +186,7 @@ spec:
   channel: development
   installPlanApproval: "Manual"
   name: cluster-observability-operator
-  source: redhat-operators
+  source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[Create a cluster observability operator]"
@@ -255,6 +257,8 @@ run_command "[Allow the collector’s service account to collect infra logs]"
 # Creating CLF CR and UIPlugin
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/04-clf-ui.yaml | envsubst | oc create -f - &> /dev/null
 run_command "[Creating CLF CR and UIPlugin]"
+
+sleep 30
 
 # Check openshift-logging pod status
 EXPECTED_STATUS="Running"
