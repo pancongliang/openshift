@@ -273,10 +273,13 @@ PRINT_TASK "[TASK: Configuring additional trust stores for image registry access
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator &> /dev/null 
 run_command "[Export the router-ca certificate]"
 
-sleep 10
+sleep 30
 
 # Create a configmap containing the CA certificate
 export QUAY_HOST=$(oc get route example-registry-quay -n quay-enterprise --template='{{.spec.host}}')
+
+sleep 10
+
 oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config &> /dev/null
 run_command "[Create a configmap containing the Route CA certificate]"
 
@@ -299,11 +302,9 @@ run_command "[Export pull-secret]"
 # Update pull-secret file
 export AUTHFILE="pull-secret"
 export REGISTRY=$(oc get route example-registry-quay -n quay-enterprise --template='{{.spec.host}}')
-export USERNAME="quayadmin"
-export PASSWORD="password"
 
 # Base64 encode the username:password
-AUTH=$(echo -n "$USERNAME:$PASSWORD" | base64)
+AUTH=cXVheWFkbWluOnBhc3N3b3Jk
 
 if [ -f "$AUTHFILE" ]; then
   jq --arg registry "$REGISTRY" \
