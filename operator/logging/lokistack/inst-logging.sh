@@ -255,7 +255,7 @@ oc adm policy add-cluster-role-to-user collect-infrastructure-logs -z collector 
 run_command "[Allow the collector’s service account to collect infra logs]"
 
 # Creating CLF CR and UIPlugin
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/04-clf-ui.yaml | envsubst | oc create -f - &> /dev/null
+oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/04-clf-ui.yaml &> /dev/null
 run_command "[Creating CLF CR and UIPlugin]"
 
 sleep 30
