@@ -127,4 +127,4 @@ EOF
 chmod 777 ./ssh 2>/dev/null
 
 echo "The bastion address is ${bastion_host}"
-echo "You may want to use < ./ssh.sh node-name >to easily ssh through the bastion to specific nodes."
+echo "You may want to use < ./ssh node-name >to easily ssh through the bastion to specific nodes."
