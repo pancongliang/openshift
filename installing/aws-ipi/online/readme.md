@@ -69,7 +69,7 @@ sh <(curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads
 ```
 curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-ssh-deploy.sh | bash
 
-./ssh.sh <NODE-NAME>
+./ssh <NODE-NAME>
 ```
 
 #### Install bastion and registry
