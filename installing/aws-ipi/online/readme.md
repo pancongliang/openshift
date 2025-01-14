@@ -67,7 +67,7 @@ sh <(curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads
 ```
 #### SSH OCP node
 ```
-curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/deploy.sh | bash
+curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-ssh-deploy.sh | bash
 
 ./ssh.sh <NODE-NAME>
 ```
