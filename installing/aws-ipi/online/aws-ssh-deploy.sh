@@ -120,20 +120,11 @@ fi
 # echo "The bastion address is ${bastion_host}"
 # echo "You may want to use https://raw.githubusercontent.com/eparis/ssh-bastion/master/ssh.sh to easily ssh through the bastion to specific nodes."
 
-cat << EOF > "./ssh.sh"
-#!/bin/bash
-
-ssh_key_param=''
-if [ ! -z "$SSH_KEY_PATH" ]; then
-    ssh_key_param="-i $SSH_KEY_PATH"
-fi
-
-ingress_host="$(oc get service --all-namespaces -l run=ssh-bastion -o go-template='{{ with (index (index .items 0).status.loadBalancer.ingress 0) }}{{ or .hostname .ip }}{{end}}')"
-ssh $ssh_key_param -t -o StrictHostKeyChecking=no -o ProxyCommand="ssh $ssh_key_param -A -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -W %h:%p core@${ingress_host}" core@$1 "sudo -i"
-
+cat << EOF > "./ssh"
+ssh -t -o StrictHostKeyChecking=no -o ProxyCommand='ssh -A -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -W %h:%p core@$(oc get service -n openshift-ssh-bastion ssh-bastion -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")' core@$1 "sudo -i"
 EOF
 
-chmod 777 ./ssh.sh 2>/dev/null
+chmod 777 ./ssh 2>/dev/null
 
 echo "The bastion address is ${bastion_host}"
 echo "You may want to use < ./ssh.sh node-name >to easily ssh through the bastion to specific nodes."
