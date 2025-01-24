@@ -955,3 +955,22 @@ run_command "[change ignition file permissions]"
 # Add an empty line after the task
 echo
 # ====================================================
+
+# Task: Generate approve csr script file
+PRINT_TASK "[TASK: Generate approve csr script file]"
+
+rm -rf approve-csr.sh
+cat << EOF > "approve-csr.sh"
+#!/bin/bash
+export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+
+for i in {1..360}; do 
+  oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
+  sleep 10
+done 
+EOF
+run_command "[Generate approve csr script file]"
+
+# Add an empty line after the task
+echo
+# ====================================================
