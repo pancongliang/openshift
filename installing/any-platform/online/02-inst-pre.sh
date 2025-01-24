@@ -937,7 +937,7 @@ cat << EOF > "${IGNITION_PATH}/approve-csr.sh"
 #!/bin/bash
 export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 
-for i in {1..360}; do 
+for i in {1..720}; do 
   oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
   sleep 10
 done 
