@@ -81,17 +81,8 @@ If the node cannot communicate, manually enter the content in `set-*.sh`.
 ### Approval of CSR
 
 ```
-# Bastion Terminal-1:
-source 01-set-params.sh
-export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+source approve-csr.sh &
 
-while true; do  # Approve csr and wait for 30 minutes to check whether the cluster is normal
-  oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
-  sleep 10
-done
-
-# Bastion Terminal-2(Close Terminal-1 after the status of all nodes is Ready):
-source 01-set-params.sh
 export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 oc get node
 oc get co | grep -v '.True.*False.*False'
