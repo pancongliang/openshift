@@ -81,7 +81,7 @@ If the node cannot communicate, manually enter the content in `set-*.sh`.
 ### Approval of CSR
 
 ```
-source approve-csr.sh &
+source ${IGNITION_PATH}/approve-csr.sh &
 
 export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 oc get node
