@@ -960,7 +960,7 @@ echo
 PRINT_TASK "[TASK: Generate approve csr script file]"
 
 rm -rf approve-csr.sh
-cat << EOF > "approve-csr.sh"
+cat << EOF > "${IGNITION_PATH}/approve-csr.sh"
 #!/bin/bash
 export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 
