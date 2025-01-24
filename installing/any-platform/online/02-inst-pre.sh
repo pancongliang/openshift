@@ -136,33 +136,6 @@ run_command "[modify /usr/local/bin/kubectl permissions]"
 rm -f /usr/local/bin/README.md &> /dev/null
 rm -rf $openshift_client &> /dev/null
 
-# Step 3: Download the oc mirror
-# ----------------------------------------------------
-# Get the RHEL version number
-rhel_version=$(rpm -E %{rhel})
-if [ "$rhel_version" -eq 8 ]; then
-    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.14.35/oc-mirror.tar.gz"
-    oc_mirror="oc-mirror.tar.gz"
-elif [ "$rhel_version" -eq 9 ]; then
-    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
-    oc_mirror="oc-mirror.tar.gz"
-fi
-
-# Download the oc-mirror tool
-wget -q "$download_url" -O "$oc_mirror"
-run_command "[download oc-mirror tool]"
-
-# Remove the old oc-mirror binary and install the new one
-rm -rf /usr/local/bin/oc-mirror &> /dev/null
-tar -xzf "$oc_mirror" -C "/usr/local/bin/" &> /dev/null
-run_command "[install oc-mirror tool]"
-
-chmod a+x /usr/local/bin/oc-mirror &> /dev/null
-run_command "[modify /usr/local/bin/oc-mirror permissions]"
-
-rm -rf $oc_mirror &> /dev/null
-
-
 # Write LANG=en_US.UTF-8 to the ./bash_profile file]
 echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
 run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
@@ -959,7 +932,7 @@ echo
 # Task: Generate approve csr script file
 PRINT_TASK "[TASK: Generate approve csr script file]"
 
-rm -rf approve-csr.sh
+rm -rf "${IGNITION_PATH}/approve-csr.sh"
 cat << EOF > "${IGNITION_PATH}/approve-csr.sh"
 #!/bin/bash
 export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
