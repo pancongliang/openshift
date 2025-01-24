@@ -71,18 +71,9 @@ echo
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
-# List of RPM packages to install
-packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "conmon" "httpd-manual")
 
-# Install the RPM package and return the execution result
-for package in "${packages[@]}"; do
-    yum install -y "$package" &>/dev/null
-    if [ $? -eq 0 ]; then
-        echo "ok: [install $package package]"
-    else
-        echo "failed: [install $package package]"
-    fi
-done
+yum install -y wget net-tools vim podman bind-utils bind haproxy git bash-completion jq nfs-utils httpd httpd-tools skopeo conmon httpd-manual &> /dev/null
+run_command "[Install infrastructure rpm packages]"
 
 # Add an empty line after the task
 echo
@@ -326,38 +317,6 @@ fi
 # Enable and start service
 systemctl enable --now nfs-server &> /dev/null
 run_command "[restart and enable nfs-server service]"
-
-# Wait for the service to restart
-sleep 3
-
-
-# Step 3: Test
-# ----------------------------------------------------
-# Function to check if NFS share is accessible
-check_nfs_access() {
-    mount_point="/mnt/nfs_test"
-    
-    # Create the mount point if it doesn't exist
-    mkdir -p $mount_point
-    
-    # Attempt to mount the NFS share
-    mount -t nfs ${NFS_SERVER_IP}:${NFS_PATH} $mount_point
-
-    if [ $? -eq 0 ]; then
-        echo "ok: [test mounts the nfs shared directory]"
-        # Unmount the NFS share
-        umount $mount_point
-        rmdir $mount_point
-        return 0
-    else
-        echo "failed: [test mount nfs shared directory]"
-        rmdir $mount_point
-        return 1
-    fi
-}
-
-# Call the function to check NFS access
-check_nfs_access
 
 # Add an empty line after the task
 echo
