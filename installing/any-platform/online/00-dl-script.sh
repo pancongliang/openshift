@@ -29,7 +29,7 @@ base_url="https://raw.githubusercontent.com/pancongliang/openshift/main/installi
 # Function to download scripts
 download_scripts() {
     for script in "${scripts[@]}"; do
-        wget -q "${base_url}${script}"
+        curl -O "${base_url}${script}"
         if [ $? -eq 0 ]; then
             echo "ok: [download ${script}]"
         else
