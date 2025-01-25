@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    events {
+        worker_connections  1024;
+    }
+  
+    http {
+        server {
+            listen 8080;
+            server_name localhost;
+
+            location / {
+                root /usr/share/nginx/html;
+                index index.html index.htm;
+
+                auth_basic "Restricted Access";
+                auth_basic_user_file /etc/nginx/.htpasswd/auth;
+            }
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-html
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to Nginx!</title>
+    </head>
+    <body>
+      <h1>Hello, World!</h1>
+      <p>This HTML content is served by Nginx from a ConfigMap.</p>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nginx-secret
+type: Opaque
+data:
+  auth: YWRtaW46JGFwcjEkRjdCaHJSZTMkL0hPa01TSGxJUVhOQk5YejVjVGhKLgo=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: nginx
+  template:
+    metadata:
+      labels:
+        deployment: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: quay.io/redhattraining/hello-world-nginx:v1.0
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+          - name: nginx-html
+            mountPath: /usr/share/nginx/html
+          - name: nginx-secret
+            mountPath: /etc/nginx/.htpasswd
+            readOnly: true
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+        - name: nginx-html
+          configMap:
+            name: nginx-html
+        - name: nginx-secret
+          secret:
+            secretName: nginx-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    deployment: nginx
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: nginx
+spec:
+  port:
+    targetPort: 8080
+  to:
+    kind: Service
+    name: nginx
+    weight: 100
+  wildcardPolicy: None

@@ -1,0 +1,62 @@
+apiVersion: "logging.openshift.io/v1"
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  inputs:
+    - name: selected-audit-logs
+      audit:
+        sources:
+        - kubeAPI
+        - openshiftAPI
+        - auditd
+        - ovn
+  pipelines:
+    - name: audit-logs
+      inputRefs:
+        - selected-audit-logs
+      filterRefs:
+        - audit-policy
+      outputRefs:
+        - default
+  filters:
+    - name: audit-policy
+      type: kubeAPIAudit
+      kubeAPIAudit:
+        rules:
+        - level: None
+          verbs: ["watch", "list"]
+
+        - level: None
+          resources:
+          - group: ""
+            resources: ["events"]
+
+        - level: None
+          users:
+          - "system:kube-scheduler"
+          - "system:kube-proxy"
+          - "system:apiserver"
+          - "system:kube-controller-manager"
+
+        - level: None
+          userGroups: ["system:authenticated", "system:serviceaccounts", "system:nodes"]
+
+        - level: None
+          nonResourceURLs:
+          - /healthz*
+          - /version
+          - /swagger*
+          - /livez*
+          - /.well-known/oauth-authorization-server
+          - "/"
+
+        - level: RequestResponse
+          resources:
+          - group: ""
+            resources: ["pods"]
+
+        - level: Metadata
+          omitStages:
+          - "RequestReceived"

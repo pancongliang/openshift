@@ -1,0 +1,23 @@
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  outputs: 
+   - name: syslog-server-insecure
+     type: syslog    
+     syslog:    
+       facility: local0    
+       rfc: RFC3164   
+       severity: informational    
+     url: 'udp://rsyslogserver.$NAMESPACE.svc:514'  
+  pipelines:
+   - name: syslog-to-fluentd-insecure
+     inputRefs:
+     - infrastructure
+     - application
+     - audit
+     outputRefs:
+     - default
+     - syslog-server-insecure
