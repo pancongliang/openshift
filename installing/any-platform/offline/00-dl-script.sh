@@ -19,8 +19,8 @@ PRINT_TASK "[TASK: Download script]"
 scripts=(
     "00-reg-sub.sh"
     "01-set-params.sh"
-    "02-inst-pre.sh"
-    "03-mirror-release.sh"
+    "02-pre-inst.sh"
+    "03-mirror-img.sh"
     "04-post-inst-cfg.sh"
 )
 
