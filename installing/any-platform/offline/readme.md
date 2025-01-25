@@ -36,7 +36,7 @@ source 01-set-params.sh
 ### Install infrastructure and generate scripts
 
 ```
-source 02-inst-pre.sh
+source 02-pre-inst.sh
 
 ls ${IGNITION_PATH}/set*
 set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh set-worker03.sh
@@ -46,7 +46,7 @@ set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker0
 ### Mirror ocp release image
 
 ```
-source 03-mirror-release.sh
+source 03-mirror-img.sh
 ```
 
 ### Install bootstrap
