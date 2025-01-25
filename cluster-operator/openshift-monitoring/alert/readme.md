@@ -15,7 +15,7 @@
   ```
 * Create a test application and ServiceMonitor, PrometheusRule
   ```
-  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/monitoring/alert/example-alert.yaml
+  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/cluster-operator/openshift-monitoring/alert/example-alert.yaml
   ```
 
 * Test whether the service exposing custom metrics or not, it must display metrics
