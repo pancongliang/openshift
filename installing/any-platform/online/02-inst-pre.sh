@@ -933,7 +933,7 @@ echo
 PRINT_TASK "[TASK: Generate approve csr script file]"
 
 rm -rf "${IGNITION_PATH}/approve-csr.sh"
-cat << EOF > "${IGNITION_PATH}/approve-csr.sh"
+cat << EOF > "${IGNITION_PATH}/ocp4cert_approver.sh"
 #!/bin/bash
 export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 
