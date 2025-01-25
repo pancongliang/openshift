@@ -19,7 +19,7 @@ PRINT_TASK "[TASK: Download script]"
 scripts=(
     "00-reg-sub.sh"
     "01-set-params.sh"
-    "02-inst-pre.sh"
+    "02-pre-inst.sh"
     "03-post-inst-cfg.sh"
 )
 
