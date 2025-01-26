@@ -30,7 +30,7 @@
 * Create an address pool
   ```
   cat << EOF | envsubst | oc apply -f -
-  apiVersion: metallb.io/v1alpha1
+  apiVersion: metallb.io/v1beta1
   kind: AddressPool
   metadata:
     namespace: metallb-system
