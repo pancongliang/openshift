@@ -155,13 +155,13 @@
 
 4. **View kubeadmin password for Guest Cluster OCP Console**
    ```
-   oc get route -n clusters-my-cluster-1 oauth -o jsonpath='https://{.spec.host}'
-echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
+   oc get route -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME oauth -o jsonpath='https://{.spec.host}'
+   echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
 
    oc get secret ${HOSTED_CLUSTER_NAME}-kubeadmin-password -n local-cluster --template='{{ .data.password }}' | base64 -d
    ```
 
-####  Configuring HTPasswd-based user authentication
+#### Configuring HTPasswd-based user authentication
 1. **Create a file with the username and password**
    ```
    htpasswd -b -c users.htpasswd admin password
