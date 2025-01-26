@@ -20,19 +20,18 @@
 * If the label has been marked during the configuration of `local storage operator`, can skip it.
   ```
   export NODE_NAME01=worker01.ocp4.example.com
-  oc label node ${NODE_NAME01} cluster.ocs.openshift.io/openshift-storage=''
-
   export NODE_NAME02=worker02.ocp4.example.com
-  oc label node ${NODE_NAME02} cluster.ocs.openshift.io/openshift-storage=''
+  export NODE_NAME02=worker03.ocp4.example.com
 
-  export NODE_NAME03=worker03.ocp4.example.com
+  oc label node ${NODE_NAME01} cluster.ocs.openshift.io/openshift-storage=''
+  oc label node ${NODE_NAME02} cluster.ocs.openshift.io/openshift-storage=''
   oc label node ${NODE_NAME03} cluster.ocs.openshift.io/openshift-storage=''
   ```
 
 ### Create StorageCluster
 * Create StorageCluster after specifying variables
   ```
-  export LOCAL_PV_SIZE=100Gi  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
+  export LOCAL_PV_SIZE=100Gi
   export STORAGE_CLASS_NAME=localblock
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/02-storagecluster.yaml | envsubst | oc create -f -
   ```
