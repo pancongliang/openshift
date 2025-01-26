@@ -23,11 +23,11 @@
   ```
 
 ### Create an address pool
-* Specify address pool
+* Define Address Pool Range
   ```
   export ADDRESSES="10.184.134.135-10.184.134.136"
   ```
-* Create an address pool
+* Create the Address Pool
   ```
   oc create -f - <<EOF
   apiVersion: metallb.io/v1beta1
@@ -41,6 +41,7 @@
   EOF
   ```
 
+### Configure MetalLB with L2 Advertisement
 * Configuring MetalLB with an L2 advertisement
   ```
   oc create -f - <<EOF 
