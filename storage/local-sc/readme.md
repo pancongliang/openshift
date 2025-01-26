@@ -17,34 +17,52 @@
 * Add a label to the node where the disk is added
   ```
   export NODE_NAME01=worker01.ocp4.example.com
-  oc label node ${NODE_NAME01} cluster.ocs.openshift.io/openshift-storage=''
-
   export NODE_NAME02=worker02.ocp4.example.com
-  oc label node ${NODE_NAME02} cluster.ocs.openshift.io/openshift-storage=''
-
   export NODE_NAME03=worker03.ocp4.example.com
+  
+  oc label node ${NODE_NAME01} cluster.ocs.openshift.io/openshift-storage=''
+  oc label node ${NODE_NAME02} cluster.ocs.openshift.io/openshift-storage=''
   oc label node ${NODE_NAME03} cluster.ocs.openshift.io/openshift-storage=''
   ```
-  
-* Create LocalVolumeDiscovery
-  ```
-  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/02-localvolumediscovery.yaml
 
-  oc get localvolumediscoveryresults -n openshift-local-storage
+* Check node disk uuid
+  ```
+  ssh core@${NODE_NAME01} sudu ls -ltr /dev/disk/by-path/
+  ssh core@${NODE_NAME02} sudu ls -ltr /dev/disk/by-path/
+  ssh core@${NODE_NAME03} sudu ls -ltr /dev/disk/by-path/
+
+  export UUID=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
+  ```
+
+  
+* Create LocalVolume
+  ```
+  oc create -f - <<EOF
+  apiVersion: "local.storage.openshift.io/v1"
+  kind: "LocalVolume"
+  metadata:
+    name: "local-disks"
+    namespace: "openshift-local-storage" 
+  spec:
+    nodeSelector:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: In
+              values:
+                - ""
+    storageClassDevices:
+      - storageClassName: "localblock" 
+        forceWipeDevicesAndDestroyAllData: false 
+        volumeMode: Block 
+        devicePaths: 
+          - ${UUID}
+  EOF
   ```  
 
-* Create a LocalVolumeSet
+* Check local storage
   ```
-  # Volume mode is "Block"(ODF)
-  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/03-localvolumeset-block.yaml
-
-  # or
-
-  # Volume mode is "FileSystem"
-  export FSTYPE=xfs
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/03-localvolumeset-fs.yaml | envsubst | oc create -f -
-
-  oc get pods -n openshift-local-storage | grep "diskmaker-manager"
+  oc get pods -n openshift-local-storage
   oc get pv -n openshift-local-storage
   oc get sc
   ```
