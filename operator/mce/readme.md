@@ -4,7 +4,7 @@
 
 * Install the Operator using the default namespace
   ```
-  export CHANNEL_NAME="stable"
+  export CHANNEL_NAME="stable-2.6"
   export CATALOG_SOURCE_NAME="redhat-operators"
   export NAMESPACE="multicluster-engine"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/mce/01-operator.yaml | envsubst | oc create -f -
