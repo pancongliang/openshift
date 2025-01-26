@@ -1,39 +1,42 @@
 ## Deploy NFS StorageClass
 
+### 1. Set Necessary Parameters
+Set the required parameters for the NFS storage class.
 
-### Set necessary parameters
-* Set necessary parameters
-  ```
-  export NAMESPACE="nfs-client-provisioner"
-  export NFS_SERVER_IP="10.184.134.128"
-  export NFS_DIR="/nfs"
-  ```
+```
+export NAMESPACE="nfs-client-provisioner"
+export NFS_SERVER_IP="10.184.134.128"
+export NFS_DIR="/nfs"
+```
 
-### Install and configure the NFS server
-* Install and configure the NFS server, skip this step if installed.
-  ```
-  wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/01-install-nfs-package.sh
-  
-  source 01-install-nfs-package.sh
-  ```
+### 2. Install and Configure the NFS Server
+Install and configure the NFS server. Skip this step if it is already installed.
 
-### Deploy NFS StorageClass
-* Deploy NFS StorageClass via script
-  ```
-  wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/02-deploy-nfs-storageclass.sh
+```
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/01-install-nfs-package.sh
 
-  source 02-deploy-nfs-storageclass.sh
+source 01-install-nfs-package.sh
+```
 
-  oc get sc
-  ```
-  
-### Test mount
-* Deploy app and mount nfs sc
-  ```
-  oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+### 3. Deploy NFS StorageClass
+Use the script provided below to deploy the NFS StorageClass.
 
-  oc set volumes deployment/nginx \
-     --add --name mysql-storage --type pvc --claim-class managed-nfs-storage \
-     --claim-mode RWX --claim-size 5Gi --mount-path /usr/share/nginx/html \
-     --claim-name test-volume
-  ```
+```
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/02-deploy-nfs-storageclass.sh
+
+source 02-deploy-nfs-storageclass.sh
+
+oc get sc
+```
+
+### 4. Test Mount
+Deploy an application and test mounting the NFS StorageClass.
+
+```
+oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+
+oc set volumes deployment/nginx \
+   --add --name mysql-storage --type pvc --claim-class managed-nfs-storage \
+   --claim-mode RWX --claim-size 5Gi --mount-path /usr/share/nginx/html \
+   --claim-name test-volume
+```
