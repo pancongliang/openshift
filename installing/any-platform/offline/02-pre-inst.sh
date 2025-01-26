@@ -1066,9 +1066,9 @@ generate_setup_script() {
     cat << EOF > "${IGNITION_PATH}/set-${HOSTNAME}.sh"
 #!/bin/bash
 # Configure network settings
-nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_SERVER_IP} ipv4.method manual connection.autoconnect yes
-nmcli con down ${NET_IF_NAME}
-nmcli con up ${NET_IF_NAME}
+sudo nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_SERVER_IP} ipv4.method manual connection.autoconnect yes
+sudo nmcli con down ${NET_IF_NAME}
+sudo nmcli con up ${NET_IF_NAME}
 
 sudo sleep 10
 
