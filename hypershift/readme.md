@@ -142,22 +142,24 @@
    ```
    hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "${HOSTED_CLUSTER_NAME}-kubeconfig"
    ```
-
-2. **View kube-admin password for Guest Cluster**
-   ```
-   oc get secret ${HOSTED_CLUSTER_NAME}-kubeadmin-password -n local-cluster --template='{{ .data.password }}' | base64 -d > ${HOSTED_CLUSTER_NAME}.kubeadmin-password
-   ```
-
-3. **View worker nodes and in the guest cluster**
+   
+2. **View worker nodes and in the guest cluster**
    ```
    oc --kubeconfig ${HOSTED_CLUSTER_NAME}-kubeconfig get nodes
    ```
    
-4. **Verify monitoring and networking stacks**
+3. **Verify monitoring and networking stacks**
    ```
    oc --kubeconfig ${HOSTED_CLUSTER_NAME}-kubeconfig get pod -A | grep 'prometh\|ovn\|ingress'
    ```
 
+4. **View kubeadmin password for Guest Cluster OCP Console**
+   ```
+   oc get route -n clusters-my-cluster-1 oauth -o jsonpath='https://{.spec.host}'
+echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
+
+   oc get secret ${HOSTED_CLUSTER_NAME}-kubeadmin-password -n local-cluster --template='{{ .data.password }}' | base64 -d
+   ```
 
 ####  Configuring HTPasswd-based user authentication
 1. **Create a file with the username and password**
