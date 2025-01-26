@@ -18,6 +18,7 @@
 * Create HyperConverged and Check
   ```
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/virtualization/02-hyperconverged.yaml
+
   oc get pod -n openshift-cnv
   ```
 
