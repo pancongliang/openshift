@@ -59,10 +59,9 @@ If the node cannot communicate, manually enter the content in `set-*.sh`.
 [root@localhost ~]$ reboot
 ···
 # Wait for the reboot to complete and check for error messages
-[root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}  
+[root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}
 [core@localhost ~]$ sudo -i
-[root@localhost ~]$ netstat -ntplu |grep 6443
-[root@localhost ~]$ netstat -ntplu |grep 22623
+[root@localhost ~]$ netstat -ntplu | grep -E '6443|22623'
 [root@localhost ~]$ podman ps
 [root@localhost ~]$ journalctl -b -f -u release-image.service -u bootkube.service
 ```
@@ -76,6 +75,9 @@ If the node cannot communicate, manually enter the content in `set-*.sh`.
 [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-master01.sh | sh
 [root@localhost ~]$ reboot
 ···Install all master nodes in sequence···
+
+# Check the group installation progress in the bastion machine
+openshift-install --dir ${IGNITION_PATH}/ wait-for bootstrap-complete --log-level=info 
 ```
 
 ### Install all worker
