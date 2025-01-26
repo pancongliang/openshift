@@ -17,10 +17,10 @@
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/mce/02-multiclusterengine.yaml
   ```
 
-### Check instance
-* Check  instance
+### Check resources
+* Check  resources
   ```
-  oc get pods -n open-cluster-management-hub
+  $ oc get pods -n open-cluster-management-hub
   NAME                                                        READY   STATUS    RESTARTS   AGE
   cluster-manager-addon-manager-controller-545b88f995-8wps4   1/1     Running   1          170m
   cluster-manager-addon-manager-controller-545b88f995-cgtgx   1/1     Running   1          170m
@@ -38,7 +38,7 @@
   cluster-manager-work-webhook-74cfb9cb4d-g6tlp               1/1     Running   1          170m
   cluster-manager-work-webhook-74cfb9cb4d-z6mbl               1/1     Running   1          170m
 
-  oc get pods -n open-cluster-management-agent
+  $ oc get pods -n open-cluster-management-agent
   NAME                                READY   STATUS    RESTARTS   AGE
   klusterlet-65f68df9fb-rsp8f         1/1     Running   0          11m
   klusterlet-agent-85c5754bf7-5v6jq   1/1     Running   0          11m
@@ -46,7 +46,7 @@
   oc get pods -n open-cluster-management-agent-addon
   klusterlet-agent-85c5754bf7-gngbz   1/1     Running   0          11m
   
-  oc get pods -n open-cluster-management-agent-addon
+  $ oc get pods -n open-cluster-management-agent-addon
   NAME                                                  READY   STATUS      RESTARTS   AGE
   cluster-proxy-proxy-agent-5bb6576799-x775r            3/3     Running     0          12m
   hypershift-addon-agent-6b6b99bd56-58t96               2/2     Running     0          12m
