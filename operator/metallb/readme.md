@@ -29,16 +29,28 @@
   ```
 * Create an address pool
   ```
-  cat << EOF | envsubst | oc apply -f -
+  oc create -f - <<EOF
   apiVersion: metallb.io/v1beta1
-  kind: AddressPool
+  kind: IPAddressPool
   metadata:
+    name: example-l2
     namespace: metallb-system
-    name: l2-addresspool
   spec:
-    protocol: layer2
     addresses:
     - ${ADDRESSES}
-    autoAssign: true
+  EOF
+  ```
+
+* Configuring MetalLB with an L2 advertisement
+  ```
+  oc create -f - <<EOF 
+  apiVersion: metallb.io/v1beta1 
+  kind: L2Advertisement 
+  metadata: 
+    name: l2advertisement 
+    namespace: metallb-system 
+  spec: 
+    ipAddressPools: 
+     - example-l2
   EOF
   ```
