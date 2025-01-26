@@ -112,6 +112,8 @@
 
 5. **Monitor Resources**
    ```
+   oc wait --for=condition=Ready --namespace $NAMESPACE-$KUBEVIRT_CLUSTER_NAME vm --all --timeout=600s
+   
    oc get vm -n $NAMESPACE-$KUBEVIRT_CLUSTER_NAME
    oc get pvc -n $NAMESPACE-$KUBEVIRT_CLUSTER_NAME
    oc get nodepool -n $NAMESPACE
@@ -119,17 +121,17 @@
 
 6. **Generate Kubeconfig for Guest Cluster**
    ```
-   hypershift create kubeconfig --name="$KUBEVIRT_CLUSTER_NAME" > "${KUBEVIRT_CLUSTER_NAME}-kubeconfig"
+   hcp create kubeconfig --name="$KUBEVIRT_CLUSTER_NAME" > "${KUBEVIRT_CLUSTER_NAME}-kubeconfig"
    ```
 
 7. **Examine the Hosted Cluster**
    - Verify the status of guest cluster:
      ```
      oc get hc -A
-     ```
+      ```
    - Inspect the control plane pods:
      ```
-     oc get pod -n $NAMESPACE-$KUBEVIRT_CLUSTER_NAME | grep 'kube-api\|etcd'
+     oc get pod -n $NAMESPACE-$KUBEVIRT_CLUSTER_NAME
      ```
    - Check the status of VMs:
      ```
