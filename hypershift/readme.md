@@ -74,17 +74,18 @@
 
 ### Demo
 ####  Creating and Managing a Hosted Cluster
-1. **Create a Namespace for the Hosted Cluster**
-   ```
-   export NAMESPACE="clusters"
-   oc new-project $NAMESPACE
-   ```
 
-2. **Downlod the HCP CLI and pull-secret**
+1. **Downlod the HCP CLI and pull-secret**
    ```
    curl -Lk $(oc get consoleclidownload hcp-cli-download -o json | jq -r '.spec.links[] | select(.text=="Download hcp CLI for Linux for x86_64").href') | tar xvz -C /usr/local/bin/
    ```
    Download the [pull secret](https://console.redhat.com/openshift/install/pull-secret).
+
+2. **Create a Namespace for the Hosted Cluster**
+   ```
+   export NAMESPACE="clusters"
+   oc new-project $NAMESPACE
+   ```
 
 3. **Configure Environment Variables**
    ```
