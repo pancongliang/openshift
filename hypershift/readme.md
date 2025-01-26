@@ -8,7 +8,7 @@
 
 ### Cluster Preparation
 #### Requirements
-- **OCP 4.16+** running on 6 bare metal nodes (3 masters, 3 workers).
+- OCP 4.16+ running on 6 bare metal nodes (3 masters, 3 workers).
 - Necessary operators and controllers:
   - OpenShift Data Foundation (ODF) with local storage devices
   - OpenShift Virtualization
