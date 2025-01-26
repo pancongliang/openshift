@@ -13,7 +13,7 @@
   - OpenShift Data Foundation (ODF) with local storage devices
   - OpenShift Virtualization
   - MetalLB
-  - Multicluster Engine ([MCE](https://github.com/pancongliang/openshift/blob/main/operator/mce/readme.md))
+  - Multicluster Engine (MCE)
   - Cluster Manager
   - HyperShift
 
@@ -34,7 +34,7 @@
 - Install the Multicluster Engine ([MCE](https://github.com/pancongliang/openshift/blob/main/operator/mce/readme.md)) Operator.
 
 ### Setting Up Cluster Manager
-- Enable the local-cluster ManagedCluster to host guest clusters:
+- The local-cluster ManagedCluster allows the MCE components to treat the cluster it runs on as a host for guest clusters:
   ```bash
   oc apply -f - <<EOF
   apiVersion: cluster.open-cluster-management.io/v1
@@ -67,7 +67,7 @@
    ```bash
    oc get pods -n hypershift
    ```
-3. Allow OpenShift's ingresscontroller to use wildcard DNS routes:
+3. AIngress wildcard routes are required since the guest cluster's base domain will be a subdomain of the infra cluster's `*apps` A record:
    ```bash
    oc patch ingresscontroller -n openshift-ingress-operator default --type=json -p '[{ "op": "add", "path": "/spec/routeAdmission", "value": {"wildcardPolicy": "WildcardsAllowed"}}]'
    ```
@@ -80,7 +80,7 @@
    oc new-project $NAMESPACE
    ```
 
-2. **Install the HCP CLI**
+2. **Downlod the HCP CLI and pull-secret**
    ```bash
    curl -Lk $(oc get consoleclidownload hcp-cli-download -o json | jq -r '.spec.links[] | select(.text=="Download hcp CLI for Linux for x86_64").href') | tar xvz -C /usr/local/bin/
    ```
@@ -88,7 +88,7 @@
 
 3. **Configure Environment Variables**
    ```bash
-   export PULL_SECRET="$HOME/pull-secret"
+   export PULL_SECRET="$HOME/pull-secret" 
    export MEM="8Gi"
    export CPU="2"
    export WORKER_COUNT="2"
@@ -122,7 +122,7 @@
    ```
 
 7. **Examine the Hosted Cluster**
-   - Verify the status of guest cluster operators:
+   - Verify the status of guest cluster:
      ```bash
      oc get hc -A
      ```
