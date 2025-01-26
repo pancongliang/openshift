@@ -94,7 +94,7 @@
    export CPU="2"
    export WORKER_COUNT="2"
    export KUBEVIRT_CLUSTER_NAME=my-cluster-1
-   export OCP_VERSION=4.16.23
+   export OCP_VERSION=4.16.12
    ```
 
 4. **Create the Hosted Cluster**
