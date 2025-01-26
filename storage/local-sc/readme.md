@@ -35,6 +35,34 @@
   ```
 
   
+* Create LocalVolume 
+  ```
+  export VOLUME_MODE=Block
+  # export VOLUME_MODE=Filesystem
+  
+  oc create -f - <<EOF
+  apiVersion: "local.storage.openshift.io/v1"
+  kind: "LocalVolume"
+  metadata:
+    name: "local-disks"
+    namespace: "openshift-local-storage" 
+  spec:
+    nodeSelector:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: In
+              values:
+                - ""
+    storageClassDevices:
+      - storageClassName: "localblock" 
+        forceWipeDevicesAndDestroyAllData: false 
+        volumeMode: ${VOLUME_MODE} 
+        devicePaths: 
+          - ${UUID}
+  EOF
+  ```
+
 * Create LocalVolume
   ```
   oc create -f - <<EOF
@@ -58,7 +86,8 @@
         devicePaths: 
           - ${UUID}
   EOF
-  ```  
+  ``` 
+   
 
 * Check local storage
   ```
