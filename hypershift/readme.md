@@ -83,66 +83,145 @@
 
 2. **Create a Namespace for the Hosted Cluster**
    ```
-   export NAMESPACE="clusters"
-   oc new-project $NAMESPACE
+   export HOSTED_CLUSTER_NAMESPACE="clusters"
+   oc new-project $HOSTED_CLUSTER_NAMESPACE
    ```
 
 3. **Configure Environment Variables**
    ```
+   export HOSTED_CLUSTER_NAME=my-cluster-1
+   export OCP_VERSION=4.16.12
    export PULL_SECRET="$HOME/pull-secret" 
    export MEM="8Gi"
    export CPU="2"
    export WORKER_COUNT="2"
-   export KUBEVIRT_CLUSTER_NAME=my-cluster-1
-   export OCP_VERSION=4.16.12
    ```
 
 4. **Create the Hosted Cluster**
    ```
    hcp create cluster kubevirt \
-     --name $KUBEVIRT_CLUSTER_NAME \
+     --name $HOSTED_CLUSTER_NAME \
      --release-image quay.io/openshift-release-dev/ocp-release:$OCP_VERSION-x86_64 \
      --node-pool-replicas $WORKER_COUNT \
      --pull-secret $PULL_SECRET \
      --memory $MEM \
      --cores $CPU \
      --auto-repair \
-     --namespace $NAMESPACE
+     --namespace $HOSTED_CLUSTER_NAMESPACE
+     #--etcd-storage-class=ocs-storagecluster-ceph-rbd \
+     #--control-plane-availability-policy SingleReplica \
+     #--infra-availability-policy SingleReplica
    ```
 
 5. **Monitor Resources**
    ```
-   oc wait --for=condition=Ready --namespace $NAMESPACE-$KUBEVIRT_CLUSTER_NAME vm --all --timeout=600s
+   oc wait --for=condition=Ready --namespace $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME vm --all --timeout=600s
    
-   oc get vm -n $NAMESPACE-$KUBEVIRT_CLUSTER_NAME
-   oc get pvc -n $NAMESPACE-$KUBEVIRT_CLUSTER_NAME
-   oc get nodepool -n $NAMESPACE
+   oc get vm -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
+   oc get pvc -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
+   oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
    ```
 
-6. **Generate Kubeconfig for Guest Cluster**
-   ```
-   hcp create kubeconfig --name="$KUBEVIRT_CLUSTER_NAME" > "${KUBEVIRT_CLUSTER_NAME}-kubeconfig"
-   ```
-
-7. **Examine the Hosted Cluster**
+6. **Examine the Hosted Cluster**
    - Verify the status of guest cluster:
      ```
      oc get hc -A
-      ```
+     ```
    - Inspect the control plane pods:
      ```
-     oc get pod -n $NAMESPACE-$KUBEVIRT_CLUSTER_NAME
+     oc get pod -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
      ```
    - Check the status of VMs:
      ```
-     oc get vm -n $NAMESPACE-$KUBEVIRT_CLUSTER_NAME
+     oc get vm -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
      ```
-   - View worker nodes in the guest cluster:
-     ```
-     oc --kubeconfig ${KUBEVIRT_CLUSTER_NAME}-kubeconfig get nodes
-     ```
-   - Verify monitoring and networking stacks:
-     ```
-     oc --kubeconfig ${KUBEVIRT_CLUSTER_NAME}-kubeconfig get pod -A | grep 'prometh\|ovn\|ingress'
-     ```
+     
 
+####  Accessing a hosted cluster
+1. **Generate Kubeconfig for Guest Cluster**
+   ```
+   hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "${HOSTED_CLUSTER_NAME}-kubeconfig"
+   ```
+
+2. **View kube-admin password for Guest Cluster**
+   ```
+   oc get secret ${HOSTED_CLUSTER_NAME}-kubeadmin-password -n local-cluster --template='{{ .data.password }}' | base64 -d > ${HOSTED_CLUSTER_NAME}.kubeadmin-password
+   ```
+
+3. **View worker nodes and in the guest cluster**
+   ```
+   oc --kubeconfig ${HOSTED_CLUSTER_NAME}-kubeconfig get nodes
+   ```
+   
+4. **Verify monitoring and networking stacks**
+   ```
+   oc --kubeconfig ${HOSTED_CLUSTER_NAME}-kubeconfig get pod -A | grep 'prometh\|ovn\|ingress'
+   ```
+
+
+####  Configuring HTPasswd-based user authentication
+1. **Create a file with the username and password**
+   ```
+   htpasswd -b -c users.htpasswd admin password
+   ```
+   
+2. **Create a Secret object from a file**
+   ```
+   oc create secret generic ${HOSTED_CLUSTER_NAME}-htpass-secret --from-file=htpasswd=users.htpasswd -n $HOSTED_CLUSTER_NAMESPACE
+   ```
+   
+3. **Create an HTPasswd-based identityProvider configuration file**
+   ```
+   cat << EOF > patch.yaml
+   spec:
+     configuration:
+       oauth:
+         identityProviders:
+           - htpasswd:
+               fileData:
+                 name: ${HOSTED_CLUSTER_NAME}-htpass-secret
+             mappingMethod: claim
+             name: my_htpasswd_provider
+             type: HTPasswd
+   EOF
+   ```
+   
+4. **Use patch.yaml to update the hostedcluster configuration named $HOSTED_CLUSTER_NAME**
+   ```
+   oc patch hostedcluster ${HOSTED_CLUSTER_NAME} -n $HOSTED_CLUSTER_NAMESPACE --type merge --patch-file patch.yaml
+   ```
+   
+5. **View oauth-openshift related pod updates**
+   ```
+   oc get pod -n $HOSTED_CLUSTER_NAME-${HOSTED_CLUSTER_NAME} | grep oauth-openshift -w
+   ```
+   
+6. **Configuring access permissions for hosted cluster users**
+   ```
+   KUBECONFIG=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+   oc adm policy add-cluster-role-to-user cluster-admin admin --kubeconfig=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+   unset KUBECONFIG
+   ```
+   
+7. **Access Verification**
+   ```
+   export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
+
+   oc login $HOSTED_CLUSTER_API -u admin -p password
+   ```
+
+8. **Get the hosted cluster's oauth and console urls**
+   ```
+   oc get route -n clusters-my-cluster-1 oauth -o jsonpath='https://{.spec.host}'
+   echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
+   ```
+   
+### Deleting a Hosted Cluster
+1. **Deleting a Hosted Cluster**
+   ```
+   oc delete managedcluster $HOSTED_CLUSTER_NAME
+   ```
+2. **Destroy an HCP Hosted Cluster on KubeVirt**
+   ```
+   hcp destroy cluster kubevirt --name $HOSTED_CLUSTER_NAME
+   ```
