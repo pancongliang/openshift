@@ -22,7 +22,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: "${LOACL_PV_SIZE}"  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
+            storage: "${LOCAL_PV_SIZE}"  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
         storageClassName: ${STORAGE_CLASS_NAME}
         volumeMode: Block
     name: ocs-deviceset
