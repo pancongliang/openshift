@@ -32,7 +32,7 @@
 ### Create StorageCluster
 * Create StorageCluster after specifying variables
   ```
-  export LOACL_PV_SIZE=100Gi  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
+  export LOCAL_PV_SIZE=100Gi  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
   export STORAGE_CLASS_NAME=localblock
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/02-storagecluster.yaml | envsubst | oc create -f -
   ```
