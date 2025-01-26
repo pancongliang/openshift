@@ -72,8 +72,8 @@
    oc patch ingresscontroller -n openshift-ingress-operator default --type=json -p '[{ "op": "add", "path": "/spec/routeAdmission", "value": {"wildcardPolicy": "WildcardsAllowed"}}]'
    ```
 
-### Demo: Creating and Managing a Hosted Cluster
-#### Steps:
+### Demo
+####  Creating and Managing a Hosted Cluster
 1. **Create a Namespace for the Hosted Cluster**
    ```
    export NAMESPACE="clusters"
