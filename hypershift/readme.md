@@ -108,7 +108,7 @@
      --cores $CPU \
      --auto-repair \
      --namespace $HOSTED_CLUSTER_NAMESPACE
-     #--etcd-storage-class=ocs-storagecluster-ceph-rbd \
+     #--etcd-storage-class ocs-storagecluster-ceph-rbd \
      #--control-plane-availability-policy SingleReplica \
      #--infra-availability-policy SingleReplica
    ```
