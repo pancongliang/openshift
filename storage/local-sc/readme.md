@@ -16,18 +16,12 @@
 
 * Add a label to the node where the disk is added
   ```
-  export NODE_NAME01=worker01.ocp4.example.com
-  export NODE_NAME02=worker02.ocp4.example.com
-  export NODE_NAME03=worker03.ocp4.example.com
-  
-  oc label node ${NODE_NAME01} cluster.ocs.openshift.io/openshift-storage=''
-  oc label node ${NODE_NAME02} cluster.ocs.openshift.io/openshift-storage=''
-  oc label node ${NODE_NAME03} cluster.ocs.openshift.io/openshift-storage=''
+  oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} cluster.ocs.openshift.io/openshift-storage=''
   ```
 
 * Check node disk uuid
   ```
-  ssh core@${NODE_NAME01} sudu ls -ltr /dev/disk/by-path/
+  ssh core@${NODE_NAME01} sudo ls -ltr /dev/disk/by-path/
   ssh core@${NODE_NAME02} sudu ls -ltr /dev/disk/by-path/
   ssh core@${NODE_NAME03} sudu ls -ltr /dev/disk/by-path/
 
