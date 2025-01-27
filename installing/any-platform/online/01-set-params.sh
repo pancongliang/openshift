@@ -95,7 +95,7 @@ check_all_variables() {
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
-   #check_variable "PULL_SECRET_PATH"
+    check_variable "PULL_SECRET_PATH"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
