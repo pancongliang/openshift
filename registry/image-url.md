@@ -20,11 +20,12 @@ oc new-app --name=mysql \
    -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb \
    -e MYSQL_ROOT_PASSWORD=r00tpa55
 
-oc set volumes deployment/nginx \
+oc set volumes deployment/mysql \
    --add --name mysql-storage --type pvc --claim-class managed-nfs-storage \
    --claim-mode RWX --claim-size 5Gi --mount-path /usr/share/nginx/html \
    --claim-name test-volume
-
+~~~
+~~~
 oc new-app --name postgresql \
    --docker-image registry.redhat.io/rhel8/postgresql-12:1-43 \
    -e POSTGRESQL_USER=redhat \
