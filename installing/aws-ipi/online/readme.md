@@ -3,24 +3,16 @@
 ### Installing
 
 #### Setting Environment Variables
-
 ```
-export OCP_VERSION=4.14.20
-export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
-export SSH_KEY_PATH="$HOME/.ssh"
-export PULL_SECRET_PATH="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-export CLUSTER_NAME="ocp4"
-export BASE_DOMAIN="example.com"
-export REGION="ap-northeast-1"
-export AWS_ACCESS_KEY_ID="xxxxxxx"
-export AWS_SECRET_ACCESS_KEY="xxxxxx"
+curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst.sh
+
+vim aws-ipi-inst.sh
 ```
 
 #### Installing a cluster quickly on AWS
 
 ```
 # Client Mac or RHEL:
-curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst.sh
 source aws-ipi-inst.sh
 ```
 
@@ -41,14 +33,15 @@ source ~/.bash_profile
 ```
 ### Uninstalling
 
-#### Uninstalling a cluster on AWS
-
+#### Setting Environment Variables
 ```
-export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
-export AWS_ACCESS_KEY_ID="xxxxxxx"
-export AWS_SECRET_ACCESS_KEY="xxxxxx"
-
 curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninst.sh
+
+vim aws-ipi-uninst.sh
+```
+
+#### Uninstalling a cluster on AWS
+```
 source aws-ipi-uninst.sh
 ```
 
@@ -95,7 +88,7 @@ mkdir -p /root/aws-ipi/logs && cd /root/aws-ipi/
 curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst.sh
 curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninst.sh
 
-# Add variables to the script
+#  Setting Environment Variables
 chmod 777 /root/aws-ipi/aws-ipi-inst.sh aws-ipi-uninst.sh
 vim /root/aws-ipi/aws-ipi-inst.sh
 vim /root/aws-ipi/aws-ipi-uninst.sh
