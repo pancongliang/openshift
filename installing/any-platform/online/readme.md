@@ -85,7 +85,7 @@
   ```
 * Repeat the process for all Control-Plane nodes.
   
-* Check the group installation progress on the bastion machine:
+* Monitor the bootstrap process:
 
   ```
   openshift-install --dir ${IGNITION_PATH}/ wait-for bootstrap-complete --log-level=info
