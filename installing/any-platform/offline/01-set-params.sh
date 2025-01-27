@@ -8,6 +8,7 @@ export OCP_RELEASE_VERSION="4.12.30"
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
+export PULL_SECRET="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export SSH_KEY_PATH="$HOME/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
 export POD_CIDR="10.128.0.0/14"
@@ -37,10 +38,10 @@ export WORKER01_IP="10.184.134.132"
 export WORKER02_IP="10.184.134.133"
 export WORKER03_IP="10.184.134.134"
 
-
 # OpenShift Coreos install Dev/Net ifname
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
+
 
 # === More parameters === 
 # Mirror-Registry is used to mirror ocp image
@@ -106,6 +107,7 @@ check_all_variables() {
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
+    check_variable "PULL_SECRET"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
