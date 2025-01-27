@@ -1,4 +1,5 @@
 #!/bin/bash
+set -u
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -21,6 +22,8 @@ run_command() {
 
 # ====================================================
 
+# Applying environment variables
+source 01-set-params.sh
 
 
 # === Task: Disable and stop firewalld service ===
