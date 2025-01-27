@@ -24,6 +24,29 @@ run_command() {
 # Applying environment variables
 source 01-set-params.sh
 
+
+# === Task: Changing the hostname and time zone ===
+PRINT_TASK "[TASK: Changing the hostname and time zone]"
+
+# Change hostname
+sudo hostnamectl set-hostname ${BASTION_HOSTNAME}
+run_command "[change hostname to ${BASTION_HOSTNAME}]"
+
+# Change time zone to UTC
+sudo timedatectl set-timezone UTC
+run_command "[change time zone to UTC]"
+
+# Write LANG=en_US.UTF-8 to the ./bash_profile file]
+echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
+run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
+
+# Reload ~/.bash_profile
+source ~/.bash_profile
+run_command "[reload ~/.bash_profile]"
+
+# Add an empty line after the task
+echo
+
 # === Task: Disable and stop firewalld service ===
 PRINT_TASK "[TASK: Disable and stop firewalld service]"
 
@@ -105,9 +128,11 @@ rm -rf openshift-install-linux.tar.gz &> /dev/null
 # Step 2: Download the oc cli
 # ----------------------------------------------------
 # Delete the old version of oc cli
-rm -f /usr/local/bin/oc &> /dev/null
-rm -f /usr/local/bin/kubectl &> /dev/null
-rm -f /usr/local/bin/README.md &> /dev/null
+sudo rm -f /usr/local/bin/oc &> /dev/null
+sudo rm -f /usr/local/bin/kubectl &> /dev/null
+sudo rm -f /usr/local/bin/README.md &> /dev/null
+sudo rm -f /usr/local/bin/kubectx &> /dev/null
+sudo rm -f /usr/local/bin/kubens &> /dev/null
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
@@ -127,35 +152,29 @@ wget -q "$download_url" -O "$openshift_client"
 run_command "[download OpenShift client tool]"
 
 # Extract the downloaded tarball to /usr/local/bin/
-tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
+sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
 run_command "[install openshift client tool]"
 
-chmod +x /usr/local/bin/oc &> /dev/null
+sudo chmod +x /usr/local/bin/oc &> /dev/null
 run_command "[modify /usr/local/bin/oc permissions]"
 
-chmod +x /usr/local/bin/kubectl &> /dev/null
+sudo chmod +x /usr/local/bin/kubectl &> /dev/null
 run_command "[modify /usr/local/bin/kubectl permissions]"
 
-rm -f /usr/local/bin/README.md &> /dev/null
-rm -rf $openshift_client &> /dev/null
+sudo rm -f /usr/local/bin/README.md &> /dev/null
+sudo rm -rf $openshift_client &> /dev/null
 
-# Write LANG=en_US.UTF-8 to the ./bash_profile file]
-echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
-run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
+sudo curl -sLo /usr/local/bin/kubectx https://raw.githubusercontent.com/ahmetb/kubectx/master/kubectx &> /dev/null
+run_command "[install kubectx tool]"
 
-# Reload ~/.bash_profile
-source ~/.bash_profile
-run_command "[reload ~/.bash_profile]"
+sudo curl -sLo /usr/local/bin/kubens https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens &> /dev/null
+run_command "[install kubens tool]"
 
-# Change time zone to UTC
-timedatectl set-timezone UTC
-run_command "[change time zone to UTC]"
+sudo chmod +x /usr/local/bin/kubectx &> /dev/null
+run_command "[modify /usr/local/bin/kubectx permissions]"
 
-# Change hostname
-hostnamectl set-hostname ${BASTION_HOSTNAME}
-run_command "[change hostname to ${BASTION_HOSTNAME}]"
-# Add an empty line after the task
-echo
+sudo chmod +x /usr/local/bin/kubens &> /dev/null
+run_command "[modify /usr/local/bin/kubens permissions]"
 
 
 # === Task: Setup and check httpd services ===
