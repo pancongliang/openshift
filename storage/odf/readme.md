@@ -71,10 +71,17 @@
 - Use `ocs-storagecluster-cephfs` storage class to create a filesystem PVC and mount it:
   ```
   oc new-project test
-  oc new-app --name=mysql     --docker-image registry.access.redhat.com/rhscl/mysql-57-rhel7:latest     -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb     -e MYSQL_ROOT_PASSWORD=r00tpa55
+  oc new-app --name=mysql \
+    --docker-image registry.access.redhat.com/rhscl/mysql-57-rhel7:latest \
+    -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 \
+    -e MYSQL_DATABASE=testdb -e MYSQL_ROOT_PASSWORD=r00tpa55
+  
+  oc set volumes deployment/mysql \
+      --add --name mysql-storage --type pvc --claim-class ocs-storagecluster-cephfs \
+      --claim-mode RWO --claim-size 10Gi --mount-path /var/lib/mysql/data --claim-name mysql-storage
 
-  oc set volumes deployment/mysql     --add --name mysql-storage --type pvc --claim-class ocs-storagecluster-cephfs     --claim-mode RWO --claim-size 10Gi --mount-path /var/lib/mysql/data     --claim-name mysql-storage
-
+  sleep 10
+  
   export POD_NAME=$(oc get pods -n test -o=jsonpath='{.items[*].metadata.name}')
   oc -n test rsh ${POD_NAME} df -h | grep "/var/lib/mysql/data"
   ```
