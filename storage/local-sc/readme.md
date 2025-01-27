@@ -33,7 +33,7 @@ cat << 'EOF' > find-secondary-device.sh
 #!/bin/bash
 set -uo pipefail
 
-for device in /dev/sd*; do
+for device in /dev/$DEVICE; do
   /usr/sbin/blkid "${device}" &> /dev/null
   if [ $? == 2 ]; then
     ls -l /dev/disk/by-path/ | awk -v dev="${device##*/}" '$0 ~ dev {print "/dev/disk/by-path/" $9}'
