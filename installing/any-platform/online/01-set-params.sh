@@ -6,7 +6,7 @@
 export OCP_RELEASE_VERSION="4.16.12"
 
 # OpenShift install-config
-export PULL_SECRET_PATH="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="example.com"
 export SSH_KEY_PATH="$HOME/.ssh"
@@ -95,7 +95,7 @@ check_all_variables() {
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
-    check_variable "PULL_SECRET_PATH"
+    check_variable "PULL_SECRET"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
