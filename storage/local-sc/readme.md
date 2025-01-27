@@ -56,7 +56,7 @@ export DEVICE_PATH=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
 
 #### For Block Volume Mode(ODF)
 
-```bash
+```
 oc create -f - <<EOF
 apiVersion: "local.storage.openshift.io/v1"
 kind: "LocalVolume"
