@@ -3,9 +3,10 @@
 # No need to create any resources, just specify parameters.
 # === Set the necessary variables === 
 # OpenShift release version
-export OCP_RELEASE_VERSION="4.12.26"
+export OCP_RELEASE_VERSION="4.16.12"
 
 # OpenShift install-config
+export PULL_SECRET_PATH="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="example.com"
 export SSH_KEY_PATH="$HOME/.ssh"
@@ -45,7 +46,6 @@ export NET_IF_NAME="'Wired connection 1'"
 # NFS directory is used to create image-registry pod pv
 export NFS_PATH="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
-#export PULL_SECRET_PATH="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 
 # Httpd and ocp ignition dir
 export HTTPD_PATH="/var/www/html/materials"
@@ -165,16 +165,16 @@ run_command() {
 
 
 # Task: Prepare the pull-secret
-PRINT_TASK "[TASK: Prepare the pull-secret]"
+# PRINT_TASK "[TASK: Prepare the pull-secret]"
 
 # Prompt for pull-secret
-read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
+# read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
 
 # Create a temporary file to store the pull secret
-PULL_SECRET=$(mktemp -p /tmp)
-echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
-run_command "[create a temporary file to store the pull secret]"
+# PULL_SECRET=$(mktemp -p /tmp)
+# echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
+# run_command "[create a temporary file to store the pull secret]"
 
 # Add an empty line after the task
-echo
+# echo
 # ====================================================
