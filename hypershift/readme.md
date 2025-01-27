@@ -138,14 +138,21 @@
      
 
 ####  Accessing a hosted cluster
-1. **Generate Kubeconfig for Guest Cluster**
+* Generate Kubeconfig file and access the customer cluster
    ```
    hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "${HOSTED_CLUSTER_NAME}-kubeconfig"
    export KUBECONFIG=${HOSTED_CLUSTER_NAME}-kubeconfig
    unset KUBECONFIG
    ```
-   
-2. **View kubeadmin password for Guest Cluster OCP Console**
+* Log in to the Guest Cluster using the Kubeadmin account
+   ```
+   export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
+   export KUBEADMIN_PASSWORD=$(oc get secret ${HOSTED_CLUSTER_NAME}-kubeadmin-password -n local-cluster --template='{{ .data.password }}' | base64 -d)
+
+   oc login $HOSTED_CLUSTER_API -u kuebadmin -p $KUBEADMIN_PASSWORD
+   ```
+
+* Log in to the Guest Cluster OCP Console using the kubeadmin account
    ```
    oc get route -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME oauth -o jsonpath='https://{.spec.host}'
    echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
@@ -156,7 +163,7 @@
 #### Configuring HTPasswd-based user authentication
 1. **Create a file with the username and password**
    ```
-   htpasswd -b -c users.htpasswd admin password
+   htpasswd -b -c users.htpasswd admin redhat
    ```
    
 2. **Create a Secret object from a file**
@@ -201,7 +208,7 @@
    ```
    export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
 
-   oc login $HOSTED_CLUSTER_API -u admin -p password
+   oc login $HOSTED_CLUSTER_API -u admin -p redhat
    ```
 
 8. **Get the hosted cluster's oauth and console urls**
