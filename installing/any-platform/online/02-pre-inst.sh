@@ -176,6 +176,9 @@ run_command "[modify /usr/local/bin/kubectx permissions]"
 sudo chmod +x /usr/local/bin/kubens &> /dev/null
 run_command "[modify /usr/local/bin/kubens permissions]"
 
+# Add an empty line after the task
+echo
+
 
 # === Task: Setup and check httpd services ===
 PRINT_TASK "[TASK: Setup and check httpd services]"
