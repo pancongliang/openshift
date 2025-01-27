@@ -1,5 +1,12 @@
 ## Running an OpenShift Hosted Cluster with OpenShift Virtualization
 
+### Introduction
+* Hosted control planes for Red Hat OpenShift with the KubeVirt provider makes it possible to host OpenShift tenant clusters on bare metal machines at scale. It can be installed on an existing bare metal OpenShift cluster (OCP) environment allowing you to quickly provision multiple guest clusters using KubeVirt virtual machines. The current model allows running hosted control planes and KubeVirt virtual machines on the same underlying base OCP cluster. Unlike the standalone OpenShift cluster where some of the Kubernetes services in the control plane are running as systemd services, the control planes that HyperShift deploys are just another workload which can be scheduled on any available nodes placed in their dedicated namespaces. This post will show the detailed steps of installing HyperShift with the KubeVirt provider on an existing bare metal cluster and configuring the necessary components to launch guest clusters in a matter of minutes.
+
+
+    <img src="https://github.com/user-attachments/assets/70b165a1-adb2-4de4-be9c-386883b0d31a" alt="image" width="70%">
+
+
 ### Benefits of Using the HyperShift KubeVirt Provider
 - Enhanced resource utilization by hosting multiple control planes and clusters on the same bare metal infrastructure.
 - Strong isolation by separating hosted control planes and guest clusters.
