@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Set environment variables
-#export OCP_VERSION=4.14.20
-#export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
-#export SSH_KEY_PATH="$HOME/.ssh"
-#export PULL_SECRET_PATH="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-#export CLUSTER_NAME="ocp4"
-#export BASE_DOMAIN="example.com"
-#export REGION="ap-northeast-1"
-#export AWS_ACCESS_KEY_ID="xxxxxxx"
-#export AWS_SECRET_ACCESS_KEY="xxxxxx"
+export OCP_VERSION=4.14.20
+export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
+export SSH_KEY_PATH="$HOME/.ssh"
+export PULL_SECRET_PATH="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export CLUSTER_NAME="ocp4"
+export BASE_DOMAIN="example.com"
+export REGION="ap-northeast-1"
+export AWS_ACCESS_KEY_ID="xxxxxxx"
+export AWS_SECRET_ACCESS_KEY="xxxxxx"
 export WORKER_INSTANCE_TYPE='m6a.2xlarge'             # (m6a.4xlarge vcpu: 16 mem:64 / Bare Metal: c5n.metal)https://aws.amazon.com/cn/ec2/instance-types/m6a/
 
 # Function to print a task with uniform length
