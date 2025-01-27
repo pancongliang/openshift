@@ -1,7 +1,7 @@
 
-# Installing the Local Storage Operator
+## Installing the Local Storage Operator
 
-## Install the Operator using the default namespace
+### Install the Operator using the default namespace
 
 ```
 export CHANNEL_NAME="stable"
@@ -10,8 +10,6 @@ export NAMESPACE="openshift-local-storage"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/01-operator.yaml | envsubst | oc create -f -
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
 ```
-
-## Add disks and find storage devices through scripts
 
 ### Add Disk to worker node
 
