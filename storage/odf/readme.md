@@ -71,19 +71,16 @@
 - Use `ocs-storagecluster-cephfs` storage class to create a filesystem PVC and mount it:
   ```
   oc new-project test
-  oc new-app --name=mysql \
-    --docker-image registry.access.redhat.com/rhscl/mysql-57-rhel7:latest \
-    -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 \
-    -e MYSQL_DATABASE=testdb -e MYSQL_ROOT_PASSWORD=r00tpa55
-  
-  oc set volumes deployment/mysql \
-      --add --name mysql-storage --type pvc --claim-class ocs-storagecluster-cephfs \
-      --claim-mode RWO --claim-size 10Gi --mount-path /var/lib/mysql/data --claim-name mysql-storage
+
+  oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+
+  oc set volumes deployment/nginx \
+    --add --name nginx --type pvc --claim-class managed-nfs-storage \
+    --claim-mode rwo --claim-size 5Gi --mount-path /usr/share/nginx/html --claim-name test-volume
 
   sleep 10
   
-  export POD_NAME=$(oc get pods -n test -o=jsonpath='{.items[*].metadata.name}')
-  oc -n test rsh ${POD_NAME} df -h | grep "/var/lib/mysql/data"
+  oc -n test rsh $(oc get pods -n test -o=jsonpath='{.items[0].metadata.name}') df -h | grep '/usr'
   ```
 
 ### Create ObjectBucketClaim and Object Storage Secret
