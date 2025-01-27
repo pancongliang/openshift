@@ -21,9 +21,24 @@
 
 * Check node disk uuid
   ```
-  ssh core@${NODE_NAME01} sudo ls -ltr /dev/disk/by-path/
-  ssh core@${NODE_NAME02} sudu ls -ltr /dev/disk/by-path/
-  ssh core@${NODE_NAME03} sudu ls -ltr /dev/disk/by-path/
+  export DEVICE='sd*'
+  
+  cat << 'EOF' > find-secondary-device.sh
+  #!/bin/bash
+  set -uo pipefail
+  
+  for device in /dev/sd*; do
+    /usr/sbin/blkid "${device}" &> /dev/null
+    if [ $? == 2 ]; then
+      ls -l /dev/disk/by-path/ | awk -v dev="${device##*/}" '$0 ~ dev {print "/dev/disk/by-path/" $9}'
+      exit
+    fi
+  done
+  echo "Couldn't find secondary block device!" >&2
+  EOF
+  
+  NODES=$(oc get nodes -l 'node-role.kubernetes.io/worker' -o=jsonpath='{.items[*].metadata.name}')
+  for node in $NODES; do ssh core@$node "sudo bash -s" < find-secondary-device.sh; done
 
   export UUID=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
   ```
