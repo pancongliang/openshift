@@ -141,19 +141,11 @@
 1. **Generate Kubeconfig for Guest Cluster**
    ```
    hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "${HOSTED_CLUSTER_NAME}-kubeconfig"
+   export KUBECONFIG=${HOSTED_CLUSTER_NAME}-kubeconfig
+   unset KUBECONFIG
    ```
    
-2. **View worker nodes and in the guest cluster**
-   ```
-   oc --kubeconfig ${HOSTED_CLUSTER_NAME}-kubeconfig get nodes
-   ```
-   
-3. **Verify monitoring and networking stacks**
-   ```
-   oc --kubeconfig ${HOSTED_CLUSTER_NAME}-kubeconfig get pod -A | grep 'prometh\|ovn\|ingress'
-   ```
-
-4. **View kubeadmin password for Guest Cluster OCP Console**
+2. **View kubeadmin password for Guest Cluster OCP Console**
    ```
    oc get route -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME oauth -o jsonpath='https://{.spec.host}'
    echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
