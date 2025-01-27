@@ -26,6 +26,27 @@ run_command() {
 source 01-set-params.sh
 
 
+# === Task: Changing the hostname and time zone ===
+PRINT_TASK "[TASK: Changing the hostname and time zone]"
+
+# Change hostname
+sudo hostnamectl set-hostname ${BASTION_HOSTNAME}
+run_command "[change hostname to ${BASTION_HOSTNAME}]"
+
+# Change time zone to UTC
+sudo timedatectl set-timezone UTC
+run_command "[change time zone to UTC]"
+
+# Write LANG=en_US.UTF-8 to the ./bash_profile file]
+echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
+run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
+
+# Reload ~/.bash_profile
+source ~/.bash_profile
+run_command "[reload ~/.bash_profile]"
+
+
+
 # === Task: Disable and stop firewalld service ===
 PRINT_TASK "[TASK: Disable and stop firewalld service]"
 
@@ -177,21 +198,6 @@ run_command "[modify /usr/local/bin/oc-mirror permissions]"
 rm -rf $oc_mirror &> /dev/null
 
 
-# Write LANG=en_US.UTF-8 to the ./bash_profile file]
-echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
-run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
-
-# Reload ~/.bash_profile
-source ~/.bash_profile
-run_command "[reload ~/.bash_profile]"
-
-# Change time zone to UTC
-timedatectl set-timezone UTC
-run_command "[change time zone to UTC]"
-
-# Change hostname
-hostnamectl set-hostname ${BASTION_HOSTNAME}
-run_command "[change hostname to ${BASTION_HOSTNAME}]"
 # Add an empty line after the task
 echo
 
