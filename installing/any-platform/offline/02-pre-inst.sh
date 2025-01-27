@@ -137,9 +137,11 @@ rm -rf openshift-install-linux.tar.gz &> /dev/null
 # Step 2: Download the oc cli
 # ----------------------------------------------------
 # Delete the old version of oc cli
-rm -f /usr/local/bin/oc &> /dev/null
-rm -f /usr/local/bin/kubectl &> /dev/null
-rm -f /usr/local/bin/README.md &> /dev/null
+sudo rm -f /usr/local/bin/oc &> /dev/null
+sudo rm -f /usr/local/bin/kubectl &> /dev/null
+sudo rm -f /usr/local/bin/README.md &> /dev/null
+sudo rm -f /usr/local/bin/kubectx &> /dev/null
+sudo rm -f /usr/local/bin/kubens &> /dev/null
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
@@ -197,6 +199,17 @@ run_command "[modify /usr/local/bin/oc-mirror permissions]"
 
 rm -rf $oc_mirror &> /dev/null
 
+sudo curl -sLo /usr/local/bin/kubectx https://raw.githubusercontent.com/ahmetb/kubectx/master/kubectx &> /dev/null
+run_command "[install kubectx tool]"
+
+sudo curl -sLo /usr/local/bin/kubens https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens &> /dev/null
+run_command "[install kubens tool]"
+
+sudo chmod +x /usr/local/bin/kubectx &> /dev/null
+run_command "[modify /usr/local/bin/kubectx permissions]"
+
+sudo chmod +x /usr/local/bin/kubens &> /dev/null
+run_command "[modify /usr/local/bin/kubens permissions]"
 
 # Add an empty line after the task
 echo
