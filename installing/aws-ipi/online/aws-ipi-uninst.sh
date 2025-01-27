@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Set environment variables
-#export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
-#export AWS_ACCESS_KEY_ID="xxxxx"
-#export AWS_SECRET_ACCESS_KEY="xxxxx"
+export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
+export AWS_ACCESS_KEY_ID="xxxxx"
+export AWS_SECRET_ACCESS_KEY="xxxxx"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
