@@ -49,7 +49,7 @@ export IMAGE_REGISTRY_PV="image-registry"
 
 # Httpd and ocp ignition dir
 export HTTPD_DIR="/var/www/html/materials"
-export INSTALLATION_DIR="${HTTPD_DIR}/pre"
+export INSTALL_DIR="${HTTPD_DIR}/pre"
 
 # === Do not change the following parameters === 
 # Function to generate duplicate parameters
@@ -132,7 +132,7 @@ check_all_variables() {
     check_variable "NFS_SERVER_IP"
     check_variable "NSLOOKUP_PUBLIC"
     check_variable "HTTPD_DIR"
-    check_variable "INSTALLATION_DIR"
+    check_variable "INSTALL_DIR"
     # If all variables are set, display a success message  
 }
 
