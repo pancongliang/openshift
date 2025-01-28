@@ -94,12 +94,12 @@ echo
 # ====================================================
 
 
-# === Task: Install infrastructure rpm ===
-PRINT_TASK "[TASK: Install infrastructure rpm]"
+# === Task: Install the necessary rpm packages ===
+PRINT_TASK "[TASK: Install the necessary rpm packages]"
 
 
 yum install -y wget net-tools vim podman bind-utils bind haproxy git bash-completion jq nfs-utils httpd httpd-tools skopeo conmon httpd-manual &> /dev/null
-run_command "[Install infrastructure rpm packages]"
+run_command "[install the necessary rpm packages]"
 
 # Add an empty line after the task
 echo
