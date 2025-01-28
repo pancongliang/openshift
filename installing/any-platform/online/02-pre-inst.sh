@@ -98,28 +98,23 @@ echo
 PRINT_TASK "[TASK: Install the necessary rpm packages]"
 
 # List of RPM packages to install
-packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "conmon" "httpd-manual")
+packages=("wget" "net-tools" "vim-enhanced" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "conmon" "httpd-manual")
 
 # Convert the array to a space-separated string
 package_list="${packages[*]}"
 
 # Install all packages at once
 sudo dnf install -y $package_list &>/dev/null
-if [ $? -eq 0 ]; then
-    for package in "${packages[@]}"; do
-        echo "ok: [install $package package]"
-    done
-else
-    for package in "${packages[@]}"; do
-        # Check if each package is installed
-        rpm -q $package &>/dev/null
-        if [ $? -eq 0 ]; then
-            echo "ok: [install $package package]"
-        else
-            echo "failed: [install $package package]"
-        fi
-    done
-fi
+
+# Check if each package was installed successfully
+for package in "${packages[@]}"; do
+    rpm -q $package &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "ok: [installed $package package]"
+    else
+        echo "failed: [installed $package package]"
+    fi
+done
 
 
 # Add an empty line after the task
@@ -351,6 +346,7 @@ sudo mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs_test
 run_command "[test mounts the nfs shared directory: /tmp/nfs_test]"
 
 # Unmount the NFS share
+sudo fuser -km /tmp/nfs_test
 sudo umount /tmp/nfs_test
 run_command "[unmount the nfs shared directory: /tmp/nfs_test]"
 
