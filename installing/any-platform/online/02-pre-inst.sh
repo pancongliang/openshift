@@ -211,7 +211,7 @@ create_virtual_host_config() {
     cat << EOF > /etc/httpd/conf.d/base.conf
 <VirtualHost *:8080>
    ServerName ${BASTION_HOSTNAME}
-   DocumentRoot ${HTTPD_PATH}
+   DocumentRoot ${HTTPD_DIR}
 </VirtualHost>
 EOF
 }
@@ -223,7 +223,7 @@ create_virtual_host_config
 check_virtual_host_configuration() {
     # Define expected values for server name and document root
     expected_server_name="${BASTION_HOSTNAME}"
-    expected_document_root="${HTTPD_PATH}"
+    expected_document_root="${HTTPD_DIR}"
     
     # Path to virtual host configuration file
     virtual_host_config="/etc/httpd/conf.d/base.conf"
@@ -241,8 +241,8 @@ check_virtual_host_configuration() {
 check_virtual_host_configuration
 
 # Create http dir
-mkdir -p ${HTTPD_PATH} &> /dev/null
-run_command "[create http: ${HTTPD_PATH} director]"
+mkdir -p ${HTTPD_DIR} &> /dev/null
+run_command "[create http: ${HTTPD_DIR} director]"
 
 
 # Step 3: Enable and Restart httpd service
@@ -258,13 +258,13 @@ sleep 3
 # Step 4: Test
 # ----------------------------------------------------
 # Test httpd configuration
-touch ${HTTPD_PATH}/httpd-test  &> /dev/null
+touch ${HTTPD_DIR}/httpd-test  &> /dev/null
 run_command "[create httpd test file]"
 
 wget -q http://${BASTION_IP}:8080/httpd-test
 run_command "[test httpd download function]"
 
-rm -rf httpd-test ${HTTPD_PATH}/httpd-test  &> /dev/null
+rm -rf httpd-test ${HTTPD_DIR}/httpd-test  &> /dev/null
 run_command "[delete the httpd test file]"
 
 # Add an empty line after the task
@@ -279,9 +279,9 @@ PRINT_TASK "[TASK: Setup nfs services]"
 # Step 1: Create directory /user and change permissions and add NFS export
 # ----------------------------------------------------
 # Create NFS directories
-rm -rf ${NFS_PATH} &> /dev/null
-mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV} &> /dev/null
-run_command "[create nfs director: ${NFS_PATH}]"
+rm -rf ${NFS_DIR} &> /dev/null
+mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+run_command "[create nfs director: ${NFS_DIR}]"
 
 
 # Add nfsnobody user if not exists
@@ -293,15 +293,15 @@ else
 fi
 
 # Change ownership and permissions
-chown -R nfsnobody.nfsnobody ${NFS_PATH} &> /dev/null
+chown -R nfsnobody.nfsnobody ${NFS_DIR} &> /dev/null
 run_command "[changing ownership of an NFS directory]"
 
-chmod -R 777 ${NFS_PATH} &> /dev/null
+chmod -R 777 ${NFS_DIR} &> /dev/null
 run_command "[change NFS directory permissions]"
 
 
 # Add NFS export configuration
-export_config_line="${NFS_PATH}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
+export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
     echo "skipping: [nfs export configuration already exists]"
 else
@@ -784,9 +784,9 @@ run_command "[create ssh-key for accessing coreos]"
 export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
-rm -rf ${HTTPD_PATH}/install-config.yaml &> /dev/null
+rm -rf ${HTTPD_DIR}/install-config.yaml &> /dev/null
 
-cat << EOF > ${HTTPD_PATH}/install-config.yaml 
+cat << EOF > ${HTTPD_DIR}/install-config.yaml 
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
 compute: 
@@ -809,10 +809,10 @@ networking:
 platform:
   none: {} 
 fips: false
-pullSecret: '$(cat $PULL_SECRET)'
+pullSecret: '$(cat $PULL_SECRET_FILE)'
 sshKey: '${SSH_PUB_STR}'
 EOF
-run_command "[create ${HTTPD_PATH}/install-config.yaml file]"
+run_command "[create ${HTTPD_DIR}/install-config.yaml file]"
 
 # Add an empty line after the task
 echo
@@ -823,22 +823,22 @@ echo
 PRINT_TASK "[TASK: Generate a manifests]"
 
 # Create installation directory
-rm -rf "${IGNITION_PATH}" &> /dev/null
-mkdir -p "${IGNITION_PATH}" &> /dev/null
-run_command "[create installation directory: ${IGNITION_PATH}]"
+rm -rf "${INSTALLATION_DIR}" &> /dev/null
+mkdir -p "${INSTALLATION_DIR}" &> /dev/null
+run_command "[create installation directory: ${INSTALLATION_DIR}]"
 
 # Copy install-config.yaml to installation directory
-cp "${HTTPD_PATH}/install-config.yaml" "${IGNITION_PATH}"
+cp "${HTTPD_DIR}/install-config.yaml" "${INSTALLATION_DIR}"
 run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
-/usr/local/bin/openshift-install create manifests --dir "${IGNITION_PATH}" &> /dev/null
+/usr/local/bin/openshift-install create manifests --dir "${INSTALLATION_DIR}" &> /dev/null
 run_command "[generate manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
-if grep -q "mastersSchedulable: true" "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml"; then
+if grep -q "mastersSchedulable: true" "${INSTALLATION_DIR}/manifests/cluster-scheduler-02-config.yml"; then
   # Replace "mastersSchedulable: true" with "mastersSchedulable: false"
-  sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml"
+  sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALLATION_DIR}/manifests/cluster-scheduler-02-config.yml"
   echo "ok: [disable the master node from scheduling custom pods]"
 else
   echo "skipping: [scheduling of custom pods on master nodes is already disabled]"
@@ -853,7 +853,7 @@ echo
 PRINT_TASK "[TASK: Generate default ignition file]"
 
 # Generate and modify ignition configuration files
-/usr/local/bin/openshift-install create ignition-configs --dir "${IGNITION_PATH}" &> /dev/null
+/usr/local/bin/openshift-install create ignition-configs --dir "${INSTALLATION_DIR}" &> /dev/null
 run_command "[generate default ignition file]"
 
 # Add an empty line after the task
@@ -869,32 +869,32 @@ BOOTSTRAP_HOSTNAME="${BOOTSTRAP_HOSTNAME}"
 MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
 WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
 
-cp "${IGNITION_PATH}/bootstrap.ign" "${IGNITION_PATH}/append-${BOOTSTRAP_HOSTNAME}.ign"
+cp "${INSTALLATION_DIR}/bootstrap.ign" "${INSTALLATION_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign"
 run_command "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
 
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    cp "${IGNITION_PATH}/master.ign" "${IGNITION_PATH}/append-${MASTER_HOSTNAME}.ign"
+    cp "${INSTALLATION_DIR}/master.ign" "${INSTALLATION_DIR}/append-${MASTER_HOSTNAME}.ign"
     run_command "[copy and customize the master.ign file name: append-${MASTER_HOSTNAME}.ign]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    cp "${IGNITION_PATH}/worker.ign" "${IGNITION_PATH}/append-${WORKER_HOSTNAME}.ign"
+    cp "${INSTALLATION_DIR}/worker.ign" "${INSTALLATION_DIR}/append-${WORKER_HOSTNAME}.ign"
     run_command "[copy and customize the worker.ign file name: append-${WORKER_HOSTNAME}.ign]"
 done
 
 # Update hostname in ignition files
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/append-${MASTER_HOSTNAME}.ign"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALLATION_DIR}/append-${MASTER_HOSTNAME}.ign"
     run_command "[add the appropriate hostname field to the append-${MASTER_HOSTNAME}.ign file]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/append-${WORKER_HOSTNAME}.ign"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALLATION_DIR}/append-${WORKER_HOSTNAME}.ign"
     run_command "[add the appropriate hostname field to the append-${WORKER_HOSTNAME}.ign file]"
 done
 
 # Set correct permissions
-chmod a+r "${IGNITION_PATH}"/*.ign
+chmod a+r "${INSTALLATION_DIR}"/*.ign
 run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
@@ -905,7 +905,7 @@ echo
 # Task: Generate setup script file
 PRINT_TASK "[TASK: Generate setup script file]"
 
-rm -rf ${IGNITION_PATH}/*.sh
+rm -rf ${INSTALLATION_DIR}/*.sh
 
 # Function to generate setup script for a node
 generate_setup_script() {
@@ -913,7 +913,7 @@ generate_setup_script() {
     local IP_ADDRESS=$2
 
 # Generate a setup script for the node
-cat << EOF > "${IGNITION_PATH}/set-${HOSTNAME}.sh"
+cat << EOF > "${INSTALLATION_DIR}/inst-${HOSTNAME}.sh"
 #!/bin/bash
 # Configure network settings
 sudo nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_SERVER_IP} ipv4.method manual connection.autoconnect yes
@@ -927,8 +927,8 @@ sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --igniti
 EOF
 
     # Check if the setup script file was successfully generated
-    if [ -f "${IGNITION_PATH}/set-${HOSTNAME}.sh" ]; then
-        echo "ok: [generate setup script: ${IGNITION_PATH}/set-${HOSTNAME}.sh]"
+    if [ -f "${INSTALLATION_DIR}/inst-${HOSTNAME}.sh" ]; then
+        echo "ok: [generate setup script: ${INSTALLATION_DIR}/inst-${HOSTNAME}.sh]"
     else
         echo "failed: [generate setup script for ${HOSTNAME}]"
     fi
@@ -944,7 +944,7 @@ generate_setup_script "${WORKER02_HOSTNAME}" "${WORKER02_IP}"
 generate_setup_script "${WORKER03_HOSTNAME}" "${WORKER03_IP}"
 
 # Make the script executable
-chmod +x ${IGNITION_PATH}/*.sh
+chmod +x ${INSTALLATION_DIR}/*.sh
 run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
@@ -954,10 +954,10 @@ echo
 # Task: Generate approve csr script file
 PRINT_TASK "[TASK: Generate approve csr script file]"
 
-rm -rf "${IGNITION_PATH}/approve-csr.sh"
-cat << EOF > "${IGNITION_PATH}/ocp4cert_approver.sh"
+rm -rf "${INSTALLATION_DIR}/approve-csr.sh"
+cat << EOF > "${INSTALLATION_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
-export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+export KUBECONFIG=${INSTALLATION_DIR}/auth/kubeconfig
 
 for i in {1..720}; do 
   oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
