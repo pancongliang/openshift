@@ -55,14 +55,13 @@ export INSTALL_DIR="${HTTPD_DIR}/pre"
 # Function to generate duplicate parameters
 export NFS_SERVER_IP="$BASTION_IP"
 export DNS_SERVER_IP="$BASTION_IP"
-export REGISTRY_IP="$BASTION_IP"
 export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
 export LB_IP="$BASTION_IP"
 
 # Nslookup public network
-export NSLOOKUP_PUBLIC="redhat.com"
+export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -125,12 +124,11 @@ check_all_variables() {
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "DNS_SERVER_IP"
     check_variable "LB_IP"
-    check_variable "REGISTRY_IP"
     check_variable "API_IP"
     check_variable "API_INT_IP"
     check_variable "APPS_IP"
     check_variable "NFS_SERVER_IP"
-    check_variable "NSLOOKUP_PUBLIC"
+    check_variable "NSLOOKUP_TEST_PUBLIC_DOMAIN"
     check_variable "HTTPD_DIR"
     check_variable "INSTALL_DIR"
     # If all variables are set, display a success message  
