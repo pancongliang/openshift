@@ -823,22 +823,22 @@ echo
 PRINT_TASK "[TASK: Generate a manifests]"
 
 # Create installation directory
-rm -rf "${INSTALLATION_DIR}" &> /dev/null
-mkdir -p "${INSTALLATION_DIR}" &> /dev/null
-run_command "[create installation directory: ${INSTALLATION_DIR}]"
+rm -rf "${INSTALL_DIR}" &> /dev/null
+mkdir -p "${INSTALL_DIR}" &> /dev/null
+run_command "[create installation directory: ${INSTALL_DIR}]"
 
 # Copy install-config.yaml to installation directory
-cp "${HTTPD_DIR}/install-config.yaml" "${INSTALLATION_DIR}"
+cp "${HTTPD_DIR}/install-config.yaml" "${INSTALL_DIR}"
 run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
-/usr/local/bin/openshift-install create manifests --dir "${INSTALLATION_DIR}" &> /dev/null
+/usr/local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" &> /dev/null
 run_command "[generate manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
-if grep -q "mastersSchedulable: true" "${INSTALLATION_DIR}/manifests/cluster-scheduler-02-config.yml"; then
+if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
   # Replace "mastersSchedulable: true" with "mastersSchedulable: false"
-  sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALLATION_DIR}/manifests/cluster-scheduler-02-config.yml"
+  sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"
   echo "ok: [disable the master node from scheduling custom pods]"
 else
   echo "skipping: [scheduling of custom pods on master nodes is already disabled]"
@@ -853,7 +853,7 @@ echo
 PRINT_TASK "[TASK: Generate default ignition file]"
 
 # Generate and modify ignition configuration files
-/usr/local/bin/openshift-install create ignition-configs --dir "${INSTALLATION_DIR}" &> /dev/null
+/usr/local/bin/openshift-install create ignition-configs --dir "${INSTALL_DIR}" &> /dev/null
 run_command "[generate default ignition file]"
 
 # Add an empty line after the task
@@ -869,32 +869,32 @@ BOOTSTRAP_HOSTNAME="${BOOTSTRAP_HOSTNAME}"
 MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
 WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
 
-cp "${INSTALLATION_DIR}/bootstrap.ign" "${INSTALLATION_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign"
+cp "${INSTALL_DIR}/bootstrap.ign" "${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign"
 run_command "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
 
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    cp "${INSTALLATION_DIR}/master.ign" "${INSTALLATION_DIR}/append-${MASTER_HOSTNAME}.ign"
+    cp "${INSTALL_DIR}/master.ign" "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
     run_command "[copy and customize the master.ign file name: append-${MASTER_HOSTNAME}.ign]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    cp "${INSTALLATION_DIR}/worker.ign" "${INSTALLATION_DIR}/append-${WORKER_HOSTNAME}.ign"
+    cp "${INSTALL_DIR}/worker.ign" "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
     run_command "[copy and customize the worker.ign file name: append-${WORKER_HOSTNAME}.ign]"
 done
 
 # Update hostname in ignition files
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALLATION_DIR}/append-${MASTER_HOSTNAME}.ign"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
     run_command "[add the appropriate hostname field to the append-${MASTER_HOSTNAME}.ign file]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALLATION_DIR}/append-${WORKER_HOSTNAME}.ign"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
     run_command "[add the appropriate hostname field to the append-${WORKER_HOSTNAME}.ign file]"
 done
 
 # Set correct permissions
-chmod a+r "${INSTALLATION_DIR}"/*.ign
+chmod a+r "${INSTALL_DIR}"/*.ign
 run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
@@ -905,7 +905,7 @@ echo
 # Task: Generate setup script file
 PRINT_TASK "[TASK: Generate setup script file]"
 
-rm -rf ${INSTALLATION_DIR}/*.sh
+rm -rf ${INSTALL_DIR}/*.sh
 
 # Function to generate setup script for a node
 generate_setup_script() {
@@ -913,7 +913,7 @@ generate_setup_script() {
     local IP_ADDRESS=$2
 
 # Generate a setup script for the node
-cat << EOF > "${INSTALLATION_DIR}/inst-${HOSTNAME}.sh"
+cat << EOF > "${INSTALL_DIR}/inst-${HOSTNAME}.sh"
 #!/bin/bash
 # Configure network settings
 sudo nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_SERVER_IP} ipv4.method manual connection.autoconnect yes
@@ -927,8 +927,8 @@ sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --igniti
 EOF
 
     # Check if the setup script file was successfully generated
-    if [ -f "${INSTALLATION_DIR}/inst-${HOSTNAME}.sh" ]; then
-        echo "ok: [generate setup script: ${INSTALLATION_DIR}/inst-${HOSTNAME}.sh]"
+    if [ -f "${INSTALL_DIR}/inst-${HOSTNAME}.sh" ]; then
+        echo "ok: [generate setup script: ${INSTALL_DIR}/inst-${HOSTNAME}.sh]"
     else
         echo "failed: [generate setup script for ${HOSTNAME}]"
     fi
@@ -944,7 +944,7 @@ generate_setup_script "${WORKER02_HOSTNAME}" "${WORKER02_IP}"
 generate_setup_script "${WORKER03_HOSTNAME}" "${WORKER03_IP}"
 
 # Make the script executable
-chmod +x ${INSTALLATION_DIR}/*.sh
+chmod +x ${INSTALL_DIR}/*.sh
 run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
@@ -954,10 +954,10 @@ echo
 # Task: Generate approve csr script file
 PRINT_TASK "[TASK: Generate approve csr script file]"
 
-rm -rf "${INSTALLATION_DIR}/approve-csr.sh"
-cat << EOF > "${INSTALLATION_DIR}/ocp4cert_approver.sh"
+rm -rf "${INSTALL_DIR}/approve-csr.sh"
+cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
-export KUBECONFIG=${INSTALLATION_DIR}/auth/kubeconfig
+export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
 
 for i in {1..720}; do 
   oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
