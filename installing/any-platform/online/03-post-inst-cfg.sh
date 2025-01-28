@@ -48,13 +48,32 @@ source /etc/bash_completion.d/oc_completion &> /dev/null
 # Task: Configure data persistence for the image-registry operator
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
 
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/02-deploy-nfs-storageclass.sh &> /dev/null
+rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+run_command "[create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
 
-source 02-deploy-nfs-storageclass.sh
+cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ${IMAGE_REGISTRY_PV}
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: ${NFS_DIR}/${IMAGE_REGISTRY_PV}
+    server: ${NFS_SERVER_IP}
+  persistentVolumeReclaimPolicy: Retain
+EOF
+run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
 
-sleep 30
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
+run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
 
-rm -rf 02-deploy-nfs-storageclass.sh
+rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
+run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
 
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
