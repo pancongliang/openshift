@@ -48,8 +48,8 @@
   ```
   source 02-pre-inst.sh
 
-  $ ls ${IGNITION_PATH}/set*
-  set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh  set-worker03.sh
+  $ ls ${INSTALL_DIR}/set*
+  inst-bootstrap.sh  inst-master01.sh  inst-master02.sh  inst-master03.sh  inst-worker01.sh  inst-worker02.sh  inst-worker03.sh
   ```
 
 
@@ -59,7 +59,7 @@
 
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-bootstrap.sh | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/inst-bootstrap.sh | sh
   [root@localhost ~]$ reboot
   ```
 
@@ -80,7 +80,7 @@
 
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-master01.sh | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/inst-master01.sh | sh
   [root@localhost ~]$ reboot
   ```
 * Repeat the process for all Control-Plane nodes.
@@ -88,7 +88,7 @@
 * Monitor the bootstrap process:
 
   ```
-  openshift-install --dir ${IGNITION_PATH}/ wait-for bootstrap-complete --log-level=info
+  openshift-install --dir ${INSTALL_DIR}/ wait-for bootstrap-complete --log-level=info
   ```
 
 
@@ -98,7 +98,7 @@
 
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-worker01.sh | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/inst-worker01.sh | sh
   [root@localhost ~]$ reboot
   ```
 
@@ -110,13 +110,13 @@
 * Repeat the process for all worker nodes.To approve the Certificate Signing Request (CSR), run the following command:
 
   ```
-  source ${IGNITION_PATH}/ocp4cert_approver.sh &
+  source ${INSTALL_DIR}/ocp4cert_approver.sh &
   ```
 
 * Repeat the process for all worker nodes.Check the node status and operators:
 
   ```
-  export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
   oc get node
   oc get co | grep -v '.True.*False.*False'
   ```
@@ -141,6 +141,6 @@
 * Or, use the KUBECONFIG environment variable:
 
   ```
-  export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
   oc completion bash >> /etc/bash_completion.d/oc_completion
   ```
