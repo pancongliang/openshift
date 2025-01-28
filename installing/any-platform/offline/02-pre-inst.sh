@@ -94,19 +94,25 @@ echo
 # ====================================================
 
 
-# === Task: Install infrastructure rpm ===
-PRINT_TASK "[TASK: Install infrastructure rpm]"
+# === Task: Install the necessary rpm packages ===
+PRINT_TASK "[TASK: Install the necessary rpm packages]"
 
 # List of RPM packages to install
-packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "conmon" "httpd-manual")
+packages=("wget" "net-tools" "vim-enhanced" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "conmon" "httpd-manual")
 
-# Install the RPM package and return the execution result
+# Convert the array to a space-separated string
+package_list="${packages[*]}"
+
+# Install all packages at once
+sudo dnf install -y $package_list &>/dev/null
+
+# Check if each package was installed successfully
 for package in "${packages[@]}"; do
-    yum install -y "$package" &>/dev/null
+    rpm -q $package &>/dev/null
     if [ $? -eq 0 ]; then
-        echo "ok: [install $package package]"
+        echo "ok: [installed $package package]"
     else
-        echo "failed: [install $package package]"
+        echo "failed: [installed $package package]"
     fi
 done
 
