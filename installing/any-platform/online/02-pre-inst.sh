@@ -316,10 +316,30 @@ fi
 systemctl enable --now nfs-server &> /dev/null
 run_command "[restart and enable nfs-server service]"
 
+
+# Step 3: Test
+# ----------------------------------------------------
+# Function to check if NFS share is accessible
+
+# Create the mount point if it doesn't exist
+mkdir -p /tmp/nfs_test
+run_command "[Create an nfs mount directory for testing: /tmp/nfs_test]"
+
+# Attempt to mount the NFS share
+mount -t nfs ${NFS_SERVER_IP}:${NFS_PATH} /tmp/nfs_test
+run_command "[test mounts the nfs shared directory: /tmp/nfs_test]"
+
+# Unmount the NFS share
+umount /tmp/nfs_test
+run_command "[Unmount the nfs shared directory: /tmp/nfs_test]"
+
+# Unmount the NFS share
+umount /tmp/nfs_test
+run_command "[delete the test mounted nfs directory: /tmp/nfs_test]"
+
 # Add an empty line after the task
 echo
 # ====================================================
-
 
 
 # === Task: Setup named services ===
