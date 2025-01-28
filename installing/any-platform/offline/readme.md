@@ -1,120 +1,142 @@
 ## Restricted network installation OpenShift4
 
-```
-Hostname                    | Role
---- --- --- --- --- --- --- | --- --- --- --- --- --- --- 
-bastion.ocp4.example.com    | bastion(nfs/registry/haproxy/dns/httpd)
-master01.ocp4.example.com   | master 
-master02.ocp4.example.com   | master
-master03.ocp4.example.com   | master
-worker01.ocp4.example.com   | worker
-worker02.ocp4.example.com   | worker
-worker03.ocp4.example.com   | worker
-bootstrap.ocp4.example.com  | bootstrap
-```
+### Machine List
 
-### Download the installation script
+| Hostname                    | Role                                           |
+|-----------------------------|------------------------------------------------|
+| bastion.ocp4.example.com     | bastion (nfs/haproxy/dns/httpd)                |
+| master01.ocp4.example.com    | master                                         |
+| master02.ocp4.example.com    | master                                         |
+| master03.ocp4.example.com    | master                                         |
+| worker01.ocp4.example.com    | worker                                         |
+| worker02.ocp4.example.com    | worker                                         |
+| worker03.ocp4.example.com    | worker                                         |
+| bootstrap.ocp4.example.com   | bootstrap                                      |
 
-```
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/offline/00-dl-script.sh | sh
-```
+
+### Download the Installation Script
+
+* To download the installation script, run the following command:
+
+  ```
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-dl-script.sh | sh
+  ```
 
 ### Register Subscription
 
-```
-source 00-reg-sub.sh
-```
+* Run the following command to register the subscription:
 
-### Setting Environment Variables
+  ```
+  source 00-reg-sub.sh
+  ```
 
-```
-vim 01-set-params.sh
-  
-source 01-set-params.sh
-```
 
-### Install infrastructure and generate scripts
+### Set Environment Variables
 
-```
-source 02-pre-inst.sh
+* Edit and source the environment variables script:
 
-ls ${IGNITION_PATH}/set*
-set-bootstrap.sh  set-master01.sh  set-master02.sh  set-master03.sh  set-worker01.sh  set-worker02.sh set-worker03.sh
-```
+  ```
+  vim 01-set-params.sh
+  source 01-set-params.sh
+  ```
 
 
 ### Mirror ocp release image
 
-```
-source 03-mirror-img.sh
-```
+* RMirror the OCP release image by running the following command:
+  
+  ```
+  source 03-mirror-img.sh
+  ```
 
-### Install bootstrap
+### Install Bootstrap
 
-After mounting the ISO, start the `bootstrap` node and execute the following command.
-If the node cannot communicate, manually enter the content in `set-*.sh`.
-```
-[core@localhost ~]$ sudo -i
-[root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-bootstrap.sh | sh
-[root@localhost ~]$ reboot
-···
-# Wait for the reboot to complete and check for error messages
-[root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}
-[core@localhost ~]$ sudo -i
-[root@localhost ~]$ netstat -ntplu | grep -E '6443|22623'
-[root@localhost ~]$ podman ps
-[root@localhost ~]$ journalctl -b -f -u release-image.service -u bootkube.service
-```
+* After mounting the ISO, start the `bootstrap` node and execute the following command:
 
-### Install all master
+  ```
+  [core@localhost ~]$ sudo -i
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/inst-bootstrap.sh | sh
+  [root@localhost ~]$ reboot
+  ```
 
-After mounting the ISO, start the `master` node and execute the following command.
-If the node cannot communicate, manually enter the content in `set-*.sh`.
-```
-[core@localhost ~]$ sudo -i
-[root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-master01.sh | sh
-[root@localhost ~]$ reboot
-···Install all master nodes in sequence···
+* After the reboot, check for error messages:
+ 
+  ```
+  [root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}
+  [core@localhost ~]$ sudo -i
+  [root@localhost ~]$ netstat -ntplu | grep -E '6443|22623'
+  [root@localhost ~]$ podman ps
+  [root@localhost ~]$ journalctl -b -f -u release-image.service -u bootkube.service
+  ```
 
-# Check the group installation progress in the bastion machine
-openshift-install --dir ${IGNITION_PATH}/ wait-for bootstrap-complete --log-level=info 
-```
 
-### Install all worker
+### Install Control-Plane
 
-After mounting the ISO, start the `worker` node and execute the following command.
-If the node cannot communicate, manually enter the content in `set-*.sh`.
-```
-[core@localhost ~]$ sudo -i
-[root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/set-worker01.sh | sh
-[root@localhost ~]$ reboot
-···Install all worker nodes in sequence···
-```
+* After mounting the ISO, start the `Control-Plane` node and execute the following command:
+
+  ```
+  [core@localhost ~]$ sudo -i
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/inst-master01.sh | sh
+  [root@localhost ~]$ reboot
+  ```
+* Repeat the process for all Control-Plane nodes.
+  
+* Monitor the bootstrap process:
+
+  ```
+  openshift-install --dir ${INSTALL_DIR}/ wait-for bootstrap-complete --log-level=info
+  ```
+
+
+### Install Workers
+
+* After mounting the ISO, start the `worker` node and execute the following command:
+
+  ```
+  [core@localhost ~]$ sudo -i
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/inst-worker01.sh | sh
+  [root@localhost ~]$ reboot
+  ```
+
+* Repeat the process for all worker nodes.
+
 
 ### Approval of CSR
 
-```
-source ${IGNITION_PATH}/ocp4cert_approver.sh &
+* Repeat the process for all worker nodes.To approve the Certificate Signing Request (CSR), run the following command:
 
-export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
-oc get node
-oc get co | grep -v '.True.*False.*False'
-```
+  ```
+  source ${INSTALL_DIR}/ocp4cert_approver.sh &
+  ```
 
-### Configure image-registry-operator data persistence and registry trustedCA
+* Repeat the process for all worker nodes.Check the node status and operators:
 
-```
-source 04-post-inst-cfg.sh
-```
+  ```
+  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
+  oc get node
+  oc get co | grep -v '.True.*False.*False'
+  ```
 
-### Login openshift
+### Configure Image-Registry-Operator Data Persistence
 
-```
-oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]
+* Repeat the process for all worker nodes.Configure the image registry operator's data persistence by running the script:
 
-or
+  ```
+  source 04-post-inst-cfg.sh
+  ```
 
-export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
 
-oc completion bash >> /etc/bash_completion.d/oc_completion
-```
+### Login to OpenShift
+
+* Repeat the process for all worker nodes. Can login to OpenShift using the following command:
+
+  ```
+  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443
+  ```
+
+* Or, use the KUBECONFIG environment variable:
+
+  ```
+  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
+  oc completion bash >> /etc/bash_completion.d/oc_completion
+  ```
