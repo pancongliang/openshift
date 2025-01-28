@@ -51,7 +51,7 @@ echo
 PRINT_TASK "[TASK: Disable and stop firewalld service]"
 
 # Stop and disable firewalld services
-systemctl disable --now firewalld &> /dev/null
+sudo systemctl disable --now firewalld &> /dev/null
 run_command "[firewalld service stopped and disabled]"
 
 # Add an empty line after the task
@@ -79,7 +79,7 @@ fi
 
 
 # Temporarily set SELinux security policy to permissive
-setenforce 0 &>/dev/null
+sudo setenforce 0 &>/dev/null
 # Check temporary SELinux security policy
 temporary_status=$(getenforce)
 # Check if temporary SELinux security policy is permissive or disabled
@@ -97,10 +97,6 @@ echo
 # === Task: Install the necessary rpm packages ===
 PRINT_TASK "[TASK: Install the necessary rpm packages]"
 
-
-# yum install -y wget net-tools vim podman bind-utils bind haproxy git bash-completion jq nfs-utils httpd httpd-tools skopeo conmon httpd-manual &> /dev/null
-# run_command "[install the necessary rpm packages]"
-
 # List of RPM packages to install
 packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "conmon" "httpd-manual")
 
@@ -108,7 +104,7 @@ packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" 
 package_list="${packages[*]}"
 
 # Install all packages at once
-dnf install -y $package_list &>/dev/null
+sudo dnf install -y $package_list &>/dev/null
 if [ $? -eq 0 ]; then
     for package in "${packages[@]}"; do
         echo "ok: [install $package package]"
@@ -338,7 +334,7 @@ fi
 # Step 2: Enable and Restart nfs-server service
 # ----------------------------------------------------
 # Enable and start service
-systemctl enable --now nfs-server &> /dev/null
+sudo systemctl enable --now nfs-server &> /dev/null
 run_command "[restart and enable nfs-server service]"
 
 
@@ -346,20 +342,20 @@ run_command "[restart and enable nfs-server service]"
 # ----------------------------------------------------
 # Function to check if NFS share is accessible
 
-# Create the mount point if it doesn't exist
-mkdir -p /tmp/nfs_test
+# Create the mount point
+sudo mkdir -p /tmp/nfs_test
 run_command "[Create an nfs mount directory for testing: /tmp/nfs_test]"
 
 # Attempt to mount the NFS share
-mount -t nfs ${NFS_SERVER_IP}:${NFS_PATH} /tmp/nfs_test
+sudo mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs_test
 run_command "[test mounts the nfs shared directory: /tmp/nfs_test]"
 
 # Unmount the NFS share
-umount /tmp/nfs_test
-run_command "[Unmount the nfs shared directory: /tmp/nfs_test]"
+sudo umount /tmp/nfs_test
+run_command "[unmount the nfs shared directory: /tmp/nfs_test]"
 
-# Unmount the NFS share
-umount /tmp/nfs_test
+# Delete /tmp/nfs_test
+sudo rm -rf /tmp/nfs_test
 run_command "[delete the test mounted nfs directory: /tmp/nfs_test]"
 
 # Add an empty line after the task
