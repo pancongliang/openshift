@@ -98,8 +98,33 @@ echo
 PRINT_TASK "[TASK: Install the necessary rpm packages]"
 
 
-yum install -y wget net-tools vim podman bind-utils bind haproxy git bash-completion jq nfs-utils httpd httpd-tools skopeo conmon httpd-manual &> /dev/null
-run_command "[install the necessary rpm packages]"
+# yum install -y wget net-tools vim podman bind-utils bind haproxy git bash-completion jq nfs-utils httpd httpd-tools skopeo conmon httpd-manual &> /dev/null
+# run_command "[install the necessary rpm packages]"
+
+# List of RPM packages to install
+packages=("wget" "net-tools" "vim" "podman" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "conmon" "httpd-manual")
+
+# Convert the array to a space-separated string
+package_list="${packages[*]}"
+
+# Install all packages at once
+dnf install -y $package_list &>/dev/null
+if [ $? -eq 0 ]; then
+    for package in "${packages[@]}"; do
+        echo "ok: [install $package package]"
+    done
+else
+    for package in "${packages[@]}"; do
+        # Check if each package is installed
+        rpm -q $package &>/dev/null
+        if [ $? -eq 0 ]; then
+            echo "ok: [install $package package]"
+        else
+            echo "failed: [install $package package]"
+        fi
+    done
+fi
+
 
 # Add an empty line after the task
 echo
