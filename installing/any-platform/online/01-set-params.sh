@@ -7,7 +7,7 @@ export OCP_RELEASE_VERSION="4.16.12"
 
 # OpenShift install-config
 export PULL_SECRET="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-export CLUSTER_NAME="copan"
+export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export SSH_KEY_PATH="$HOME/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
@@ -29,7 +29,7 @@ export MASTER03_HOSTNAME="master03"
 export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
 export WORKER03_HOSTNAME="worker03"
-export BASTION_IP="10.184.134.128"
+export BASTION_IP="10.184.134.101"
 export BOOTSTRAP_IP="10.184.134.127"
 export MASTER01_IP="10.184.134.129"
 export MASTER02_IP="10.184.134.130"
