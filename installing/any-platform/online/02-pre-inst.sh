@@ -683,12 +683,9 @@ done
 
 # Display results
 if [ "$all_successful" = true ]; then
-    echo "ok: [nslookup all domain names/IP addresses]"
+    echo "ok: [nslookup all domain names/ip addresses]"
 else
-    echo "failed: [dns resolve failed for the following domain/IP:]"
-    for failed_hostname in "${failed_hostnames[@]}"; do
-        echo "$failed_hostname"
-    done
+    echo "failed: [dns resolve failed for the following domain/ip: ${failed_hostnames[*]}]"
 fi
 
 # Add an empty line after the task
