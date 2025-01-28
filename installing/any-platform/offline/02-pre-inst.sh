@@ -322,7 +322,7 @@ PRINT_TASK "[TASK: Setup nfs services]"
 # ----------------------------------------------------
 # Create NFS directories
 rm -rf ${NFS_DIR} &> /dev/null
-mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+mkdir -p ${NFS_DIR} &> /dev/null
 run_command "[create nfs director: ${NFS_DIR}]"
 
 # Add nfsnobody user if not exists
