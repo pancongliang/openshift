@@ -332,27 +332,29 @@ fi
 sudo systemctl enable --now nfs-server &> /dev/null
 run_command "[restart and enable nfs-server service]"
 
+# Wait for the service to restart
+sleep 3
 
 # Step 3: Test
 # ----------------------------------------------------
 # Function to check if NFS share is accessible
 
 # Create the mount point
-sudo mkdir -p /tmp/nfs_test
-run_command "[Create an nfs mount directory for testing: /tmp/nfs_test]"
+sudo mkdir -p /tmp/nfs-test &> /dev/null
+run_command "[create an nfs mount directory for testing: /tmp/nfs-test]"
 
 # Attempt to mount the NFS share
-sudo mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs_test
-run_command "[test mounts the nfs shared directory: /tmp/nfs_test]"
+sudo mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test &> /dev/null
+run_command "[test mounts the nfs shared directory: /tmp/nfs-test]"
 
 # Unmount the NFS share
-sudo fuser -km /tmp/nfs_test
-sudo umount /tmp/nfs_test
-run_command "[unmount the nfs shared directory: /tmp/nfs_test]"
+sudo fuser -km /tmp/nfs-test &> /dev/null
+sudo umount /tmp/nfs-test &> /dev/null
+run_command "[unmount the nfs shared directory: /tmp/nfs-test]"
 
-# Delete /tmp/nfs_test
-sudo rm -rf /tmp/nfs_test
-run_command "[delete the test mounted nfs directory: /tmp/nfs_test]"
+# Delete /tmp/nfs-test
+sudo rm -rf /tmp/nfs-test &> /dev/null
+run_command "[delete the test mounted nfs directory: /tmp/nfs-test]"
 
 # Add an empty line after the task
 echo
