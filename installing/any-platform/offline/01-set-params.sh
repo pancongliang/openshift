@@ -8,7 +8,7 @@ export OCP_RELEASE_VERSION="4.12.30"
 # OpenShift install-config
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
-export PULL_SECRET="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET_FILE="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export SSH_KEY_PATH="$HOME/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
 export POD_CIDR="10.128.0.0/14"
@@ -48,19 +48,19 @@ export NET_IF_NAME="'Wired connection 1'"
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"                         # 8 characters or more
-export REGISTRY_INSTALL_PATH="/opt/quay-install"
+export REGISTRY_INSTALL_DIR="/opt/quay-install"
 
 # oc-mirror plug-in for mirror image
-export IMAGE_SET_CONFIGURATION_PATH="/root/oc-mirror"
+export IMAGE_SET_CONF_PATH="/$HOME/oc-mirror"
 export OCP_RELEASE_CHANNEL="$(echo $OCP_RELEASE_VERSION | cut -d. -f1,2)"
 
 # NFS directory is used to create image-registry pod pv
-export NFS_PATH="/nfs"
+export NFS_DIR="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
 
 # Httpd and ocp ignition dir
-export HTTPD_PATH="/var/www/html/materials"
-export IGNITION_PATH="${HTTPD_PATH}/pre"
+export HTTPD_DIR="/var/www/html/materials"
+export INSTALL_DIR="${HTTPD_DIR}/pre"
 
 # === Do not change the following parameters === 
 # Function to generate duplicate parameters
@@ -73,7 +73,7 @@ export APPS_IP="$BASTION_IP"
 export LB_IP="$BASTION_IP"
 
 # Nslookup public network
-export NSLOOKUP_PUBLIC="redhat.com"
+export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 
 
 # Function to print a task with uniform length
@@ -107,7 +107,7 @@ check_all_variables() {
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
-    check_variable "PULL_SECRET"
+    check_variable "PULL_SECRET_FILE"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
@@ -136,10 +136,10 @@ check_all_variables() {
     check_variable "REGISTRY_HOSTNAME"
     check_variable "REGISTRY_ID"
     check_variable "REGISTRY_PW"
-    check_variable "REGISTRY_INSTALL_PATH"
-    check_variable "IMAGE_SET_CONFIGURATION_PATH"
+    check_variable "REGISTRY_INSTALL_DIR"
+    check_variable "IMAGE_SET_CONF_PATH"
     check_variable "OCP_RELEASE_CHANNEL"
-    check_variable "NFS_PATH"
+    check_variable "NFS_DIR"
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "DNS_SERVER_IP"
     check_variable "LB_IP"
@@ -148,9 +148,9 @@ check_all_variables() {
     check_variable "API_INT_IP"
     check_variable "APPS_IP"
     check_variable "NFS_SERVER_IP"
-    check_variable "NSLOOKUP_PUBLIC"
-    check_variable "HTTPD_PATH"
-    check_variable "IGNITION_PATH"
+    check_variable "NSLOOKUP_TEST_PUBLIC_DOMAIN"
+    check_variable "HTTPD_DIR"
+    check_variable "INSTALL_DIR"
     # If all variables are set, display a success message  
 }
 
@@ -185,13 +185,13 @@ run_command() {
 PRINT_TASK "[TASK: Prepare the pull-secret]"
 
 # Prompt for pull-secret
-read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
+# read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
 
 # Create a temporary file to store the pull secret
-PULL_SECRET=$(mktemp -p /tmp)
-echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
-run_command "[create a temporary file to store the pull secret]"
+# PULL_SECRET_FILE=$(mktemp -p /tmp)
+# echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET_FILE}"
+# run_command "[create a temporary file to store the pull secret]"
 
 # Add an empty line after the task
-echo
+# echo
 # ====================================================
