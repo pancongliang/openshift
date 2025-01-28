@@ -246,7 +246,7 @@ create_virtual_host_config() {
     cat << EOF > /etc/httpd/conf.d/base.conf
 <VirtualHost *:8080>
    ServerName ${BASTION_HOSTNAME}
-   DocumentRoot ${HTTPD_PATH}
+   DocumentRoot ${HTTPD_DIR}
 </VirtualHost>
 EOF
 }
@@ -258,7 +258,7 @@ create_virtual_host_config
 check_virtual_host_configuration() {
     # Define expected values for server name and document root
     expected_server_name="${BASTION_HOSTNAME}"
-    expected_document_root="${HTTPD_PATH}"
+    expected_document_root="${HTTPD_DIR}"
     
     # Path to virtual host configuration file
     virtual_host_config="/etc/httpd/conf.d/base.conf"
@@ -276,8 +276,8 @@ check_virtual_host_configuration() {
 check_virtual_host_configuration
 
 # Create http dir
-mkdir -p ${HTTPD_PATH} &> /dev/null
-run_command "[create http: ${HTTPD_PATH} director]"
+mkdir -p ${HTTPD_DIR} &> /dev/null
+run_command "[create http: ${HTTPD_DIR} director]"
 
 
 # Step 3: Enable and Restart httpd service
@@ -294,13 +294,13 @@ sleep 3
 # Step 4: Test
 # ----------------------------------------------------
 # Test httpd configuration
-touch ${HTTPD_PATH}/httpd-test &> /dev/null
+touch ${HTTPD_DIR}/httpd-test &> /dev/null
 run_command "[create httpd test file]"
 
 wget -q http://${BASTION_IP}:8080/httpd-test
 run_command "[test httpd download function]"
 
-rm -rf httpd-test ${HTTPD_PATH}/httpd-test &> /dev/null
+rm -rf httpd-test ${HTTPD_DIR}/httpd-test &> /dev/null
 run_command "[delete the httpd test file]"
 
 # Add an empty line after the task
@@ -315,9 +315,9 @@ PRINT_TASK "[TASK: Setup nfs services]"
 # Step 1: Create directory /user and change permissions and add NFS export
 # ----------------------------------------------------
 # Create NFS directories
-rm -rf ${NFS_PATH} &> /dev/null
-mkdir -p ${NFS_PATH}/${IMAGE_REGISTRY_PV} &> /dev/null
-run_command "[create nfs director: ${NFS_PATH}]"
+rm -rf ${NFS_DIR} &> /dev/null
+mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+run_command "[create nfs director: ${NFS_DIR}]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" &>/dev/null; then
@@ -328,14 +328,14 @@ else
 fi
 
 # Change ownership and permissions
-chown -R nfsnobody.nfsnobody ${NFS_PATH} &> /dev/null
+chown -R nfsnobody.nfsnobody ${NFS_DIR} &> /dev/null
 run_command "[changing ownership of an NFS directory]"
 
-chmod -R 777 ${NFS_PATH} &> /dev/null
+chmod -R 777 ${NFS_DIR} &> /dev/null
 run_command "[change NFS directory permissions]"
 
 # Add NFS export configuration
-export_config_line="${NFS_PATH}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
+export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
     echo "skipping: [nfs export configuration already exists]"
 else
@@ -364,7 +364,7 @@ check_nfs_access() {
     mkdir -p $mount_point
     
     # Attempt to mount the NFS share
-    mount -t nfs ${NFS_SERVER_IP}:${NFS_PATH} $mount_point
+    mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} $mount_point
 
     if [ $? -eq 0 ]; then
         echo "ok: [test mounts the nfs shared directory]"
@@ -689,7 +689,7 @@ hostnames=(
     "${WORKER02_IP}"
     "${WORKER03_IP}"
     "${BOOTSTRAP_IP}"
-    "${NSLOOKUP_PUBLIC}"
+    "${NSLOOKUP_TEST_PUBLIC_DOMAIN}"
 )
 
 # Loop through hostnames and perform nslookup
@@ -841,7 +841,7 @@ PRINT_TASK "[TASK: Install mirror registry]"
 # Check if there is an active mirror registry pod
 if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
+    ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_DIR} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [uninstall the mirror registry]"
@@ -855,7 +855,7 @@ fi
 # Delete existing duplicate data
 files=(
     "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem"
-    "${REGISTRY_INSTALL_PATH}"
+    "${REGISTRY_INSTALL_DIR}"
 )
 for file in "${files[@]}"; do
     if [ -e "$file" ]; then
@@ -868,38 +868,38 @@ done
 
 
 # Create installation directory
-mkdir -p ${REGISTRY_INSTALL_PATH}
-mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
-mkdir -p ${REGISTRY_INSTALL_PATH}/sqlite-storage
-chmod -R 777 ${REGISTRY_INSTALL_PATH}
-run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
+mkdir -p ${REGISTRY_INSTALL_DIR}
+mkdir -p ${REGISTRY_INSTALL_DIR}/quay-storage
+mkdir -p ${REGISTRY_INSTALL_DIR}/sqlite-storage
+chmod -R 777 ${REGISTRY_INSTALL_DIR}
+run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
 
 # Download mirror-registry
-# wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
-wget -O ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz &> /dev/null
+# wget -P ${REGISTRY_INSTALL_DIR} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
+wget -O ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz &> /dev/null
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
+tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
 echo "ok: [Start installing mirror-registry...]"
-echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
+echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_DIR}/mirror-registry.log]"
 
 # Install mirror-registry
-${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
+${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
-     --quayRoot ${REGISTRY_INSTALL_PATH} \
-     --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
-     --sqliteStorage ${REGISTRY_INSTALL_PATH}/sqlite-storage \
+     --quayRoot ${REGISTRY_INSTALL_DIR} \
+     --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
+     --sqliteStorage ${REGISTRY_INSTALL_DIR}/sqlite-storage \
      --initUser ${REGISTRY_ID} \
-     --initPassword ${REGISTRY_PW} > ${REGISTRY_INSTALL_PATH}/mirror-registry.log
+     --initPassword ${REGISTRY_PW} > ${REGISTRY_INSTALL_DIR}/mirror-registry.log
 run_command "[Installation of mirror registry completed]"
 
 sleep 60
 
 # Copy the rootCA certificate to the trusted source
-cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
+cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
 run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
 
 # Trust the rootCA certificate
@@ -925,11 +925,11 @@ echo
 PRINT_TASK "[TASK: Generate a defined install-config file]"
 
 # Backup and format the registry CA certificate
-rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
-cp "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
+rm -rf "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
+cp "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
 run_command "[backup registry CA certificate]"
 
-sed -i 's/^/  /' "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
+sed -i 's/^/  /' "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
 run_command "[format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
@@ -938,14 +938,14 @@ ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null
 run_command "[create ssh-key for accessing coreos]"
 
 # Define variables
-export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak)"
+export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak)"
 export REGISTRY_AUTH=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
 export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
-rm -rf ${HTTPD_PATH}/install-config.yaml &> /dev/null
+rm -rf ${HTTPD_DIR}/install-config.yaml &> /dev/null
 
-cat << EOF > ${HTTPD_PATH}/install-config.yaml 
+cat << EOF > ${HTTPD_DIR}/install-config.yaml 
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
 compute: 
@@ -980,11 +980,11 @@ imageContentSources:
   - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/openshift/release-images
   source: quay.io/openshift-release-dev/ocp-release
 EOF
-run_command "[create ${HTTPD_PATH}/install-config.yaml file]"
+run_command "[create ${HTTPD_DIR}/install-config.yaml file]"
 
 # Delete certificate
-rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak &> /dev/null
-run_command "[delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
+rm -rf ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak &> /dev/null
+run_command "[delete ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak file]"
 
 # Add an empty line after the task
 echo
@@ -995,22 +995,22 @@ echo
 PRINT_TASK "[TASK: Generate a manifests]"
 
 # Create installation directory
-rm -rf "${IGNITION_PATH}" &> /dev/null
-mkdir -p "${IGNITION_PATH}" &> /dev/null
-run_command "[create installation directory: ${IGNITION_PATH}]"
+rm -rf "${INSTALL_DIR}" &> /dev/null
+mkdir -p "${INSTALL_DIR}" &> /dev/null
+run_command "[create installation directory: ${INSTALL_DIR}]"
 
 # Copy install-config.yaml to installation directory
-cp "${HTTPD_PATH}/install-config.yaml" "${IGNITION_PATH}" &> /dev/null
+cp "${HTTPD_DIR}/install-config.yaml" "${INSTALL_DIR}" &> /dev/null
 run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
-openshift-install create manifests --dir "${IGNITION_PATH}" &> /dev/null
+openshift-install create manifests --dir "${INSTALL_DIR}" &> /dev/null
 run_command "[generate manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
-if grep -q "mastersSchedulable: true" "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml"; then
+if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
   # Replace "mastersSchedulable: true" with "mastersSchedulable: false"
-  sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${IGNITION_PATH}/manifests/cluster-scheduler-02-config.yml"
+  sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"
   echo "ok: [disable the master node from scheduling custom pods]"
 else
   echo "skipping: [scheduling of custom pods on master nodes is already disabled]"
@@ -1025,7 +1025,7 @@ echo
 PRINT_TASK "[TASK: Generate default ignition file]"
 
 # Generate and modify ignition configuration files
-openshift-install create ignition-configs --dir "${IGNITION_PATH}" &> /dev/null
+openshift-install create ignition-configs --dir "${INSTALL_DIR}" &> /dev/null
 run_command "[generate default ignition file]"
 
 # Add an empty line after the task
@@ -1041,32 +1041,32 @@ BOOTSTRAP_HOSTNAME="${BOOTSTRAP_HOSTNAME}"
 MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
 WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
 
-cp "${IGNITION_PATH}/bootstrap.ign" "${IGNITION_PATH}/append-${BOOTSTRAP_HOSTNAME}.ign"
+cp "${INSTALL_DIR}/bootstrap.ign" "${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign"
 run_command "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
 
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    cp "${IGNITION_PATH}/master.ign" "${IGNITION_PATH}/append-${MASTER_HOSTNAME}.ign"
+    cp "${INSTALL_DIR}/master.ign" "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
     run_command "[copy and customize the master.ign file name: append-${MASTER_HOSTNAME}.ign]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    cp "${IGNITION_PATH}/worker.ign" "${IGNITION_PATH}/append-${WORKER_HOSTNAME}.ign"
+    cp "${INSTALL_DIR}/worker.ign" "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
     run_command "[copy and customize the worker.ign file name: append-${WORKER_HOSTNAME}.ign]"
 done
 
 # Update hostname in ignition files
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/append-${MASTER_HOSTNAME}.ign"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
     run_command "[add the appropriate hostname field to the append-${MASTER_HOSTNAME}.ign file]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${IGNITION_PATH}/append-${WORKER_HOSTNAME}.ign"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
     run_command "[add the appropriate hostname field to the append-${WORKER_HOSTNAME}.ign file]"
 done
 
 # Set correct permissions
-chmod a+r "${IGNITION_PATH}"/*.ign
+chmod a+r "${INSTALL_DIR}"/*.ign
 run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
@@ -1077,7 +1077,7 @@ echo
 # Task: Generate setup script file
 PRINT_TASK "[TASK: Generate setup script file]"
 
-rm -rf ${IGNITION_PATH}/*.sh
+rm -rf ${INSTALL_DIR}/*.sh
 
 # Function to generate setup script for a node
 generate_setup_script() {
@@ -1085,7 +1085,7 @@ generate_setup_script() {
     local IP_ADDRESS=$2
 
     # Generate a setup script for the node
-    cat << EOF > "${IGNITION_PATH}/set-${HOSTNAME}.sh"
+    cat << EOF > "${INSTALL_DIR}/set-${HOSTNAME}.sh"
 #!/bin/bash
 # Configure network settings
 sudo nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_SERVER_IP} ipv4.method manual connection.autoconnect yes
@@ -1099,8 +1099,8 @@ sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --igniti
 EOF
 
     # Check if the setup script file was successfully generated
-    if [ -f "${IGNITION_PATH}/set-${HOSTNAME}.sh" ]; then
-        echo "ok: [generate setup script: ${IGNITION_PATH}/set-${HOSTNAME}.sh]"
+    if [ -f "${INSTALL_DIR}/set-${HOSTNAME}.sh" ]; then
+        echo "ok: [generate setup script: ${INSTALL_DIR}/set-${HOSTNAME}.sh]"
     else
         echo "failed: [generate setup script for ${HOSTNAME}]"
     fi
@@ -1116,7 +1116,7 @@ generate_setup_script "${WORKER02_HOSTNAME}" "${WORKER02_IP}"
 generate_setup_script "${WORKER03_HOSTNAME}" "${WORKER03_IP}"
 
 # Make the script executable
-chmod +x ${IGNITION_PATH}/*.sh
+chmod +x ${INSTALL_DIR}/*.sh
 run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
@@ -1127,10 +1127,10 @@ echo
 # Task: Generate approve csr script file
 PRINT_TASK "[TASK: Generate approve csr script file]"
 
-rm -rf "${IGNITION_PATH}/approve-csr.sh"
-cat << EOF > "${IGNITION_PATH}/ocp4cert_approver.sh"
+rm -rf "${INSTALL_DIR}/approve-csr.sh"
+cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
-export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig
+export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
 
 for i in {1..720}; do 
   oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
