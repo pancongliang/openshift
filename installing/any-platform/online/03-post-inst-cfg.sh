@@ -48,6 +48,10 @@ source /etc/bash_completion.d/oc_completion &> /dev/null
 # Task: Configure data persistence for the image-registry operator
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
 
+rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+run_command "[create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
+
 cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
 apiVersion: v1
 kind: PersistentVolume
