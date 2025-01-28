@@ -37,6 +37,10 @@ oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null
 # Effective immediately
 source /etc/bash_completion.d/oc_completion &> /dev/null
 
+rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+run_command "[create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
+
 cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
 apiVersion: v1
 kind: PersistentVolume
