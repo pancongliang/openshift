@@ -48,24 +48,24 @@ spec:
   accessModes:
   - ReadWriteMany
   nfs:
-    path: ${NFS_PATH}/${IMAGE_REGISTRY_PV}
+    path: ${NFS_DIR}/${IMAGE_REGISTRY_PV}
     server: ${NFS_SERVER_IP}
   persistentVolumeReclaimPolicy: Retain
 EOF
 run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
 
-oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
 run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
 
 rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
 run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
-oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
 run_command "[change the Image registry operator configuration’s managementState from Removed to Managed]"
 
 # Leave the claim field blank to allow the automatic creation of an image-registry-storage PVC.
-oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
 run_command "[leave the claim field blank to allow the automatic creation of an image-registry-storage PVC]"
 
 # Add an empty line after the task
@@ -77,13 +77,13 @@ echo
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
 # Create a configmap containing the CA certificate
-oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig create configmap registry-config \
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
      --from-file=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem \
      -n openshift-config &> /dev/null
 run_command "[create a configmap containing the CA certificate]"
 
 # Additional trusted CA
-oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
 run_command "[additional trusted CA]"
 
 # Add an empty line after the task
@@ -94,7 +94,7 @@ echo
 PRINT_TASK "[TASK: Disabling the default OperatorHub sources]"
 
 # Disabling the default OperatorHub sources
-oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
 run_command "[disabling the default OperatorHub sources]"
 
 echo
@@ -107,13 +107,13 @@ rm -rf $OCP_INSTALL_DIR/users.htpasswd
 htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[create a user using the htpasswd tool]"
 
-oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[create a secret using the users.htpasswd file]"
 
 rm -rf $OCP_INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-cat  <<EOF | /usr/local/bin/oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig apply -f - > /dev/null 2>&1
+cat  <<EOF | /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f - > /dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -130,14 +130,14 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
 run_command "[grant cluster-admin permissions to the admin user]"
 
 echo "info: [restarting oauth pod, waiting...]"
 sleep 100
 
 while true; do
-    operator_status=$(/usr/local/bin/oc --kubeconfig=${IGNITION_PATH}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     if echo "$operator_status" | grep -q -v "True False False"; then
         echo "info: [all cluster operators have not reached the expected status, Waiting...]"
         sleep 60  
@@ -154,6 +154,6 @@ echo
 PRINT_TASK "[TASK: Login cluster information]"
 
 echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
-echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=${IGNITION_PATH}/auth/kubeconfig]"
+echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig]"
 echo
 # ====================================================
