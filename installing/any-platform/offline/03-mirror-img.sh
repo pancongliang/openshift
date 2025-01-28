@@ -35,20 +35,20 @@ rm -rf $XDG_RUNTIME_DIR/containers
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
 run_command  "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
-podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
+podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET_FILE}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
 run_command "[add authentication information to pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
+cat ${PULL_SECRET_FILE} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
 run_command "[save the pull-secret file either as $XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create ImageSetConfiguration directory
-rm -rf ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
-mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
-run_command "[create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
+rm -rf ${IMAGE_SET_CONF_PATH} &>/dev/null
+mkdir ${IMAGE_SET_CONF_PATH} &>/dev/null
+run_command "[create ${IMAGE_SET_CONF_PATH} directory]"
 
 # Create ImageSetConfiguration file
-cat << EOF > ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml
+cat << EOF > ${IMAGE_SET_CONF_PATH}/imageset-config.yaml
 apiVersion: mirror.openshift.io/v1alpha2
 kind: ImageSetConfiguration
 storageConfig:
@@ -63,14 +63,14 @@ mirror:
         maxVersion: ${OCP_RELEASE_VERSION}
         shortestPath: true
 EOF
-run_command "[create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
+run_command "[create ${IMAGE_SET_CONF_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
-oc mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
+oc mirror --config=${IMAGE_SET_CONF_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
 run_command "[mirroring ocp ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
-# rm -f "${PULL_SECRET}"
+# rm -f "${PULL_SECRET_FILE}"
 # run_command "[remove temporary pull-secret file]"
 
 # Add an empty line after the task
