@@ -6,7 +6,7 @@
 export OCP_RELEASE_VERSION="4.16.12"
 
 # OpenShift install-config
-export PULL_SECRET="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET_FILE="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export SSH_KEY_PATH="$HOME/.ssh"
@@ -44,12 +44,12 @@ export NET_IF_NAME="'Wired connection 1'"
 
 # === More parameters === 
 # NFS directory is used to create image-registry pod pv
-export NFS_PATH="/nfs"
+export NFS_DIR="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
 
 # Httpd and ocp ignition dir
-export HTTPD_PATH="/var/www/html/materials"
-export IGNITION_PATH="${HTTPD_PATH}/pre"
+export HTTPD_DIR="/var/www/html/materials"
+export INSTALLATION_DIR="${HTTPD_DIR}/pre"
 
 # === Do not change the following parameters === 
 # Function to generate duplicate parameters
@@ -121,7 +121,7 @@ check_all_variables() {
     check_variable "BOOTSTRAP_IP"
     check_variable "COREOS_INSTALL_DEV"
     check_variable "NET_IF_NAME"
-    check_variable "NFS_PATH"
+    check_variable "NFS_DIR"
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "DNS_SERVER_IP"
     check_variable "LB_IP"
@@ -131,8 +131,8 @@ check_all_variables() {
     check_variable "APPS_IP"
     check_variable "NFS_SERVER_IP"
     check_variable "NSLOOKUP_PUBLIC"
-    check_variable "HTTPD_PATH"
-    check_variable "IGNITION_PATH"
+    check_variable "HTTPD_DIR"
+    check_variable "INSTALLATION_DIR"
     # If all variables are set, display a success message  
 }
 
@@ -171,8 +171,8 @@ run_command() {
 # read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
 
 # Create a temporary file to store the pull secret
-# PULL_SECRET=$(mktemp -p /tmp)
-# echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
+# PULL_SECRET_FILE=$(mktemp -p /tmp)
+# echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET_FILE}"
 # run_command "[create a temporary file to store the pull secret]"
 
 # Add an empty line after the task
