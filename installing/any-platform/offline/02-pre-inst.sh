@@ -363,34 +363,28 @@ sleep 3
 # Step 3: Test
 # ----------------------------------------------------
 # Function to check if NFS share is accessible
-check_nfs_access() {
-    mount_point="/mnt/nfs_test"
-    
-    # Create the mount point if it doesn't exist
-    mkdir -p $mount_point
-    
-    # Attempt to mount the NFS share
-    mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} $mount_point
 
-    if [ $? -eq 0 ]; then
-        echo "ok: [test mounts the nfs shared directory]"
-        # Unmount the NFS share
-        umount $mount_point
-        rmdir $mount_point
-        return 0
-    else
-        echo "failed: [test mount nfs shared directory]"
-        rmdir $mount_point
-        return 1
-    fi
-}
+# Create the mount point
+sudo mkdir -p /tmp/nfs-test &> /dev/null
+run_command "[create an nfs mount directory for testing: /tmp/nfs-test]"
 
-# Call the function to check NFS access
-check_nfs_access
+# Attempt to mount the NFS share
+sudo mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test &> /dev/null
+run_command "[test mounts the nfs shared directory: /tmp/nfs-test]"
+
+# Unmount the NFS share
+sudo fuser -km /tmp/nfs-test &> /dev/null
+sudo umount /tmp/nfs-test &> /dev/null
+run_command "[unmount the nfs shared directory: /tmp/nfs-test]"
+
+# Delete /tmp/nfs-test
+sudo rm -rf /tmp/nfs-test &> /dev/null
+run_command "[delete the test mounted nfs directory: /tmp/nfs-test]"
 
 # Add an empty line after the task
 echo
 # ====================================================
+
 
 
 
@@ -712,13 +706,11 @@ done
 
 # Display results
 if [ "$all_successful" = true ]; then
-    echo "ok: [nslookup all domain names/IP addresses]"
+    echo "ok: [nslookup all domain names/ip addresses]"
 else
-    echo "failed: [dns resolve failed for the following domain/IP:]"
-    for failed_hostname in "${failed_hostnames[@]}"; do
-        echo "$failed_hostname"
-    done
+    echo "failed: [dns resolve failed for the following domain/ip: ${failed_hostnames[*]}]"
 fi
+
 
 # Add an empty line after the task
 echo
