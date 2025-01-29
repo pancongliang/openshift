@@ -147,14 +147,16 @@
 ####  Accessing a hosted cluster
 * Generate Kubeconfig file and access the customer cluster
    ```
-   hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "${HOSTED_CLUSTER_NAME}-kubeconfig"
-   export KUBECONFIG=${HOSTED_CLUSTER_NAME}-kubeconfig
-   unset KUBECONFIG
+   hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "$HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig"
+   # or
+   oc extract -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-admin-kubeconfig --to=- > $HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+   
+   export KUBECONFIG=$HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
    ```
 * Log in to the Guest Cluster using the Kubeadmin account
    ```
    export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
-   export KUBEADMIN_PASSWORD=$(oc get secret ${HOSTED_CLUSTER_NAME}-kubeadmin-password -n local-cluster --template='{{ .data.password }}' | base64 -d)
+   export KUBEADMIN_PASSWORD=$(oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d)
 
    oc login $HOSTED_CLUSTER_API -u kuebadmin -p $KUBEADMIN_PASSWORD
    ```
@@ -164,8 +166,27 @@
    oc get route -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME oauth -o jsonpath='https://{.spec.host}'
    echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
 
-   oc get secret ${HOSTED_CLUSTER_NAME}-kubeadmin-password -n local-cluster --template='{{ .data.password }}' | base64 -d
+   oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d
    ```
+
+#### Quickly switch kubeconfig between OCP Hub and Hypershift
+*  Quickly switch kubeconfig through alias
+   ```
+   echo "alias ctx1='export KUBECONFIG=/$HOME/.kube/hub-kubeconfig'" >> ~/.bashrc
+   echo "alias ctx2='export KUBECONFIG=/$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig'" >> ~/.bashrc
+   source ~/.bashrc
+   ```
+   
+*  Quickly switch environments through context   
+   ```
+   export KUBECONFIG=/$HOME/hub-kubeconfig:/$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+   oc config view --merge --flatten > /$HOME/kubeconfig
+   export KUBECONFIG=/$HOME/kubeconfig
+   
+   oc config get-contexts
+   oc config use-context <name>
+   ```
+
 
 #### Configuring HTPasswd-based user authentication
 1. **Create a file with the username and password**
@@ -206,15 +227,14 @@
    
 6. **Configuring access permissions for hosted cluster users**
    ```
-   KUBECONFIG=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
    oc adm policy add-cluster-role-to-user cluster-admin admin --kubeconfig=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
-   unset KUBECONFIG
    ```
    
 7. **Access Verification**
    ```
    export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
 
+   unset KUBECONFIG
    oc login $HOSTED_CLUSTER_API -u admin -p redhat
    ```
 
@@ -223,7 +243,9 @@
    oc get route -n clusters-my-cluster-1 oauth -o jsonpath='https://{.spec.host}'
    echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
    ```
+
    
+
 ### Deleting a Hosted Cluster
 1. **Deleting a Hosted Cluster**
    ```
