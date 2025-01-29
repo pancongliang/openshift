@@ -987,16 +987,20 @@ run_command "[change ignition file permissions]"
 echo
 # ====================================================
 
+
+
 # Task: Generate approve csr script file
 PRINT_TASK "[TASK: Generate approve csr script file]"
 
+# If the file exists, delete it
 rm -rf "${INSTALL_DIR}/approve-csr.sh"
+
+# Generate approve csr script file]
 cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
-export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
 
 for i in {1..720}; do 
-  oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
+  oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
   sleep 10
 done 
 EOF
