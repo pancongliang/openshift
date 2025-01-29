@@ -211,7 +211,7 @@ update_httpd_listen_port() {
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
         echo "ok: [change http listening port to 8080]"
     else
-        echo "skipping: [http listen port is already 8080]"
+        echo "skipped: [http listen port is already 8080]"
     fi
 }
 
@@ -302,7 +302,7 @@ run_command "[create nfs director: ${NFS_DIR}]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" &>/dev/null; then
-    echo "skipping: [nfsnobody user exists]"
+    echo "skipped: [nfsnobody user exists]"
 else
     useradd nfsnobody
     echo "ok: [add nfsnobody user]"
@@ -319,7 +319,7 @@ run_command "[change NFS directory permissions]"
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "skipping: [nfs export configuration already exists]"
+    echo "skipped: [nfs export configuration already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
     echo "ok: [add nfs export configuration]"
@@ -877,7 +877,7 @@ if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-schedule
   sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"
   echo "ok: [disable the master node from scheduling custom pods]"
 else
-  echo "skipping: [scheduling of custom pods on master nodes is already disabled]"
+  echo "skipped: [scheduling of custom pods on master nodes is already disabled]"
 fi
 
 # Add an empty line after the task
