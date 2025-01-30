@@ -42,6 +42,7 @@
 
 ### Setting Up Cluster Manager
 - The local-cluster ManagedCluster allows the MCE components to treat the cluster it runs on as a host for guest clusters:
+  > Note: The command might fail initially if the ManagedCluster CRD is not yet registered. Retry after a few minutes.
   ```
   oc apply -f - <<EOF
   apiVersion: cluster.open-cluster-management.io/v1
@@ -55,7 +56,6 @@
     leaseDurationSeconds: 60
   EOF
   ```
-  > Note: The command might fail initially if the ManagedCluster CRD is not yet registered. Retry after a few minutes.
 
 ### Enabling HyperShift
 1. Apply the following YAML to enable the HyperShift operator:
@@ -103,6 +103,7 @@
    ```
 
 3. **Create the Hosted Cluster**
+   > Note: If do not provide any advanced storage configuration, the default storage class is used for the KubeVirt virtual machine (VM) images, the KubeVirt Container Storage Interface (CSI) mapping, and the etcd volumes.
    ```
    # oc new-project $HOSTED_CLUSTER_NAMESPACE
    
@@ -125,16 +126,12 @@
      #--base-domain <base-domain>
    ```
 
-4. **Monitor Resources**
+5. **Monitor Resources**
    ```
    oc wait --for=condition=Ready --namespace $HOSTED_CONTROL_PLANE_NAMESPACE vm --all --timeout=600s
-   
-   oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
-   oc get pvc -n $HOSTED_CONTROL_PLANE_NAMESPACE
-   oc get nodepool -n $HOSTED_CONTROL_PLANE_NAMESPACE
    ```
 
-5. **Examine the Hosted Cluster**
+6. **Examine the Hosted Cluster**
    - Verify the status of guest cluster:
      ```
      oc get hc -A
@@ -147,15 +144,31 @@
      ```
      oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
+   - Check the status of VMI:
+     ```
+     oc get vmi -n $HOSTED_CONTROL_PLANE_NAMESPACE
+     ```
+   - Check the dataVolume of VMs:
+     ```
+     oc get dataVolume -n $HOSTED_CONTROL_PLANE_NAMESPACE
+     ```
+   - Check the pvc used by etcd and vm:    
+     ```
+     oc get pvc -n $HOSTED_CONTROL_PLANE_NAMESPACE
+     ```
+   - Check node pool
+     ```
+     oc get nodepool -n $HOSTED_CONTROL_PLANE_NAMESPACE
+     ```
 
-6. **Scaling a node pool**
+7. **Scaling a node pool**
      ```
      oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
 
      oc -n $HOSTED_CLUSTER_NAMESPACE scale nodepool $HOSTED_CLUSTER_NAME --replicas=3
      ```
 
-7. **Adding node pools**
+8. **Adding node pools**
      ```
      export NODEPOOL_NAME=${CLUSTER_NAME}-example
      export WORKER_COUNT="2"
