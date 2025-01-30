@@ -104,7 +104,7 @@
 
 3. **Create the Hosted Cluster**
    ```
-   oc new-project $HOSTED_CLUSTER_NAMESPACE
+   # oc new-project $HOSTED_CLUSTER_NAMESPACE
    
    hcp create cluster kubevirt \
      --name $HOSTED_CLUSTER_NAME \
