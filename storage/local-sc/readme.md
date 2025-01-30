@@ -32,15 +32,21 @@ export DEVICE='sd*'
 cat << EOF > find-secondary-device.sh
 #!/bin/bash
 set -uo pipefail
-
+NODE_NAME="\$(hostname)"
+DEVICE_PATH=""
 for device in /dev/$DEVICE; do
   /usr/sbin/blkid "\${device}" &> /dev/null
   if [ \$? == 2 ]; then
-    ls -l /dev/disk/by-path/ | awk -v dev="\${device##*/}" '\$0 ~ dev {print "/dev/disk/by-path/" \$9}'
-    exit
+    mkfs.xfs -f "\${device}" &> /dev/null
+    UUID=\$(blkid "\${device}" -o value -s UUID 2>/dev/null)
+    if [ -n "\$UUID" ]; then
+      DEVICE_PATH="/dev/disk/by-uuid/\$UUID"
+      echo "\$NODE_NAME:  \$DEVICE_PATH"
+      exit
+    fi
   fi
 done
-echo "Couldn't find secondary block device!" >&2
+echo "\$NODE_NAME:  - Couldn't find secondary block device!" >&2
 EOF
 
 NODES=$(oc get nodes -l 'node-role.kubernetes.io/worker' -o=jsonpath='{.items[*].metadata.name}')
@@ -49,7 +55,11 @@ for node in $NODES; do ssh core@$node "sudo bash -s" < find-secondary-device.sh;
 
 3. **Store the device path**
 ```
-export DEVICE_PATH=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
+export DEVICE_PATH_1=/dev/disk/by-uuid/eb74ce65-06ac-4aeb-8fa1-e060281fc14e
+
+# Define the variable if it exists, otherwise skip it
+export DEVICE_PATH_2=/dev/disk/by-uuid/5b9e314b-1861-440a-8b3f-89fcdbc73dcb
+export DEVICE_PATH_3=/dev/disk/by-uuid/7d606cd3-a9a5-4c12-9713-d308964a4496
 ``` 
 
 ### Create LocalVolume
@@ -76,7 +86,9 @@ spec:
       forceWipeDevicesAndDestroyAllData: false
       volumeMode: Block
       devicePaths:
-        - ${DEVICE_PATH}
+        - ${DEVICE_PATH_1}
+        ${DEVICE_PATH_2:+- ${DEVICE_PATH_2}}
+        ${DEVICE_PATH_3:+- ${DEVICE_PATH_3}}
 EOF
 ```
 
@@ -103,7 +115,9 @@ spec:
       volumeMode: Filesystem
       fsType: xfs
       devicePaths:
-        - ${DEVICE_PATH}
+        - ${DEVICE_PATH_1}
+        ${DEVICE_PATH_2:+- ${DEVICE_PATH_2}}
+        ${DEVICE_PATH_3:+- ${DEVICE_PATH_3}}
 EOF
 ```
 
