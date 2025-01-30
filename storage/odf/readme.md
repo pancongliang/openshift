@@ -55,10 +55,11 @@
   ux-backend-server-7c7d688c8b-64qzm                 2/2     Running   0          9m51s
 
   $ oc get sc
-  ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete  Immediate  true  8m  # Block storage
-  ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete  Immediate  false 9m  # RGW Object storage
-  ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete  Immediate  true  8m  # FS storage
-  openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete  Immediate  false 8m  # NooBaa Object storage
+  local-sc                      kubernetes.io/no-provisioner            Delete  WaitForFirstConsumer   false  7m16s
+  ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete  Immediate              true  8m  # Block storage
+  ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete  Immediate              false 9m  # RGW Object storage
+  ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete  Immediate              true  8m  # FS storage
+  openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete  Immediate              false 8m  # NooBaa Object storage
   ```
 
 ### Verify ocs-storagecluster-cephfs storage class
