@@ -118,6 +118,11 @@
      #--etcd-storage-class ocs-storagecluster-ceph-rbd \
      #--control-plane-availability-policy SingleReplica \
      #--infra-availability-policy SingleReplica
+     #--root-volume-storage-class <root_volume_storage_class>
+     #--root-volume-size <volume_size>
+     #--infra-storage-class-mapping=<infrastructure_storage_class>/<hosted_storage_class> # Mapping KubeVirt CSI storage classes
+     #--infra-volumesnapshot-class-mapping=<infrastructure_volume_snapshot_class>/<hosted_volume_snapshot_class>
+     #--base-domain <base-domain>
    ```
 
 4. **Monitor Resources**
@@ -150,8 +155,24 @@
      oc -n $HOSTED_CLUSTER_NAMESPACE scale nodepool $HOSTED_CLUSTER_NAME --replicas=3
      ```
 
-
+7. **Adding node pools**
+     ```
+     export NODEPOOL_NAME=${CLUSTER_NAME}-example
+     export WORKER_COUNT="2"
+     export MEM="6Gi"
+     export CPU="4"
+     export DISK="16"
      
+     hcp create nodepool kubevirt \
+       --cluster-name $HOSTED_CLUSTER_NAME \
+       --name $NODEPOOL_NAME \
+       --node-count $WORKER_COUNT \
+       --memory $MEM \
+       --cores $CPU \
+       --root-volume-size $DISK
+
+     oc get nodepools --namespace $HOSTED_CLUSTER_NAMESPACE
+     ```    
 ####  Accessing a hosted cluster
 * Generate Kubeconfig file and access the customer cluster
    ```
