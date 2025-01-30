@@ -72,7 +72,7 @@ spec:
             values:
               - ""
   storageClassDevices:
-    - storageClassName: "localblock"
+    - storageClassName: "local-sc"
       forceWipeDevicesAndDestroyAllData: false
       volumeMode: Block
       devicePaths:
