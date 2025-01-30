@@ -22,7 +22,7 @@ oc new-app --name=mysql \
 
 oc set volumes deployment/mysql \
    --add --name mysql-storage --type pvc --claim-class managed-nfs-storage \
-   --claim-mode RWX --claim-size 5Gi --mount-path /usr/share/nginx/html \
+   --claim-mode rwm --claim-size 5Gi --mount-path /usr/share/nginx/html \
    --claim-name test-volume
 ~~~
 ~~~
