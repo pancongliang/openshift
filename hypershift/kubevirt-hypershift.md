@@ -88,25 +88,24 @@
    ```
    Download the [pull secret](https://console.redhat.com/openshift/install/pull-secret).
 
-2. **Create a Namespace for the Hosted Cluster**
-   ```
-   export HOSTED_CLUSTER_NAMESPACE="clusters"
-   oc new-project $HOSTED_CLUSTER_NAMESPACE
-   ```
 
-3. **Configure Environment Variables**
+2. **Configure Environment Variables**
    ```
-   export HOSTED_CLUSTER_NAME=my-cluster-1
-   export OCP_VERSION=4.16.12
+   # Contains the namespace of HostedCluster and NodePool custom resources. The default namespace is clusters
+   export HOSTED_CLUSTER_NAMESPACE="clusters" # Contains the namespace of HostedCluster and NodePool custom resources. The default namespace is clusters.
+   export HOSTED_CLUSTER_NAME="my-cluster-1"
+   export HOSTED_CONTROL_PLANE_NAMESPACE="$HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME"
+   export OCP_VERSION="4.16.12"
    export PULL_SECRET="$HOME/pull-secret" 
    export MEM="8Gi"
    export CPU="2"
    export WORKER_COUNT="2"
-   export HOSTED_CONTROL_PLANE_NAMESPACE=$HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
    ```
 
-4. **Create the Hosted Cluster**
+3. **Create the Hosted Cluster**
    ```
+   oc new-project $HOSTED_CLUSTER_NAMESPACE
+   
    hcp create cluster kubevirt \
      --name $HOSTED_CLUSTER_NAME \
      --release-image quay.io/openshift-release-dev/ocp-release:$OCP_VERSION-x86_64 \
@@ -121,7 +120,7 @@
      #--infra-availability-policy SingleReplica
    ```
 
-5. **Monitor Resources**
+4. **Monitor Resources**
    ```
    oc wait --for=condition=Ready --namespace $HOSTED_CONTROL_PLANE_NAMESPACE vm --all --timeout=600s
    
@@ -130,7 +129,7 @@
    oc get nodepool -n $HOSTED_CONTROL_PLANE_NAMESPACE
    ```
 
-6. **Examine the Hosted Cluster**
+5. **Examine the Hosted Cluster**
    - Verify the status of guest cluster:
      ```
      oc get hc -A
@@ -144,7 +143,7 @@
      oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
 
-7. **Scaling a node pool**
+6. **Scaling a node pool**
      ```
      oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
 
