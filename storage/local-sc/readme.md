@@ -31,22 +31,16 @@ export DEVICE='sd*'
 ```
 cat << EOF > find-secondary-device.sh
 #!/bin/bash
-set -uo pipefail
-NODE_NAME="\$(hostname)"
-DEVICE_PATH=""
+set -e
+NODE_NAME=\$(hostname)
 for device in /dev/$DEVICE; do
-  /usr/sbin/blkid "\${device}" &> /dev/null
-  if [ \$? == 2 ]; then
-    mkfs.xfs -f "\${device}" &> /dev/null
-    UUID=\$(blkid "\${device}" -o value -s UUID 2>/dev/null)
-    if [ -n "\$UUID" ]; then
-      DEVICE_PATH="/dev/disk/by-uuid/\$UUID"
-      echo "\$NODE_NAME:  \$DEVICE_PATH"
-      exit
-    fi
+  if ! blkid "\$device" &>/dev/null; then
+    mkfs.xfs -f "\$device" &>/dev/null
+    UUID=\$(blkid "\$device" -o value -s UUID 2>/dev/null)
+    [ -n "\$UUID" ] && echo "\$NODE_NAME: /dev/disk/by-uuid/\$UUID" && exit
   fi
 done
-echo "\$NODE_NAME:  - Couldn't find secondary block device!" >&2
+echo "\$NODE_NAME: - Couldn't find secondary block device!" >&2
 EOF
 
 NODES=$(oc get nodes -l 'node-role.kubernetes.io/worker' -o=jsonpath='{.items[*].metadata.name}')
@@ -55,11 +49,10 @@ for node in $NODES; do ssh core@$node "sudo bash -s" < find-secondary-device.sh;
 
 3. **Store the device path**
 ```
-export DEVICE_PATH_1=/dev/disk/by-uuid/eb74ce65-06ac-4aeb-8fa1-e060281fc14e
-
+export DEVICE_PATH_1=/dev/disk/by-uuid/59940ed2-51dd-4926-a997-9f037b5beb21
 # Define the variable if it exists, otherwise skip it
-export DEVICE_PATH_2=/dev/disk/by-uuid/5b9e314b-1861-440a-8b3f-89fcdbc73dcb
-export DEVICE_PATH_3=/dev/disk/by-uuid/7d606cd3-a9a5-4c12-9713-d308964a4496
+export DEVICE_PATH_2=/dev/disk/by-uuid/a6113307-b4f1-43fd-86de-4b0fe34de98b
+export DEVICE_PATH_3=/dev/disk/by-uuid/a08fc4c9-fd2d-4c0c-baef-d9d343db282e
 ``` 
 
 ### Create LocalVolume
