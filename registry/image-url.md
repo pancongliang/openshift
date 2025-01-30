@@ -11,6 +11,16 @@ oc new-app --name loadtest --docker-image quay.io/redhattraining/loadtest:v1.0
 oc new-app --name famous-quotes --docker-image quay.io/redhattraining/famous-quotes:2.1
 
 oc new-app --name todo --docker-image quay.io/redhattraining/todo-angular:v1.2
+
+# ---
+oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+
+export STORAGE_CLASS=managed-nfs-storage
+
+oc set volumes deployment/nginx \
+  --add --name nginx-storage --type pvc --claim-class $STORAGE_CLASS \
+  --claim-mode rwo --claim-size 5Gi --mount-path /usr/share/nginx/html \
+  --claim-name nginx-storage
 ~~~~
 
 #### Database
@@ -24,7 +34,7 @@ export STORAGE_CLASS=managed-nfs-storage
 
 oc set volumes deployment/mysql \
    --add --name mysql-storage --type pvc --claim-class $STORAGE_CLASS \
-   --claim-mode rwm --claim-size 5Gi --mount-path /usr/share/nginx/html \
+   --claim-mode rwm --claim-size 5Gi --mount-path /var/lib/mysql/data \
    --claim-name mysql-storage
 ~~~
 ~~~
