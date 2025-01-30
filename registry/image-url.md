@@ -20,10 +20,12 @@ oc new-app --name=mysql \
    -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb \
    -e MYSQL_ROOT_PASSWORD=r00tpa55
 
+export STORAGE_CLASS=managed-nfs-storage
+
 oc set volumes deployment/mysql \
-   --add --name mysql-storage --type pvc --claim-class managed-nfs-storage \
+   --add --name mysql-storage --type pvc --claim-class $STORAGE_CLASS \
    --claim-mode rwm --claim-size 5Gi --mount-path /usr/share/nginx/html \
-   --claim-name test-volume
+   --claim-name mysql-storage
 ~~~
 ~~~
 oc new-app --name postgresql \
@@ -32,8 +34,10 @@ oc new-app --name postgresql \
    -e POSTGRESQL_PASSWORD=redhat123 \
    -e POSTGRESQL_DATABASE=persistentdb
 
+export STORAGE_CLASS=managed-nfs-storage
+
 oc set volumes deployment/postgresql-persistent \
-   --add --name postgresql-date --type pvc --claim-class nfs-storage \
+   --add --name postgresql-date --type pvc --claim-class $STORAGE_CLASS \
    --claim-mode rwm --claim-size 5Gi --mount-path /var/lib/pgsql \
    --claim-name postgresql-persistent-pvc
 ~~~
