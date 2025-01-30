@@ -102,6 +102,7 @@
    export MEM="8Gi"
    export CPU="2"
    export WORKER_COUNT="2"
+   export HOSTED_CONTROL_PLANE_NAMESPACE=$HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
    ```
 
 4. **Create the Hosted Cluster**
@@ -122,11 +123,11 @@
 
 5. **Monitor Resources**
    ```
-   oc wait --for=condition=Ready --namespace $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME vm --all --timeout=600s
+   oc wait --for=condition=Ready --namespace $HOSTED_CONTROL_PLANE_NAMESPACE vm --all --timeout=600s
    
-   oc get vm -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
-   oc get pvc -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
-   oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
+   oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
+   oc get pvc -n $HOSTED_CONTROL_PLANE_NAMESPACE
+   oc get nodepool -n $HOSTED_CONTROL_PLANE_NAMESPACE
    ```
 
 6. **Examine the Hosted Cluster**
@@ -136,14 +137,22 @@
      ```
    - Inspect the control plane pods:
      ```
-     oc get pod -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
+     oc get pod -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
    - Check the status of VMs:
      ```
-     oc get vm -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME
+     oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
-     
 
+7. **Scaling a node pool**
+     ```
+     oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
+
+     oc -n $HOSTED_CLUSTER_NAMESPACE scale nodepool $HOSTED_CLUSTER_NAME --replicas=3
+     ```
+
+
+     
 ####  Accessing a hosted cluster
 * Generate Kubeconfig file and access the customer cluster
    ```
@@ -163,7 +172,7 @@
 
 * Log in to the Guest Cluster OCP Console using the kubeadmin account
    ```
-   oc get route -n $HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME oauth -o jsonpath='https://{.spec.host}'
+   oc get route -n $HOSTED_CONTROL_PLANE_NAMESPACE oauth -o jsonpath='https://{.spec.host}'
    echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
 
    oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d
