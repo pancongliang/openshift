@@ -12,7 +12,7 @@ oc new-app --name famous-quotes --docker-image quay.io/redhattraining/famous-quo
 
 oc new-app --name todo --docker-image quay.io/redhattraining/todo-angular:v1.2
 
-# ---
+# PVC
 oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
 
 export STORAGE_CLASS=managed-nfs-storage
