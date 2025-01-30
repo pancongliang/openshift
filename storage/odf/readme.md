@@ -17,20 +17,14 @@
 ### Label Nodes with Storage Devices
 - Add the `ocs` label to OCP nodes with storage devices:
   ```
-  export NODE_NAME01=worker01.ocp4.example.com
-  export NODE_NAME02=worker02.ocp4.example.com
-  export NODE_NAME03=worker03.ocp4.example.com
-
-  oc label node ${NODE_NAME01} cluster.ocs.openshift.io/openshift-storage=''
-  oc label node ${NODE_NAME02} cluster.ocs.openshift.io/openshift-storage=''
-  oc label node ${NODE_NAME03} cluster.ocs.openshift.io/openshift-storage=''
+  oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} cluster.ocs.openshift.io/openshift-storage=''
   ```
 
 ### Create StorageCluster
 - Create the StorageCluster by specifying variables:
   ```
   export LOCAL_PV_SIZE=100Gi
-  export STORAGE_CLASS_NAME=localblock
+  export STORAGE_CLASS_NAME=local-sc
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/02-storagecluster.yaml | envsubst | oc create -f -
   ```
 
