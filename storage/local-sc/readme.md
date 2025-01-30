@@ -17,7 +17,7 @@ curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main
 - Add labels to the nodes:
 
 ```
-oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} cluster.ocs.openshift.io/openshift-storage=''
+oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} local.storage.openshift.io/openshift-local-storage=''
 ```
 
 ### Check Node Disk Device Path
@@ -67,7 +67,7 @@ spec:
   nodeSelector:
     nodeSelectorTerms:
       - matchExpressions:
-          - key: cluster.ocs.openshift.io/openshift-storage
+          - key: local.storage.openshift.io/openshift-local-storage
             operator: In
             values:
               - ""
@@ -93,7 +93,7 @@ spec:
   nodeSelector:
     nodeSelectorTerms:
       - matchExpressions:
-          - key: cluster.ocs.openshift.io/openshift-storage
+          - key: local.storage.openshift.io/openshift-local-storage
             operator: In
             values:
               - ""
