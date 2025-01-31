@@ -91,7 +91,6 @@
 
 2. **Configure Environment Variables**
    ```
-   # Contains the namespace of HostedCluster and NodePool custom resources. The default namespace is clusters
    export HOSTED_CLUSTER_NAMESPACE="clusters" # Contains the namespace of HostedCluster and NodePool custom resources. The default namespace is clusters.
    export HOSTED_CLUSTER_NAME="my-cluster-1"
    export HOSTED_CONTROL_PLANE_NAMESPACE="$HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME"
@@ -126,12 +125,12 @@
      #--base-domain <base-domain>
    ```
 
-5. **Monitor Resources**
+4. **Monitor Resources**
    ```
    oc wait --for=condition=Ready --namespace $HOSTED_CONTROL_PLANE_NAMESPACE vm --all --timeout=600s
    ```
 
-6. **Examine the Hosted Cluster**
+5. **Examine the Hosted Cluster**
    - Verify the status of guest cluster:
      ```
      oc get hc -A
@@ -148,6 +147,10 @@
      ```
      oc get vmi -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
+   - Check node pool
+     ```
+     oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
+     ```
    - Check the dataVolume of VMs:
      ```
      oc get dataVolume -n $HOSTED_CONTROL_PLANE_NAMESPACE
@@ -156,21 +159,19 @@
      ```
      oc get pvc -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
-   - Check node pool
-     ```
-     oc get nodepool -n $HOSTED_CONTROL_PLANE_NAMESPACE
-     ```
 
-7. **Scaling a node pool**
+6. **Scaling a node pool**
      ```
      oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
 
      oc -n $HOSTED_CLUSTER_NAMESPACE scale nodepool $HOSTED_CLUSTER_NAME --replicas=3
+
+     oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
 
-8. **Adding node pools**
+7. **Adding node pools**
      ```
-     export NODEPOOL_NAME=${CLUSTER_NAME}-example
+     export NODEPOOL_NAME=${HOSTED_CLUSTER_NAME}-work
      export WORKER_COUNT="2"
      export MEM="6Gi"
      export CPU="4"
@@ -185,13 +186,18 @@
        --root-volume-size $DISK
 
      oc get nodepools --namespace $HOSTED_CLUSTER_NAMESPACE
-     ```    
+
+     oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
+     ```
+
+
+     
 ####  Accessing a hosted cluster
 * Generate Kubeconfig file and access the customer cluster
    ```
-   hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "$HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig"
+   hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig"
    # or
-   oc extract -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-admin-kubeconfig --to=- > $HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+   oc extract -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-admin-kubeconfig --to=- > $HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
    
    export KUBECONFIG=$HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
    ```
@@ -200,6 +206,7 @@
    export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
    export KUBEADMIN_PASSWORD=$(oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d)
 
+   unset KUBECONFIG
    oc login $HOSTED_CLUSTER_API -u kuebadmin -p $KUBEADMIN_PASSWORD
    ```
 
@@ -264,7 +271,7 @@
    
 5. **View oauth-openshift related pod updates**
    ```
-   oc get pod -n $HOSTED_CLUSTER_NAME-${HOSTED_CLUSTER_NAME} | grep oauth-openshift -w
+   oc get pod -n $HOSTED_CONTROL_PLANE_NAMESPACE | grep oauth-openshift -w
    ```
    
 6. **Configuring access permissions for hosted cluster users**
