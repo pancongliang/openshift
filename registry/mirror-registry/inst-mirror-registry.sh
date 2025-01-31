@@ -25,17 +25,24 @@ run_command() {
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
 # List of RPM packages to install
-packages=("wget" "vim" "podman" "bash-completion" "jq")
+packages=("wget" "vim-enhanced" "podman" "bash-completion" "jq")
 
-# Install the RPM package and return the execution result
+# Convert the array to a space-separated string
+package_list="${packages[*]}"
+
+# Install all packages at once
+sudo dnf install -y $package_list &>/dev/null
+
+# Check if each package was installed successfully
 for package in "${packages[@]}"; do
-    sudo yum install -y "$package" &>/dev/null
+    rpm -q $package &>/dev/null
     if [ $? -eq 0 ]; then
-        echo "ok: [Install $package package]"
+        echo "ok: [installed $package package]"
     else
-        echo "failed: [Install $package package]"
+        echo "failed: [installed $package package]"
     fi
 done
+
 
 # Add an empty line after the task
 echo
