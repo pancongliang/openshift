@@ -138,6 +138,6 @@
 * Or, use the KUBECONFIG environment variable:
 
   ```
-  echo 'export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig' >> $HOME/.bash_profile
+  echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> $HOME/.bash_profile
   source $HOME/.bash_profile
   ```
