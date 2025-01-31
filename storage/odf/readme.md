@@ -1,4 +1,5 @@
-## Install and Configure ODF
+## Deploy OpenShift Data Foundation using local storage devices
+
 
 ### Install and Configure Local Storage Operator
 - Use the [Local Storage Operator](https://github.com/pancongliang/openshift/blob/main/storage/local-sc/readme.md) to create a local volume in block mode.
@@ -78,31 +79,6 @@
   oc -n test rsh $(oc get pods -n test -o=jsonpath='{.items[0].metadata.name}') df -h | grep '/usr'
   ```
 
-### Create ObjectBucketClaim and Object Storage Secret
-- Create an ObjectBucketClaim:
-  ```
-  export NAMESPACE="openshift-logging"
-  export OBC_NAME="loki-bucket-odf"
-  export GENERATE_BUCKET_NAME="${OBC_NAME}"
-  export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/03-objectbucketclaim.yaml | envsubst | oc apply -f -
-  ```
 
-- Create an Object Storage secret:
-  ```
-  export BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
-  export BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
-  export BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
-
-  export ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
-  export SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
-
-  oc create -n ${NAMESPACE} secret generic ${OBC_NAME}-credentials     --from-literal=access_key_id="${ACCESS_KEY_ID}"     --from-literal=access_key_secret="${SECRET_ACCESS_KEY}"     --from-literal=bucketnames="${BUCKET_NAME}"     --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
-  ```
-
-- Deploy LokiStack ClusterLogging and ClusterLogForwarder resources:
-  ```
-  export STORAGE_CLASS_NAME="ocs-storagecluster-cephfs"
-  export BUCKET_NAME="${OBC_NAME}"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-deploy-loki-stack.yaml | envsubst | oc apply -f -
-  ```
+### Uninstalling OpenShift Data Foundation
+-  [Uninstalling OpenShift Data Foundation](https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.9/html/deploying_openshift_data_foundation_using_ibm_z_infrastructure/uninstalling_openshift_data_foundation)
