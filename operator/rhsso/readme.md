@@ -14,7 +14,7 @@
 
 ### Create Keycloak instance and view the console URL and username/password information
 
-* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md),If the current environment already exists, skip this step.
+* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-sc/readme.md),If the current environment already exists, skip this step.
   
 * Create Keycloak
   ```
