@@ -26,6 +26,7 @@ wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nf
 
 source 02-deploy-nfs-storageclass.sh
 
+oc get po -n $NAMESPACE
 oc get sc
 ```
 
