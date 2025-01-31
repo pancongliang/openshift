@@ -25,15 +25,14 @@ Use the script provided below to deploy the NFS StorageClass.
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/02-deploy-nfs-storageclass.sh
 
 source 02-deploy-nfs-storageclass.sh
+```
 
+### 4. Check NFS Storage Class
+Check the NFS Pod and test the mount
+```
 oc get po -n $NAMESPACE
 oc get sc
-```
 
-### 4. Test Mount
-Deploy an application and test mounting the NFS StorageClass.
-
-```
 oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
 
 oc set volumes deployment/nginx \
