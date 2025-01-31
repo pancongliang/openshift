@@ -62,7 +62,7 @@ spec:
           - ""
   storageClassDevices:
     - storageClassName: "local-sc" 
-      forceWipeDevicesAndDestroyAllData: true
+      forceWipeDevicesAndDestroyAllData: false
       volumeMode: Block 
       devicePaths: 
         - ${DEVICE_PATH_1}
@@ -90,7 +90,7 @@ spec:
           - ""
   storageClassDevices:
     - storageClassName: "local-sc" 
-      forceWipeDevicesAndDestroyAllData: true
+      forceWipeDevicesAndDestroyAllData: false
       volumeMode: Filesystem 
       devicePaths: 
         - ${DEVICE_PATH_1}
