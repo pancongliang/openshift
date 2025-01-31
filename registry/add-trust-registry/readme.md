@@ -3,7 +3,7 @@
 
   If the registry has the port, such as registry-with-port.example.com:5000, `:` should be replaced with `..`
   ```
-  export REGISTRY_DOMAIN_NAME='mirror.registry.examplpe.com'
+  export REGISTRY_DOMAIN_NAME='mirror.registry.example.com'
   export REGISTRY_PORT=8443
   export REGISTRY_CERT='/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem'
 
