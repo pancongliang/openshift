@@ -1,3 +1,4 @@
+cat << EOF > find-secondary-device.sh
 #!/bin/bash
 set -uo pipefail
 
@@ -14,3 +15,7 @@ for device in /dev/$DEVICE; do
 done
 
 echo "\$NODE_NAME:  - Couldn't find secondary block device!"
+
+EOF
+NODES=$(oc get nodes -l 'node-role.kubernetes.io/worker' -o=jsonpath='{.items[*].metadata.name}')
+for node in $NODES; do ssh core@$node "sudo bash -s" < find-secondary-device.sh; done
