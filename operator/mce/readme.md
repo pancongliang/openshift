@@ -24,22 +24,14 @@
 
 ### Check Resources
 
-* Check Resources in `open-cluster-management-hub` namespace
-  ```
-  oc get pods -n open-cluster-management-hub
-  ```
-
-* Check Resources in `open-cluster-management-agent` namespace
-  ```
-  oc get pods -n open-cluster-management-agent
-  ```
-
-* Check Resources in `open-cluster-management-agent-addon` namespace
-  ```
-  oc get pods -n open-cluster-management-agent-addon
-  ```
-
 * Check MulticlusterEngine Status
   ```
   oc get mce -o=jsonpath='{.items[0].status.phase}'
+  ```
+
+* Check pod
+  ```
+  oc get pods -n open-cluster-management-hub
+  oc get pods -n open-cluster-management-agent
+  oc get pods -n open-cluster-management-agent-addon
   ```
