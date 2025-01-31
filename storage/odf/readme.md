@@ -24,7 +24,7 @@
 - Create the StorageCluster by specifying variables:
   ```
   export LOCAL_PV_SIZE="100Gi"
-  export STORAGE_CLASS_NAME="local-sc"
+  export STORAGE_CLASS_NAME="local-block"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/02-storagecluster.yaml | envsubst | oc create -f -
   ```
 
