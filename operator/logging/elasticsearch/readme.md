@@ -17,7 +17,7 @@
 
 ### Deploy ClusterLogging instance
 
-* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md)
+* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-sc/readme.md)
   ```
   export STORAGE_CLASS_NAME="managed-nfs-storage"
   ```
