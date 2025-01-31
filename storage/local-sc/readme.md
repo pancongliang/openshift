@@ -29,22 +29,8 @@ export DEVICE='sd*'
 
 2. **Check node disk device path through script**
 ```
-cat << EOF > find-secondary-device.sh
-#!/bin/bash
-set -e
-NODE_NAME=\$(hostname)
-for device in /dev/$DEVICE; do
-  if ! blkid "\$device" &>/dev/null; then
-    mkfs.xfs -f "\$device" &>/dev/null
-    UUID=\$(blkid "\$device" -o value -s UUID 2>/dev/null)
-    [ -n "\$UUID" ] && echo "\$NODE_NAME: /dev/disk/by-uuid/\$UUID" && exit
-  fi
-done
-echo "\$NODE_NAME: - Couldn't find secondary block device!" >&2
-EOF
-
-NODES=$(oc get nodes -l 'node-role.kubernetes.io/worker' -o=jsonpath='{.items[*].metadata.name}')
-for node in $NODES; do ssh core@$node "sudo bash -s" < find-secondary-device.sh; done
+curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/find-secondary-uuid.sh
+bash find-secondary-uuid.sh
 ```
 
 3. **Store the device path**
