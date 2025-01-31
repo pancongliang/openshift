@@ -12,7 +12,7 @@ spec:
   targetNamespaces:
   - multicluster-engine
 ---
-piVersion: operators.coreos.com/v1alpha1
+apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: multicluster-engine
