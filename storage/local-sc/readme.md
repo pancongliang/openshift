@@ -29,8 +29,8 @@ export DEVICE='sd*'
 
 2. **Check node disk device path through script**
 ```
-https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/find-secondary-device.sh
-bash find-secondary-uuid.sh
+curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/find-secondary-device.sh
+bash find-secondary-device.sh
 ```
 
 3. **Store the device path**
