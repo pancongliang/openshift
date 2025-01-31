@@ -16,6 +16,7 @@ piVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: multicluster-engine
+  namespace: multicluster-engine
 spec:
   sourceNamespace: openshift-marketplace
   source: ${CATALOG_SOURCE_NAME}
