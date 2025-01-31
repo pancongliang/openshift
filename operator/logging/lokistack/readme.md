@@ -72,7 +72,7 @@
 
 ####  Install lokistack using ODF or MCG/NFS-SC
 * Install and configure [odf-operator](https://github.com/pancongliang/openshift/blob/main/storage/odf/readme.md)
-* Install and configure [nfs-sc](https://github.com/pancongliang/openshift/tree/main/storage/nfs-storageclass) and [MCG](https://github.com/pancongliang/openshift/blob/main/storage/mcg/readme.md)
+* Install and configure [nfs-sc](https://github.com/pancongliang/openshift/tree/main/storage/nfs-sc) and [MCG](https://github.com/pancongliang/openshift/blob/main/storage/mcg/readme.md)
 * Create ObjectBucketClaim
    ```
    export NAMESPACE="openshift-logging"
