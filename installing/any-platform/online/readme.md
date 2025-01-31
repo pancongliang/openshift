@@ -127,6 +127,7 @@
 
   ```
   source 03-post-inst-cfg.sh
+  source /etc/bash_completion.d/oc_completion
   ```
 
 
@@ -141,6 +142,6 @@
 * Or, use the KUBECONFIG environment variable:
 
   ```
-  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
-  oc completion bash >> /etc/bash_completion.d/oc_completion
+  echo 'export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig' >> $HOME/.bash_profile
+  source $HOME/.bash_profile
   ```
