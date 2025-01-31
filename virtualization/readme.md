@@ -6,6 +6,7 @@
   ```
   export CHANNEL_NAME="stable"
   export STARTING_CSV="kubevirt-hyperconverged-operator.v4.16.5"
+  # export STARTING_CSV="kubevirt-hyperconverged-operator.v4.14.10"
   # export STARTING_CSV="kubevirt-hyperconverged-operator.v4.17.3"
   export CATALOG_SOURCE_NAME="redhat-operators"
   export NAMESPACE="openshift-cnv"
