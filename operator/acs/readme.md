@@ -13,7 +13,7 @@
 
 ### Create Central instance
 
-* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md)
+* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-sc/readme.md)
   
 * Create Central instance
   ```
