@@ -13,7 +13,7 @@ export NFS_DIR="/nfs"
 Install and configure the NFS server. Skip this step if it is already installed.
 
 ```
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/01-install-nfs-package.sh
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/01-install-nfs-package.sh
 
 source 01-install-nfs-package.sh
 ```
@@ -22,7 +22,7 @@ source 01-install-nfs-package.sh
 Use the script provided below to deploy the NFS StorageClass.
 
 ```
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-storageclass/02-deploy-nfs-storageclass.sh
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/02-deploy-nfs-storageclass.sh
 
 source 02-deploy-nfs-storageclass.sh
 
