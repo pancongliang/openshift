@@ -1,4 +1,4 @@
-## Update the cluster while disconnected from the network
+## Upgrading the cluster while disconnected from the network
 
 ### Use the oc-mirror plug-in to download the release mirror
 
@@ -78,7 +78,7 @@
   mirror.registry.example.com:8443/openshift/release-images  4.11.53-x86_64
   ```
 
-### Updating a cluster in a disconnected environment without the OpenShift Update Service
+### Upgrading a cluster in a disconnected environment without the OpenShift Update Service
   
 * Pausing a MachineHealthCheck resource
   ```
@@ -94,20 +94,17 @@
   oc patch clusterversion version --type merge -p '{"spec": {"channel": "stable-4.11"}}'
   ```
 
-* Retrieve release image digests and update disconnected clusters
+* Retrieve release image digests
   ```
   export LOCAL_REGISTRY=${LOCAL_REGISTRY}
   export LOCAL_REPOSITORY='openshift/release-images'
   export OCP_RELEASE_VERSION='4.11.53'
   export ARCHITECTURE='x86_64'
-  export RELEASE_DIGEST=$(oc adm release info -o 'jsonpath={.digest}{"\n"}' \
-                            quay.io/openshift-release-dev/ocp-release:${OCP_RELEASE_VERSION}-${ARCHITECTURE})
+  export RELEASE_DIGEST=$(oc adm release info -o 'jsonpath={.digest}{"\n"}' quay.io/openshift-release-dev/ocp-release:${OCP_RELEASE_VERSION}-${ARCHITECTURE})
+  ```
 
-  oc adm upgrade --allow-explicit-upgrade \
-     --to-image ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}@${RELEASE_DIGEST}
-
-  # Or identify the image through icsp
-
+* Upgrade disconnected clusters
+  ```
   oc adm upgrade --allow-explicit-upgrade \
      --to-image quay.io/openshift-release-dev/ocp-release@${RELEASE_DIGEST}
   
