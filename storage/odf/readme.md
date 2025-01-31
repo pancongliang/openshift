@@ -33,50 +33,13 @@
 - Check the status of ODF pods and storage classes:
   ```
   $ oc get pods -n openshift-storage
-  NAME                                               READY   STATUS    RESTARTS   AGE
-  csi-addons-controller-manager-75d5c79d45-twqrx     2/2     Running   0          9m1s
-  csi-cephfsplugin-7ghqc                             2/2     Running   0          7m41s
-  csi-cephfsplugin-bvdqf                             2/2     Running   0          7m41s
-  csi-cephfsplugin-p5zrz                             2/2     Running   0          7m41s
-  csi-cephfsplugin-provisioner-7478c8c75-skkb6       6/6     Running   0          7m41s
-  csi-cephfsplugin-provisioner-7478c8c75-zdlgn       6/6     Running   0          7m41s
-  csi-rbdplugin-7gjbk                                3/3     Running   0          7m41s
-  csi-rbdplugin-provisioner-fbb8747c4-h8p5v          6/6     Running   0          7m41s
-  csi-rbdplugin-provisioner-fbb8747c4-xfscv          6/6     Running   0          7m41s
-  csi-rbdplugin-s8kkf                                3/3     Running   0          7m41s
-  csi-rbdplugin-wtmjj                                3/3     Running   0          7m41s
-  noobaa-operator-6474c9cc86-vw26h                   1/1     Running   0          9m6s
-  ocs-operator-678456494-pxt2s                       1/1     Running   0          9m51s
-  odf-console-77445df59f-9848j                       1/1     Running   0          9m6s
-  odf-operator-controller-manager-86d8646ccc-nl2wh   2/2     Running   0          9m6s
-  rook-ceph-mon-a-6b576d9bf5-fzhqr                   2/2     Running   0          7m32s
-  rook-ceph-mon-b-5c9876d499-v6wqm                   2/2     Running   0          7m9s
-  rook-ceph-mon-c-7dd6668dfd-5dzxf                   2/2     Running   0          113s
-  rook-ceph-operator-644cf4f5f4-m8tjk                1/1     Running   0          9m19s
-  ux-backend-server-7c7d688c8b-64qzm                 2/2     Running   0          9m51s
 
   $ oc get sc
-  local-sc                      kubernetes.io/no-provisioner            Delete  WaitForFirstConsumer   false  7m16s
+  local-sc                      kubernetes.io/no-provisioner            Delete  WaitForFirstConsumer   false 7m16s
   ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete  Immediate              true  8m  # Block storage
   ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete  Immediate              false 9m  # RGW Object storage
   ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete  Immediate              true  8m  # FS storage
   openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete  Immediate              false 8m  # NooBaa Object storage
-  ```
-
-### Verify ocs-storagecluster-cephfs storage class
-- Use `ocs-storagecluster-cephfs` storage class to create a filesystem PVC and mount it:
-  ```
-  oc new-project test
-
-  oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
-
-  oc set volumes deployment/nginx \
-    --add --name nginx --type pvc --claim-class managed-nfs-storage \
-    --claim-mode rwo --claim-size 5Gi --mount-path /usr/share/nginx/html --claim-name test-volume
-
-  sleep 10
-  
-  oc -n test rsh $(oc get pods -n test -o=jsonpath='{.items[0].metadata.name}') df -h | grep '/usr'
   ```
 
 
