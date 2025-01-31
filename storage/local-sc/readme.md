@@ -29,16 +29,16 @@ export DEVICE='sd*'
 
 2. **Check node disk device path through script**
 ```
-curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/find-secondary-uuid.sh
+https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/find-secondary-device.sh
 bash find-secondary-uuid.sh
 ```
 
 3. **Store the device path**
 ```
-export DEVICE_PATH_1=/dev/disk/by-uuid/59940ed2-51dd-4926-a997-9f037b5beb21
+export DEVICE_PATH_1=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
 # Define the variable if it exists, otherwise skip it
-export DEVICE_PATH_2=/dev/disk/by-uuid/a6113307-b4f1-43fd-86de-4b0fe34de98b
-export DEVICE_PATH_3=/dev/disk/by-uuid/a08fc4c9-fd2d-4c0c-baef-d9d343db282e
+export DEVICE_PATH_2=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:2:0
+export DEVICE_PATH_3=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:3:0
 ``` 
 
 ### Create LocalVolume
