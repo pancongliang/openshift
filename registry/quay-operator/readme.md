@@ -13,7 +13,7 @@
 
 ### Deploy NFS Storage Class and Minio Object Storage
 
-* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-storageclass/readme.md)
+* Deploy [NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/nfs-sc/readme.md)
   - Postgres database requires two 50 GiB PVs, so deploy nfs storage class.
 
 * Deploy [Minio Object Storage](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-c-deploying-minio-with-nfs-storageclass-as-the-backend-storage) and create a bucket named `quay-bucket`
