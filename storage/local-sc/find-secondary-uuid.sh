@@ -2,7 +2,7 @@ cat << EOF > find-secondary-device.sh
 #!/bin/bash
 set -e
 NODE_NAME=\$(hostname) && DEVICE_FOUND=false && COUNTER=\$1
-for device in /dev/\$DEVICE; do
+for device in /dev/$DEVICE; do
   if ! blkid "\$device" &>/dev/null; then
     mkfs.xfs -f "\$device" &>/dev/null
     UUID=\$(blkid "\$device" -o value -s UUID 2>/dev/null)
