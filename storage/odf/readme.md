@@ -25,7 +25,7 @@
 - Create the StorageCluster by specifying variables:
   ```
   export LOCAL_PV_SIZE="100Gi"
-  export STORAGE_CLASS_NAME="local-sc"
+  export STORAGE_CLASS_NAME="local-block"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/02-storagecluster.yaml | envsubst | oc create -f -
   ```
 
@@ -35,7 +35,7 @@
   $ oc get pods -n openshift-storage
 
   $ oc get sc
-  local-sc                      kubernetes.io/no-provisioner            Delete  WaitForFirstConsumer   false 7m16s
+  local-block                   kubernetes.io/no-provisioner            Delete  WaitForFirstConsumer   false 7m16s
   ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete  Immediate              true  8m  # Block storage
   ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete  Immediate              false 9m  # RGW Object storage
   ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete  Immediate              true  8m  # FS storage
