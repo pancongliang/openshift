@@ -289,7 +289,7 @@
 
 8. **Get the hosted cluster's oauth and console urls**
    ```
-   oc get route -n clusters-my-cluster-1 oauth -o jsonpath='https://{.spec.host}'
+   oc get route -n $HOSTED_CONTROL_PLANE_NAMESPACE oauth -o jsonpath='https://{.spec.host}'
    echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
    ```
 
