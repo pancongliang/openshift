@@ -107,14 +107,14 @@ echo
 # === Task: Create htpasswd User ===
 PRINT_TASK "[TASK: Create htpasswd User]"
 
-rm -rf $OCP_INSTALL_DIR/users.htpasswd
-htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
+rm -rf $INSTALL_DIR/users.htpasswd
+htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[create a user using the htpasswd tool]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[create a secret using the users.htpasswd file]"
 
-rm -rf $OCP_INSTALL_DIR/users.htpasswd
+rm -rf $INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
 cat  <<EOF | /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f - > /dev/null 2>&1
