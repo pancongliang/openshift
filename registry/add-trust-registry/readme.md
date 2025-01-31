@@ -6,7 +6,8 @@
   export REGISTRY_DOMAIN_NAME='mirror.registry.example.com'
   export REGISTRY_PORT=8443
   export REGISTRY_CERT='/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem'
-
+  REGISTRY_CERT=$(eval echo "$REGISTRY_CERT")
+  
   oc create configmap registry-cas \
       --from-file=${REGISTRY_DOMAIN_NAME}..${REGISTRY_PORT}=${REGISTRY_CERT} -n openshift-config
   ``` 
