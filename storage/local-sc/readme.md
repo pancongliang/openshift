@@ -38,7 +38,7 @@ bash discover-block-device.sh
 export DEVICE_PATH_1=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
 
 # Set only if not already defined
-export DEVICE_PATH_2=xxxxx
+export DEVICE_PATH_2=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:2:0
 export DEVICE_PATH_3=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:3:0
 ```  
 
