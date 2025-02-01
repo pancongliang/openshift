@@ -29,30 +29,15 @@ export DEVICE='sd*'
 
 2. **Check node disk device path through script**
 ```
-cat << EOF > find-secondary-device.sh
-#!/bin/bash
-set -uo pipefail
-NODE_NAME="\$(hostname)"
-DEVICE_PATH=""
-for device in /dev/$DEVICE; do
-  /usr/sbin/blkid "\${device}" &> /dev/null
-  if [ \$? == 2 ]; then
-    DEVICE_PATH=\$(ls -l /dev/disk/by-path/ | awk -v dev="\${device##*/}" '\$0 ~ dev {print "/dev/disk/by-path/" \$9}')
-    echo "\$NODE_NAME:  \$DEVICE_PATH"
-    exit
-  fi
-done
-echo "\$NODE_NAME:  - Couldn't find secondary block device!"
-EOF
-
-NODES=$(oc get nodes -l 'node-role.kubernetes.io/worker' -o=jsonpath='{.items[*].metadata.name}')
-for node in $NODES; do ssh core@$node "sudo bash -s" < find-secondary-device.sh; done
+curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/discover-block-device.sh
+bash discover-block-device.sh
 ```
 
 3. **Store the device path**
 ```
 export DEVICE_PATH_1=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
-# Define the variable if it exists, otherwise skip it
+
+# When setting variable values, skip if the same value already exists; if it's a new value, continue setting the new variable
 export DEVICE_PATH_2=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:2:0
 export DEVICE_PATH_3=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:3:0
 ``` 
