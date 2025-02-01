@@ -27,17 +27,17 @@ oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label 
 export DEVICE='sd*'
 ```
 
-**2. In the bastion machine, use the script to find the new disk device path of the node.**  
+**2. Run the script on the bastion machine to find the disk device path:**  
 ```
 curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/discover-block-device.sh
 bash discover-block-device.sh
 ```
 
-**3. Set device path variables, ensuring each value is unique. Skip setting if already assigned**  
+**3. Set device path variables, ensuring each path is unique. Skip if already set:**  
 ```
 export DEVICE_PATH_1=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
 
-# Only set if not already defined
+# Set only if not already defined
 export DEVICE_PATH_2=xxxxx
 export DEVICE_PATH_3=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:3:0
 ```  
@@ -100,7 +100,7 @@ spec:
 EOF
 ```
 
-### Check the Local Storage Status
+### Verify the Local Storage Status
 ```
 oc get pods -n openshift-local-storage
 oc get pv |grep local
