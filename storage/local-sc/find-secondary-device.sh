@@ -3,7 +3,6 @@ cat << EOF > find-secondary-device.sh
 set -uo pipefail
 
 NODE_NAME="\$(hostname)"
-DEVICE_PATH=""
 
 for device in /dev/$DEVICE; do
   /usr/sbin/blkid "\${device}" &> /dev/null
