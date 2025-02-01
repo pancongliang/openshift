@@ -1,7 +1,6 @@
+## Provisioning Local Volumes Using the Local Storage Operator
 
-## Provisioning local volumes by using the Local Storage Operator
-
-### Install the Operator using the default namespace
+### Install the Operator in the Default Namespace
 
 ```
 export CHANNEL_NAME="stable"
@@ -11,40 +10,41 @@ curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/lo
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
 ```
 
-### Add Disk to worker node
+### Add Disks to Worker Nodes
 
-- If used for ODF, ensure at least 3 worker nodes and at least 100GB disk on each node.
-- Add labels to the nodes:
+- Ensure that there are at least 3 worker nodes and each node has a minimum of 100GB of disk space if using ODF.
+- Add labels to the worker nodes:
 
 ```
 oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} local.storage.openshift.io/openshift-local-storage=''
 ```
 
-### Check Node Disk Device Path
+### Find the newly added Disk Device Path in Node
 
-1. **Set the device variable**
+**1. Set the device variable:**
+
 ```
 export DEVICE='sd*'
 ```
 
-2. **Check node disk device path through script**
+**2. In the bastion machine, use the script to find the new disk device path of the node.**  
 ```
 curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/discover-block-device.sh
 bash discover-block-device.sh
 ```
 
-3. **Store the device path**
+**3. Set device path variables, ensuring each value is unique. Skip setting if already assigned**  
 ```
 export DEVICE_PATH_1=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
 
-# When setting variable values, skip if the same value already exists; if it's a new value, continue setting the new variable
-export DEVICE_PATH_2=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:2:0
+# Only set if not already defined
+export DEVICE_PATH_2=xxxxx
 export DEVICE_PATH_3=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:3:0
-``` 
+```  
 
-### Create LocalVolume
+### Create LocalVolume for Block and Filesystem Modes
 
-#### For Block Volume Mode(ODF)
+**Block Volume Mode (ODF)**
 
 ```
 oc create -f - <<EOF
@@ -72,7 +72,7 @@ spec:
 EOF
 ```
 
-#### For Filesystem Volume Mode
+**Filesystem Volume Mode**
 
 ```
 oc create -f - <<EOF
@@ -100,8 +100,7 @@ spec:
 EOF
 ```
 
-### Check Local Storage
-
+### Check the Local Storage Status
 ```
 oc get pods -n openshift-local-storage
 oc get pv |grep local
@@ -110,8 +109,9 @@ oc get sc
 
 
 
-## Provisioning local volumes without the Local Storage Operator
-###  Set necessary parameters
+## Provisioning Local Volumes Without the Local Storage Operator
+
+### Set the Required Parameters
 
 ```
 export NAMESPACE="test"
@@ -120,22 +120,21 @@ export PVC_NAME="test-pvc"
 export STORAGE_SIZE="100Gi"
 export PV_NODE_NAME="worker01.ocp4.example.com"
 ```
-  
+
 ### Deploy Local Storage PV/PVC
+
 ```
 ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/${PV_NAME}
-  
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/deploy-local-storage.yaml | envsubst | oc apply -f -
-
 oc get sc
 oc get pvc -n ${NAMESPACE}
 ```
 
-### Test mount
+### Test Volume Mount
+
 ```
 oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
-oc set volumes deployment/nginx --add --name test-volume \
-    --type persistentVolumeClaim --claim-name ${PVC_NAME} --mount-path /usr/share/nginx/html
+oc set volumes deployment/nginx --add --name test-volume --type persistentVolumeClaim --claim-name ${PVC_NAME} --mount-path /usr/share/nginx/html
 
 oc rsh nginx-d75558854-7575d
 sh-4.4$ touch /usr/share/nginx/html/1
