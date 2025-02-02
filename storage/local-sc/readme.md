@@ -21,19 +21,14 @@ oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label 
 
 ### Find the newly added Disk Device Path in Node
 
-**1. Set the device variable:**
-
-```
-export DEVICE='sd*'
-```
-
-**2. Run the script on the bastion machine to find the disk device path:**  
+**1. Run the script on the bastion machine to find the disk device path:**  
 ```
 curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/discover-block-device.sh
-bash discover-block-device.sh
+
+sh discover-block-device.sh sd*
 ```
 
-**3. Set device path variables, ensuring each path is unique. Skip if already set:**  
+**2. Set device path variables, ensuring each path is unique. Skip if already set:**  
 ```
 export DEVICE_PATH_1=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
 
