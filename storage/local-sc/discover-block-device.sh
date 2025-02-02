@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Get CLI parameters and assign them to DEVICE
+if [ $# -eq 0 ]; then
+    echo "Usage: sh $0 <device name, e.g.: sd*>"
+    exit 1
+fi
+DEVICE=$1
+
+
 cat << EOF > find-secondary-device.sh
 #!/bin/bash
 set -uo pipefail
