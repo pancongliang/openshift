@@ -105,7 +105,7 @@
   )"
   ```
 
-* Set up RHSSO logout and redirection for OpenShift GitOps
+* Set up RHSSO [logout](https://www.redhat.com/en/blog/sso-integration-for-the-openshift-gitops-operator) and redirection for OpenShift GitOps
   ```
   export NAMESPACE=rhsso
   export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
