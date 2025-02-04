@@ -75,7 +75,7 @@
 * Configure Identity Providers
   ```
   export KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/refs/heads/main/operator/rhsso/06-identity-provider.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-identity-provider.yaml | envsubst | oc apply -f -
   ```
 
 * Wait for the pod restart to complete
