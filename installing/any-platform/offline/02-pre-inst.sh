@@ -86,7 +86,7 @@ temporary_status=$(getenforce)
 if [[ $temporary_status == "Permissive" || $temporary_status == "Disabled" ]]; then
     echo "ok: [selinux temporary security policy is disabled]"
 else
-    echo "failed: [selinux temporary security policy is $temporary_status (expected Permissive or disabled)]"
+    echo "failed: [selinux temporary security policy is $temporary_status (expected permissive or disabled)]"
 fi
 
 # Add an empty line after the task
