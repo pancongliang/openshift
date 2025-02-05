@@ -38,7 +38,6 @@ $ oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjs
 ~~~
 export CHANNEL_NAME="v1"
 export CATALOG_SOURCE_NAME="redhat-operators"
-export NAMESPACE="rhacs-operator"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/updating-clusters/osus/01-operator.yaml | envsubst | oc create -f -
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
 
