@@ -80,7 +80,7 @@
   kind: ImageSetConfiguration
   storageConfig:
    registry:
-     imageURL: ${LOCAL_REGISTRY}/mirror/metadata\
+     imageURL: ${LOCAL_REGISTRY}/mirror/metadata
      skipTLS: false
   mirror:
     platform:
