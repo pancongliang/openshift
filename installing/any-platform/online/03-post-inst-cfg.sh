@@ -27,21 +27,22 @@ source 01-set-params.sh
 
 
 # Task: Kubeconfig login and oc completion
-#PRINT_TASK "[TASK: Kubeconfig login]"
+PRINT_TASK "[TASK: Kubeconfig login]"
 
 # kubeconfig login:
-#echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
-#run_command "[add kubeconfig to ~/.bash_profile]"
+cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk &> /dev/null
+echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
+run_command "[add kubeconfig to ~/.bash_profile]"
 
 # completion command:
 oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null
-#run_command "[add oc_completion]"
+run_command "[add oc_completion]"
 
 # Effective immediately
 source /etc/bash_completion.d/oc_completion &> /dev/null
 
 # Add an empty line after the task
-#echo
+echo
 # ====================================================
 
 
@@ -142,7 +143,7 @@ echo
 # === Task: Login cluster information ===
 PRINT_TASK "[TASK: Login cluster information]"
 
-echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
-echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig]"
+echo "info: [The default setting is to use kubeconfig to login.]"
+echo "info: [log in to the cluster using the htpasswd user: uset KUBECONFIG && oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo
 # ====================================================
