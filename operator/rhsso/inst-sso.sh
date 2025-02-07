@@ -1,6 +1,3 @@
-
-
-
 #!/bin/bash
 set -u
 # Applying environment variables
@@ -125,3 +122,17 @@ oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
 EOF
 )"
 run_command "[Configure logout Redirect in OpenShift]"
+
+
+# Retrieve Keycloak route
+KEYCLOAK_HOST=$(oc get route keycloak -o jsonpath='{.spec.host}' -n ${NAMESPACE})
+
+# Retrieve Keycloak admin credentials
+KEYCLOAK_ADMIN_USER=$(oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_USERNAME}' -n ${NAMESPACE} | base64 -d)
+KEYCLOAK_ADMIN_PASSWORD=$(oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${NAMESPACE} | base64 -d)
+
+# Print variables for verification (optional)
+echo "info: [keycloak host: $KEYCLOAK_HOST]"
+echo "info: [keycloak console username: $KEYCLOAK_ADMIN_USER]"
+echo "info: [keycloak console password: $KEYCLOAK_ADMIN_PASSWORD]"
+echo "info: [user created by keycloak: admin/redhat]"
