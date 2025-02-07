@@ -6,7 +6,7 @@
 
   | Hostname                    | Role                         | vCPU | RAM  | Storage |
   |-----------------------------|-----------------------------|------|------|---------|
-  | bastion.ocp4.example.com    | bastion (NFS/HAProxy/DNS/HTTPD) | 4  |  4 GB  |  4 GB   |
+  | bastion.ocp4.example.com    | bastion (NFS/HAProxy/DNS/HTTPD) | 4  |  6 GB  | 100 GB   |
   | bootstrap.ocp4.example.com  | bootstrap                   |  4   | 16 GB | 100 GB  |
   | master01.ocp4.example.com   | master                      |  4   | 16 GB | 100 GB  |
   | master02.ocp4.example.com   | master                      |  4   | 16 GB | 100 GB  |
