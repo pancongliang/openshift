@@ -58,6 +58,26 @@ run_command "[firewalld service stopped and disabled]"
 echo
 # ====================================================
 
+# sudo firewall-cmd --permanent --add-port=6443/tcp         # kube-api-server on control plane
+# sudo firewall-cmd --permanent --add-port=22623/tcp        # machine-config server
+# sudo firewall-cmd --permanent- -add-service=http          # ingress 80
+# sudo firewall-cmd --permanent- -add-service=https         # ingress 443
+# sudo firewall-cmd --permanent --add-port=9000/tcp         # haproxy stats
+# sudo firewall-cmd --permanent --add-port=8443/tcp         # mirror registry
+# sudo firewall-cmd --permanent --add-port=8080/tcp         # mirror registry
+# sudo firewall-cmd --permanent --add-port=53/tcp           # dns
+# sudo firewall-cmd --permanent --add-port=53/udp           # dns
+# sudo firewall-cmd --permanent --remove-port=8080/tcp      # httpd ignition
+# sudo firewall-cmd --permanent --add-port=2049/tcp         # nfs
+# sudo firewall-cmd --permanent --add-port=111/tcp          # nfs
+# sudo firewall-cmd --permanent --add-port=111/udp          # nfs
+# sudo firewall-cmd --permanent --add-port=20048/tcp        # nfs
+# sudo firewall-cmd --permanent --add-port=20048/udp        # nfs
+# sudo firewall-cmd --permanent --add-port=32768-65535/tcp  # nfs
+# sudo firewall-cmd --permanent --add-port=32768-65535/udp  # nfs
+# sudo firewall-cmd --reload
+# sudo firewall-cmd --list-ports
+# sudo setsebool -P haproxy_connect_any 1                   # SELinux policy that allows HAProxy to connect to any network
 
 
 # === Task: Change SELinux security policy ===
