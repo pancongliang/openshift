@@ -1,17 +1,19 @@
-## Restricted network installation OpenShift4
+## Online Installation OpenShift4
 
-### Machine List
+### Prerequisites
+* The script needs to be run as `root` user  
+* Prepare the following machines  
 
-| Hostname                    | Role                                           |
-|-----------------------------|------------------------------------------------|
-| bastion.ocp4.example.com     | bastion (nfs/haproxy/dns/httpd)                |
-| master01.ocp4.example.com    | master                                         |
-| master02.ocp4.example.com    | master                                         |
-| master03.ocp4.example.com    | master                                         |
-| worker01.ocp4.example.com    | worker                                         |
-| worker02.ocp4.example.com    | worker                                         |
-| worker03.ocp4.example.com    | worker                                         |
-| bootstrap.ocp4.example.com   | bootstrap                                      |
+  | Hostname                    | Role                         | vCPU | RAM  | Storage |
+  |-----------------------------|-----------------------------|------|------|---------|
+  | bastion.ocp4.example.com    | bastion (NFS/HAProxy/DNS/HTTPD) | 4  |  4 GB  |  4 GB   |
+  | bootstrap.ocp4.example.com  | bootstrap                   |  4   | 16 GB | 100 GB  |
+  | master01.ocp4.example.com   | master                      |  4   | 16 GB | 100 GB  |
+  | master02.ocp4.example.com   | master                      |  4   | 16 GB | 100 GB  |
+  | master03.ocp4.example.com   | master                      |  4   | 16 GB | 100 GB  |
+  | worker01.ocp4.example.com   | worker                      |  4   |  8 GB | 100 GB  |
+  | worker02.ocp4.example.com   | worker                      |  4   |  8 GB | 100 GB  |
+  | worker03.ocp4.example.com   | worker                      |  4   |  8 GB | 100 GB  |
 
 
 ### Download the Installation Script
