@@ -123,8 +123,8 @@ echo
 
 
 
-# === Task: Install openshift tool ===
-PRINT_TASK "[TASK: Install openshift tool]"
+# === Task: Install openshift and kubelet tool ===
+PRINT_TASK "[TASK: Install openshift and kubelet tool]"
 
 # Step 1: Download the openshift-install
 # ----------------------------------------------------
@@ -180,17 +180,64 @@ run_command "[modify /usr/local/bin/kubectl permissions]"
 sudo rm -f /usr/local/bin/README.md &> /dev/null
 sudo rm -rf $openshift_client &> /dev/null
 
+# Step 3: Download the oc mirror
+# Get the RHEL version number
+rhel_version=$(rpm -E %{rhel})
+if [ "$rhel_version" -eq 8 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.14.35/oc-mirror.tar.gz"
+    oc_mirror="oc-mirror.tar.gz"
+elif [ "$rhel_version" -eq 9 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
+    oc_mirror="oc-mirror.tar.gz"
+fi
+
+# Download the oc-mirror tool
+wget -q "$download_url" -O "$oc_mirror"
+run_command "[download oc-mirror tool]"
+
+# Remove the old oc-mirror binary and install the new one
+rm -rf /usr/local/bin/oc-mirror &> /dev/null
+tar -xzf "$oc_mirror" -C "/usr/local/bin/" &> /dev/null
+run_command "[install oc-mirror tool]"
+
+chmod a+x /usr/local/bin/oc-mirror &> /dev/null
+run_command "[modify /usr/local/bin/oc-mirror permissions]"
+
+rm -rf $oc_mirror &> /dev/null
+
+# Step 3: Download the kube tool
+# Download the kubectx tool
 sudo curl -sLo /usr/local/bin/kubectx https://raw.githubusercontent.com/ahmetb/kubectx/master/kubectx &> /dev/null
 run_command "[install kubectx tool]"
-
-sudo curl -sLo /usr/local/bin/kubens https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens &> /dev/null
-run_command "[install kubens tool]"
 
 sudo chmod +x /usr/local/bin/kubectx &> /dev/null
 run_command "[modify /usr/local/bin/kubectx permissions]"
 
+# Download the kubens tool
+sudo curl -sLo /usr/local/bin/kubens https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens &> /dev/null
+run_command "[install kubens tool]"
+
 sudo chmod +x /usr/local/bin/kubens &> /dev/null
 run_command "[modify /usr/local/bin/kubens permissions]"
+
+# Installing Krew Plugin Manager 
+(
+  set -x; cd "$(mktemp -d)" &&
+  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+  KREW="krew-${OS}_${ARCH}" &&
+  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+  tar zxf "${KREW}.tar.gz" &&
+  ./"${KREW}" install krew
+) > /dev/null 2>&1
+run_command "[installing krew plugin manager]"
+
+echo "export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"" >> ~/.bash_profile
+run_command "[add the $HOME/.krew/bin directory to your PATH environment variable]"
+
+# Installing kubectl neat 
+kubectl krew install neat &> /dev/null
+run_command "[installing kubectl neat]"
 
 # Add an empty line after the task
 echo
