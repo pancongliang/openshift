@@ -64,10 +64,9 @@ echo
 # sudo firewall-cmd --permanent- -add-service=https         # ingress 443
 # sudo firewall-cmd --permanent --add-port=9000/tcp         # haproxy stats
 # sudo firewall-cmd --permanent --add-port=8443/tcp         # mirror registry
-# sudo firewall-cmd --permanent --add-port=8080/tcp         # mirror registry
+# sudo firewall-cmd --permanent --add-port=8080/tcp         # httpd ignition
 # sudo firewall-cmd --permanent --add-port=53/tcp           # dns
 # sudo firewall-cmd --permanent --add-port=53/udp           # dns
-# sudo firewall-cmd --permanent --remove-port=8080/tcp      # httpd ignition
 # sudo firewall-cmd --permanent --add-port=2049/tcp         # nfs
 # sudo firewall-cmd --permanent --add-port=111/tcp          # nfs
 # sudo firewall-cmd --permanent --add-port=111/udp          # nfs
