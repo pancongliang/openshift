@@ -130,6 +130,7 @@
   ```
   source 03-post-inst-cfg.sh
   source /etc/bash_completion.d/oc_completion
+  source $HOME/.bash_profile
   ```
 
 
@@ -138,12 +139,6 @@
 * Repeat the process for all worker nodes. Can login to OpenShift using the following command:
 
   ```
+  unset KUBECONFIG
   oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443
-  ```
-
-* Or, use the KUBECONFIG environment variable:
-
-  ```
-  echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> $HOME/.bash_profile
-  source $HOME/.bash_profile
   ```
