@@ -28,7 +28,7 @@ run_command() {
 PRINT_TASK "[TASK: Install RHACS Operator]"
 
 # Create a namespace
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc apply -f - >/dev/null
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -37,7 +37,7 @@ EOF
 run_command "[Create a rhacs-operator namespace]"
 
 # Create a Subscription
-cat << EOF | oc create -f - &> /dev/null
+cat << EOF | oc create -f - >/dev/null
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -50,7 +50,7 @@ spec:
 EOF
 run_command "[Create a operator group]"
 
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc apply -f - >/dev/null
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -71,7 +71,7 @@ sleep 30
 
 # Approval IP
 export NAMESPACE="rhacs-operator"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash &> /dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null
 run_command "[Approve rhacs-operator install plan]"
 
 # Chek Quay operator pod
@@ -93,7 +93,7 @@ while true; do
 done
 
 # Create a namespace
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc apply -f - >/dev/null
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -102,7 +102,7 @@ EOF
 run_command "[Create a stackrox namespace]"
 
 # Create a Central
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc apply -f - >/dev/null
 apiVersion: platform.stackrox.io/v1alpha1
 kind: Central
 metadata:
@@ -159,27 +159,27 @@ while true; do
 done
 
 # Check if roxctl is already installed and operational
-if roxctl -h &> /dev/null; then
+if roxctl -h >/dev/null; then
     run_command "[The roxctl tool already installed, skipping installation]"
 else
     # Download the roxctl tool
     arch="$(uname -m | sed "s/x86_64//")"; arch="${arch:+-$arch}"
-    curl -f -o roxctl "https://mirror.openshift.com/pub/rhacs/assets/latest/bin/Linux/roxctl${arch}" &> /dev/null
+    curl -f -o roxctl "https://mirror.openshift.com/pub/rhacs/assets/latest/bin/Linux/roxctl${arch}" >/dev/null
     run_command "[Downloaded roxctl tool]"
 
     # Remove the old version (if it exists)
-    rm -f /usr/local/bin/roxctl &> /dev/null
+    rm -f /usr/local/bin/roxctl >/dev/null
     
     # Set execute permissions for the tool
-    chmod +x roxctl &> /dev/null
+    chmod +x roxctl >/dev/null
     run_command "[Set execute permissions for roxctl tool]"
 
     # Move the new version to /usr/local/bin
-    mv -f roxctl /usr/local/bin/ &> /dev/null
+    mv -f roxctl /usr/local/bin/ >/dev/null
     run_command "[Installed roxctl tool to /usr/local/bin/]"
 
     # Verify the installation
-    if roxctl -h &> /dev/null; then
+    if roxctl -h >/dev/null; then
         run_command "[roxctl tool installation complete]"
     else
         run_command "[Failed to install roxctl tool, proceeding without it]"
@@ -188,7 +188,7 @@ fi
 
 # Creating resources by using the init bundle
 export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
-roxctl -e "$ROX_CENTRAL_ADDRESS" central init-bundles generate cluster_init_bundle.yaml --output-secrets cluster_init_bundle.yaml &> /dev/null
+roxctl -e "$ROX_CENTRAL_ADDRESS" central init-bundles generate cluster_init_bundle.yaml --output-secrets cluster_init_bundle.yaml >/dev/null
 sleep 10
 oc apply -f cluster_init_bundle.yaml -n stackrox
 run_command "[Creating resources by using the init bundle]"
@@ -196,7 +196,7 @@ run_command "[Creating resources by using the init bundle]"
 sleep 10
 
 # Create a SecuredCluster
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc apply -f - >/dev/null
 apiVersion: platform.stackrox.io/v1alpha1
 kind: SecuredCluster
 metadata:
