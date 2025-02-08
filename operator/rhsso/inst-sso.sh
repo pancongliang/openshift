@@ -4,12 +4,11 @@ set -o pipefail
 
 # Applying environment variables
 # Need a default storageclass
-export CHANNEL="stable"
-export CATALOG_SOURCE_NAME="redhat-operators"
-export NAMESPACE="rhsso"
 export USER_NAME=rhadmin
 export PASSWORD=redhat
-
+export CHANNEL="stable"
+export NAMESPACE="rhsso"
+export CATALOG_SOURCE_NAME="redhat-operators"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -33,6 +32,7 @@ run_command() {
 
 
 # Uninstall first
+echo "info: [uninstall old RHSSO resources...]"
 oc delete configmap openid-route-ca -n openshift-config &>/dev/null
 oc delete secret openid-client-secret -n openshift-config &>/dev/null
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-client.yaml | envsubst | oc delete -f - &>/dev/null
