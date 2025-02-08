@@ -32,6 +32,15 @@ run_command() {
 # ====================================================
 
 
+# Uninstall first
+oc delete configmap openid-route-ca -n openshift-config &>/dev/null
+oc delete secret openid-client-secret -n openshift-config &>/dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-client.yaml | envsubst | oc delete -f - &>/dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc delete -f - &>/dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc delete -f - &>/dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/01-operator.yaml | envsubst | oc delete -f - $>/dev/null
+
+
 # Print task title
 PRINT_TASK "[TASK: Deploying Single Sign-On Operator]"
 
@@ -90,13 +99,11 @@ done
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f - >/dev/null
 run_command "[create rhsso user]"
 
-oc delete secret openid-client-secret -n openshift-config &>/dev/null
 sleep 5
 
 # Create client authenticator secret and ConfigMap containing router CA certificate
 oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config >/dev/null
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null
-oc delete configmap openid-route-ca -n openshift-config &>/dev/null
 
 sleep 5
 
