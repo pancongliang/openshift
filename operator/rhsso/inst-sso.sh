@@ -54,7 +54,7 @@ while true; do
     # Check if all pods are in '1/1 Running' state
     if echo "$output" | grep -vq "1/1 Running"; then
         echo "info: [waiting for pods to be in 'Running' state...]"
-        sleep 20
+        sleep 15
     else
         echo "ok: [keycloak pods are in 'Running' state]"
         break
@@ -77,10 +77,14 @@ run_command "[create client custom resource]"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f - &>/dev/null
 run_command "[create rhsso user]"
 
+sleep 15
 
 # Create client authenticator secret and ConfigMap containing router CA certificate
 oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config &>/dev/null
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator &>/dev/null
+oc delete -f configmap openid-route-ca -n openshift-config &>/dev/null
+
+sleep 5
 oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config && rm -rf tls.crt &>/dev/null
 run_command "[create client authenticator secret and configmap containing router-ca certificate]"
 
@@ -107,7 +111,7 @@ while true; do
 done
 
 # Configure OpenShift console logout redirection to Keycloak
-KEYCLOAK_CLIENT_NAME='example-client'     # oc get keycloakclients -n $NAMESPACE
+KEYCLOAK_CLIENT_NAME='example-client'
 KEYCLOAK_CLIENT_SECRET="keycloak-client-secret-${KEYCLOAK_CLIENT_NAME}"
 OPENID_CLIENT_ID=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_ID}' | base64 -d)
 KEYCLOAK_HOST=$(oc get route keycloak -n $NAMESPACE -o=jsonpath='{.spec.host}')
