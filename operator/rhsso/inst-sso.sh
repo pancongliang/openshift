@@ -1,8 +1,9 @@
 #!/bin/bash
 set -u
 set -o pipefail
-# Applying environment variables
 
+# Applying environment variables
+# Need a default storageclass
 export CHANNEL="stable"
 export CATALOG_SOURCE_NAME="redhat-operators"
 export NAMESPACE="rhsso"
