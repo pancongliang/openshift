@@ -55,7 +55,7 @@ run_command "[approve the install plan]"
 
 # Create the Keycloak resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc create -f - >/dev/null
-run_command "[create keycloak resource]"
+run_command "[create keycloak Instance]"
 
 sleep 15
 
@@ -65,10 +65,10 @@ while true; do
     output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
     # Check if all pods are in '1/1 Running' state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo "info: [waiting for pods to be in 'Running' state...]"
+        echo "info: [waiting for pods to be in 'running' state...]"
         sleep 20
     else
-        echo "ok: [keycloak pods are in 'Running' state]"
+        echo "ok: [keycloak pods are in 'running' state]"
         break
     fi
 done
@@ -99,9 +99,12 @@ done
 
 # Create a Keycloak user
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f - >/dev/null
-run_command "[create rhsso user]"
+run_command "[Create a user named $USER_NAME]"
 
 sleep 5
+
+oc adm policy add-cluster-role-to-user cluster-admin $USER_NAME &>/dev/null     
+run_command "[grant cluster-admin privileges to the $USER_NAME account]"
 
 # Create client authenticator secret and ConfigMap containing router CA certificate
 oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config >/dev/null
@@ -127,10 +130,10 @@ while true; do
     output=$(oc get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
     # Check if all pods are in '1/1 Running' state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo "info: [waiting for authentication pods to be in 'Running' state...]"
+        echo "info: [waiting for authentication pods to be in 'running' state...]"
         sleep 35
     else
-        echo "ok: [authentication pods are in 'Running' state]"
+        echo "ok: [authentication pods are in 'running' state]"
         break
     fi
 done
