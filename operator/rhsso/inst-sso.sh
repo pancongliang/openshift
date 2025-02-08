@@ -35,6 +35,7 @@ run_command() {
 echo "info: [uninstall old RHSSO resources...]"
 oc delete configmap openid-route-ca -n openshift-config &>/dev/null
 oc delete secret openid-client-secret -n openshift-config &>/dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc delete -f - &>/dev/null
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-client.yaml | envsubst | oc delete -f - &>/dev/null
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc delete -f - &>/dev/null
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc delete -f - &>/dev/null
