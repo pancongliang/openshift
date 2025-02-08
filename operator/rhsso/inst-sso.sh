@@ -164,4 +164,4 @@ KEYCLOAK_ADMIN_PASSWORD=$(oc get secret credential-example-sso -o=jsonpath='{.da
 echo "info: [keycloak host: $KEYCLOAK_HOST]"
 echo "info: [keycloak console username: $KEYCLOAK_ADMIN_USER]"
 echo "info: [keycloak console password: $KEYCLOAK_ADMIN_PASSWORD]"
-echo "info: [user created by keycloak: rhadmin/redhat]"
+echo "info: [user created by keycloak: $USER_NAME/$PASSWORD]"
