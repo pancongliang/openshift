@@ -1,5 +1,6 @@
 #!/bin/bash
 set -u
+set -o pipefail
 # Applying environment variables
 
 export CHANNEL="stable"
@@ -64,6 +65,8 @@ done
 # Create the Keycloak realm resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc create -f - &>/dev/null
 run_command "[create realm custom resource]"
+
+sleep 30
 
 # Get OpenShift OAuth and Console route details
 export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
