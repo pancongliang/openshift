@@ -7,7 +7,6 @@ spec:
   user:
     username: ${USER_NAME}
     credentials:
-      - temporary: false
       - type: "password"
         value: "${PASSWORD}"
     enabled: true
