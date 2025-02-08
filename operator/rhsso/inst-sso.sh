@@ -45,6 +45,8 @@ run_command "[approve the install plan]"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc create -f - &>/dev/null
 run_command "[create keycloak resource]"
 
+sleep 15
+
 # Wait for Keycloak pods to be in 'Running' state
 while true; do
     # Get the status of all pods
