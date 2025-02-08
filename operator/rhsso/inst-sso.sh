@@ -66,7 +66,7 @@ while true; do
     # Check if all pods are in '1/1 Running' state
     if echo "$output" | grep -vq "1/1 Running"; then
         echo "info: [waiting for pods to be in 'Running' state...]"
-        sleep 15
+        sleep 20
     else
         echo "ok: [keycloak pods are in 'Running' state]"
         break
