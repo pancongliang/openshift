@@ -1,6 +1,7 @@
 # Set environment variables
 export CHANNEL_NAME="stable-3.13"
-export STORAGE_CLASS_NAME="gp2-csi"
+export STORAGE_CLASS_NAME="managed-nfs-storage"
+#export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
 
 #!/bin/bash
@@ -30,26 +31,26 @@ run_command() {
 PRINT_TASK "[TASK: Install Minio Tool]"
 
 # Check if mc is already installed and operational
-if mc --version &> /dev/null; then
+if mc --version >/dev/null; then
     run_command "[MC tool already installed, skipping installation]"
 else
     # Download the MC tool
-    curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc &> /dev/null
+    curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc >/dev/null
     run_command "[Downloaded MC tool]"
 
     # Remove the old version (if it exists)
-    rm -f /usr/local/bin/mc &> /dev/null
+    rm -f /usr/local/bin/mc >/dev/null
 
     # Move the new version to /usr/local/bin
-    mv mc /usr/local/bin/ &> /dev/null
+    mv mc /usr/local/bin/ >/dev/null
     run_command "[Installed MC tool to /usr/local/bin/]"
 
     # Set execute permissions for the tool
-    chmod +x /usr/local/bin/mc &> /dev/null
+    chmod +x /usr/local/bin/mc >/dev/null
     run_command "[Set execute permissions for MC tool]"
 
     # Verify the installation
-    if mc --version &> /dev/null; then
+    if mc --version >/dev/null; then
         run_command "[MC tool installation complete]"
     else
         run_command "[Failed to install MC tool, proceeding without it]"
@@ -65,7 +66,7 @@ PRINT_TASK "[TASK: Deploying Minio object]"
 # Deploy Minio with the specified YAML template
 export NAMESPACE="minio"
 
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - &> /dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null
 run_command "[Create Minio object]"
 
 sleep 20
@@ -73,7 +74,7 @@ sleep 20
 # Wait for Minio pods to be in 'Running' state
 while true; do
     # Check the status of pods
-    if oc get pods -n "$NAMESPACE" --no-headers &> /dev/null | awk '{print $3}' | grep -v "Running" &> /dev/null; then
+    if oc get pods -n "$NAMESPACE" --no-headers >/dev/null | awk '{print $3}' | grep -v "Running" >/dev/null; then
         echo "info: [Waiting for pods to be in 'Running' state...]"
         sleep 20
     else
@@ -89,12 +90,12 @@ run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 sleep 3
 
 # Set Minio client alias
-mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin &> /dev/null
+mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin >/dev/null
 run_command "[Configured Minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 for BUCKET_NAME in "quay-bucket"; do
-    mc --no-color mb my-minio/$BUCKET_NAME &> /dev/null
+    mc --no-color mb my-minio/$BUCKET_NAME >/dev/null
     run_command "[Created bucket $BUCKET_NAME]"
 done
 
@@ -105,7 +106,7 @@ echo
 PRINT_TASK "[TASK: Deploying Quay Operator]"
 
 # Create a Subscription
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc apply -f - >/dev/null
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -122,7 +123,7 @@ run_command "[Installing Quay Operator...]"
 
 # Approval IP
 export NAMESPACE="openshift-operators"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash &> /dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null
 run_command "[Approve openshift-operators install plan]"
 
 sleep 30
@@ -146,7 +147,7 @@ while true; do
 done
 
 # Create a namespace
-oc new-project quay-enterprise &> /dev/null
+oc new-project quay-enterprise >/dev/null
 run_command "[Create a quay-enterprise namespac]"
 
 # Create a quay config
@@ -178,13 +179,13 @@ EOF
 
 sleep 3
 # Create a secret containing the quay config
-oc create secret generic quay-config --from-file=config.yaml -n quay-enterprise &> /dev/null
+oc create secret generic quay-config --from-file=config.yaml -n quay-enterprise >/dev/null
 run_command "[Create a secret containing quay-config]"
 
-rm -rf config.yaml  &> /dev/null
+rm -rf config.yaml  >/dev/null
 
 # Create a Quay Registry
-cat << EOF | oc apply -f - &> /dev/null
+cat << EOF | oc apply -f - >/dev/null
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
@@ -219,7 +220,7 @@ EXPECTED_STATUS="Running"
 
 while true; do
     # Check if all pods meet the expected READY and STATUS
-    if oc get po -n quay-enterprise --no-headers &> /dev/null | awk '$3 != "Completed" {
+    if oc get po -n quay-enterprise --no-headers >/dev/null | awk '$3 != "Completed" {
         split($2, ready, "/");
         if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
     }' | grep -q "waiting"; then
@@ -238,28 +239,28 @@ echo
 PRINT_TASK "[TASK: Install oc-mirror tool]"
 
 # Check if oc-mirror is already installed and operational
-if oc-mirror -h &> /dev/null; then
+if oc-mirror -h >/dev/null; then
     run_command "[The oc-mirror tool already installed, skipping installation]"
 else
     # Download the oc-mirror tool
-    curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz &> /dev/null
+    curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz >/dev/null
     run_command "[Downloaded oc-mirror tool]"
 
     # Remove the old version (if it exists)
-    rm -f /usr/local/bin/oc-mirror &> /dev/null
+    rm -f /usr/local/bin/oc-mirror >/dev/null
 
-    tar -xvf oc-mirror.tar.gz &> /dev/null
+    tar -xvf oc-mirror.tar.gz >/dev/null
 
     # Set execute permissions for the tool
-    chmod +x oc-mirror &> /dev/null
+    chmod +x oc-mirror >/dev/null
     run_command "[Set execute permissions for oc-mirror tool]"
 
     # Move the new version to /usr/local/bin
-    mv oc-mirror /usr/local/bin/ &> /dev/null
+    mv oc-mirror /usr/local/bin/ >/dev/null
     run_command "[Installed oc-mirror tool to /usr/local/bin/]"
 
     # Verify the installation
-    if oc-mirror -h &> /dev/null; then
+    if oc-mirror -h >/dev/null; then
         run_command "[oc-mirror tool installation complete]"
     else
         run_command "[Failed to install oc-mirror tool, proceeding without it]"
@@ -273,7 +274,7 @@ echo
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
 # Export the router-ca certificate
-oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator &> /dev/null 
+oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null 
 run_command "[Export the router-ca certificate]"
 
 sleep 30
@@ -283,14 +284,14 @@ export QUAY_HOST=$(oc get route example-registry-quay -n quay-enterprise --templ
 
 sleep 10
 
-oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config &> /dev/null
+oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config >/dev/null
 run_command "[Create a configmap containing the Route CA certificate]"
 
 # Additional trusted CA
-oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
+oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null
 run_command "[Additional trusted CA]"
 
-rm -rf tls.crt &> /dev/null
+rm -rf tls.crt >/dev/null
 
 echo 
 # ====================================================
@@ -328,11 +329,11 @@ fi
 echo "ok: [Authentication information for Quay Registry added to $AUTHFILE]"
 
 # Update pull-secret 
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret &> /dev/null
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null
 run_command "[Update pull-secret for the cluster]"
 
-rm -rf tmp-authfile &> /dev/null
-rm -rf pull-secret &> /dev/null
+rm -rf tmp-authfile >/dev/null
+rm -rf pull-secret >/dev/null
 
 echo 
 # ====================================================
