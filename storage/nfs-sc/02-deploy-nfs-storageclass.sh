@@ -32,10 +32,10 @@ kind: Namespace
 metadata:
   name: ${NAMESPACE}
 EOF
-oc delete -f namespace.yaml &>/dev/null
-oc create -f namespace.yaml &>/dev/null
+oc delete -f namespace.yaml >/dev/null
+oc create -f namespace.yaml >/dev/null
 run_command "[create new namespace: ${NAMESPACE}]"
-rm -rf namespace.yaml &>/dev/null
+rm -rf namespace.yaml >/dev/null
 
 # Create sa and rbac
 cat << EOF > sa_and_rbac.yaml
@@ -106,13 +106,13 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 EOF
 
-oc delete -f sa_and_rbac.yaml &>/dev/null
-oc create -f sa_and_rbac.yaml &>/dev/null
+oc delete -f sa_and_rbac.yaml >/dev/null
+oc create -f sa_and_rbac.yaml >/dev/null
 run_command "[create rbac configuration]"
-rm -rf sa_and_rbac.yaml &>/dev/null
+rm -rf sa_and_rbac.yaml >/dev/null
 
 # scc
-oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner &>/dev/null
+oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner >/dev/null
 run_command "[add SCC hostmount-anyuid to nfs-client-provisioner user]"
 
 # deployment
@@ -157,10 +157,10 @@ spec:
             server: ${NFS_SERVER_IP}
             path: ${NFS_DIR}
 EOF
-oc delete -f deployment.yaml &>/dev/null
-oc create -f deployment.yaml &>/dev/null
+oc delete -f deployment.yaml >/dev/null
+oc create -f deployment.yaml >/dev/null
 run_command "[deploy nfs-client-provisioner]"
-rm -rf deployment.yaml &>/dev/null
+rm -rf deployment.yaml >/dev/null
 
 # storage class
 cat << EOF > storageclass.yaml
@@ -175,7 +175,7 @@ parameters:
   archiveOnDelete: "false"
   reclaimPolicy: Retain
 EOF
-oc delete -f storageclass.yaml &>/dev/null
-oc create -f storageclass.yaml &>/dev/null
+oc delete -f storageclass.yaml >/dev/null
+oc create -f storageclass.yaml >/dev/null
 run_command "[create nfs storage class]"
-rm -rf storageclass.yaml &>/dev/null
+rm -rf storageclass.yaml >/dev/null
