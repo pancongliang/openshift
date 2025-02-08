@@ -66,8 +66,6 @@ done
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc create -f - &>/dev/null
 run_command "[create realm custom resource]"
 
-sleep 30
-
 # Get OpenShift OAuth and Console route details
 export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
 export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
@@ -76,26 +74,39 @@ export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.s
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-client.yaml | envsubst | oc create -f - &>/dev/null
 run_command "[create client custom resource]"
 
+while true; do
+    secret_exists=$(oc get secret -n "$NAMESPACE" keycloak-client-secret-example-client --no-headers 2>/dev/null)
+    if [ -n "$secret_exists" ]; then
+        echo "ok: [keycloak-client-secret-example-client secret is created]"
+        break
+    else
+        echo "info: [checking if keycloak-client-secret-example-client secret is created...]"
+        sleep 20
+    fi
+done
+
 # Create a Keycloak user
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f - &>/dev/null
 run_command "[create rhsso user]"
 
-sleep 15
+sleep 5
 
 # Create client authenticator secret and ConfigMap containing router CA certificate
 oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config &>/dev/null
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator &>/dev/null
-oc delete -f configmap openid-route-ca -n openshift-config &>/dev/null
+oc delete configmap openid-route-ca -n openshift-config &>/dev/null
 
 sleep 5
-oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config && rm -rf tls.crt &>/dev/null
+
+oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config &>/dev/null
 run_command "[create client authenticator secret and configmap containing router-ca certificate]"
+rm -rf tls.crt &>/dev/null
 
 # Apply Identity Provider configuration
 export KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-patch-identity-provider.yaml | envsubst | oc apply -f - &>/dev/null
-# curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-identity-provider.yaml | envsubst | oc apply -f - &>/dev/null
-run_command "[ Apply Identity Provider configuration]"
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-patch-identity-provider.yaml | envsubst | oc replace -f - &>/dev/null
+# curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-identity-provider.yaml | envsubst | oc replace -f - &>/dev/null
+run_command "[apply Identity Provider configuration]"
 
 
 # Wait for OpenShift authentication pods to be in 'Running' state
@@ -105,7 +116,7 @@ while true; do
     output=$(oc get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
     # Check if all pods are in '1/1 Running' state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo "info: [waiting for pods to be in 'Running' state...]"
+        echo "info: [waiting for authentication pods to be in 'Running' state...]"
         sleep 20
     else
         echo "ok: [authentication pods are in 'Running' state]"
