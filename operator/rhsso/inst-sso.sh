@@ -85,6 +85,7 @@ export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.s
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-client.yaml | envsubst | oc create -f - >/dev/null
 run_command "[create client custom resource]"
 
+sleep 10
 while true; do
     secret_exists=$(oc get secret -n "$NAMESPACE" keycloak-client-secret-example-client --no-headers 2>/dev/null)
     if [ -n "$secret_exists" ]; then
@@ -92,7 +93,7 @@ while true; do
         break
     else
         echo "info: [checking if keycloak-client-secret-example-client secret is created...]"
-        sleep 20
+        sleep 35
     fi
 done
 
@@ -127,7 +128,7 @@ while true; do
     # Check if all pods are in '1/1 Running' state
     if echo "$output" | grep -vq "1/1 Running"; then
         echo "info: [waiting for authentication pods to be in 'Running' state...]"
-        sleep 20
+        sleep 35
     else
         echo "ok: [authentication pods are in 'Running' state]"
         break
