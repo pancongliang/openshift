@@ -17,6 +17,7 @@ spec:
     redirectUris:
       - https://${OAUTH_HOST}/*
       - https://${CONSOLE_HOST}/*
+      - https://jaeger-istio-system.apps.ocp4.example.com/*
     defaultClientScopes:
       - acr
       - email
