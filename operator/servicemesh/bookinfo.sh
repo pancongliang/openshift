@@ -1,3 +1,7 @@
+export CONTROL_PLANE_NS=istio-system
+export BOOKINFO_NS=bookinfo
+
+
 #install the elastic operator
 cat <<EOM | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
@@ -118,10 +122,19 @@ do
     echo "done."
 done
 
-export CONTROL_PLANE_NS=istio-system
-export BOOKINFO_NS=bookinfo
-oc new-project ${CONTROL_PLANE_NS}
-oc new-project ${BOOKINFO_NS}
+cat <<EOM | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${CONTROL_PLANE_NS}
+EOM
+
+cat <<EOM | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${BOOKINFO_NS}
+EOM
 
 echo "Creating the scmp/smmr..."
 #create our smcp
