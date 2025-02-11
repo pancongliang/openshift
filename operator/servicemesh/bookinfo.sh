@@ -148,7 +148,7 @@ spec:
       enabled: true
     prometheus:
       enabled: true
-  version: v2.0
+  version: v2.5
   telemetry:
     type: Istiod
 EOM
