@@ -65,7 +65,7 @@ EOM
 #wait for crds
 for crd in servicemeshcontrolplanes.maistra.io servicemeshmemberrolls.maistra.io kialis.kiali.io jaegers.jaegertracing.io
 do
-    echo -n "Waiting for $crd ..."
+    echo -n "waiting for $crd ..."
     while ! oc get crd $crd > /dev/null 2>&1
     do
         sleep 2
@@ -108,10 +108,10 @@ do
 )
 done
 
-echo "Waiting for operator deployments to start..."
+echo "waiting for operator deployments to start..."
 for op in ${servicemesh_deployment} ${kiali_deployment} ${jaeger_deployment} ${elastic_deployment}
 do
-    echo -n "Waiting for ${op} to be ready..."
+    echo -n "waiting for ${op} to be ready..."
     readyReplicas="0"
     while [ "$?" != "0" -o "$readyReplicas" == "0" ]
     do
@@ -136,7 +136,7 @@ metadata:
   name: ${BOOKINFO_NS}
 EOM
 
-echo "Creating the scmp/smmr..."
+echo "creating the scmp/smmr..."
 #create our smcp
 cat <<EOM | oc apply -f -
 apiVersion: maistra.io/v2
@@ -161,7 +161,7 @@ spec:
       enabled: true
     prometheus:
       enabled: true
-  version: v2.5
+  version: v2.6
   telemetry:
     type: Istiod
 EOM
@@ -178,7 +178,7 @@ spec:
 EOM
 
 #wait for smcp to fully install
-echo -n "Waiting for smcp to fully install (this will take a few moments) ..."
+echo -n "waiting for smcp to fully install (this will take a few moments) ..."
 basic_install_smcp=$(oc get smcp -n ${CONTROL_PLANE_NS} basic 2>/dev/null | grep ComponentsReady)
 while [ "${basic_install_smcp}" == "" ]
 do
@@ -189,7 +189,7 @@ done
 echo "done."
 
 # install bookinfo
-echo "Success, deploying bookinfo..."
+echo "success, deploying bookinfo..."
 oc patch -n ${CONTROL_PLANE_NS} --type='json' smmr default -p '[{"op": "add", "path": "/spec/members", "value":["'"${BOOKINFO_NS}"'"]}]'
 oc apply -n ${BOOKINFO_NS} -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.0/samples/bookinfo/platform/kube/bookinfo.yaml
 oc apply -n ${BOOKINFO_NS} -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.0/samples/bookinfo/networking/bookinfo-gateway.yaml
@@ -197,5 +197,5 @@ oc apply -n ${BOOKINFO_NS} -f https://raw.githubusercontent.com/Maistra/istio/ma
 export BOOKINFO_GATEWAY_URL=$(oc get route -n ${CONTROL_PLANE_NS} | grep ${BOOKINFO_NS} | awk -F ' ' '{print $2}')
 
 
-echo "Red Hat OpenShift Service Mesh and bookinfo has been deployed!"
-echo "Test the bookinfo application out at: http://${BOOKINFO_GATEWAY_URL}/productpage"
+echo "service mesh and bookinfo has been deployed!"
+echo "test the bookinfo application out at: http://${BOOKINFO_GATEWAY_URL}/productpage"
