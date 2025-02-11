@@ -27,6 +27,7 @@
   oc get route keycloak -o jsonpath='{.spec.host}' -n ${NAMESPACE}
 
   # Username
+  export NAMESPACE="rhsso"
   oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_USERNAME}' -n ${NAMESPACE} | base64 -d && echo
   # Password
   oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${NAMESPACE} | base64 -d && echo
