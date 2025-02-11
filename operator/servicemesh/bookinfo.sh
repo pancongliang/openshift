@@ -118,7 +118,7 @@ do
     echo "done."
 done
 
-export CONTROL_PLANE_NS=use15-istio-system
+export CONTROL_PLANE_NS=istio-system
 export BOOKINFO_NS=bookinfo
 oc new-project ${CONTROL_PLANE_NS}
 oc new-project ${BOOKINFO_NS}
