@@ -31,6 +31,9 @@ run_command() {
 # ====================================================
 
 
+# Print task title
+PRINT_TASK "[TASK: Deploying Single Sign-On Operator]"
+
 # Uninstall first
 echo "info: [uninstall old RHSSO resources...]"
 oc delete configmap openid-route-ca -n openshift-config &>/dev/null
@@ -40,10 +43,6 @@ curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc delete -f - &>/dev/null
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc delete -f - &>/dev/null
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/01-operator.yaml | envsubst | oc delete -f - &>/dev/null
-
-
-# Print task title
-PRINT_TASK "[TASK: Deploying Single Sign-On Operator]"
 
 # Install the RHSSO operator
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/01-operator.yaml | envsubst | oc apply -f -  >/dev/null
