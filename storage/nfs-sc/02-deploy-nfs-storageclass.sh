@@ -162,6 +162,20 @@ oc create -f deployment.yaml >/dev/null
 run_command "[deploy nfs-client-provisioner]"
 rm -rf deployment.yaml > /dev/null 2>&1
 
+# Wait for nfs-client-provisioner pods to be in 'Running' state
+while true; do
+    # Get the status of all pods
+    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
+    # Check if all pods are in '1/1 Running' state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        echo "info: [waiting for pods to be in 'running' state...]"
+        sleep 20
+    else
+        echo "ok: [nfs-client-provisioner pods are in 'running' state]"
+        break
+    fi
+done
+
 # storage class
 cat << EOF > storageclass.yaml
 apiVersion: storage.k8s.io/v1
