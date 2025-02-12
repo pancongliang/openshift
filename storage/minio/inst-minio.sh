@@ -75,15 +75,25 @@ run_command "[Applied Minio object]"
 
 # Wait for Minio pods to be in 'Running' state
 while true; do
-    # Check the status of pods
-    if oc get pods -n "$NAMESPACE" --no-headers | awk '{print $3}' | grep -v "Running" > /dev/null; then
-        echo "info: [Waiting for pods to be in 'Running' state...]"
-        sleep 20
+    # Get the status of all pods
+    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
+    
+    # Check if any pod is not in "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        echo -n "info: [Waiting for pods to be in 'running' state"
+        
+        # Progress indicator
+        for i in {1..10}; do
+            echo -n '.'
+            sleep 2
+        done
+        echo "]" # Close progress indicator
     else
         echo "ok: [Minio pods are in 'Running' state]"
         break
     fi
 done
+
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host}')
