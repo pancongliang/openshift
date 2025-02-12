@@ -73,10 +73,19 @@ sleep 20
 
 # Wait for Minio pods to be in 'Running' state
 while true; do
-    # Check the status of pods
-    if oc get pods -n "$NAMESPACE" --no-headers >/dev/null | awk '{print $3}' | grep -v "Running" >/dev/null; then
-        echo "info: [Waiting for pods to be in 'Running' state...]"
-        sleep 20
+    # Get the status of all pods
+    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
+    
+    # Check if any pod is not in "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        echo -n "info: [Waiting for pods to be in 'running' state"
+        
+        # Progress indicator
+        for i in {1..10}; do
+            echo -n '.'
+            sleep 1
+        done
+        echo "]" # Close progress indicator
     else
         echo "ok: [Minio pods are in 'Running' state]"
         break
@@ -126,29 +135,33 @@ export NAMESPACE="openshift-operators"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null
 run_command "[Approve openshift-operators install plan]"
 
-sleep 30
-
-# Chek Quay operator pod
-EXPECTED_READY="1/1"
-EXPECTED_STATUS="Running"
-
+sleep 10
 while true; do
-    # Get the status of pods matching quay-operator in the openshift-operators namespace
-    pod_status=$(oc get po -n openshift-operators --no-headers | grep "quay-operator" | awk '{print $2, $3}')
-
-    # Check if all matching pods have reached the expected Ready and Status values
-    if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
-        echo "info: [Quay operator pods have not reached the expected status, waiting...]"
-        sleep 20
+    # Get the status of all pods
+    output=$(oc get po -n "$NAMESPACE" --no-headers | grep "quay-operator" | awk '{print $2, $3}')
+    
+    # Check if any pod is not in "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        echo -n "info: [Waiting for pods to be in 'running' state"
+        
+        # Progress indicator
+        for i in {1..10}; do
+            echo -n '.'
+            sleep 1
+        done
+        echo "]" # Close progress indicator
     else
-        echo "ok: [Quay operator pods have reached the expected state]"
+        echo "ok: [Quay operator pods are in 'Running' state]"
         break
     fi
 done
 
+
+
 # Create a namespace
-oc new-project quay-enterprise >/dev/null
-run_command "[Create a quay-enterprise namespac]"
+export NAMESPACE="quay-enterprise"
+oc new-project $NAMESPACE >/dev/null
+run_command "[Create a $NAMESPACE namespac]"
 
 # Create a quay config
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
@@ -216,18 +229,22 @@ run_command "[Create a QuayRegistry]"
 sleep 30
 
 # Check quay pod status
-EXPECTED_STATUS="Running"
-
 while true; do
-    # Check if all pods meet the expected READY and STATUS
-    if oc get po -n quay-enterprise --no-headers >/dev/null | awk '$3 != "Completed" {
-        split($2, ready, "/");
-        if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
-    }' | grep -q "waiting"; then
-        echo "info: [Not all pods have reached the expected status, waiting...]"
-        sleep 30
+    # Get the status of all pods
+    output=$(oc get po -n "$NAMESPACE" --no-headers |grep -v Completed | awk '{print $2, $3}')
+    
+    # Check if any pod is not in "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        echo -n "info: [Waiting for pods to be in 'running' state"
+        
+        # Progress indicator
+        for i in {1..10}; do
+            echo -n '.'
+            sleep 3.5
+        done
+        echo "]" # Close progress indicator
     else
-        echo "ok: [All pods in namespace quay-enterprise have reached the expected state]"
+        echo "ok: [Quay pods are in 'Running' state]"
         break
     fi
 done
