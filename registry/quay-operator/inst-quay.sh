@@ -1,7 +1,7 @@
 # Set environment variables
 export CHANNEL_NAME="stable-3.13"
-export STORAGE_CLASS_NAME="managed-nfs-storage"
-#export STORAGE_CLASS_NAME="gp2-csi"
+#export STORAGE_CLASS_NAME="managed-nfs-storage"
+export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
 
 #!/bin/bash
@@ -27,48 +27,111 @@ run_command() {
 }
 # ====================================================
 
-# Print task title
-PRINT_TASK "[TASK: Install Minio Tool]"
+export NAMESPACE="quay-enterprise"
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/03-quay-registry.yaml | envsubst | oc delete -f - >/dev/null 2>&1
+export NAMESPACE="openshift-operators"
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/01-operator.yaml | envsubst | oc delete -f - >/dev/null 2>&1
 
-# Check if mc is already installed and operational
-if mc --version >/dev/null; then
-    run_command "[MC tool already installed, skipping installation]"
-else
-    # Download the MC tool
-    curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc >/dev/null
-    run_command "[Downloaded MC tool]"
+oc delete ns quay-enterprise >/dev/null 2>&1
 
-    # Remove the old version (if it exists)
-    rm -f /usr/local/bin/mc >/dev/null
-
-    # Move the new version to /usr/local/bin
-    mv mc /usr/local/bin/ >/dev/null
-    run_command "[Installed MC tool to /usr/local/bin/]"
-
-    # Set execute permissions for the tool
-    chmod +x /usr/local/bin/mc >/dev/null
-    run_command "[Set execute permissions for MC tool]"
-
-    # Verify the installation
-    if mc --version >/dev/null; then
-        run_command "[MC tool installation complete]"
-    else
-        run_command "[Failed to install MC tool, proceeding without it]"
-    fi
-fi
-
-echo 
-# ====================================================
 
 # Print task title
-PRINT_TASK "[TASK: Deploying Minio object]"
+PRINT_TASK "[TASK: Deploying Minio Tool]"
 
 # Deploy Minio with the specified YAML template
 export NAMESPACE="minio"
 oc delete ns $NAMESPACE >/dev/null 2>&1
 
+# Determine the operating system and architecture
+OS_TYPE=$(uname -s)
+ARCH=$(uname -m)
+
+echo "info: [Client Operating System: $OS_TYPE]"
+echo "info: [Client Architecture: $ARCH]"
+
+# Set the download URL based on the OS and architecture
+if [ "$OS_TYPE" = "Darwin" ]; then
+    if [ "$ARCH" = "x86_64" ]; then
+        download_url="https://dl.min.io/client/mc/release/darwin-amd64/mc"
+    elif [ "$ARCH" = "arm64" ]; then
+        download_url="https://dl.min.io/client/mc/release/darwin-arm64/mc"
+    fi
+elif [ "$OS_TYPE" = "Linux" ]; then
+    download_url="https://dl.min.io/client/mc/release/linux-amd64/mc"
+else
+    echo "error: [MC tool installation failed]"
+fi
+
+# Download MC
+curl -sOL "$download_url" 
+run_command "[Downloaded MC tool]"
+
+# Install MC and set permissions
+rm -f /usr/local/bin/mc > /dev/null
+mv mc /usr/local/bin/ > /dev/null
+run_command "[Installed MC tool to /usr/local/bin/]"
+
+chmod +x /usr/local/bin/mc > /dev/null
+run_command "[Set execute permissions for MC tool]"
+
+mc --version > /dev/null
+run_command "[MC tool installation complete]"
+
+echo 
+
+# Print task title
+PRINT_TASK "[TASK: Deploying Minio Object Storage]"
+
+# Deploy Minio with the specified YAML template
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-run_command "[Create Minio object]"
+run_command "[Applied Minio object]"
+
+# Wait for Minio pods to be in 'Running' state
+# Initialize progress_started as false
+progress_started=false
+while true; do
+    # Get the status of all pods
+    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
+    
+    # Check if any pod is not in the "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [Waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 2
+    else
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: [Minio pods are in 'running' state]"
+        break
+    fi
+done
+
+
+# Get Minio route URL
+export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host}')
+run_command "[Retrieved Minio route host: $BUCKET_HOST]"
+
+sleep 3
+
+# Set Minio client alias
+mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin > /dev/null
+run_command "[Configured Minio client alias]"
+
+# Create buckets for Loki, Quay, OADP, and MTC
+for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
+    mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
+    run_command "[Created bucket $BUCKET_NAME]"
+done
+
+# Print Minio address and credentials
+echo "info: [Minio address: http://$BUCKET_HOST]"
+echo "info: [Minio default ID/PW: minioadmin/minioadmin]"
 
 echo 
 # ====================================================
@@ -159,7 +222,7 @@ EOF
 
 sleep 3
 # Create a secret containing the quay config
-oc create secret generic quay-config --from-file=config.yaml -n quay-enterprise >/dev/null
+oc create secret generic quay-config --from-file=config.yaml -n $NAMESPACE >/dev/null
 run_command "[Create a secret containing quay-config]"
 
 rm -rf config.yaml  >/dev/null
@@ -170,7 +233,7 @@ apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
   name: example-registry
-  namespace: quay-enterprise
+  namespace: $NAMESPACE
 spec:
   configBundleSecret: quay-config
   components:
@@ -225,41 +288,6 @@ echo
 # ====================================================
 
 # Print task title
-PRINT_TASK "[TASK: Install oc-mirror tool]"
-
-# Check if oc-mirror is already installed and operational
-if oc-mirror -h >/dev/null; then
-    run_command "[The oc-mirror tool already installed, skipping installation]"
-else
-    # Download the oc-mirror tool
-    curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz >/dev/null
-    run_command "[Downloaded oc-mirror tool]"
-
-    # Remove the old version (if it exists)
-    rm -f /usr/local/bin/oc-mirror >/dev/null
-
-    tar -xvf oc-mirror.tar.gz >/dev/null
-
-    # Set execute permissions for the tool
-    chmod +x oc-mirror >/dev/null
-    run_command "[Set execute permissions for oc-mirror tool]"
-
-    # Move the new version to /usr/local/bin
-    mv oc-mirror /usr/local/bin/ >/dev/null
-    run_command "[Installed oc-mirror tool to /usr/local/bin/]"
-
-    # Verify the installation
-    if oc-mirror -h >/dev/null; then
-        run_command "[oc-mirror tool installation complete]"
-    else
-        run_command "[Failed to install oc-mirror tool, proceeding without it]"
-    fi
-fi
-
-echo 
-# ====================================================
-
-# Print task title
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
 # Export the router-ca certificate
@@ -269,7 +297,7 @@ run_command "[Export the router-ca certificate]"
 sleep 30
 
 # Create a configmap containing the CA certificate
-export QUAY_HOST=$(oc get route example-registry-quay -n quay-enterprise --template='{{.spec.host}}')
+export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}')
 
 sleep 10
 
@@ -294,7 +322,7 @@ run_command "[Export pull-secret]"
 
 # Update pull-secret file
 export AUTHFILE="pull-secret"
-export REGISTRY=$(oc get route example-registry-quay -n quay-enterprise --template='{{.spec.host}}')
+export REGISTRY=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}')
 
 # Base64 encode the username:password
 AUTH=cXVheWFkbWluOnBhc3N3b3Jk
@@ -331,54 +359,50 @@ echo
 PRINT_TASK "[TASK: Check status]"
 
 # Check cluser operator status
-# Initialize progress tracking
+# Print task title
+PRINT_TASK "[TASK: Check status]"
+
+# Check cluster operator status
 progress_started=false
-
 while true; do
-    # Get the status of all cluster operators
     operator_status=$(oc get co --no-headers | awk '{print $3, $4, $5}')
-
-    # Check if any operator has not reached the expected state
+    
     if echo "$operator_status" | grep -q -v "True False False"; then
-        # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for all cluster operators to not reach the expected state"
-            progress_started=true  # Mark progress as started
+            echo -n "info: [Waiting for all cluster operators to reach the expected state"
+            progress_started=true  
         fi
         
-        # Print progress indicator
         echo -n '.'
         sleep 15
     else
-        # Close the progress indicator and print the success message
-        echo "]"
+        # Close progress indicator only if progress_started is true
+        if $progress_started; then
+            echo "]"
+        fi
         echo "ok: [All cluster operators have reached the expected state]"
         break
     fi
 done
 
 # Check MCP status
-# Initialize progress tracking
 progress_started=false
 
 while true; do
-    # Get the status of all MachineConfigPools (MCP)
     mcp_status=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
 
-    # Check if any MCP has not reached the expected state
     if echo "$mcp_status" | grep -q -v "True False False"; then
-        # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for all MCPs to not reach expected state"
-            progress_started=true  # Mark progress as started
+            echo -n "info: [Waiting for all MCPs to reach the expected state"
+            progress_started=true  
         fi
         
-        # Print progress indicator
         echo -n '.'
         sleep 15
     else
-        # Close the progress indicator and print the success message
-        echo "]"
+        if $progress_started; then
+            echo "]"
+        fi
         echo "ok: [All MCP have reached the expected state]"
         break
     fi
