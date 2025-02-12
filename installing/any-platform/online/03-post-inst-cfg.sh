@@ -70,7 +70,7 @@ spec:
 EOF
 run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
 run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
 
 rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
@@ -78,11 +78,11 @@ run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
 
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
 run_command "[change the Image registry operator configuration’s managementState from Removed to Managed]"
 
 # Leave the claim field blank to allow the automatic creation of an image-registry-storage PVC.
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
 run_command "[leave the claim field blank to allow the automatic creation of an image-registry-storage PVC]"
 
 # Add an empty line after the task
@@ -97,7 +97,7 @@ rm -rf $INSTALL_DIR/users.htpasswd
 htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[create a user using the htpasswd tool]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[create a secret using the users.htpasswd file]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
@@ -120,19 +120,17 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
 run_command "[grant cluster-admin permissions to the admin user]"
 
 sleep 15
 
 # Wait for OpenShift authentication pods to be in 'Running' state
 export AUTH_NAMESPACE="openshift-authentication"
-# Initialize progress_started as false
 progress_started=false
-
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
+    output=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -144,7 +142,7 @@ while true; do
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 15
+        sleep 2
     else
         # Close the progress indicator and print the success message
         echo "]"
@@ -160,53 +158,50 @@ echo
 # === Task: Checking the cluster status ===
 PRINT_TASK "[TASK: Checking the cluster status]"
 
-# Initialize progress tracking
+# Print task title
+PRINT_TASK "[TASK: Check status]"
+
+# Check cluster operator status
 progress_started=false
 while true; do
-    # Get the status of all cluster operators
     operator_status=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
-
-    # Check if any operator has not reached the expected state
+    
     if echo "$operator_status" | grep -q -v "True False False"; then
-        # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all cluster operators to not reach the expected state"
-            progress_started=true  # Mark progress as started
+            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            progress_started=true  
         fi
         
-        # Print progress indicator
         echo -n '.'
-        sleep 10
+        sleep 15
     else
-        # Close the progress indicator and print the success message
-        echo "]"
+        # Close progress indicator only if progress_started is true
+        if $progress_started; then
+            echo "]"
+        fi
         echo "ok: [all cluster operators have reached the expected state]"
         break
     fi
 done
 
 # Check MCP status
-# Initialize progress tracking
 progress_started=false
 
 while true; do
-    # Get the status of all MachineConfigPools (MCP)
     mcp_status=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
 
-    # Check if any MCP has not reached the expected state
     if echo "$mcp_status" | grep -q -v "True False False"; then
-        # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all mcps to not reach expected state"
-            progress_started=true  # Mark progress as started
+            echo -n "info: [waiting for all mcps to reach the expected state"
+            progress_started=true  
         fi
         
-        # Print progress indicator
         echo -n '.'
-        sleep 10
+        sleep 15
     else
-        # Close the progress indicator and print the success message
-        echo "]"
+        if $progress_started; then
+            echo "]"
+        fi
         echo "ok: [all mcp have reached the expected state]"
         break
     fi
