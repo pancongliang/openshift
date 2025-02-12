@@ -1,8 +1,7 @@
 # Set the maximum number of retries
 MAX_RETRIES=20
 RETRY_COUNT=0
-
-echo -n "info: [waiting for unapproved install plans in namespace $NAMESPACE"
+progress_started=false 
 
 # Poll until the maximum retry count is reached
 while true; do
@@ -16,7 +15,12 @@ while true; do
 
         # Approve the InstallPlan
         oc patch installplan "$NAME" -n "$NAMESPACE" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null
-        echo "]"
+        
+        # Close the progress indicator if it was started
+        if $progress_started; then
+            echo "]"
+        fi
+
         echo "ok: [approved install plan: $NAME in namespace $NAMESPACE]"
         break
     fi
@@ -24,12 +28,19 @@ while true; do
     # If no unapproved InstallPlans are found, check if the maximum retry count has been reached
     RETRY_COUNT=$((RETRY_COUNT + 1))
     if [[ $RETRY_COUNT -ge $MAX_RETRIES ]]; then
-        echo "]"
+        if $progress_started; then
+            echo "]"
+        fi
         echo "failed: [max retries reached. no unapproved install plans found in $NAMESPACE]"
         break
     fi
     
-    # Print progress indicator every 15 seconds
+    # Print progress indicator every 6 seconds
+    if ! $progress_started; then
+        echo -n "info: [waiting for unapproved install plans in namespace $NAMESPACE"
+        progress_started=true
+    fi
+
     echo -n '.'
     sleep 6
 done
