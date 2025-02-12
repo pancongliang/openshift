@@ -166,15 +166,23 @@ rm -rf deployment.yaml > /dev/null 2>&1
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
-    # Check if all pods are in '1/1 Running' state
+    
+    # Check if any pod is not in "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo "info: [waiting for pods to be in 'running' state...]"
-        sleep 20
+        echo -n "info: [waiting for pods to be in 'running' state"
+        
+        # Progress indicator
+        for i in {1..10}; do
+            echo -n '.'
+            sleep 5
+        done
+        echo "]" # Close progress indicator
     else
         echo "ok: [nfs-client-provisioner pods are in 'running' state]"
         break
     fi
 done
+
 
 # storage class
 cat << EOF > storageclass.yaml
