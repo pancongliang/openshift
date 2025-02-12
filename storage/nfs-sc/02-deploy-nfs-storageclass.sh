@@ -174,7 +174,7 @@ while true; do
         # Progress indicator
         for i in {1..10}; do
             echo -n '.'
-            sleep 5
+            sleep 1
         done
         echo "]" # Close progress indicator
     else
