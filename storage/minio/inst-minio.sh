@@ -68,7 +68,7 @@ run_command "[MC tool installation complete]"
 echo 
 
 # Print task title
-PRINT_TASK "[TASK: Deploying Minio object]"
+PRINT_TASK "[TASK: Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - > /dev/null
