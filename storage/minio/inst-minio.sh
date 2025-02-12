@@ -2,7 +2,8 @@
 
 # Set environment variables
 export NAMESPACE="minio"
-export STORAGE_CLASS_NAME="gp2-csi"
+#export STORAGE_CLASS_NAME="gp2-csi"
+export STORAGE_CLASS_NAME="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 
 # Function to print a task with uniform length
