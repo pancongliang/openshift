@@ -70,50 +70,6 @@ oc delete ns $NAMESPACE >/dev/null 2>&1
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 run_command "[Create Minio object]"
 
-
-sleep 3
-# Wait for Minio pods to be in 'Running' state
-# Initialize progress_started as false
-progress_started=false
-while true; do
-    # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
-    
-    # Check if any pod is not in the "1/1 Running" state
-    if echo "$output" | grep -vq "1/1 Running"; then
-        # Print the info message only once
-        if ! $progress_started; then
-            echo -n "info: [Waiting for pods to be in 'running' state"
-            progress_started=true  # Set to true to prevent duplicate messages
-        fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
-        sleep 2
-    else
-        # Close the progress indicator and print the success message
-        echo "]"
-        echo "ok: [Minio pods are in 'running' state]"
-        break
-    fi
-done
-
-# Get Minio route URL
-export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host}')
-run_command "[Retrieved Minio route host: $BUCKET_HOST]"
-
-sleep 3
-
-# Set Minio client alias
-mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin >/dev/null
-run_command "[Configured Minio client alias]"
-
-# Create buckets for Loki, Quay, OADP, and MTC
-for BUCKET_NAME in "quay-bucket"; do
-    mc --no-color mb my-minio/$BUCKET_NAME >/dev/null
-    run_command "[Created bucket $BUCKET_NAME]"
-done
-
 echo 
 # ====================================================
 
