@@ -62,15 +62,23 @@ sleep 15
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
-    # Check if all pods are in '1/1 Running' state
+    
+    # Check if any pod is not in "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo "info: [waiting for pods to be in 'running' state...]"
-        sleep 20
+        echo -n "info: [waiting for pods to be in 'running' state"
+        
+        # Progress indicator
+        for i in {1..10}; do
+            echo -n '.'
+            sleep 15
+        done
+        echo "]" # Close progress indicator
     else
-        echo "ok: [keycloak pods are in 'running' state]"
+        echo "ok: [all pods are in 'running' state]"
         break
     fi
 done
+
 
 # Create the Keycloak realm resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc create -f - >/dev/null
@@ -84,17 +92,26 @@ export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.s
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-client.yaml | envsubst | oc create -f - >/dev/null
 run_command "[create client custom resource]"
 
+# Waiting for keycloak-client-secret-example-client secret to be created
 sleep 10
 while true; do
     secret_exists=$(oc get secret -n "$NAMESPACE" keycloak-client-secret-example-client --no-headers 2>/dev/null)
+    
     if [ -n "$secret_exists" ]; then
         echo "ok: [keycloak-client-secret-example-client secret is created]"
         break
     else
-        echo "info: [checking if keycloak-client-secret-example-client secret is created...]"
-        sleep 35
+        echo -n "info: [waiting for keycloak-client-secret-example-client secret to be created"
+        
+        # Progress indicator
+        for i in {1..10}; do
+            echo -n '.'
+            sleep 15
+        done
+        echo "]" # Close progress indicator
     fi
 done
+
 
 # Create a Keycloak user
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f - >/dev/null
@@ -127,15 +144,43 @@ export AUTH_NAMESPACE="openshift-authentication"
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
-    # Check if all pods are in '1/1 Running' state
+    
+    # Check if any pod is not in "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo "info: [waiting for authentication pods to be in 'running' state...]"
-        sleep 35
+        echo -n "info: [waiting for authentication pods to be in 'running' state"
+        
+        # Progress indicator
+        for i in {1..10}; do
+            echo -n '.'
+            sleep 15
+        done
+        echo "]" # Close progress indicator
     else
         echo "ok: [authentication pods are in 'running' state]"
         break
     fi
 done
+
+while true; do
+    # Get the status of all pods
+    output=$(oc get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
+    
+    # Check if any pod is not in "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        echo -n "info: [waiting for authentication pods to be in 'running' state"
+        
+        # Progress indicator
+        for i in {1..10}; do
+            echo -n '.'
+            sleep 15
+        done
+        echo "]" # Close progress indicator
+    else
+        echo "ok: [authentication pods are in 'running' state]"
+        break
+    fi
+done
+
 
 # Configure OpenShift console logout redirection to Keycloak
 KEYCLOAK_CLIENT_NAME='example-client'
