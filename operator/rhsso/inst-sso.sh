@@ -35,7 +35,7 @@ run_command() {
 PRINT_TASK "[TASK: Deploying Single Sign-On Operator]"
 
 # Uninstall first
-echo "info: [uninstall old RHSSO resources...]"
+echo "info: [uninstall old rhsso resources...]"
 oc delete configmap openid-route-ca -n openshift-config &>/dev/null
 oc delete secret openid-client-secret -n openshift-config &>/dev/null
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc delete -f - &>/dev/null
@@ -59,7 +59,7 @@ run_command "[create keycloak Instance]"
 sleep 15
 
 # Wait for Keycloak pods to be in 'Running' state
-# Initialize progress_started as false
+# Initialize progress tracking
 progress_started=false
 
 while true; do
@@ -71,19 +71,23 @@ while true; do
         # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [waiting for pods to be in 'running' state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            progress_started=true  # Prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
         sleep 1.5
     else
-        # Close the progress indicator and print the success message
-        echo "]"
+        # Close the progress indicator if it was started
+        if $progress_started; then
+            echo "]"
+        fi
+
         echo "ok: [all keycloak pods are in 'running' state]"
         break
     fi
 done
+
 
 # Create the Keycloak realm resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc create -f - >/dev/null
@@ -108,8 +112,10 @@ while true; do
     secret_exists=$(oc get secret -n "$NAMESPACE" keycloak-client-secret-example-client --no-headers 2>/dev/null)
     
     if [ -n "$secret_exists" ]; then
-        # Secret found, print success message and exit loop
-        echo "]"
+        # If progress was displayed, close it properly
+        if $progress_started; then
+            echo "]"
+        fi
         echo "ok: [keycloak-client-secret-example-client secret is created]"
         break
     else
@@ -154,7 +160,6 @@ run_command "[apply Identity Provider configuration]"
 
 # Wait for OpenShift authentication pods to be in 'Running' state
 export AUTH_NAMESPACE="openshift-authentication"
-# Initialize progress_started as false
 progress_started=false
 
 while true; do
@@ -166,19 +171,23 @@ while true; do
         # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [waiting for pods to be in 'running' state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            progress_started=true  # Prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 15
+        sleep 1.5
     else
-        # Close the progress indicator and print the success message
-        echo "]"
+        # Close the progress indicator if it was started
+        if $progress_started; then
+            echo "]"
+        fi
+
         echo "ok: [all oauth pods are in 'running' state]"
         break
     fi
 done
+
 
 # Configure OpenShift console logout redirection to Keycloak
 KEYCLOAK_CLIENT_NAME='example-client'
