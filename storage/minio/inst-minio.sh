@@ -74,22 +74,27 @@ curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mi
 run_command "[Applied Minio object]"
 
 # Wait for Minio pods to be in 'Running' state
+# Initialize progress_started as false
+progress_started=false
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
     
-    # Check if any pod is not in "1/1 Running" state
+    # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo -n "info: [Waiting for pods to be in 'running' state"
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [Waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
         
-        # Progress indicator
-        for i in {1..10}; do
-            echo -n '.'
-            sleep 1
-        done
-        echo "]" # Close progress indicator
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 2
     else
-        echo "ok: [Minio pods are in 'Running' state]"
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: [Minio pods are in 'running' state]"
         break
     fi
 done
