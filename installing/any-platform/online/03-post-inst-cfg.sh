@@ -218,7 +218,7 @@ echo
 # === Task: Login cluster information ===
 PRINT_TASK "[TASK: Login cluster information]"
 
-echo "info: [The default setting is to use kubeconfig to login.]"
+echo "info: [default setting is to use kubeconfig to login]"
 echo "info: [log in to the cluster using the htpasswd user: uset KUBECONFIG && oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo
 # ====================================================
