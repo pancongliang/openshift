@@ -30,6 +30,8 @@ run_command() {
 # Print task title
 PRINT_TASK "[TASK: Install Minio Tool]"
 
+oc delete ns $NAMESPACE >/dev/null 2>&1
+
 # Determine the operating system and architecture
 OS_TYPE=$(uname -s)
 ARCH=$(uname -m)
@@ -55,14 +57,14 @@ curl -sOL "$download_url"
 run_command "[Downloaded MC tool]"
 
 # Install MC and set permissions
-rm -f /usr/local/bin/mc > /dev/null
+rm -f /usr/local/bin/mc >/dev/null 2>&1
 mv mc /usr/local/bin/ > /dev/null
 run_command "[Installed MC tool to /usr/local/bin/]"
 
 chmod +x /usr/local/bin/mc > /dev/null
 run_command "[Set execute permissions for MC tool]"
 
-mc --version > /dev/null
+mc --version >/dev/null 2>&1
 run_command "[MC tool installation complete]"
 
 echo 
@@ -105,7 +107,7 @@ done
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host}')
 run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 
-sleep 3
+sleep 20
 
 # Set Minio client alias
 mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin > /dev/null
