@@ -70,7 +70,7 @@ while true; do
         # Progress indicator
         for i in {1..10}; do
             echo -n '.'
-            sleep 15
+            sleep 1.5
         done
         echo "]" # Close progress indicator
     else
@@ -106,7 +106,7 @@ while true; do
         # Progress indicator
         for i in {1..10}; do
             echo -n '.'
-            sleep 15
+            sleep 3
         done
         echo "]" # Close progress indicator
     fi
@@ -152,7 +152,7 @@ while true; do
         # Progress indicator
         for i in {1..10}; do
             echo -n '.'
-            sleep 15
+            sleep 3
         done
         echo "]" # Close progress indicator
     else
@@ -160,27 +160,6 @@ while true; do
         break
     fi
 done
-
-while true; do
-    # Get the status of all pods
-    output=$(oc get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
-    
-    # Check if any pod is not in "1/1 Running" state
-    if echo "$output" | grep -vq "1/1 Running"; then
-        echo -n "info: [waiting for authentication pods to be in 'running' state"
-        
-        # Progress indicator
-        for i in {1..10}; do
-            echo -n '.'
-            sleep 15
-        done
-        echo "]" # Close progress indicator
-    else
-        echo "ok: [authentication pods are in 'running' state]"
-        break
-    fi
-done
-
 
 # Configure OpenShift console logout redirection to Keycloak
 KEYCLOAK_CLIENT_NAME='example-client'
