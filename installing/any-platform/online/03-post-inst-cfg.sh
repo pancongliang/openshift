@@ -123,26 +123,91 @@ run_command "[setting up htpasswd authentication]"
 oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
 run_command "[grant cluster-admin permissions to the admin user]"
 
-echo "info: [restarting oauth pod, waiting...]"
-sleep 30
+sleep 15
+
+# Wait for OpenShift authentication pods to be in 'Running' state
+export AUTH_NAMESPACE="openshift-authentication"
+# Initialize progress_started as false
+progress_started=false
 
 while true; do
-    # Get cluster operator status
-    operator_status=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
-
-    # Check if all operators have reached the expected status
-    if echo "$operator_status" | grep -q -v "True False False"; then
+    # Get the status of all pods
+    output=$(oc get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
+    
+    # Check if any pod is not in the "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all cluster operators to reach the expected state"
-            progress_started=true
+            echo -n "info: [waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
-        # Print progress dots
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 20
+        sleep 15
     else
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: [all oauth pods are in 'running' state]"
+        break
+    fi
+done
+
+echo
+# ====================================================
+
+
+# === Task: Checking the cluster status ===
+PRINT_TASK "[TASK: Checking the cluster status]"
+
+# Initialize progress tracking
+progress_started=false
+while true; do
+    # Get the status of all cluster operators
+    operator_status=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+
+    # Check if any operator has not reached the expected state
+    if echo "$operator_status" | grep -q -v "True False False"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for all cluster operators to not reach the expected state"
+            progress_started=true  # Mark progress as started
+        fi
+        
+        # Print progress indicator
+        echo -n '.'
+        sleep 10
+    else
+        # Close the progress indicator and print the success message
         echo "]"
         echo "ok: [all cluster operators have reached the expected state]"
+        break
+    fi
+done
+
+# Check MCP status
+# Initialize progress tracking
+progress_started=false
+
+while true; do
+    # Get the status of all MachineConfigPools (MCP)
+    mcp_status=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
+
+    # Check if any MCP has not reached the expected state
+    if echo "$mcp_status" | grep -q -v "True False False"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for all mcps to not reach expected state"
+            progress_started=true  # Mark progress as started
+        fi
+        
+        # Print progress indicator
+        echo -n '.'
+        sleep 10
+    else
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: [all mcp have reached the expected state]"
         break
     fi
 done
