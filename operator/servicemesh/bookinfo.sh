@@ -1,7 +1,6 @@
 export CONTROL_PLANE_NS=istio-system
 export BOOKINFO_NS=bookinfo
 
-
 #install the elastic operator
 cat <<EOM | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
@@ -71,56 +70,53 @@ do
         sleep 2
         echo -n '.'
     done
-    echo "done."
+    echo "done"
 done
 
-#wait for service mesh operator deployment
+# Wait for Service Mesh Operator deployment
 servicemesh_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep istio)
-while [ "${servicemesh_deployment}" == "" ]
-do
+while [ -z "${servicemesh_deployment}" ]; do
     sleep 2
-    servicemesh_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep ist
-io)
+    servicemesh_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep istio)
 done
 
-#wait for Kiali operator deployment
+# Wait for Kiali Operator deployment
 kiali_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep kiali)
-while [ "${kiali_deployment}" == "" ]
-do
+while [ -z "${kiali_deployment}" ]; do
     sleep 2
     kiali_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep kiali)
 done
 
-#wait for Jaeger operator deployment
+# Wait for Jaeger Operator deployment (修正 servicemesh_deployment 错误)
 jaeger_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep jaeger)
-while [ "${jaeger_deployment}" == "" ]
-do
+while [ -z "${jaeger_deployment}" ]; do
     sleep 2
     jaeger_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep jaeger)
 done
 
-#wait for elastic operator deployment
+# Wait for Elastic Operator deployment
 elastic_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep elastic)
-while [ "${elastic_deployment}" == "" ]
-do
+while [ -z "${elastic_deployment}" ]; do
     sleep 2
-    elastic_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep elastic
-)
+    elastic_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep elastic)
 done
 
+
 echo "waiting for operator deployments to start..."
-for op in ${servicemesh_deployment} ${kiali_deployment} ${jaeger_deployment} ${elastic_deployment}
-do
+for op in ${servicemesh_deployment} ${kiali_deployment} ${jaeger_deployment} ${elastic_deployment}; do
     echo -n "waiting for ${op} to be ready..."
-    readyReplicas="0"
-    while [ "$?" != "0" -o "$readyReplicas" == "0" ]
-    do
+    
+    readyReplicas=""
+    
+    while [ -z "$readyReplicas" ] || [ "$readyReplicas" = "0" ]; do
         sleep 1
         echo -n '.'
-        readyReplicas="$(oc get ${op} -n openshift-operators -o jsonpath='{.status.readyReplicas}' 2> /dev/null)"
+        readyReplicas="$(oc get ${op} -n openshift-operators -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo 0)"
     done
-    echo "done."
+    
+    echo "done"
 done
+
 
 cat <<EOM | oc apply -f -
 apiVersion: v1
@@ -161,7 +157,7 @@ spec:
       enabled: true
     prometheus:
       enabled: true
-  version: v2.6
+  version: v2.5
   telemetry:
     type: Istiod
 EOM
@@ -179,21 +175,22 @@ EOM
 
 #wait for smcp to fully install
 echo -n "waiting for smcp to fully install (this will take a few moments) ..."
-basic_install_smcp=$(oc get smcp -n ${CONTROL_PLANE_NS} basic 2>/dev/null | grep ComponentsReady)
-while [ "${basic_install_smcp}" == "" ]
-do
+basic_install_smcp=$(oc get smcp -n "${CONTROL_PLANE_NS}" basic 2>/dev/null | grep ComponentsReady)
+
+while [ -z "${basic_install_smcp}" ]; do
     echo -n '.'
     sleep 5
-    basic_install_smcp=$(oc get smcp -n ${CONTROL_PLANE_NS} basic 2>/dev/null | grep ComponentsReady)
+    basic_install_smcp=$(oc get smcp -n "${CONTROL_PLANE_NS}" basic 2>/dev/null | grep ComponentsReady)
 done
+
 echo "done."
 
 # install bookinfo
 echo "success, deploying bookinfo..."
 oc patch -n ${CONTROL_PLANE_NS} --type='json' smmr default -p '[{"op": "add", "path": "/spec/members", "value":["'"${BOOKINFO_NS}"'"]}]'
-oc apply -n ${BOOKINFO_NS} -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.6/samples/bookinfo/platform/kube/bookinfo.yaml
-oc apply -n ${BOOKINFO_NS} -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.6/samples/bookinfo/networking/bookinfo-gateway.yaml
-oc apply -n ${BOOKINFO_NS} -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.6/samples/bookinfo/networking/destination-rule-all.yaml
+oc apply -n ${BOOKINFO_NS} -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.6/samples/bookinfo/platform/kube/bookinfo.yaml 2>/dev/null
+oc apply -n ${BOOKINFO_NS} -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.6/samples/bookinfo/networking/bookinfo-gateway.yaml 2>/dev/null
+oc apply -n ${BOOKINFO_NS} -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.6/samples/bookinfo/networking/destination-rule-all.yaml 2>/dev/null
 export GATEWAY_URL=$(oc -n ${CONTROL_PLANE_NS} get route istio-ingressgateway -o jsonpath='{.spec.host}')
 
 echo "service mesh and bookinfo has been deployed!"
