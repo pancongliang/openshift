@@ -69,25 +69,30 @@ export NAMESPACE="minio"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null
 run_command "[Create Minio object]"
 
-sleep 20
+sleep 15
 
 # Wait for Minio pods to be in 'Running' state
+# Initialize progress_started as false
+progress_started=false
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
     
-    # Check if any pod is not in "1/1 Running" state
+    # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo -n "info: [Waiting for pods to be in 'running' state"
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [Waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
         
-        # Progress indicator
-        for i in {1..10}; do
-            echo -n '.'
-            sleep 1
-        done
-        echo "]" # Close progress indicator
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 2
     else
-        echo "ok: [Minio pods are in 'Running' state]"
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: [Minio pods are in 'running' state]"
         break
     fi
 done
@@ -136,26 +141,31 @@ curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main
 run_command "[Approve openshift-operators install plan]"
 
 sleep 10
+
+# Initialize progress_started as false
+progress_started=false
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers | grep "quay-operator" | awk '{print $2, $3}')
     
-    # Check if any pod is not in "1/1 Running" state
+    # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo -n "info: [Waiting for pods to be in 'running' state"
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [Waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
         
-        # Progress indicator
-        for i in {1..10}; do
-            echo -n '.'
-            sleep 1
-        done
-        echo "]" # Close progress indicator
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 2
     else
-        echo "ok: [Quay operator pods are in 'Running' state]"
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: [Quay operator pods are in 'running' state]"
         break
     fi
 done
-
 
 
 # Create a namespace
@@ -226,25 +236,30 @@ spec:
 EOF
 run_command "[Create a QuayRegistry]"
 
-sleep 30
+sleep 15
 
 # Check quay pod status
+# Initialize progress_started as false
+progress_started=false
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers |grep -v Completed | awk '{print $2, $3}')
     
-    # Check if any pod is not in "1/1 Running" state
+    # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo -n "info: [Waiting for pods to be in 'running' state"
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [Waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
         
-        # Progress indicator
-        for i in {1..10}; do
-            echo -n '.'
-            sleep 3.5
-        done
-        echo "]" # Close progress indicator
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 10
     else
-        echo "ok: [Quay pods are in 'Running' state]"
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: [Quay pods are in 'running' state]"
         break
     fi
 done
@@ -359,24 +374,54 @@ echo
 PRINT_TASK "[TASK: Check status]"
 
 # Check cluser operator status
+# Initialize progress tracking
+progress_started=false
+
 while true; do
+    # Get the status of all cluster operators
     operator_status=$(oc get co --no-headers | awk '{print $3, $4, $5}')
+
+    # Check if any operator has not reached the expected state
     if echo "$operator_status" | grep -q -v "True False False"; then
-        echo "info: [All cluster operators have not reached the expected status, Waiting...]"
-        sleep 30  
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [Waiting for all cluster operators to not reach the expected state"
+            progress_started=true  # Mark progress as started
+        fi
+        
+        # Print progress indicator
+        echo -n '.'
+        sleep 15
     else
+        # Close the progress indicator and print the success message
+        echo "]"
         echo "ok: [All cluster operators have reached the expected state]"
         break
     fi
 done
 
 # Check MCP status
+# Initialize progress tracking
+progress_started=false
+
 while true; do
+    # Get the status of all MachineConfigPools (MCP)
     mcp_status=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
+
+    # Check if any MCP has not reached the expected state
     if echo "$mcp_status" | grep -q -v "True False False"; then
-        echo "info: [All MCP have not reached the expected status, Waiting...]"
-        sleep 30  
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [Waiting for all MCPs to not reach expected state"
+            progress_started=true  # Mark progress as started
+        fi
+        
+        # Print progress indicator
+        echo -n '.'
+        sleep 15
     else
+        # Close the progress indicator and print the success message
+        echo "]"
         echo "ok: [All MCP have reached the expected state]"
         break
     fi
