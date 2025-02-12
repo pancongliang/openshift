@@ -157,7 +157,7 @@ run_command "[Installing Quay Operator...]"
 
 # Approval IP
 export NAMESPACE="openshift-operators"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[Approve openshift-operators install plan]"
 
 sleep 10
@@ -291,7 +291,7 @@ echo
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
 # Export the router-ca certificate
-oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null 
+oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null 2>&1
 run_command "[Export the router-ca certificate]"
 
 sleep 30
@@ -301,6 +301,7 @@ export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='
 
 sleep 10
 
+oc delete configmap registry-config -n openshift-config >/dev/null 2>&1
 oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config >/dev/null
 run_command "[Create a configmap containing the Route CA certificate]"
 
@@ -354,9 +355,6 @@ rm -rf pull-secret >/dev/null
 
 echo 
 # ====================================================
-
-# Print task title
-PRINT_TASK "[TASK: Check status]"
 
 # Check cluser operator status
 # Print task title
