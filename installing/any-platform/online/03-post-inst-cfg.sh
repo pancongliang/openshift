@@ -124,14 +124,24 @@ oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-us
 run_command "[grant cluster-admin permissions to the admin user]"
 
 echo "info: [restarting oauth pod, waiting...]"
-sleep 100
+sleep 30
 
 while true; do
+    # Get cluster operator status
     operator_status=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+
+    # Check if all operators have reached the expected status
     if echo "$operator_status" | grep -q -v "True False False"; then
-        echo "info: [all cluster operators have not reached the expected status, Waiting...]"
-        sleep 60  
+        if ! $progress_started; then
+            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            progress_started=true
+        fi
+        
+        # Print progress dots
+        echo -n '.'
+        sleep 20
     else
+        echo "]"
         echo "ok: [all cluster operators have reached the expected state]"
         break
     fi
