@@ -59,26 +59,31 @@ run_command "[create keycloak Instance]"
 sleep 15
 
 # Wait for Keycloak pods to be in 'Running' state
+# Initialize progress_started as false
+progress_started=false
+
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
     
-    # Check if any pod is not in "1/1 Running" state
+    # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo -n "info: [waiting for pods to be in 'running' state"
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
         
-        # Progress indicator
-        for i in {1..10}; do
-            echo -n '.'
-            sleep 1.5
-        done
-        echo "]" # Close progress indicator
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 1.5
     else
-        echo "ok: [all pods are in 'running' state]"
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: [all keycloak pods are in 'running' state]"
         break
     fi
 done
-
 
 # Create the Keycloak realm resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc create -f - >/dev/null
@@ -94,21 +99,29 @@ run_command "[create client custom resource]"
 
 # Waiting for keycloak-client-secret-example-client secret to be created
 sleep 10
+
+# Initialize progress tracking
+progress_started=false
+
 while true; do
+    # Check if the secret exists
     secret_exists=$(oc get secret -n "$NAMESPACE" keycloak-client-secret-example-client --no-headers 2>/dev/null)
     
     if [ -n "$secret_exists" ]; then
+        # Secret found, print success message and exit loop
+        echo "]"
         echo "ok: [keycloak-client-secret-example-client secret is created]"
         break
     else
-        echo -n "info: [waiting for keycloak-client-secret-example-client secret to be created"
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for keycloak-client-secret-example-client secret to be created"
+            progress_started=true  # Mark progress as started
+        fi
         
-        # Progress indicator
-        for i in {1..10}; do
-            echo -n '.'
-            sleep 3
-        done
-        echo "]" # Close progress indicator
+        # Print progress indicator
+        echo -n '.'
+        sleep 15
     fi
 done
 
@@ -141,22 +154,28 @@ run_command "[apply Identity Provider configuration]"
 
 # Wait for OpenShift authentication pods to be in 'Running' state
 export AUTH_NAMESPACE="openshift-authentication"
+# Initialize progress_started as false
+progress_started=false
+
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
     
-    # Check if any pod is not in "1/1 Running" state
+    # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
-        echo -n "info: [waiting for authentication pods to be in 'running' state"
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
         
-        # Progress indicator
-        for i in {1..10}; do
-            echo -n '.'
-            sleep 3
-        done
-        echo "]" # Close progress indicator
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 15
     else
-        echo "ok: [authentication pods are in 'running' state]"
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: [all oauth pods are in 'running' state]"
         break
     fi
 done
