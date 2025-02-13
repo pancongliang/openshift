@@ -1,5 +1,5 @@
 #!/bin/bash
-set -u
+# set -u
 
 # Function to print a task with uniform length
 PRINT_TASK() {
