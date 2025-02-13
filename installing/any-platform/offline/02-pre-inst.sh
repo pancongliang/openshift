@@ -25,11 +25,11 @@ run_command() {
         exit 1
     fi
 }
-
 # ====================================================
 
-# Applying environment variables
+
 # === Task: Applying environment variables ===
+PRINT_TASK "[TASK: Applying environment variables]"
 source 01-set-params.sh
 run_command "[applying environment variables]"
 
