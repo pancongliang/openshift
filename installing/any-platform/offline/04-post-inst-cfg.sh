@@ -27,16 +27,18 @@ run_command() {
         exit 1
     fi
 }
+# ====================================================
 
-# Applying environment variables
+
 # === Task: Applying environment variables ===
+PRINT_TASK "[TASK: Applying environment variables]"
+
 source 01-set-params.sh
 run_command "[applying environment variables]"
 
 # Add an empty line after the task
 echo
 # ====================================================
-
 
 # Task: Configure data persistence for the image-registry operator
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
