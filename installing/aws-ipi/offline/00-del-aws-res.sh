@@ -17,13 +17,25 @@ PRINT_TASK() {
 }
 
 # Function to check command success and display appropriate message
+#!/bin/bash
 run_command() {
-    if [ $? -eq 0 ]; then
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
         echo "ok: $1"
     else
         echo "failed: $1"
+        exit 1
     fi
 }
+# ====================================================
+
+# Applying environment variables
+# === Task: Applying environment variables ===
+source 01-set-params.sh
+run_command "[applying environment variables]"
+
+# Add an empty line after the task
+echo
 # ====================================================
 
 
