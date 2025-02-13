@@ -1,6 +1,6 @@
 #!/bin/bash
-set -u
-set -o pipefail
+#set -u
+#set -o pipefail
 
 # Applying environment variables
 # Need a default storageclass
@@ -136,7 +136,7 @@ done
 
 # Create a Keycloak user
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f - >/dev/null
-run_command "[Create a user named $USER_NAME]"
+run_command "[create a user named $USER_NAME]"
 
 sleep 5
 
@@ -157,7 +157,7 @@ rm -rf tls.crt >/dev/null
 export KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-patch-identity-provider.yaml | envsubst | oc replace -f - >/dev/null
 # curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-identity-provider.yaml | envsubst | oc replace -f - >/dev/null
-run_command "[apply Identity Provider configuration]"
+run_command "[apply identity provider configuration]"
 
 
 # Wait for OpenShift authentication pods to be in 'Running' state
