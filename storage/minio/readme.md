@@ -36,21 +36,10 @@
 
   ```
   export NAMESPACE="minio"
-  export STORAGE_CLASS_NAME="managed-nfs-storage"
   export STORAGE_SIZE="50Gi"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f -
 
   oc get pod,route,pvc -n ${NAMESPACE}
-  ```
-
-### Install the Minio client
-
-* Minio Client (mc) is a command line tool for managing and operating Minio object storage services.
-
-  ```
-  curl -OL https://dl.min.io/client/mc/release/linux-amd64/mc
-
-  chmod +x mc && mv mc /usr/bin/
   ```
 
 ### Access Minio and create bucket
@@ -67,25 +56,25 @@
   ```    
   export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
   
-  mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
+  oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
   ``` 
   Create a bucket named "loki-bucket, quay-bucket, oadp-bucket, mtc-bucket" in the "my-minio" alias
   ```
   for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
-    mc mb my-minio/$BUCKET_NAME
+    oc rsh -n ${NAMESPACE} deployments/minio mc mb my-minio/$BUCKET_NAME
   done
   ```
   Commonly used [mc commands](https://min.io/docs/minio/linux/reference/minio-mc.html?ref=docs#command-quick-reference)
   ```
   # List "my-minio" alias info
-  mc alias list my-minio
+  oc rsh -n ${NAMESPACE} deployments/minio mc alias list my-minio
 
   # List buckets in "my-minio" alias
-  mc ls my-minio
+  oc rsh -n ${NAMESPACE} deployments/minio mc ls my-minio
 
   # List files in bucket
-  mc ls my-minio/${BUCKET_NAME}
+  oc rsh -n ${NAMESPACE} deployments/minio mc ls my-minio/${BUCKET_NAME}
 
   # Delete  bucket
-  mc rb --force my-minio/loki-bucket
+  oc rsh -n ${NAMESPACE} deployments/minio mc rb --force my-minio/loki-bucket
   ```  
