@@ -29,7 +29,7 @@
 * Run the following command to register the subscription:
 
   ```
-  source 00-reg-sub.sh
+  bash 00-reg-sub.sh
   ```
 
 
@@ -42,13 +42,23 @@
   source 01-set-params.sh
   ```
 
+### Install Infrastructure and Generate Scripts
 
+* Run the pre-installation script:
+
+  ```
+  bash 02-pre-inst.sh
+
+  $ ls ${INSTALL_DIR}/set*
+  inst-bootstrap.sh  inst-master01.sh  inst-master02.sh  inst-master03.sh  inst-worker01.sh  inst-worker02.sh  inst-worker03.sh
+  ```
+  
 ### Mirror ocp release image
 
 * RMirror the OCP release image by running the following command:
   
   ```
-  source 03-mirror-img.sh
+  bash 03-mirror-img.sh
   ```
 
 ### Install Bootstrap
@@ -108,7 +118,7 @@
 * Repeat the process for all worker nodes.To approve the Certificate Signing Request (CSR), run the following command:
 
   ```
-  source ${INSTALL_DIR}/ocp4cert_approver.sh &
+  bash ${INSTALL_DIR}/ocp4cert_approver.sh &
   ```
 
 * Repeat the process for all worker nodes.Check the node status and operators:
@@ -124,7 +134,7 @@
 * Repeat the process for all worker nodes.Configure the image registry operator's data persistence by running the script:
 
   ```
-  source 04-post-inst-cfg.sh
+  bash 04-post-inst-cfg.sh
   source /etc/bash_completion.d/oc_completion
   ```
 
