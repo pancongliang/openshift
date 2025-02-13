@@ -178,7 +178,7 @@ while true; do
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 1.5
+        sleep 10
     else
         # Close the progress indicator if it was started
         if $progress_started; then
