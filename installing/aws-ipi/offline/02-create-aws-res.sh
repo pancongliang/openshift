@@ -28,6 +28,8 @@ run_command() {
 # ====================================================
 
 
+source 01-set-params.sh
+
 # === Task: Install AWS CLI ===
 PRINT_TASK "[TASK: Install AWS CLI]"
 
