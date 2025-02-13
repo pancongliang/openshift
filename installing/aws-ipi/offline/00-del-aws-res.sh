@@ -1,4 +1,10 @@
 #!/bin/bash
+# Enable strict mode for robust error handling and log failures with line number.
+set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
