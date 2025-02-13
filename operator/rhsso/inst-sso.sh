@@ -1,6 +1,8 @@
 #!/bin/bash
-# set -u
-# set -o pipefail
+#set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Applying environment variables
 # Need a default storageclass
