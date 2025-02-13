@@ -1,10 +1,15 @@
+#!/bin/bash
+set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+
 # Set environment variables
 export CHANNEL_NAME="stable-3.13"
 #export STORAGE_CLASS_NAME="managed-nfs-storage"
 export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
 
-#!/bin/bash
 
 # Function to print a task with uniform length
 PRINT_TASK() {
