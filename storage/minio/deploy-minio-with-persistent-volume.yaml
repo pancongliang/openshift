@@ -28,7 +28,7 @@ spec:
         - minio server /data --console-address :9090
         volumeMounts:
         - mountPath: /data
-          name: minio-pvc # Corresponds to the `spec.volumes` Persistent Volume
+          name: minio-pvc
       volumes:
       - name: minio-pvc
         persistentVolumeClaim:
@@ -40,7 +40,6 @@ metadata:
   name: minio-pvc
   namespace: ${NAMESPACE}
 spec:
-  storageClassName: ${STORAGE_CLASS_NAME}
   accessModes:
     - ReadWriteOnce
   resources:
