@@ -74,7 +74,6 @@ done
 
 
 # Get Minio route URL
-export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host}')
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
 run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 
