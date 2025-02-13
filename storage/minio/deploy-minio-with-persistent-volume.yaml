@@ -40,6 +40,7 @@ metadata:
   name: minio-pvc
   namespace: ${NAMESPACE}
 spec:
+  storageClassName: ${STORAGE_CLASS_NAME}
   accessModes:
     - ReadWriteOnce
   resources:
