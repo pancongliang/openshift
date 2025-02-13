@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Function to print a task with uniform length
