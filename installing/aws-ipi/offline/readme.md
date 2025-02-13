@@ -20,12 +20,12 @@ source 01-set-params.sh
 
 #### Install AWS CLI(Mac or Linux) and Create VPC, Subnet, IG, Route Table, SG, Endpoint, PHZ, EC2 instance
 ```
-source 02-create-aws-res.sh
+bash 02-create-aws-res.sh
 ```
 
 #### Access EC2 instance(Bastion)
 ```
-./ocp-bastion.sh
+bash ocp-bastion.sh
 ```
 
 
@@ -33,7 +33,7 @@ source 02-create-aws-res.sh
 
 #### Install the mirror registry and mirroring ocp release image on the bastion machine and create the install-config
 ```
-source 01-set-params.sh && source 03-inst-pre.sh
+bash source 03-inst-pre.sh
 ```
 
 #### If the mirroring fails, rerun the following command
@@ -61,12 +61,12 @@ INFO Waiting up to 40m0s (until 6:08PM UTC) for the cluster at https://api.ocp.c
 
 #### Open a second terminal session
 ```
-./ocp-bastion.sh
+bash ocp-bastion.sh
 ```
 
 #### Create record and Configure cluster DNS
 ```
-source 01-set-params.sh && source 04-post-inst-cfg.sh
+bash 04-post-inst-cfg.sh
 ```
 
 
@@ -98,5 +98,5 @@ openshift-install destroy cluster --dir $INSTALL --log-level info
 
 #### delete the configured AWS infrastructure
 ```
-source 01-set-params.sh && source 00-del-aws-res.sh
+bash 00-del-aws-res.sh
 ```
