@@ -52,7 +52,7 @@ run_command "[install rhsso operator]"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash  &>/dev/null
 run_command "[approve the install plan]"
 
-sleep 15
+sleep 30
 
 # Create the Keycloak resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc create -f - >/dev/null
