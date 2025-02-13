@@ -28,6 +28,16 @@ run_command() {
 }
 # ====================================================
 
+# Applying environment variables
+# === Task: Applying environment variables ===
+source 01-set-params.sh
+run_command "[applying environment variables]"
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+
 # Task: Kubeconfig login and oc completion
 PRINT_TASK "[TASK: Kubeconfig login]"
 
