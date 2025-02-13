@@ -112,7 +112,7 @@
 * Repeat the process for all worker nodes.To approve the Certificate Signing Request (CSR), run the following command:
 
   ```
-  source ${INSTALL_DIR}/ocp4cert_approver.sh &
+  bash ${INSTALL_DIR}/ocp4cert_approver.sh &
   ```
 
 * Repeat the process for all worker nodes.Check the node status and operators:
@@ -128,7 +128,7 @@
 * Repeat the process for all worker nodes.Configure the image registry operator's data persistence by running the script:
 
   ```
-  source 03-post-inst-cfg.sh
+  bash 03-post-inst-cfg.sh
   source /etc/bash_completion.d/oc_completion
   source $HOME/.bash_profile
   ```
