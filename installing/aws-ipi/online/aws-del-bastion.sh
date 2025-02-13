@@ -1,10 +1,15 @@
 #!/bin/bash
+set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export CLUSTER_NAME="copan"
 export REGION="ap-northeast-1"
 export AWS_ACCESS_KEY_ID="xxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxx"
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -18,10 +23,12 @@ PRINT_TASK() {
 
 # Function to check command success and display appropriate message
 run_command() {
-    if [ $? -eq 0 ]; then
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
         echo "ok: $1"
     else
         echo "failed: $1"
+        exit 1
     fi
 }
 # ====================================================
