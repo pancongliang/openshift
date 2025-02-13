@@ -1,6 +1,6 @@
 #!/bin/bash
-#set -u
-#set -o pipefail
+set -u
+set -o pipefail
 
 # Applying environment variables
 # Need a default storageclass
