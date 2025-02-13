@@ -80,12 +80,12 @@ run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 sleep 20
 
 # Set Minio client alias
-oc rsh -n minio $(oc get pod -n minio -l deployment=minio-client -o jsonpath='{.items[0].metadata.name}') mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
+oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
 run_command "[Configured Minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
-    oc rsh -n minio $(oc get pod -n minio -l deployment=minio-client -o jsonpath='{.items[0].metadata.name}') mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
+    oc rsh -n ${NAMESPACE} deployments/minio mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
     run_command "[Created bucket $BUCKET_NAME]"
 done
 
