@@ -39,43 +39,6 @@ PRINT_TASK "[TASK: Install Minio Tool]"
 
 oc delete ns $NAMESPACE >/dev/null 2>&1
 
-# Determine the operating system and architecture
-OS_TYPE=$(uname -s)
-ARCH=$(uname -m)
-
-echo "info: [Client Operating System: $OS_TYPE]"
-echo "info: [Client Architecture: $ARCH]"
-
-# Set the download URL based on the OS and architecture
-if [ "$OS_TYPE" = "Darwin" ]; then
-    if [ "$ARCH" = "x86_64" ]; then
-        download_url="https://dl.min.io/client/mc/release/darwin-amd64/mc"
-    elif [ "$ARCH" = "arm64" ]; then
-        download_url="https://dl.min.io/client/mc/release/darwin-arm64/mc"
-    fi
-elif [ "$OS_TYPE" = "Linux" ]; then
-    download_url="https://dl.min.io/client/mc/release/linux-amd64/mc"
-else
-    echo "error: [MC tool installation failed]"
-fi
-
-# Download MC
-curl -sOL "$download_url" 
-run_command "[Downloaded MC tool]"
-
-# Install MC and set permissions
-rm -f /usr/local/bin/mc >/dev/null 2>&1
-mv mc /usr/local/bin/ > /dev/null
-run_command "[Installed MC tool to /usr/local/bin/]"
-
-chmod +x /usr/local/bin/mc > /dev/null
-run_command "[Set execute permissions for MC tool]"
-
-mc --version >/dev/null 2>&1
-run_command "[MC tool installation complete]"
-
-echo 
-
 # Print task title
 PRINT_TASK "[TASK: Deploying Minio Object Storage]"
 
@@ -112,20 +75,21 @@ done
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host}')
+export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
 run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 
 sleep 20
 
 # Set Minio client alias
-mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin > /dev/null
+oc rsh -n minio $(oc get pod -n minio -l deployment=minio-client -o jsonpath='{.items[0].metadata.name}') mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
 run_command "[Configured Minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
-    mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
+    oc rsh -n minio $(oc get pod -n minio -l deployment=minio-client -o jsonpath='{.items[0].metadata.name}') mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
     run_command "[Created bucket $BUCKET_NAME]"
 done
 
 # Print Minio address and credentials
-echo "info: [Minio address: http://$BUCKET_HOST]"
+echo "info: [Minio address: $BUCKET_HOST]"
 echo "info: [Minio default ID/PW: minioadmin/minioadmin]"
