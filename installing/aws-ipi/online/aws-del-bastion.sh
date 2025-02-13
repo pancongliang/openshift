@@ -1,4 +1,5 @@
 #!/bin/bash
+# Enable strict mode for robust error handling and log failures with line number.
 set -u
 set -e
 set -o pipefail
