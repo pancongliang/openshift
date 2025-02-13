@@ -1,4 +1,9 @@
 #!/bin/bash
+set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+
 
 # Set environment variables
 #export WORKER_INSTANCE_TYPE='m6i.xlarge'  # Bare Metal: m5.metal  https://aws.amazon.com/cn/ec2/instance-types/
