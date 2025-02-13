@@ -1,4 +1,8 @@
 #!/bin/bash
+set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
