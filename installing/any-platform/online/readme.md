@@ -29,7 +29,7 @@
 * Run the following command to register the subscription:
 
   ```
-  source 00-reg-sub.sh
+  bash 00-reg-sub.sh
   ```
 
 
