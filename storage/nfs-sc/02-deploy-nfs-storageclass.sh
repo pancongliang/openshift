@@ -1,5 +1,6 @@
 #!/bin/bash
-# set -u
+# Enable strict mode for robust error handling and log failures with line number.
+#set -u
 set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
@@ -19,12 +20,16 @@ PRINT_TASK() {
 
 # Function to check command success and display appropriate message
 run_command() {
-    if [ $? -eq 0 ]; then
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
         echo "ok: $1"
     else
         echo "failed: $1"
+        exit 1
     fi
 }
+
+# ====================================================
 
 
 # === Task: Install NFS storage class ===
