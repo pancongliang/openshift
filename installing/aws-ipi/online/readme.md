@@ -13,7 +13,7 @@ vim aws-ipi-inst.sh
 
 ```
 # Client Mac or RHEL:
-source aws-ipi-inst.sh
+bash aws-ipi-inst.sh
 ```
 
 #### Set up an alias to run oc with the new cluster credentials
@@ -42,7 +42,7 @@ vim aws-ipi-uninst.sh
 
 #### Uninstalling a cluster on AWS
 ```
-source aws-ipi-uninst.sh
+bash aws-ipi-uninst.sh
 ```
 
 ### Optional
@@ -71,7 +71,7 @@ curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/ma
 
 # Changing variable parameters
 vim aws-inst-bastion.sh
-source aws-inst-bastion.sh
+bash aws-inst-bastion.sh
 
 ssh ocp-bastion.sh
 # Run one by one 
