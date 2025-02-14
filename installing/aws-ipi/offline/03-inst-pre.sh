@@ -56,15 +56,21 @@ echo
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
 # List of RPM packages to install
-packages=("wget" "zip" "vim" "podman" "bind-utils" "bash-completion" "jq")
+packages=("wget" "vim-enhanced" "podman" "butane" "git" "bash-completion" "jq" "skopeo")
 
-# Install the RPM package and return the execution result
+# Convert the array to a space-separated string
+package_list="${packages[*]}"
+
+# Install all packages at once
+sudo dnf install -y $package_list &>/dev/null
+
+# Check if each package was installed successfully
 for package in "${packages[@]}"; do
-    sudo yum install -y "$package" &>/dev/null
+    sudo rpm -q $package &>/dev/null
     if [ $? -eq 0 ]; then
-        echo "ok: [Install $package package]"
+        echo "ok: [installed $package package]"
     else
-        echo "failed: [Install $package package]"
+        echo "failed: [installed $package package]"
     fi
 done
 
@@ -163,9 +169,9 @@ echo
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
-rm -rf $HOME/.aws
-mkdir -p $HOME/.aws
-cat << EOF > "$HOME/.aws/credentials"
+sudo rm -rf $HOME/.aws
+sudo mkdir -p $HOME/.aws
+sudo cat << EOF > "$HOME/.aws/credentials"
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
@@ -182,7 +188,7 @@ echo
 PRINT_TASK "[TASK: Delete existing Mirror-Registry duplicate data]"
 
 # Check if there is an active mirror registry pod
-if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
+if sudo podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
     ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
@@ -217,26 +223,26 @@ echo
 # === Task: Install Mirror-Registry ===
 PRINT_TASK "[TASK: Install Mirror-Registry]"
 
-mkdir -p ${REGISTRY_INSTALL_PATH}
-mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
-mkdir -p ${REGISTRY_INSTALL_PATH}/sqlite-storage
-chmod -R 777 ${REGISTRY_INSTALL_PATH}
+sudo mkdir -p ${REGISTRY_INSTALL_PATH}
+sudo mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
+sudo mkdir -p ${REGISTRY_INSTALL_PATH}/sqlite-storage
+sudo chmod -R 777 ${REGISTRY_INSTALL_PATH}
 run_command "[Create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
 # wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
-wget -O ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz &> /dev/null
+sudo wget -O ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz &> /dev/null
 run_command "[Download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
+sudo tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[Extract the mirror-registry package]"
 
 
 echo "ok: [Start installing mirror-registry...]"
 echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
 
-${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
+sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
@@ -256,7 +262,7 @@ sudo update-ca-trust &>/dev/null
 run_command "[Trust the rootCA certificate]"
 
 # loggin registry
-podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${HOSTNAME}:8443 &>/dev/null
+sudo podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${HOSTNAME}:8443 &>/dev/null
 run_command  "[Login registry https://${HOSTNAME}:8443]"
 
 sudo rm -rf ./*.tar
@@ -278,22 +284,22 @@ echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET}"
 run_command "[Create a temporary file to store the pull secret]"
 
 # Login to the registry
-rm -rf $XDG_RUNTIME_DIR/containers &>/dev/null
-podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "https://${HOSTNAME}:8443" &>/dev/null
-podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "https://${HOSTNAME}:8443" &>/dev/null
+sudo rm -rf $XDG_RUNTIME_DIR/containers &>/dev/null
+sudo podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "https://${HOSTNAME}:8443" &>/dev/null
+sudo podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "https://${HOSTNAME}:8443" &>/dev/null
 run_command "[Add authentication information to pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
+sudo cat ${PULL_SECRET} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
 run_command "[Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create ImageSetConfiguration directory
-sudo rm -rf ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
-mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
+sudo sudo rm -rf ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
+sudo mkdir ${IMAGE_SET_CONFIGURATION_PATH} &>/dev/null
 run_command "[Create ${IMAGE_SET_CONFIGURATION_PATH} directory]"
 
 # Create ImageSetConfiguration file
-cat << EOF > ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml
+sudo cat << EOF > ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml
 apiVersion: mirror.openshift.io/v1alpha2
 kind: ImageSetConfiguration
 storageConfig:
@@ -312,11 +318,11 @@ run_command "[Create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
 echo "ok: [Generate oc-mirror mirror log: ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log]"
-oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls > ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log
+sudo oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls > ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
-rm -rf oc-mirror-workspac* &>/dev/null
+sudo rm -rf oc-mirror-workspac* &>/dev/null
 sudo rm -rf "${PULL_SECRET}" &>/dev/null
 run_command "[Remove temporary pull-secret file]"
 
@@ -339,7 +345,7 @@ run_command "[Format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
 sudo rm -rf ${HOME}/.ssh/id_rsa ${HOME}/.ssh/id_rsa.pub
-ssh-keygen -N '' -f ${HOME}/.ssh/id_rsa &> /dev/null
+sudo ssh-keygen -N '' -f ${HOME}/.ssh/id_rsa &> /dev/null
 run_command "[Create ssh-key for accessing coreos]"
 
 # Define variables
@@ -351,9 +357,9 @@ export PRIVATE_SUBNET_ID=$(aws --region $REGION ec2 describe-subnets --filters "
 
 # Generate a defined install-config file
 sudo rm -rf $INSTALL
-mkdir $INSTALL
+sudo mkdir $INSTALL
 
-cat << EOF > $INSTALL/install-config.yaml
+sudo cat << EOF > $INSTALL/install-config.yaml
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
 credentialsMode: $CREDENTIALS_MODE
@@ -424,11 +430,11 @@ run_command "[Generate a defined install-config file]"
 sudo rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
 run_command "[Delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
-openshift-install create manifests --dir $INSTALL &>/dev/null
+sudo openshift-install create manifests --dir $INSTALL &>/dev/null
 run_command "[Manifests created in: $INSTALL/manifests $INSTALL/openshift ]"
 
 # Delete the private zone in the cluster-dns-02-config.yml file
-cat << EOF > $INSTALL/manifests/cluster-dns-02-config.yml
+sudo cat << EOF > $INSTALL/manifests/cluster-dns-02-config.yml
 apiVersion: config.openshift.io/v1
 kind: DNS
 metadata:
