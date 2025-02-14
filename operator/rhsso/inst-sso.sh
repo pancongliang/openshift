@@ -1,6 +1,6 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-# set -u
+set -u
 set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
@@ -41,13 +41,13 @@ PRINT_TASK "[TASK: Deploying Single Sign-On Operator]"
 
 # Uninstall first
 echo "info: [uninstall old rhsso resources...]"
-oc delete configmap openid-route-ca -n openshift-config &>/dev/null
-oc delete secret openid-client-secret -n openshift-config &>/dev/null
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc delete -f - &>/dev/null
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-client.yaml | envsubst | oc delete -f - &>/dev/null
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc delete -f - &>/dev/null
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc delete -f - &>/dev/null
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/01-operator.yaml | envsubst | oc delete -f - &>/dev/null
+oc delete configmap openid-route-ca -n openshift-config &>/dev/null || true
+oc delete secret openid-client-secret -n openshift-config &>/dev/null || true
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc delete -f - &>/dev/null || true
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-client.yaml | envsubst | oc delete -f - &>/dev/null || true
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc delete -f - &>/dev/null || true
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc delete -f - &>/dev/null || true
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/01-operator.yaml | envsubst | oc delete -f - &>/dev/null || true
 
 # Install the RHSSO operator
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/01-operator.yaml | envsubst | oc apply -f -  >/dev/null
@@ -145,7 +145,7 @@ run_command "[create a user named $USER_NAME]"
 
 sleep 5
 
-oc adm policy add-cluster-role-to-user cluster-admin $USER_NAME &>/dev/null     
+oc adm policy add-cluster-role-to-user cluster-admin $USER_NAME &>/dev/null || true
 run_command "[grant cluster-admin privileges to the $USER_NAME account]"
 
 # Create client authenticator secret and ConfigMap containing router CA certificate
