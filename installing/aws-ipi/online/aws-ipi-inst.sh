@@ -42,9 +42,9 @@ run_command() {
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
-rm -rf $HOME/.aws
-mkdir -p $HOME/.aws
-cat << EOF > "$HOME/.aws/credentials"
+sudo rm -rf $HOME/.aws
+sudo mkdir -p $HOME/.aws
+sudo cat << EOF > "$HOME/.aws/credentials"
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
@@ -78,15 +78,15 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Installer
-    curl -sL "$download_url" -o "$openshift_install"
+    sudo curl -sL "$download_url" -o "$openshift_install"
     run_command "[Download openshift-install]"
 
-    rm -f /usr/local/bin/openshift-install &> /dev/null
-    tar -xzf "$openshift_install" -C "/usr/local/bin/" &> /dev/null
+    sudo rm -f /usr/local/bin/openshift-install &> /dev/null
+    sudo tar -xzf "$openshift_install" -C "/usr/local/bin/" &> /dev/null
     run_command "[Install openshift-install]"
 
-    chmod +x /usr/local/bin/openshift-install &> /dev/null
-    rm -rf "$openshift_install" &> /dev/null
+    sudo chmod +x /usr/local/bin/openshift-install &> /dev/null
+    sudo rm -rf "$openshift_install" &> /dev/null
 
     # Determine the download URL for OpenShift Client
     if [ "$ARCH" = "x86_64" ]; then
@@ -98,41 +98,41 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Client
-    curl -sL "$download_url" -o "$openshift_client"
+    sudo curl -sL "$download_url" -o "$openshift_client"
     run_command "[Download openshift-client]"
 
-    rm -f /usr/local/bin/oc &> /dev/null
-    rm -f /usr/local/bin/kubectl &> /dev/null
-    rm -f /usr/local/bin/README.md &> /dev/null
+    sudo rm -f /usr/local/bin/oc &> /dev/null
+    sudo rm -f /usr/local/bin/kubectl &> /dev/null
+    sudo rm -f /usr/local/bin/README.md &> /dev/null
 
-    tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
+    sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
     run_command "[Install openshift-client]"
 
-    chmod +x /usr/local/bin/oc &> /dev/null
-    chmod +x /usr/local/bin/kubectl &> /dev/null
+    sudo chmod +x /usr/local/bin/oc &> /dev/null
+    sudo chmod +x /usr/local/bin/kubectl &> /dev/null
     rm -rf "$openshift_client" &> /dev/null
 
 # Handle Linux
 elif [ "$OS_TYPE" = "Linux" ]; then
     # Download the OpenShift Installer
-    curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
+    sudo curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "[Download openshift-install tool]"
 
-    rm -f /usr/local/bin/openshift-install &> /dev/null
-    tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" &> /dev/null
+    sudo rm -f /usr/local/bin/openshift-install &> /dev/null
+    sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" &> /dev/null
     run_command "[Install openshift-install tool]"
 
-    chmod +x /usr/local/bin/openshift-install &> /dev/null
+    sudo chmod +x /usr/local/bin/openshift-install &> /dev/null
     run_command "[Modify /usr/local/bin/openshift-install permissions]"
-    rm -rf openshift-install-linux.tar.gz &> /dev/null
+    sudo rm -rf openshift-install-linux.tar.gz &> /dev/null
 
     # Delete the old version of oc cli
-    rm -f /usr/local/bin/oc &> /dev/null
-    rm -f /usr/local/bin/kubectl &> /dev/null
-    rm -f /usr/local/bin/README.md &> /dev/null
+    sudo rm -f /usr/local/bin/oc &> /dev/null
+    sudo rm -f /usr/local/bin/kubectl &> /dev/null
+    sudo rm -f /usr/local/bin/README.md &> /dev/null
 
     # Get the RHEL version number
-    rhel_version=$(rpm -E %{rhel})
+    rhel_version=$(sudo rpm -E %{rhel})
     run_command "[Check RHEL version]"
 
     # Determine the download URL based on the RHEL version
@@ -145,23 +145,23 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     fi
 
     # Download the OpenShift client
-    curl -sL "$download_url" -o "$openshift_client"
+    sudo curl -sL "$download_url" -o "$openshift_client"
     run_command "[Download OpenShift client tool]"
 
     # Extract the downloaded tarball to /usr/local/bin/
-    tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
+    sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" &> /dev/null
     run_command "[Install openshift client tool]"
 
-    chmod +x /usr/local/bin/oc &> /dev/null
+    sudo chmod +x /usr/local/bin/oc &> /dev/null
     run_command "[Modify /usr/local/bin/oc permissions]"
-    chmod +x /usr/local/bin/kubectl &> /dev/null
+    sudo chmod +x /usr/local/bin/kubectl &> /dev/null
     run_command "[Modify /usr/local/bin/kubectl permissions]"
 
-    rm -f /usr/local/bin/README.md &> /dev/null
-    rm -rf $openshift_client &> /dev/null
+    sudo rm -f /usr/local/bin/README.md &> /dev/null
+    sudo rm -rf $openshift_client &> /dev/null
 
     # Install httpd-tools
-    yum install httpd-tools -y &> /dev/null
+    dnf install httpd-tools -y &> /dev/null
     run_command "[Install httpd-tools]"
 fi
 
@@ -174,18 +174,18 @@ PRINT_TASK "[TASK: Create openshift cluster]"
 
 # Check if the SSH key exists
 if [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
-    rm -rf ${SSH_KEY_PATH}
-    ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null &> /dev/null
+    sudo rm -rf ${SSH_KEY_PATH}
+    sudo ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa &> /dev/null &> /dev/null
     run_command "[Generate SSH keys:]"
 else
     echo "info: [SSH key already exists, skip generation]"
 fi
 
-rm -rf $OCP_INSTALL_DIR &> /dev/null
-mkdir -p $OCP_INSTALL_DIR &> /dev/null
+sudo rm -rf $OCP_INSTALL_DIR &> /dev/null
+sudo mkdir -p $OCP_INSTALL_DIR &> /dev/null
 run_command "[Create install dir: $OCP_INSTALL_DIR]"
 
-cat << EOF > $OCP_INSTALL_DIR/install-config.yaml 
+sudo cat << EOF > $OCP_INSTALL_DIR/install-config.yaml 
 additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
@@ -225,13 +225,13 @@ sshKey: |
 EOF
 run_command "[Create the install-config.yaml file]"
 
-rm -rf $OCP_INSTALL_DIR/install.log
+sudo rm -rf $OCP_INSTALL_DIR/install.log
 echo "ok: [Installing the OpenShift cluster]"
-/usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
+sudo /usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
 run_command "[Install OpenShift AWS IPI completed]"
 
 while true; do
-    operator_status=$(/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(sudo /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     if echo "$operator_status" | grep -q -v "True False False"; then
         echo "info: [All cluster operators have not reached the expected status, Waiting...]"
         sleep 60  
@@ -248,17 +248,17 @@ echo
 # === Task: Create htpasswd User ===
 PRINT_TASK "[TASK: Create htpasswd User]"
 
-rm -rf $OCP_INSTALL_DIR/users.htpasswd
-htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
+sudo rm -rf $OCP_INSTALL_DIR/users.htpasswd
+sudo htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[Create a user using the htpasswd tool]"
 
-/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+sudo /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[Create a secret using the users.htpasswd file]"
 
-rm -rf $OCP_INSTALL_DIR/users.htpasswd
+sudo rm -rf $OCP_INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-cat  <<EOF | /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
+sudo cat  <<EOF | /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -275,14 +275,14 @@ EOF
 run_command "[Setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
+sudo /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
 run_command "[Grant cluster-admin permissions to the admin user]"
 
 echo "info: [Restarting oauth pod, waiting...]"
 sleep 100
 
 while true; do
-    operator_status=$(/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(sudo /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     if echo "$operator_status" | grep -q -v "True False False"; then
         echo "info: [All cluster operators have not reached the expected status, Waiting...]"
         sleep 60  
