@@ -53,18 +53,20 @@
 
 * Create bucket through Minio Client (Default ID/PW: minioadmin)
   
-  Create an alias named "my-minio" and Access Minio, After creating/using an "alias", the Minio url can be ignored the next time visit.
+  Create an alias named "my-minio" and Access Minio, After creating/using an "alias", the Minio url can be ignored the next time visit
   ```    
   export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
   
   oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
-  ``` 
+  ```
+
   Create a bucket named "loki-bucket, quay-bucket, oadp-bucket, mtc-bucket" in the "my-minio" alias
   ```
   for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
     oc rsh -n ${NAMESPACE} deployments/minio mc mb my-minio/$BUCKET_NAME
   done
   ```
+
   Commonly used [mc commands](https://min.io/docs/minio/linux/reference/minio-mc.html?ref=docs#command-quick-reference)
   ```
   # List "my-minio" alias info
