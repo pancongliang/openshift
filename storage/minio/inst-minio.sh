@@ -34,10 +34,8 @@ run_command() {
 }
 # ====================================================
 
-# Print task title
-PRINT_TASK "[TASK: Install Minio Tool]"
 
-oc delete ns $NAMESPACE >/dev/null 2>&1
+oc delete ns $NAMESPACE >/dev/null 2>&1 || true
 
 # Print task title
 PRINT_TASK "[TASK: Deploying Minio Object Storage]"
