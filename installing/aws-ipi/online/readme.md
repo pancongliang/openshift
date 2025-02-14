@@ -9,10 +9,9 @@ curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installi
 vim aws-ipi-inst.sh
 ```
 
-#### Installing a cluster quickly on AWS
+#### Installing a cluster quickly on AWS(Client Mac or RHEL:)
 
 ```
-# Client Mac or RHEL:
 bash aws-ipi-inst.sh
 ```
 
