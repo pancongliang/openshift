@@ -43,7 +43,7 @@ PRINT_TASK "[TASK: Install AWS CLI]"
 
 # Function to install AWS CLI on Linux
 install_awscli_linux() {
-    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 
+    sudo curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 
     unzip awscliv2.zip > /dev/null 
     sudo ./aws/install &>/dev/null || true
     run_command "[Install AWS CLI]"
@@ -52,7 +52,7 @@ install_awscli_linux() {
 
 # Function to install AWS CLI on macOS
 install_awscli_mac() {
-    curl -s "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
+    sudo curl -s "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" > /dev/null 
     sudo installer -pkg AWSCLIV2.pkg -target / &>/dev/null || true
     run_command "[Install AWS CLI]"
     sudo rm -rf AWSCLIV2.pkg
@@ -75,9 +75,9 @@ echo
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
-rm -rf $HOME/.aws
-mkdir -p $HOME/.aws
-cat << EOF > "$HOME/.aws/credentials"
+sudo rm -rf $HOME/.aws
+sudo mkdir -p $HOME/.aws
+sudo cat << EOF > "$HOME/.aws/credentials"
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
@@ -329,7 +329,7 @@ echo
 PRINT_TASK "[TASK: Create Bastion Instance]"
 
 # Create and download the key pair file
-rm -rf ./$KEY_PAIR_NAME.pem > /dev/null
+sudo rm -rf ./$KEY_PAIR_NAME.pem > /dev/null
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME > /dev/null
 aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > ./$KEY_PAIR_NAME.pem
 run_command "[Create and download the key pair file: $KEY_PAIR_NAME.pem]"
@@ -374,7 +374,7 @@ echo
 PRINT_TASK "[TASK: Get access to Bastion Instance information]"
 
 # Modify permissions for the key pair file
-chmod 400 $KEY_PAIR_NAME.pem > /dev/null
+sudo chmod 400 $KEY_PAIR_NAME.pem > /dev/null
 run_command "[Modify permissions for the key pair file: $KEY_PAIR_NAME.pem]"
 
 # Get the public IP address of the bastion ec2 instance
@@ -382,18 +382,18 @@ INSTANCE_IP=$(aws --region $REGION ec2 describe-instances --instance-ids $INSTAN
 run_command "[Get the public IP address of the instance: $INSTANCE_IP]"
 
 # Copy the installation script to the bastion ec2 instance
-scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i ./$KEY_PAIR_NAME.pem ./00-del-aws-res.sh ./01-set-parameter.sh ./03-install-pre.sh ./04-final-setting.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
+sudo scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i ./$KEY_PAIR_NAME.pem ./00-del-aws-res.sh ./01-set-parameter.sh ./03-install-pre.sh ./04-final-setting.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
 run_command "[Copy the installation script to the $INSTANCE_NAME]"
 
 # Create access bastion machine file in current directory
-rm -rf ./ocp-bastion.sh > /dev/null
-cat << EOF > "./ocp-bastion.sh"
+sudo rm -rf ./ocp-bastion.sh > /dev/null
+sudo cat << EOF > "./ocp-bastion.sh"
 ssh -o StrictHostKeyChecking=no -i "$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
 EOF
 run_command "[Create access $INSTANCE_NAME file in current directory]"
 
 # Modify permissions for the key pair file
-chmod 777 ./ocp-bastion.sh > /dev/null
+sudo chmod 777 ./ocp-bastion.sh > /dev/null
 run_command "[Modify permissions for the $INSTANCE_NAME file]"
 
 # Add an empty line after the task
