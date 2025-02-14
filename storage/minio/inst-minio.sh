@@ -1,6 +1,6 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-#set -u
+set -u
 set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
@@ -41,7 +41,7 @@ oc delete ns $NAMESPACE >/dev/null 2>&1 || true
 PRINT_TASK "[TASK: Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
+sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 run_command "[Applied Minio object]"
 
 # Wait for Minio pods to be in 'Running' state
