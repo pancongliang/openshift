@@ -44,17 +44,17 @@ echo
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
 
 # completion command:
-oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null
+sudo oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null
 #run_command "[add oc_completion]"
 
 # Effective immediately
 source /etc/bash_completion.d/oc_completion &> /dev/null
 
-rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
-mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+sudo rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+sudo mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
 run_command "[create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
 
-cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
+sudo cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -71,18 +71,18 @@ spec:
 EOF
 run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
+sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
 run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
 
-rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
+sudo rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
 run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
+sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
 run_command "[change the Image registry operator configuration’s managementState from Removed to Managed]"
 
 # Leave the claim field blank to allow the automatic creation of an image-registry-storage PVC.
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
+sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
 run_command "[leave the claim field blank to allow the automatic creation of an image-registry-storage PVC]"
 
 # Add an empty line after the task
@@ -94,13 +94,13 @@ echo
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
 # Create a configmap containing the CA certificate
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
+sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
      --from-file=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem \
      -n openshift-config &> /dev/null
 run_command "[create a configmap containing the CA certificate]"
 
 # Additional trusted CA
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
+sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
 run_command "[additional trusted CA]"
 
 # Add an empty line after the task
@@ -111,7 +111,7 @@ echo
 PRINT_TASK "[TASK: Disabling the default OperatorHub sources]"
 
 # Disabling the default OperatorHub sources
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
+sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
 run_command "[disabling the default OperatorHub sources]"
 
 echo
@@ -120,17 +120,17 @@ echo
 # === Task: Create htpasswd User ===
 PRINT_TASK "[TASK: Create htpasswd User]"
 
-rm -rf $INSTALL_DIR/users.htpasswd
-htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
+sudo rm -rf $INSTALL_DIR/users.htpasswd
+sudo htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[create a user using the htpasswd tool]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[create a secret using the users.htpasswd file]"
 
-rm -rf $INSTALL_DIR/users.htpasswd
+sudo rm -rf $INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-cat  <<EOF | /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f - > /dev/null 2>&1
+sudo cat  <<EOF | /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f - > /dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -147,14 +147,14 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
+sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
 run_command "[grant cluster-admin permissions to the admin user]"
 
 echo "info: [restarting oauth pod, waiting...]"
 sleep 100
 
 while true; do
-    operator_status=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     if echo "$operator_status" | grep -q -v "True False False"; then
         echo "info: [all cluster operators have not reached the expected status, Waiting...]"
         sleep 60  
