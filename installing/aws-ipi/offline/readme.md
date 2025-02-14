@@ -47,7 +47,7 @@ oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker:/
 
 #### Run the installer to create cluster
 ```
-openshift-install create cluster --dir $INSTALL --log-level=info
+sudo openshift-install create cluster --dir $INSTALL --log-level=info
 ```
 
 #### Once this entry is seen in the installation log execute script 04-final-setting.sh
@@ -73,7 +73,7 @@ bash 04-post-inst-cfg.sh
 ### Wait for the OCP cluster installation to complete
 
 ```
-cat $INSTALL/.openshift_install.log
+sudo cat $INSTALL/.openshift_install.log
 time="2024-04-28T11:10:48Z" level=debug msg="Cluster is initialized"
 time="2024-04-28T11:10:48Z" level=info msg="Checking to see if there is a route at openshift-console/console..."
 time="2024-04-28T11:10:48Z" level=debug msg="Route found in openshift-console namespace: console"
@@ -93,7 +93,7 @@ oc get co | grep -v '.True.*False.*False'
 
 #### Uninstall the OCP cluster
 ```
-openshift-install destroy cluster --dir $INSTALL --log-level info
+sudo openshift-install destroy cluster --dir $INSTALL --log-level info
 ```
 
 #### delete the configured AWS infrastructure
