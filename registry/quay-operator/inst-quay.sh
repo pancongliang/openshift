@@ -1,6 +1,6 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-#set -u
+set -u
 set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
@@ -35,63 +35,19 @@ run_command() {
 }
 # ====================================================
 
-export NAMESPACE="quay-enterprise"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/03-quay-registry.yaml | envsubst | oc delete -f - >/dev/null 2>&1
-export NAMESPACE="openshift-operators"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/registry/quay-operator/01-operator.yaml | envsubst | oc delete -f - >/dev/null 2>&1
-
-oc delete ns quay-enterprise >/dev/null 2>&1
-
-
-# Print task title
-PRINT_TASK "[TASK: Deploying Minio Tool]"
-
-# Deploy Minio with the specified YAML template
-export NAMESPACE="minio"
-oc delete ns $NAMESPACE >/dev/null 2>&1
-
-# Determine the operating system and architecture
-OS_TYPE=$(uname -s)
-ARCH=$(uname -m)
-
-echo "info: [Client Operating System: $OS_TYPE]"
-echo "info: [Client Architecture: $ARCH]"
-
-# Set the download URL based on the OS and architecture
-if [ "$OS_TYPE" = "Darwin" ]; then
-    if [ "$ARCH" = "x86_64" ]; then
-        download_url="https://dl.min.io/client/mc/release/darwin-amd64/mc"
-    elif [ "$ARCH" = "arm64" ]; then
-        download_url="https://dl.min.io/client/mc/release/darwin-arm64/mc"
-    fi
-elif [ "$OS_TYPE" = "Linux" ]; then
-    download_url="https://dl.min.io/client/mc/release/linux-amd64/mc"
-else
-    echo "error: [MC tool installation failed]"
-fi
-
-# Download MC
-curl -sOL "$download_url" 
-run_command "[Downloaded MC tool]"
-
-# Install MC and set permissions
-rm -f /usr/local/bin/mc > /dev/null
-mv mc /usr/local/bin/ > /dev/null
-run_command "[Installed MC tool to /usr/local/bin/]"
-
-chmod +x /usr/local/bin/mc > /dev/null
-run_command "[Set execute permissions for MC tool]"
-
-mc --version > /dev/null
-run_command "[MC tool installation complete]"
-
-echo 
+export NAMESPACE="quay-enterprise" || true
+oc delete quayregistry example-registry -n $NAMESPACE >/dev/null 2>&1 || true
+oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
+oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || true
+oc delete ns quay-enterprise >/dev/null 2>&1 || true
+oc delete ns minio >/dev/null 2>&1 || true
 
 # Print task title
 PRINT_TASK "[TASK: Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
+export NAMESPACE="minio"
+sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 run_command "[Applied Minio object]"
 
 # Wait for Minio pods to be in 'Running' state
@@ -122,23 +78,20 @@ done
 
 
 # Get Minio route URL
-export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='{.spec.host}')
+export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
 run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 
 sleep 3
 
-# Set Minio client alias
-mc --no-color alias set my-minio http://${BUCKET_HOST} minioadmin minioadmin > /dev/null
+oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
 run_command "[Configured Minio client alias]"
 
-# Create buckets for Loki, Quay, OADP, and MTC
-for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
-    mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
-    run_command "[Created bucket $BUCKET_NAME]"
-done
+oc rsh -n ${NAMESPACE} deployments/minio mc mb my-minio/quay-bucket
+run_command "[Created bucket $BUCKET_NAME]"
+
 
 # Print Minio address and credentials
-echo "info: [Minio address: http://$BUCKET_HOST]"
+echo "info: [Minio address: $BUCKET_HOST]"
 echo "info: [Minio default ID/PW: minioadmin/minioadmin]"
 
 echo 
@@ -165,7 +118,7 @@ run_command "[Installing Quay Operator...]"
 
 # Approval IP
 export NAMESPACE="openshift-operators"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
+sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[Approve openshift-operators install plan]"
 
 sleep 10
@@ -207,7 +160,7 @@ export ACCESS_KEY_ID="minioadmin"
 export ACCESS_KEY_SECRET="minioadmin"
 export BUCKET_NAME="quay-bucket"
 
-cat << EOF > config.yaml
+sudo cat << EOF > config.yaml
 DISTRIBUTED_STORAGE_CONFIG:
   default:
     - RadosGWStorage
@@ -233,7 +186,7 @@ sleep 3
 oc create secret generic quay-config --from-file=config.yaml -n $NAMESPACE >/dev/null
 run_command "[Create a secret containing quay-config]"
 
-rm -rf config.yaml  >/dev/null
+sudo rm -rf config.yaml  >/dev/null
 
 # Create a Quay Registry
 cat << EOF | oc apply -f - >/dev/null
@@ -317,7 +270,7 @@ run_command "[Create a configmap containing the Route CA certificate]"
 oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null
 run_command "[Additional trusted CA]"
 
-rm -rf tls.crt >/dev/null
+sudo rm -rf tls.crt >/dev/null
 
 echo 
 # ====================================================
@@ -358,8 +311,8 @@ echo "ok: [Authentication information for Quay Registry added to $AUTHFILE]"
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null
 run_command "[Update pull-secret for the cluster]"
 
-rm -rf tmp-authfile >/dev/null
-rm -rf pull-secret >/dev/null
+sudo rm -rf tmp-authfile >/dev/null
+sudo rm -rf pull-secret >/dev/null
 
 echo 
 # ====================================================
