@@ -631,30 +631,19 @@ else
     echo "failed: [generate reverse DNS zone file]"
 fi
 
-
 # Step 5: Check named configuration/Dns file 
 # ----------------------------------------------------
 # Check named configuration file
-if sudo named-checkconf &>/dev/null; then
-    echo "ok: [named configuration is valid]"
-else
-    echo "failed: [Named configuration is invalid]"
-fi
+sudo named-checkconf &>/dev/null
+run_command "[named configuration is valid]"
 
 # Check forward zone file
-if sudo named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} &>/dev/null; then
-    echo "ok: [forward zone file is valid]"
-else
-    echo "failed: [forward zone file is invalid]"
-fi
+sudo named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} &>/dev/null
+run_command "[forward zone file is valid]"
 
 # Check reverse zone file
-if sudo named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} &>/dev/null; then
-    echo "ok: [reverse zone file is valid]"
-else
-    echo "failed: [reverse zone file is invalid]"
-fi
-
+sudo named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} &>/dev/null
+run_command "[reverse zone file is valid]"
 
 # Step 6: Add dns ip to resolv.conf and change zone permissions
 # ----------------------------------------------------
@@ -732,9 +721,6 @@ echo
 PRINT_TASK "[TASK: Setup HAproxy services]"
 # Step 1: Generate haproxy service configuration file
 # ----------------------------------------------------
-# Specify the path and filename for the haproxy configuration file
-haproxy_config_file="/etc/haproxy/haproxy.cfg"
-
 # Setup haproxy services configuration
 sudo cat << EOF > /etc/haproxy/haproxy.cfg 
 global
@@ -1125,7 +1111,7 @@ sudo cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
 
 for i in {1..720}; do 
-  oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
+  sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
   sleep 10
 done 
 EOF
