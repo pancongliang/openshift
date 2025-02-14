@@ -1,33 +1,29 @@
 ## Deploy NFS StorageClass
 
-### 1. Set Necessary Parameters
-Set the required parameters for the NFS storage class.
-
-```
-export NAMESPACE="nfs-client-provisioner"
-export NFS_SERVER_IP="10.184.134.128"
-export NFS_DIR="/nfs"
-```
-
-### 2. Install and Configure the NFS Server
-Install and configure the NFS server. Skip this step if it is already installed.
+### 1. Install and Configure the NFS Server
+Install and configure the NFS server. Skip this step if it is already installed
 
 ```
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/01-install-nfs-package.sh
 
-source 01-install-nfs-package.sh
+bash 01-install-nfs-package.sh
 ```
 
-### 3. Deploy NFS StorageClass
-Use the script provided below to deploy the NFS StorageClass.
+### 2. Deploy NFS StorageClass
 
+Set Necessary Parameters
 ```
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/02-deploy-nfs-storageclass.sh
 
-source 02-deploy-nfs-storageclass.sh
+vim 02-deploy-nfs-storageclass.sh
 ```
 
-### 4. Check NFS Storage Class
+Use the script provided below to deploy the NFS StorageClass
+```
+bash 02-deploy-nfs-storageclass.sh
+```
+
+### 3. Check NFS Storage Class
 Check the NFS Pod and test the mount
 ```
 oc get po -n $NAMESPACE
