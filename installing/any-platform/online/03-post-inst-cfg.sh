@@ -49,7 +49,7 @@ echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
 run_command "[add kubeconfig to ~/.bash_profile]"
 
 # completion command:
-sudo oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null || true
+sudo /usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null || true
 run_command "[add oc_completion]"
 
 # Effective immediately
