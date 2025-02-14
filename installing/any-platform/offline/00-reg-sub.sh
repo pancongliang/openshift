@@ -24,16 +24,16 @@ read -s -p "Please input the Red Hat Subscribe Password: " PASSWD
 echo -e "\r"
 
 # Register with subscription-manager
-subscription-manager register --force --user ${USER} --password ${PASSWD} &> /dev/null
+sudo subscription-manager register --force --user ${USER} --password ${PASSWD} &> /dev/null
 
 # Refresh subscriptions
-subscription-manager refresh &> /dev/null
+sudo subscription-manager refresh &> /dev/null
 
 # Find the desired Pool ID for OpenShift
-POOL_ID=$(subscription-manager list --available --matches '*OpenShift Container Platform*' | grep "Pool ID" | tail -n 1 | awk -F: '{print $2}' | tr -d ' ')
+POOL_ID=$(sudo subscription-manager list --available --matches '*OpenShift Container Platform*' | grep "Pool ID" | tail -n 1 | awk -F: '{print $2}' | tr -d ' ')
 
 # Attach to the chosen Pool
-subscription-manager attach --pool="$POOL_ID"
+sudo subscription-manager attach --pool="$POOL_ID"
 
 # Add an empty line after the task
 echo
