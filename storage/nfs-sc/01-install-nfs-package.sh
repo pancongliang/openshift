@@ -35,12 +35,12 @@ run_command() {
 PRINT_TASK "[TASK: Setup nfs services]"
 
 # install nfs-utils
-yum install nfs-utils -y &> /dev/null
+sudo dnf install nfs-utils -y &> /dev/null
 run_command "[install nfs-utils package]"
 
 # Create NFS directories
-rm -rf ${NFS_DIR}
-mkdir -p ${NFS_DIR}
+sudo rm -rf ${NFS_DIR}
+sudo mkdir -p ${NFS_DIR}
 run_command "[create nfs director: ${NFS_DIR}]"
 
 # Add nfsnobody user if not exists
@@ -52,10 +52,10 @@ else
 fi
 
 # Change ownership and permissions
-chown -R nfsnobody.nfsnobody ${NFS_DIR}
+sudo chown -R nfsnobody.nfsnobody ${NFS_DIR}
 run_command "[changing ownership of an NFS directory]"
 
-chmod -R 777 ${NFS_DIR}
+sudo chmod -R 777 ${NFS_DIR}
 run_command "[change NFS directory permissions]"
 
 # Add NFS export configuration
@@ -67,22 +67,8 @@ else
     echo "ok: [add nfs export configuration]"
 fi
 
-# List of services to handle
-services=("nfs-server")
+sudo systemctl enable nfs-server
+run_command "[enable nfs-server service]"
 
-# Loop through each service in the list
-for service in "${services[@]}"; do
-    # Restart the service
-    systemctl restart "$service" &>/dev/null
-    restart_status=$?
-
-    # Enable the service
-    systemctl enable "$service" &>/dev/null
-    enable_status=$?
-
-    if [ $restart_status -eq 0 ] && [ $enable_status -eq 0 ]; then
-        echo "ok: [restart and enable $service service]"
-    else
-        echo "failed: [restart and enable $service service]"
-    fi
-done
+sudo systemctl restart nfs-server
+run_command "[restart nfs-server service]"
