@@ -4,8 +4,9 @@ set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
-#export STORAGE_CLASS_NAME="gp2-csi"
+# Applying environment variables
 export STORAGE_CLASS_NAME="managed-nfs-storage"
+#export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
 
 cat << EOF | oc create -f -
