@@ -37,9 +37,9 @@ run_command() {
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
 
-rm -rf $HOME/.aws
-mkdir -p $HOME/.aws
-cat << EOF > "$HOME/.aws/credentials"
+sudo rm -rf $HOME/.aws
+sudo mkdir -p $HOME/.aws
+sudo cat << EOF > "$HOME/.aws/credentials"
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
@@ -84,8 +84,8 @@ sleep 5
 PRINT_TASK "[TASK: Delete Key Pair]"
 
 export KEY_PAIR_NAME="$CLUSTER_ID-bastion-key"
-rm -rf $HOME/.ssh/$KEY_PAIR_NAME.pem  > /dev/null
-rm -rf ocp-bastion.sh > /dev/null
+sudo rm -rf $HOME/.ssh/$KEY_PAIR_NAME.pem  > /dev/null
+sudo rm -rf ocp-bastion.sh > /dev/null
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME > /dev/null
 run_command "[Deleting key pair: $KEY_PAIR_NAME]"
 
@@ -105,4 +105,3 @@ run_command "[Deleting security group: $SECURITY_GROUP_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 10
