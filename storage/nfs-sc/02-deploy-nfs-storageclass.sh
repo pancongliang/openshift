@@ -1,9 +1,15 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-#set -u
+set -u
 set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+
+# Set environment variables
+export NAMESPACE="nfs-client-provisioner"
+export NFS_SERVER_IP="10.184.134.128"
+export NFS_DIR="/nfs"
+
 
 # === Function to print a task with uniform length ===
 # Function to print a task with uniform length
@@ -42,10 +48,10 @@ kind: Namespace
 metadata:
   name: ${NAMESPACE}
 EOF
-oc delete -f namespace.yaml > /dev/null 2>&1
+oc delete -f namespace.yaml > /dev/null 2>&1 || true
 oc create -f namespace.yaml > /dev/null
 run_command "[create new namespace: ${NAMESPACE}]"
-rm -rf namespace.yaml > /dev/null 2>&1
+rm -rf namespace.yaml > /dev/null 2>&1 || true
 
 # Create sa and rbac
 cat << EOF > sa_and_rbac.yaml
@@ -116,10 +122,10 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 EOF
 
-oc delete -f sa_and_rbac.yaml > /dev/null 2>&1
+oc delete -f sa_and_rbac.yaml > /dev/null 2>&1 || true
 oc create -f sa_and_rbac.yaml >/dev/null
 run_command "[create rbac configuration]"
-rm -rf sa_and_rbac.yaml > /dev/null 2>&1
+rm -rf sa_and_rbac.yaml > /dev/null 2>&1 || true
 
 # scc
 oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner >/dev/null
@@ -167,10 +173,10 @@ spec:
             server: ${NFS_SERVER_IP}
             path: ${NFS_DIR}
 EOF
-oc delete -f deployment.yaml > /dev/null 2>&1
+oc delete -f deployment.yaml > /dev/null 2>&1 || true
 oc create -f deployment.yaml >/dev/null
 run_command "[deploy nfs-client-provisioner]"
-rm -rf deployment.yaml > /dev/null 2>&1
+rm -rf deployment.yaml > /dev/null 2>&1 || true
 
 # Wait for nfs-client-provisioner pods to be in 'Running' state
 # Initialize progress_started as false
@@ -212,7 +218,7 @@ parameters:
   archiveOnDelete: "false"
   reclaimPolicy: Retain
 EOF
-oc delete -f storageclass.yaml > /dev/null 2>&1
+oc delete -f storageclass.yaml > /dev/null 2>&1 || true
 oc create -f storageclass.yaml >/dev/null
 run_command "[create nfs storage class]"
-rm -rf storageclass.yaml > /dev/null 2>&1
+rm -rf storageclass.yaml > /dev/null 2>&1 || true
