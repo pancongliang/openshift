@@ -1,4 +1,15 @@
 #!/bin/bash
+# Enable strict mode for robust error handling and log failures with line number.
+set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+
+# Set environment variables
+export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
+export REGISTRY_ID="admin"
+export REGISTRY_PW="password"
+export REGISTRY_INSTALL_PATH="/opt/quay-install"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -13,19 +24,21 @@ PRINT_TASK() {
 
 # Function to check command success and display appropriate message
 run_command() {
-    if [ $? -eq 0 ]; then
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
         echo "ok: $1"
     else
         echo "failed: $1"
+        exit 1
     fi
 }
-
+# ====================================================
 
 # === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
 # List of RPM packages to install
-packages=("wget" "vim-enhanced" "podman" "bash-completion" "jq")
+packages=("wget" "podman")
 
 # Convert the array to a space-separated string
 package_list="${packages[*]}"
@@ -53,7 +66,7 @@ echo
 PRINT_TASK "[TASK: Delete existing duplicate data]"
 
 # Check if there is an active mirror registry pod
-if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
+if sudo podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
     ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
@@ -74,7 +87,7 @@ files=(
 
 for file in "${files[@]}"; do
     if [ -e "$file" ]; then
-        rm -rf "$file" &>/dev/null
+        sudo rm -rf "$file" &>/dev/null
         if [ $? -eq 0 ]; then
             echo "ok: [delete existing duplicate data: $file]"
         else
@@ -95,26 +108,26 @@ echo
 PRINT_TASK "[TASK: Install mirror registry]"
 
 # Create installation directory
-mkdir -p ${REGISTRY_INSTALL_PATH}
-mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
-mkdir -p ${REGISTRY_INSTALL_PATH}/sqlite-storage
-chmod -R 777 ${REGISTRY_INSTALL_PATH}
+sudo mkdir -p ${REGISTRY_INSTALL_PATH}
+sudo mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
+sudo mkdir -p ${REGISTRY_INSTALL_PATH}/sqlite-storage
+sudo chmod -R 777 ${REGISTRY_INSTALL_PATH}
 run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
 
 # Download mirror-registry
 # wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz &> /dev/null
-wget -O ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz &> /dev/null
+sudo wget -O ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz &> /dev/null
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
+sudo tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
 echo "ok: [Start installing mirror-registry...]"
 # echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
 
 # Install mirror-registry
-${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
+sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
      --quayRoot ${REGISTRY_INSTALL_PATH} \
      --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
@@ -138,11 +151,11 @@ sudo update-ca-trust
 run_command "[trust the rootCA certificate]"
 
 # Delete the tar package generated during installation
-rm -rf pause.tar postgres.tar quay.tar redis.tar &>/dev/null
+sudo rm -rf pause.tar postgres.tar quay.tar redis.tar &>/dev/null
 run_command "[Delete the tar package: pause.tar postgres.tar quay.tar redis.tar]"
 
 # loggin registry
-podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
+sudo podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
 run_command  "[login registry https://${REGISTRY_DOMAIN_NAME}:8443]"
 
 # Add an empty line after the task
