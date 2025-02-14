@@ -66,7 +66,7 @@ aws --region $REGION ec2 wait instance-terminated --instance-ids $INSTANCE_ID
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 5
+sleep 30
 
 
 # === Delete Key Pair ===
@@ -89,6 +89,7 @@ ELB_ENDPOINT_ID=$(aws --region $REGION ec2 describe-vpc-endpoints --filters "Nam
 aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $ELB_ENDPOINT_ID > /dev/null
 run_command "[Deleting ELB endpoint: $ELB_ENDPOINT_NAME]"
 
+sleep 30
 # Add an empty line after the task
 echo
 # ====================================================
@@ -101,6 +102,7 @@ EC2_ENDPOINT_ID=$(aws --region $REGION ec2 describe-vpc-endpoints --filters "Nam
 aws --region $REGION ec2 delete-vpc-endpoints --vpc-endpoint-ids $EC2_ENDPOINT_ID > /dev/null
 run_command "[Deleting EC2 endpoint: $EC2_ENDPOINT_NAME]"
 
+sleep 30
 # Add an empty line after the task
 echo
 # ====================================================
@@ -131,7 +133,7 @@ aws --region $REGION route53 wait hosted-zone-deleted --id $HOSTED_ZONE_ID
 
 echo
 # ====================================================
-sleep 5
+sleep 30
 
 # === Delete Security Group ===
 PRINT_TASK "[TASK: Delete Security Group]"
@@ -142,7 +144,7 @@ run_command "[Deleting security group: $SECURITY_GROUP_NAME]"
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 10
+sleep 30
 
 # === Delete Private Subnet ===
 PRINT_TASK "[TASK: Delete Private Subnet]"
@@ -154,7 +156,7 @@ run_command "[Deleting private subnet: ${VPC_NAME}-subnet-private1-${AVAILABILIT
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 5
+sleep 30
 
 
 # === Delete Public Subnet ===
@@ -166,7 +168,7 @@ run_command "[Deleting public subnet: ${VPC_NAME}-subnet-public1-${AVAILABILITY_
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 5
+sleep 30
 
 
 # === Delete Route Tables ===
@@ -177,7 +179,9 @@ PUBLIC_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=v
 PUBLIC_SUBNET_ASSOCIATIONS=$(aws --region $REGION ec2 describe-route-tables --route-table-id $PUBLIC_RTB_ID --query "RouteTables[0].Associations[].RouteTableAssociationId" --output text)
 aws --region $REGION ec2 disassociate-route-table --association-id $PUBLIC_SUBNET_ASSOCIATIONS > /dev/null
 run_command "[Disassociate public route table: $PUBLIC_RTB_ID]"
-sleep 5
+
+sleep 30
+
 aws --region $REGION ec2 delete-route-table --route-table-id $PUBLIC_RTB_ID > /dev/null
 run_command "[Deleting public route table: $PUBLIC_RTB_ID]"
 
@@ -185,14 +189,16 @@ PRIVATE_RTB_ID=$(aws --region $REGION ec2 describe-route-tables --filters "Name=
 PRIVATE_SUBNET_ASSOCIATIONS=$(aws --region $REGION ec2 describe-route-tables --route-table-id $PRIVATE_RTB_ID --query "RouteTables[0].Associations[].RouteTableAssociationId" --output text)
 aws --region $REGION ec2 disassociate-route-table --association-id $PRIVATE_SUBNET_ASSOCIATIONS > /dev/null
 run_command "[Disassociate private route table: $PUBLIC_RTB_ID]"
-sleep 5
+
+sleep 30
+
 aws --region $REGION ec2 delete-route-table --route-table-id $PRIVATE_RTB_ID > /dev/null
 run_command "[Deleting private route table: $PRIVATE_RTB_ID]"
 
 # Add an empty line after the task
 echo
 # ====================================================
-sleep 20
+sleep 30
 
 # === Detach and Delete Internet Gateway ===
 PRINT_TASK "[TASK: Detach and Delete Internet Gateway]"
@@ -205,12 +211,11 @@ run_command "[Detaching internet gateway: $IGW_ID from VPC: $VPC_ID]"
 aws --region $REGION ec2 delete-internet-gateway --internet-gateway-id $IGW_ID > /dev/null
 run_command "[Deleting internet gateway: $IGW_ID]"
 
-
+sleep 30
 # Add an empty line after the task
 echo
 # ====================================================
 
-sleep 10
 # === Delete VPC ===
 PRINT_TASK "[TASK: Delete VPC]"
 # aws --region $REGION ec2 delete-vpc --vpc-id $(aws --region $REGION ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text) > /dev/null
