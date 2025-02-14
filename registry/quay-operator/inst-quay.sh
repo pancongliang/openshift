@@ -42,11 +42,11 @@ oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || t
 oc delete ns quay-enterprise >/dev/null 2>&1 || true
 oc delete ns minio >/dev/null 2>&1 || true
 
+
 # Print task title
 PRINT_TASK "[TASK: Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
-export NAMESPACE="minio"
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 run_command "[Applied Minio object]"
 
@@ -81,14 +81,17 @@ done
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
 run_command "[Retrieved Minio route host: $BUCKET_HOST]"
 
-sleep 3
+sleep 20
 
-oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
+# Set Minio client alias
+oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
 run_command "[Configured Minio client alias]"
 
-oc rsh -n ${NAMESPACE} deployments/minio mc mb my-minio/quay-bucket
-run_command "[Created bucket $BUCKET_NAME]"
-
+# Create buckets for Loki, Quay, OADP, and MTC
+for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
+    oc rsh -n ${NAMESPACE} deployments/minio mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
+    run_command "[Created bucket $BUCKET_NAME]"
+done
 
 # Print Minio address and credentials
 echo "info: [Minio address: $BUCKET_HOST]"
