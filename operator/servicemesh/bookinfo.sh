@@ -4,6 +4,7 @@ set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
+# Applying environment variables
 export CONTROL_PLANE_NS=istio-system
 export BOOKINFO_NS=bookinfo
 
