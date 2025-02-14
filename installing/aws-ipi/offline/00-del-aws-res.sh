@@ -42,9 +42,9 @@ echo
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
 
-rm -rf $HOME/.aws
-mkdir -p $HOME/.aws
-cat << EOF > "$HOME/.aws/credentials"
+sudo rm -rf $HOME/.aws
+sudo mkdir -p $HOME/.aws
+sudo cat << EOF > "$HOME/.aws/credentials"
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
@@ -72,8 +72,8 @@ sleep 5
 # === Delete Key Pair ===
 PRINT_TASK "[TASK: Delete Key Pair]"
 
-rm -rf $KEY_PAIR_NAME.pem  > /dev/null
-rm -rf ocp-bastion.sh > /dev/null
+sudo rm -rf $KEY_PAIR_NAME.pem  > /dev/null
+sudo rm -rf ocp-bastion.sh > /dev/null
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME > /dev/null
 run_command "[Deleting key pair: $KEY_PAIR_NAME]"
 
