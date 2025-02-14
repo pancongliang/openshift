@@ -37,9 +37,9 @@ run_command() {
 
 # === Task: Set up AWS credentials ===
 PRINT_TASK "[TASK: Set up AWS credentials]"
-rm -rf $HOME/.aws
-mkdir -p $HOME/.aws
-cat << EOF > "$HOME/.aws/credentials"
+sudo rm -rf $HOME/.aws
+sudo mkdir -p $HOME/.aws
+sudo cat << EOF > "$HOME/.aws/credentials"
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
@@ -117,7 +117,7 @@ PRINT_TASK "[TASK: Create Bastion Instance]"
 
 # Create and download the key pair file
 export KEY_PAIR_NAME="$CLUSTER_ID-bastion-key"
-rm -rf $HOME/.ssh/$KEY_PAIR_NAME.pem > /dev/null
+sudo rm -rf $HOME/.ssh/$KEY_PAIR_NAME.pem > /dev/null
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME > /dev/null
 aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > $HOME/.ssh/$KEY_PAIR_NAME.pem
 run_command "[Create and download the key pair file: $HOME/.ssh/$KEY_PAIR_NAME.pem]"
@@ -168,25 +168,25 @@ INSTANCE_IP=$(aws --region $REGION ec2 describe-instances --instance-ids $INSTAN
 run_command "[Get the public IP address of the instance: $INSTANCE_IP]"
 
 # Create access bastion machine file in current directory
-rm -rf ./ocp-bastion.sh > /dev/null
-cat << EOF > "./ocp-bastion.sh"
+sudo rm -rf ./ocp-bastion.sh > /dev/null
+sudo cat << EOF > "./ocp-bastion.sh"
 ssh -o StrictHostKeyChecking=no -i "$HOME/.ssh/$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
 EOF
 run_command "[Create access $INSTANCE_NAME file in current directory]"
 
 # Modify permissions for the key pair file
-chmod 777 ./ocp-bastion.sh > /dev/null
+sudo chmod 777 ./ocp-bastion.sh > /dev/null
 run_command "[Modify permissions for the $INSTANCE_NAME file]"
 
 # Dowload ocp login script
-cat << EOF > "./ocp-login.sh"
+sudo cat << EOF > "./ocp-login.sh"
 oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true
 EOF
 run_command "[Create access $INSTANCE_NAME file in current directory]"
 
 # Dowload mirror-registry script
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/inst-mirror-registry.sh
-cat <<EOF | cat - inst-mirror-registry.sh > temp && mv temp inst-registry.sh
+sudo wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/inst-mirror-registry.sh
+sudo cat <<EOF | cat - inst-mirror-registry.sh > temp && mv temp inst-registry.sh
 export CLUSTER_NAME="copan"
 export REGISTRY_DOMAIN_NAME="\$HOSTNAME"
 export REGISTRY_ID="root"
@@ -195,7 +195,7 @@ export REGISTRY_INSTALL_PATH="\$HOME/quay-install"
 EOF
 run_command "[Dowload mirror-registry script]"
 
-cat <<EOF >> inst-registry.sh
+sudo cat <<EOF >> inst-registry.sh
 # Task: Configuring additional trust stores for image registry access
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
@@ -205,14 +205,14 @@ run_command "[Login ocp cluster]"
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > \$HOME/pull-secret
 run_command "[Dowload pull-secret]"
 
-podman login -u "\$REGISTRY_ID" -p "\$REGISTRY_PW" --authfile "\$HOME/pull-secret" "\${REGISTRY_DOMAIN_NAME}:8443" &>/dev/null
+sudo podman login -u "\$REGISTRY_ID" -p "\$REGISTRY_PW" --authfile "\$HOME/pull-secret" "\${REGISTRY_DOMAIN_NAME}:8443" &>/dev/null
 run_command "[Add authentication information to pull-secret]"
 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=\$HOME/pull-secret &> /dev/null    
 run_command "[Update pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-cat \$HOME/pull-secret | jq . > \${XDG_RUNTIME_DIR}/containers/auth.json &> /dev/null    
+sudo cat \$HOME/pull-secret | jq . > \${XDG_RUNTIME_DIR}/containers/auth.json &> /dev/null    
 run_command "[Save the pull-secret file either as \$XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create a configmap containing the CA certificate
@@ -235,7 +235,7 @@ run_command "[Update mirror-registry script]"
 
 
 # Dowload ocp tool script
-cat << 'EOF' > inst-ocp-tool.sh
+sudo cat << 'EOF' > inst-ocp-tool.sh
 #!/bin/bash
 
 # Function to print a task with uniform length
@@ -264,13 +264,19 @@ PRINT_TASK "[TASK: Install infrastructure rpm]"
 # List of RPM packages to install
 packages=("wget" "vim" "bash-completion" "jq")
 
-# Install the RPM package and return the execution result
+# Convert the array to a space-separated string
+package_list="${packages[*]}"
+
+# Install all packages at once
+sudo dnf install -y $package_list &>/dev/null
+
+# Check if each package was installed successfully
 for package in "${packages[@]}"; do
-    sudo yum install -y "$package" &>/dev/null
+    sudo rpm -q $package &>/dev/null
     if [ $? -eq 0 ]; then
-        echo "ok: [Install $package package]"
+        echo "ok: [installed $package package]"
     else
-        echo "failed: [Install $package package]"
+        echo "failed: [installed $package package]"
     fi
 done
 
@@ -338,11 +344,11 @@ EOF
 run_command "[Dowload ocp tool script]"
 
 # Copy the installation script to the bastion ec2 instance
-scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-registry.sh ./inst-ocp-tool.sh ./ocp-login.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
+sudo scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-registry.sh ./inst-ocp-tool.sh ./ocp-login.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
 run_command "[Copy the inst-registry.sh and inst-ocp-tool.sh script to the $INSTANCE_NAME]"
 
-rm -rf ./inst-*.sh
-rm -rf ./ocp-login.sh
+sudo rm -rf ./inst-*.sh
+sudo rm -rf ./ocp-login.sh
 
 # Add an empty line after the task
 echo
