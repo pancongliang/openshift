@@ -337,6 +337,7 @@ check_virtual_host_configuration() {
 check_virtual_host_configuration
 
 # Create http dir
+sudo rm -rf ${HTTPD_DIR} &> /dev/null
 sudo mkdir -p ${HTTPD_DIR} &> /dev/null
 run_command "[create http: ${HTTPD_DIR} director]"
 
@@ -354,13 +355,14 @@ sleep 3
 # Step 4: Test
 # ----------------------------------------------------
 # Test httpd configuration
-sudo touch ${HTTPD_DIR}/httpd-test  &> /dev/null
+sudo rm -rf httpd-test ${HTTPD_DIR}/httpd-test &> /dev/null
+sudo touch ${HTTPD_DIR}/httpd-test &> /dev/null
 run_command "[create httpd test file]"
 
 sudo wget -q http://${BASTION_IP}:8080/httpd-test
 run_command "[test httpd download function]"
 
-sudo rm -rf httpd-test ${HTTPD_DIR}/httpd-test  &> /dev/null
+sudo rm -rf httpd-test ${HTTPD_DIR}/httpd-test &> /dev/null
 run_command "[delete the httpd test file]"
 
 # Add an empty line after the task
@@ -494,7 +496,6 @@ options {
     forwarders      { ${DNS_FORWARDER_IP}; };
 
     recursion yes;
-    dnssec-enable yes;
     dnssec-validation yes;
     managed-keys-directory "/var/named/dynamic";
     pid-file "/run/named/named.pid";
@@ -527,14 +528,7 @@ zone "." IN {
 
 include "/etc/named.rfc1912.zones";
 EOF
-
-# Check if the named configuration file was generated successfully
-if [ -f "/etc/named.conf" ]; then
-    echo "ok: [generate named configuration file]"
-else
-    echo "failed: [generate named configuration file]"
-fi
-
+run_command "[generate named configuration file]"
 
 # Step 3: Generate forward zone file
 # ----------------------------------------------------
@@ -585,14 +579,7 @@ $(format_dns_entry "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WOR
 ; Create an entry for the bootstrap host.
 $(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
 EOF
-
-# Verify if the output file was generated successfully
-if [ -f "/var/named/${FORWARD_ZONE_FILE}" ]; then
-    echo "ok: [generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
-else
-    echo "failed: [generate forward DNS zone file]"
-fi
-
+run_command "[generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 
 # Step 4: Create reverse zone file
 # ----------------------------------------------------
@@ -682,26 +669,16 @@ fi
 # Step 5: Check named configuration/Dns file 
 # ----------------------------------------------------
 # Check named configuration file
-if named-checkconf &>/dev/null; then
-    echo "ok: [named configuration is valid]"
-else
-    echo "failed: [Named configuration is invalid]"
-fi
+sudo named-checkconf &>/dev/null
+run_command "[named configuration is valid]"
 
 # Check forward zone file
-if named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} &>/dev/null; then
-    echo "ok: [forward zone file is valid]"
-else
-    echo "failed: [forward zone file is invalid]"
-fi
+sudo named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} &>/dev/null
+run_command "[forward zone file is valid]"
 
 # Check reverse zone file
-if named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} &>/dev/null; then
-    echo "ok: [reverse zone file is valid]"
-else
-    echo "failed: [reverse zone file is invalid]"
-fi
-
+sudo named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} &>/dev/null
+run_command "[reverse zone file is valid]"
 
 # Step 6: Add dns ip to resolv.conf and change zone permissions
 # ----------------------------------------------------
@@ -777,9 +754,6 @@ echo
 PRINT_TASK "[TASK: Setup HAproxy services]"
 # Step 1: Generate haproxy service configuration file
 # ----------------------------------------------------
-# Specify the path and filename for the haproxy configuration file
-haproxy_config_file="/etc/haproxy/haproxy.cfg"
-
 # Setup haproxy services configuration
 sudo cat << EOF > /etc/haproxy/haproxy.cfg 
 global
@@ -849,33 +823,13 @@ listen default-ingress-router-443
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
   server     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
 EOF
-
-# Verify if the haproxy configuration file was generated successfully
-if [ -f "$haproxy_config_file" ]; then
-    echo "ok: [generate haproxy configuration file]"
-else
-    echo "failed: [generate haproxy configuration file]"
-fi
-
+run_command "[generate haproxy configuration file]"
 
 # Step 2: Check haproxy configuration
 # ----------------------------------------------------
 # Path to HAProxy configuration file
-CONFIG_FILE="/etc/haproxy/haproxy.cfg"
-
-# Check HAProxy configuration syntax
-check_haproxy_config() {
-    haproxy -c -f "$CONFIG_FILE" &>/dev/null
-    if [ $? -eq 0 ]; then
-        echo "ok: [haproxy configuration is valid]"
-    else
-        echo "failed: [haproxy configuration is invalid]"
-    fi
-}
-
-# Call the function to check HAProxy configuration
-check_haproxy_config
-
+sudo haproxy -c -f "$CONFIG_FILE" &>/dev/null
+run_command "[haproxy configuration is valid]"
 
 # Step 3: Enable and Restart haproxy service
 # ----------------------------------------------------
@@ -1081,7 +1035,7 @@ sudo cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
 
 for i in {1..720}; do 
-  oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
+  sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
   sleep 10
 done 
 EOF
