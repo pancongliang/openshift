@@ -91,8 +91,8 @@ run_command "[created bucket $BUCKET_NAME]"
 echo "info: [minio address: $BUCKET_HOST]"
 echo "info: [minio default id/pw: minioadmin/minioadmin]"
 
-echo 
-# ====================================================
+# Add an empty line after the task
+echo
 
 # Step 2:
 PRINT_TASK "TASK [Deploying Quay Operator]"
@@ -244,8 +244,8 @@ while true; do
     fi
 done
 
+# Add an empty line after the task
 echo
-# ====================================================
 
 # Step 3:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
@@ -284,8 +284,8 @@ fi
 
 sudo rm -rf tls.crt >/dev/null
 
-echo 
-# ====================================================
+# Add an empty line after the task
+echo
 
 # Step 4:
 PRINT_TASK "TASK [Update pull-secret]"
@@ -327,8 +327,8 @@ run_command "[update pull-secret for the cluster]"
 sudo rm -rf tmp-authfile >/dev/null 2>&1
 sudo rm -rf pull-secret >/dev/null 2>&1
 
-echo 
-# ====================================================
+# Add an empty line after the task
+echo
 
 # Step 5:
 PRINT_TASK "TASK [Checking the cluster status]"
@@ -379,8 +379,8 @@ while true; do
     fi
 done
 
-echo 
-# ====================================================
+# Add an empty line after the task
+echo
 
 # Step 6:
 PRINT_TASK "TASK [Manually create a user]"
