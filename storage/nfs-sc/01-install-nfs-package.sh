@@ -27,7 +27,7 @@ run_command() {
 }
 
 # Step 1:
-PRINT_TASK "[TASK: Setup nfs services]"
+PRINT_TASK "TASK [Setup nfs services]"
 
 # Install nfs-utils
 sudo dnf install -y nfs-utils > /dev/null 2>&1
