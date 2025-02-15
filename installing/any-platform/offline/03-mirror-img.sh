@@ -26,22 +26,17 @@ run_command() {
     fi
 }
 
-# ====================================================
-
-
-# === Task: Applying environment variables ===
-PRINT_TASK "[TASK: Applying environment variables]"
+# Step 1:
+PRINT_TASK "TASK [Applying environment variables]"
 
 source 01-set-params.sh
 run_command "[applying environment variables]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task: Mirror ocp image to mirror-registry
-PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
+# Step 2:
+PRINT_TASK "TASK [Mirror ocp image to mirror-registry]"
 
 # Login to the registry
 sudo rm -rf $XDG_RUNTIME_DIR/containers
@@ -88,4 +83,3 @@ run_command "[mirroring ocp ${OCP_RELEASE_VERSION} release image]"
 
 # Add an empty line after the task
 echo
-# ====================================================
