@@ -30,11 +30,9 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-
-# === Task: Replace the instance type of the machine ===
-PRINT_TASK "[TASK: Replace the instance type of the machine]"
+# Step 1:
+PRINT_TASK "TASK [Replace the instance type of the machine]"
 
 # Scale the machineset to 0 replicas
 oc scale --replicas=0 machineset $MACHINESET -n openshift-machine-api > /dev/null
