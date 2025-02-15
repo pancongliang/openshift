@@ -123,8 +123,8 @@ run_command "[download mirror-registry package]"
 sudo tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[extract the mirror-registry package]"
 
-echo "ok: [Start installing mirror-registry...]"
-# echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
+echo "ok: [start installing mirror-registry...]"
+# echo "ok: [generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
 
 # Install mirror-registry
 sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
@@ -134,29 +134,51 @@ sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --sqliteStorage ${REGISTRY_INSTALL_PATH}/sqlite-storage \
      --initUser ${REGISTRY_ID} \
      --initPassword ${REGISTRY_PW}
-run_command "[Installation of mirror registry completed]"
+run_command "[installation of mirror registry completed]"
 
-sleep 60
+sleep 20
 
-# Get the status and number of containers for quay-pod
-# podman pod ps | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b3\b)' &>/dev/null
-# run_command "[Mirror Registry Pod is running]"
+# Check quay pod status in podman
+progress_started=false
+while true; do
+    # Get the status of all pods (removing the header line)
+    output=$(sudo podman pod ps | awk 'NR>1' | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b3\b)')
+    
+    # Check if the pod is not in the "Running" state
+    if [ -z "$output" ]; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for quay pod to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 10
+    else
+        # Close the progress indicator and print the success message
+        echo "]"
+        echo "ok: quay pod is in 'running' state]"
+        break
+    fi
+done
+
 
 # Copy the rootCA certificate to the trusted source
 sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem
-run_command "[Copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem]"
+run_command "[copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem]"
 
 # Trust the rootCA certificate
 sudo update-ca-trust
-run_command "[Trust the rootCA certificate]"
+run_command "[trust the rootCA certificate]"
 
 # Delete the tar package generated during installation
 sudo rm -rf pause.tar postgres.tar quay.tar redis.tar &>/dev/null
-run_command "[Delete the tar package: pause.tar postgres.tar quay.tar redis.tar]"
+run_command "[delete the tar package: pause.tar postgres.tar quay.tar redis.tar]"
 
 # loggin registry
 sudo podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
-run_command  "[Login registry https://${REGISTRY_DOMAIN_NAME}:8443]"
+run_command  "[login registry https://${REGISTRY_DOMAIN_NAME}:8443]"
 
 # Add an empty line after the task
 echo
@@ -171,19 +193,19 @@ REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'regis
 if [[ -n "$REGISTRY_CAS" ]]; then
   # If it exists, execute the following commands
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
-  sudo oc create configmap registry-config --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem -n openshift-config &> /dev/null
-  run_command  "[Create a configmap containing the registry CA certificate: registry-config]"
+  oc create configmap registry-config --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem -n openshift-config &> /dev/null
+  run_command  "[create a configmap containing the registry CA certificate: registry-config]"
   
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
-  run_command  "[Trust the registry-config configmap]"
+  run_command  "[trust the registry-config configmap]"
 else
   # If it doesn't exist, execute the following commands
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
-  sudo oc create configmap registry-cas --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem -n openshift-config &> /dev/null
-  run_command  "[Create a configmap containing the registry CA certificate: registry-cas]"
+  oc create configmap registry-cas --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem -n openshift-config &> /dev/null
+  run_command  "[create a configmap containing the registry CA certificate: registry-cas]"
 
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge &> /dev/null
-  run_command  "[Trust the registry-cas configmap]"
+  run_command  "[trust the registry-cas configmap]"
 fi
 
 # Add an empty line after the task
@@ -195,13 +217,13 @@ PRINT_TASK "[TASK: Update the global pull-secret]"
 
 rm -rf pull-secret &>/dev/null
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret &>/dev/null
-run_command  "[Export pull-secret file]"
+run_command  "[export pull-secret file]"
 
 podman login --authfile pull-secret ${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
-run_command  "[Authentication identity information to the pull-secret file]"
+run_command  "[authentication identity information to the pull-secret file]"
 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret &>/dev/null
-run_command  "[Update pull-secret for the cluster]"
+run_command  "[update pull-secret for the cluster]"
 
 
 # Add an empty line after the task
@@ -212,13 +234,10 @@ echo
 # === Task: Checking the cluster status ===
 PRINT_TASK "[TASK: Checking the cluster status]"
 
-# Print task title
-PRINT_TASK "[TASK: Check status]"
-
 # Check cluster operator status
 progress_started=false
 while true; do
-    operator_status=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(oc get co --no-headers | awk '{print $3, $4, $5}')
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
@@ -242,7 +261,7 @@ done
 progress_started=false
 
 while true; do
-    mcp_status=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
+    mcp_status=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
 
     if echo "$mcp_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
