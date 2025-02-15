@@ -223,11 +223,11 @@ run_command "[Create the install-config.yaml file]"
 
 sudo rm -rf $OCP_INSTALL_DIR/install.log
 echo "ok: [Installing the OpenShift cluster]"
-sudo /usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
+openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
 run_command "[Install OpenShift AWS IPI completed]"
 
 while true; do
-    operator_status=$(sudo /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     if echo "$operator_status" | grep -q -v "True False False"; then
         echo "info: [All cluster operators have not reached the expected status, Waiting...]"
         sleep 60  
@@ -247,7 +247,7 @@ sudo rm -rf $OCP_INSTALL_DIR/users.htpasswd
 sudo htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[Create a user using the htpasswd tool]"
 
-sudo /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[Create a secret using the users.htpasswd file]"
 
 sudo rm -rf $OCP_INSTALL_DIR/users.htpasswd
@@ -270,14 +270,14 @@ EOF
 run_command "[Setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-sudo /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
+oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null
 run_command "[Grant cluster-admin permissions to the admin user]"
 
 echo "info: [Restarting oauth pod, waiting...]"
 sleep 100
 
 while true; do
-    operator_status=$(sudo /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     if echo "$operator_status" | grep -q -v "True False False"; then
         echo "info: [All cluster operators have not reached the expected status, Waiting...]"
         sleep 60  
