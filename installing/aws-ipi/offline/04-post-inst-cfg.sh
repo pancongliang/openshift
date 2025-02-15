@@ -104,13 +104,13 @@ echo
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Create a configmap containing the CA certificate
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
      --from-file=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/quay.ca.pem \
      -n openshift-config &> /dev/null
 run_command "[create a configmap containing the CA certificate]"
 
 # Additional trusted CA
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
 run_command "[additional trusted CA]"
 
 # Add an empty line after the task
@@ -123,7 +123,7 @@ sudo rm -rf $INSTALL_DIR/users.htpasswd
 sudo htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[create a user using the htpasswd tool]"
 
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[create a secret using the users.htpasswd file]"
 
 sudo rm -rf $INSTALL_DIR/users.htpasswd
@@ -146,7 +146,7 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null || true
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null || true
 run_command "[grant cluster-admin permissions to the admin user]"
 
 sleep 15
@@ -156,7 +156,7 @@ export AUTH_NAMESPACE="openshift-authentication"
 progress_started=false
 while true; do
     # Get the status of all pods
-    output=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -189,7 +189,7 @@ PRINT_TASK "TASK [Check status]"
 # Check cluster operator status
 progress_started=false
 while true; do
-    operator_status=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
@@ -213,7 +213,7 @@ done
 progress_started=false
 
 while true; do
-    mcp_status=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
+    mcp_status=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
 
     if echo "$mcp_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
