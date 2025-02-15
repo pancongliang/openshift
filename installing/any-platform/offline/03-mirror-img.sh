@@ -45,10 +45,10 @@ PRINT_TASK "[TASK: Mirror ocp image to mirror-registry]"
 
 # Login to the registry
 sudo rm -rf $XDG_RUNTIME_DIR/containers
-sudo podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
+podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
 run_command  "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
-sudo podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET_FILE}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
+podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET_FILE}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
 run_command "[add authentication information to pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
@@ -79,7 +79,7 @@ EOF
 run_command "[create ${IMAGE_SET_CONF_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
-sudo oc mirror --config=${IMAGE_SET_CONF_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
+oc mirror --config=${IMAGE_SET_CONF_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
 run_command "[mirroring ocp ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
