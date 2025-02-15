@@ -184,6 +184,7 @@ run_command  "[login registry https://${REGISTRY_DOMAIN_NAME}:8443]"
 echo
 # ====================================================
 
+
 # Task: Configuring additional trust stores for image registry access
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
@@ -215,8 +216,8 @@ echo
 # Task: Update the global pull-secret
 PRINT_TASK "[TASK: Update the global pull-secret]"
 
-rm -rf pull-secret >/dev/null 2>&1
-oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret >/dev/null 2>&1
+sudo rm -rf pull-secret >/dev/null 2>&1
+oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
 run_command  "[export pull-secret file]"
 
 podman login --authfile pull-secret ${REGISTRY_DOMAIN_NAME}:8443 >/dev/null 2>&1
