@@ -6,7 +6,6 @@ set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export NAMESPACE="nfs-client-provisioner"
 export NFS_SERVER_IP="10.184.134.128"
 export NFS_DIR="/nfs"
 
@@ -41,6 +40,8 @@ run_command() {
 # === Task: Install NFS storage class ===
 PRINT_TASK "[TASK: Install NFS storage class]"
 
+export NAMESPACE="nfs-client-provisioner"
+
 # Create namespace
 cat << EOF > namespace.yaml
 apiVersion: v1
@@ -51,6 +52,7 @@ EOF
 oc delete -f namespace.yaml > /dev/null 2>&1 || true
 oc create -f namespace.yaml > /dev/null
 run_command "[create new namespace: ${NAMESPACE}]"
+
 rm -rf namespace.yaml > /dev/null 2>&1 || true
 
 # Create sa and rbac
@@ -125,11 +127,12 @@ EOF
 oc delete -f sa_and_rbac.yaml > /dev/null 2>&1 || true
 oc create -f sa_and_rbac.yaml >/dev/null
 run_command "[create rbac configuration]"
+
 rm -rf sa_and_rbac.yaml > /dev/null 2>&1 || true
 
 # scc
 oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner >/dev/null
-run_command "[add SCC hostmount-anyuid to nfs-client-provisioner user]"
+run_command "[add scc hostmount-anyuid to nfs-client-provisioner user]"
 
 # deployment
 cat << EOF > deployment.yaml
@@ -173,9 +176,11 @@ spec:
             server: ${NFS_SERVER_IP}
             path: ${NFS_DIR}
 EOF
+
 oc delete -f deployment.yaml > /dev/null 2>&1 || true
 oc create -f deployment.yaml >/dev/null
 run_command "[deploy nfs-client-provisioner]"
+
 rm -rf deployment.yaml > /dev/null 2>&1 || true
 
 # Wait for nfs-client-provisioner pods to be in 'Running' state
@@ -218,7 +223,9 @@ parameters:
   archiveOnDelete: "false"
   reclaimPolicy: Retain
 EOF
+
 oc delete -f storageclass.yaml > /dev/null 2>&1 || true
 oc create -f storageclass.yaml >/dev/null
 run_command "[create nfs storage class]"
+
 rm -rf storageclass.yaml > /dev/null 2>&1 || true
