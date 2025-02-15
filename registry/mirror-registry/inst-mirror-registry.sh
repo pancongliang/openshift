@@ -185,7 +185,7 @@ echo
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
 # Check if the registry-cas field exists
-REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas')
+REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas') >/dev/null 2>&1 || true
 
 if [[ -n "$REGISTRY_CAS" ]]; then
   # If it exists, execute the following commands
