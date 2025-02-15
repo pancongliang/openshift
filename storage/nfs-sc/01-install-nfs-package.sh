@@ -5,7 +5,7 @@ set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
-# === Function to print a task with uniform length ===
+# ---------------------------------------------------------------------
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=90  # Adjust this to your desired maximum length
@@ -15,7 +15,6 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -27,12 +26,12 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
+# ---------------------------------------------------------------------
 
-# === Task: Setup nfs services ===
+# Task: Setup nfs services
 PRINT_TASK "[TASK: Setup nfs services]"
 
-# install nfs-utils
+# Install nfs-utils
 sudo dnf install -y nfs-utils > /dev/null 2>&1
 run_command "[install nfs-utils package]"
 
@@ -65,5 +64,6 @@ else
     echo "ok: [add nfs export configuration]"
 fi
 
+# Restart and enable nfs-server service
 sudo systemctl enable nfs-server --now > /dev/null 2>&1
 run_command "[restart and enable nfs-server service]"
