@@ -65,7 +65,7 @@ while true; do
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 2
+        sleep 1
     else
         if $progress_started; then
             echo "]"
@@ -253,7 +253,7 @@ echo
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Export the router-ca certificate
-oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
+oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null 2>&1
 run_command "[export the router-ca certificate]"
 
 sleep 10
@@ -347,7 +347,7 @@ while true; do
         fi
         
         echo -n '.'
-        sleep 15
+        sleep 20
     else
         # Close progress indicator only if progress_started is true
         if $progress_started; then
@@ -371,7 +371,7 @@ while true; do
         fi
         
         echo -n '.'
-        sleep 15
+        sleep 20
     else
         if $progress_started; then
             echo "]"
