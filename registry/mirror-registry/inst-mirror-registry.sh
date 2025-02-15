@@ -189,19 +189,18 @@ REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'regis
 
 if [[ -n "$REGISTRY_CAS" ]]; then
   # If it exists, execute the following commands
-  sudo oc create configmap registry-config \
-    --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem \
-    -n openshift-config &> /dev/null
+  oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
+  sudo oc create configmap registry-config --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem -n openshift-config &> /dev/null
   run_command  "[Create a configmap containing the registry CA certificate: registry-config]"
   
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
   run_command  "[Trust the registry-config configmap]"
 else
   # If it doesn't exist, execute the following commands
-  sudo oc create configmap registry-cas \
-    --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem \
-    -n openshift-config &> /dev/null
+  oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
+  sudo oc create configmap registry-cas --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem -n openshift-config &> /dev/null
   run_command  "[Create a configmap containing the registry CA certificate: registry-cas]"
+
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge &> /dev/null
   run_command  "[Trust the registry-cas configmap]"
 fi
