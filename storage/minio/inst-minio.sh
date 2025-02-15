@@ -28,9 +28,10 @@ run_command() {
         exit 1
     fi
 }
+# ====================================================
 
 
-# Print task title
+# Step 1:
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
