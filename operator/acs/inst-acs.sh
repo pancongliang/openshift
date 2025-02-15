@@ -161,18 +161,29 @@ run_command "[create a central instance]"
 
 sleep 30
 
-# Check pod status
-EXPECTED_STATUS="Running"
-
+# Wait for stackrox pods to be in 'Running' state
+progress_started=false
 while true; do
-    # Check if all pods meet the expected READY and STATUS
-    if oc get po -n stackrox --no-headers | awk '$3 != "Completed" {
-        split($2, ready, "/");
-        if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
-    }' | grep -q "waiting"; then
-        echo "info: [not all pods have reached the expected status, waiting...]"
-        sleep 30
+    # Get the status of all pods
+    output=$(oc get po -n stackrox --no-headers |grep -v Completed | awk '{print $3}')
+    
+    # Check if any pod is not in the "Running" state
+    if echo "$output" | grep -vq "Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for pods to be in 'running' state"
+            progress_started=true  # Prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 10
     else
+        # Close the progress indicator if it was started
+        if $progress_started; then
+            echo "]"
+        fi
+
         echo "ok: [all pods in namespace stackrox have reached the expected state]"
         break
     fi
@@ -263,26 +274,29 @@ run_command "[create a secured cluster]"
 
 sleep 10
 
-# Chek rhacs-operator pod
+# Wait for stackrox pods to be in 'Running' state
 progress_started=false
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n stackrox --no-headers | grep "rhacs" | awk '{print $3}')
+    output=$(oc get po -n stackrox --no-headers |grep -v Completed | awk '{print $3}')
+    
     # Check if any pod is not in the "Running" state
     if echo "$output" | grep -vq "Running"; then
         # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [waiting for pods to be in 'running' state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            progress_started=true  # Prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 5
+        sleep 10
     else
+        # Close the progress indicator if it was started
         if $progress_started; then
             echo "]"
         fi
+
         echo "ok: [all pods in namespace stackrox have reached the expected state]"
         break
     fi
