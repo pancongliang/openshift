@@ -11,7 +11,6 @@ export STORAGE_CLASS_NAME="managed-nfs-storage"
 #export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
 
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -21,7 +20,6 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -35,13 +33,13 @@ run_command() {
 }
 # ====================================================
 
+# Delete custom resources
 export NAMESPACE="quay-enterprise" || true
 oc delete quayregistry example-registry -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || true
 oc delete ns quay-enterprise >/dev/null 2>&1 || true
 oc delete ns minio >/dev/null 2>&1 || true
-
 
 # Print task title
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
@@ -77,7 +75,6 @@ while true; do
     fi
 done
 
-
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
 run_command "[retrieved minio route host: $BUCKET_HOST]"
@@ -91,7 +88,6 @@ run_command "[configured minio client alias]"
 # Create buckets for Loki, Quay, OADP, and MTC
 oc rsh -n ${NAMESPACE} deployments/minio mc --no-color mb my-minio/quay-bucket >/dev/null 2>&1
 run_command "[created bucket $BUCKET_NAME]"
-
 
 # Print Minio address and credentials
 echo "info: [minio address: $BUCKET_HOST]"
@@ -151,7 +147,6 @@ while true; do
         break
     fi
 done
-
 
 # Create a namespace
 export NAMESPACE="quay-enterprise"
@@ -252,7 +247,7 @@ while true; do
     fi
 done
 
-echo 
+echo
 # ====================================================
 
 # Print task title
