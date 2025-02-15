@@ -32,8 +32,20 @@ run_command() {
     fi
 }
 
+
 # Step 1:
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
+
+# Uninstall first
+echo "info: [uninstall old rhsso resources...]"
+oc delete -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/04-clf-ui.yaml >/dev/null 2>&1 || true
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-config.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
+oc delete ns openshift-operators-redhat >/dev/null 2>&1 || true
+oc delete ns openshift-logging >/dev/null 2>&1 || true
+oc delete sub loki-operator -n openshift-operators-redhat >/dev/null 2>&1 || true
+oc delete sub cluster-logging -n openshift-operators >/dev/null 2>&1 || true
+oc delete sub cluster-observability-operator -n openshift-operators
 
 # Deploy Minio with the specified YAML template
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
