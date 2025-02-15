@@ -61,7 +61,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for pods to be in 'running' state"
+            echo -n "info: [waiting for pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -71,7 +71,7 @@ while true; do
     else
         # Close the progress indicator and print the success message
         echo "]"
-        echo "ok: [Minio pods are in 'running' state]"
+        echo "ok: [minio pods are in 'running' state]"
         break
     fi
 done
@@ -79,23 +79,22 @@ done
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
-run_command "[Retrieved Minio route host: $BUCKET_HOST]"
+run_command "[retrieved Minio route host: $BUCKET_HOST]"
 
 sleep 20
 
 # Set Minio client alias
-oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
-run_command "[Configured Minio client alias]"
+oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin >/dev/null 2>&1
+run_command "[configured Minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
-for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
-    oc rsh -n ${NAMESPACE} deployments/minio mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
-    run_command "[Created bucket $BUCKET_NAME]"
-done
+oc rsh -n ${NAMESPACE} deployments/minio mc --no-color mb my-minio/quay-bucket >/dev/null 2>&1
+run_command "[created bucket $BUCKET_NAME]"
+
 
 # Print Minio address and credentials
-echo "info: [Minio address: $BUCKET_HOST]"
-echo "info: [Minio default ID/PW: minioadmin/minioadmin]"
+echo "info: [minio address: $BUCKET_HOST]"
+echo "info: [minio default id/pw: minioadmin/minioadmin]"
 
 echo 
 # ====================================================
@@ -104,7 +103,7 @@ echo
 PRINT_TASK "[TASK: Deploying Quay Operator]"
 
 # Create a Subscription
-cat << EOF | oc apply -f - >/dev/null
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -117,12 +116,12 @@ spec:
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[Installing Quay Operator...]"
+run_command "[installing Quay Operator...]"
 
 # Approval IP
 export NAMESPACE="openshift-operators"
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "[Approve openshift-operators install plan]"
+run_command "[approve openshift-operators install plan]"
 
 sleep 10
 
@@ -136,7 +135,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for pods to be in 'running' state"
+            echo -n "info: [waiting for pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -146,7 +145,7 @@ while true; do
     else
         # Close the progress indicator and print the success message
         echo "]"
-        echo "ok: [Quay operator pods are in 'running' state]"
+        echo "ok: [quay operator pods are in 'running' state]"
         break
     fi
 done
@@ -154,8 +153,8 @@ done
 
 # Create a namespace
 export NAMESPACE="quay-enterprise"
-oc new-project $NAMESPACE >/dev/null
-run_command "[Create a $NAMESPACE namespac]"
+oc new-project $NAMESPACE >/dev/null 2>&1
+run_command "[create a $NAMESPACE namespac]"
 
 # Create a quay config
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
@@ -186,13 +185,13 @@ EOF
 
 sleep 3
 # Create a secret containing the quay config
-oc create secret generic quay-config --from-file=config.yaml -n $NAMESPACE >/dev/null
-run_command "[Create a secret containing quay-config]"
+oc create secret generic quay-config --from-file=config.yaml -n $NAMESPACE >/dev/null 2>&1
+run_command "[create a secret containing quay-config]"
 
-sudo rm -rf config.yaml  >/dev/null
+sudo rm -rf config.yaml >/dev/null 2>&1
 
 # Create a Quay Registry
-cat << EOF | oc apply -f - >/dev/null
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
@@ -218,7 +217,7 @@ spec:
       overrides:
         replicas: 1
 EOF
-run_command "[Create a QuayRegistry]"
+run_command "[create a quayregistry]"
 
 sleep 15
 
@@ -233,7 +232,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for pods to be in 'running' state"
+            echo -n "info: [waiting for pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -243,7 +242,7 @@ while true; do
     else
         # Close the progress indicator and print the success message
         echo "]"
-        echo "ok: [Quay pods are in 'running' state]"
+        echo "ok: [quay pods are in 'running' state]"
         break
     fi
 done
@@ -256,12 +255,12 @@ PRINT_TASK "[TASK: Configuring additional trust stores for image registry access
 
 # Export the router-ca certificate
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null 2>&1
-run_command "[Export the router-ca certificate]"
+run_command "[export the router-ca certificate]"
 
 sleep 30
 
 # Create a configmap containing the CA certificate
-export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}')
+export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}') >/dev/null 2>&1
 
 sleep 10
 
@@ -272,19 +271,19 @@ REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'regis
 if [[ -n "$REGISTRY_CAS" ]]; then
   # If it exists, execute the following commands
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
-  sudo oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config &> /dev/null
-  run_command  "[Create a configmap containing the registry CA certificate: registry-config]"
+  oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config >/dev/null 2>&1
+  run_command  "[create a configmap containing the registry CA certificate: registry-config]"
   
-  oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
-  run_command  "[Trust the registry-config configmap]"
+  oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
+  run_command  "[trust the registry-config configmap]"
 else
   # If it doesn't exist, execute the following commands
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
-  sudo oc create configmap registry-cas --from-file=$QUAY_HOST=tls.crt -n openshift-config &> /dev/null
-  run_command  "[Create a configmap containing the registry CA certificate: registry-cas]"
+  oc create configmap registry-cas --from-file=$QUAY_HOST=tls.crt -n openshift-config >/dev/null 2>&1
+  run_command  "[create a configmap containing the registry CA certificate: registry-cas]"
 
-  oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge &> /dev/null
-  run_command  "[Trust the registry-cas configmap]"
+  oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge >/dev/null 2>&1
+  run_command  "[trust the registry-cas configmap]"
 fi
 
 sudo rm -rf tls.crt >/dev/null
@@ -297,7 +296,7 @@ PRINT_TASK "[TASK: Update pull-secret]"
 
 # Export pull-secret
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
-run_command "[Export pull-secret]"
+run_command "[export pull-secret]"
 
 # Update pull-secret file
 export AUTHFILE="pull-secret"
@@ -312,7 +311,7 @@ if [ -f "$AUTHFILE" ]; then
      '.auths[$registry] = {auth: $auth}' \
      "$AUTHFILE" > tmp-authfile && mv -f tmp-authfile "$AUTHFILE"
 else
-  cat <<EOF > $AUTHFILE
+sudo cat <<EOF > $AUTHFILE
 {
     "auths": {
         "$REGISTRY": {
@@ -322,14 +321,14 @@ else
 }
 EOF
 fi
-echo "ok: [Authentication information for Quay Registry added to $AUTHFILE]"
+echo "ok: [authentication information for Quay Registry added to $AUTHFILE]"
 
 # Update pull-secret 
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null
-run_command "[Update pull-secret for the cluster]"
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
+run_command "[update pull-secret for the cluster]"
 
-sudo rm -rf tmp-authfile >/dev/null
-sudo rm -rf pull-secret >/dev/null
+sudo rm -rf tmp-authfile >/dev/null 2>&1
+sudo rm -rf pull-secret >/dev/null 2>&1
 
 echo 
 # ====================================================
@@ -345,7 +344,7 @@ while true; do
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
-            echo -n "info: [Waiting for all cluster operators to reach the expected state"
+            echo -n "info: [waiting for all cluster operators to reach the expected state"
             progress_started=true  
         fi
         
@@ -356,7 +355,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [All cluster operators have reached the expected state]"
+        echo "ok: [all cluster operators have reached the expected state]"
         break
     fi
 done
@@ -369,7 +368,7 @@ while true; do
 
     if echo "$mcp_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
-            echo -n "info: [Waiting for all MCPs to reach the expected state"
+            echo -n "info: [waiting for all mcps to reach the expected state"
             progress_started=true  
         fi
         
@@ -379,7 +378,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [All MCP have reached the expected state]"
+        echo "ok: [all mcp have reached the expected state]"
         break
     fi
 done
@@ -390,6 +389,6 @@ echo
 # Print task title
 PRINT_TASK "[TASK: Manually create a user]"
 
-echo "note: [***You need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
-echo "note: [***You need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
-echo "note: [***You need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
+echo "note: [***you need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
+echo "note: [***you need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
+echo "note: [***you need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
