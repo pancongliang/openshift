@@ -186,7 +186,8 @@ TAG_EXPIRATION_OPTIONS:
 EOF
 run_command "[create a quay config file]"
 
-sleep 3
+sleep 10
+
 # Create a secret containing the quay config
 oc create secret generic quay-config --from-file=config.yaml -n $NAMESPACE >/dev/null 2>&1
 run_command "[create a secret containing quay-config]"
@@ -222,7 +223,7 @@ spec:
 EOF
 run_command "[create a quayre gistry]"
 
-sleep 15
+sleep 10
 
 # Check quay pod status
 # Initialize progress_started as false
@@ -261,13 +262,12 @@ PRINT_TASK "TASK [Configuring additional trust stores for image registry access]
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
 run_command "[export the router-ca certificate]"
 
-sleep 30
+sleep 10
 
 # Create a configmap containing the CA certificate
 export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}') >/dev/null 2>&1
 
 sleep 10
-
 
 # Check if the registry-cas field exists
 REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas') >/dev/null 2>&1 || true
@@ -340,7 +340,7 @@ echo
 
 # Check cluser operator status
 # Print task title
-PRINT_TASK "TASK [Check status]"
+PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
 progress_started=false
@@ -394,6 +394,6 @@ echo
 # Print task title
 PRINT_TASK "TASK [Manually create a user]"
 
-echo "note: [***you need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
-echo "note: [***you need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
-echo "note: [***you need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
+echo "note: [***you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>***]"
+echo "note: [***you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>***]"
+echo "note: [***you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>***]"
