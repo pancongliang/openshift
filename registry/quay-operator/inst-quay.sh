@@ -32,7 +32,11 @@ run_command() {
     fi
 }
 
+# Step 1:
+PRINT_TASK "TASK [Deploying Minio Object Storage]"
+
 # Delete custom resources
+echo "info: [uninstall custom resources...]"
 export NAMESPACE="quay-enterprise" || true
 oc delete quayregistry example-registry -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
@@ -40,8 +44,6 @@ oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || t
 oc delete ns quay-enterprise >/dev/null 2>&1 || true
 oc delete ns minio >/dev/null 2>&1 || true
 
-# Step 1:
-PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
