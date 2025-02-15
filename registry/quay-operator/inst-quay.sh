@@ -33,6 +33,7 @@ run_command() {
 }
 # ====================================================
 
+
 # Delete custom resources
 export NAMESPACE="quay-enterprise" || true
 oc delete quayregistry example-registry -n $NAMESPACE >/dev/null 2>&1 || true
@@ -41,7 +42,7 @@ oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || t
 oc delete ns quay-enterprise >/dev/null 2>&1 || true
 oc delete ns minio >/dev/null 2>&1 || true
 
-# Print task title
+# Step 1:
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
@@ -49,7 +50,6 @@ sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/stora
 run_command "[deploying minio object storage]"
 
 # Wait for Minio pods to be in 'Running' state
-# Initialize progress_started as false
 progress_started=false
 while true; do
     # Get the status of all pods
@@ -96,7 +96,8 @@ echo "info: [minio default id/pw: minioadmin/minioadmin]"
 echo 
 # ====================================================
 
-# Print task title
+
+# Step 2:
 PRINT_TASK "TASK [Deploying Quay Operator]"
 
 # Create a Subscription
@@ -221,7 +222,6 @@ run_command "[create a quayre gistry]"
 sleep 10
 
 # Check quay pod status
-# Initialize progress_started as false
 progress_started=false
 while true; do
     # Get the status of all pods
@@ -250,7 +250,8 @@ done
 echo
 # ====================================================
 
-# Print task title
+
+# Step 3:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Export the router-ca certificate
@@ -290,7 +291,8 @@ sudo rm -rf tls.crt >/dev/null
 echo 
 # ====================================================
 
-# Print task title
+
+# Step 4:
 PRINT_TASK "TASK [Update pull-secret]"
 
 # Export pull-secret
@@ -333,8 +335,8 @@ sudo rm -rf pull-secret >/dev/null 2>&1
 echo 
 # ====================================================
 
-# Check cluser operator status
-# Print task title
+
+# Step 5:
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
@@ -386,7 +388,8 @@ done
 echo 
 # ====================================================
 
-# Print task title
+
+# Step 6:
 PRINT_TASK "TASK [Manually create a user]"
 
 echo "note: [***you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>***]"
