@@ -265,13 +265,27 @@ export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='
 
 sleep 10
 
-oc delete configmap registry-config -n openshift-config >/dev/null 2>&1
-oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config >/dev/null
-run_command "[Create a configmap containing the Route CA certificate]"
 
-# Additional trusted CA
-oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null
-run_command "[Additional trusted CA]"
+# Check if the registry-cas field exists
+REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas')
+
+if [[ -n "$REGISTRY_CAS" ]]; then
+  # If it exists, execute the following commands
+  oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
+  sudo oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config &> /dev/null
+  run_command  "[Create a configmap containing the registry CA certificate: registry-config]"
+  
+  oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
+  run_command  "[Trust the registry-config configmap]"
+else
+  # If it doesn't exist, execute the following commands
+  oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
+  sudo oc create configmap registry-cas --from-file=$QUAY_HOST=tls.crt -n openshift-config &> /dev/null
+  run_command  "[Create a configmap containing the registry CA certificate: registry-cas]"
+
+  oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge &> /dev/null
+  run_command  "[Trust the registry-cas configmap]"
+fi
 
 sudo rm -rf tls.crt >/dev/null
 
