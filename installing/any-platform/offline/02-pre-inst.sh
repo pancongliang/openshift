@@ -25,21 +25,18 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-
-# === Task: Applying environment variables ===
-PRINT_TASK "[TASK: Applying environment variables]"
+# Step 1:
+PRINT_TASK "TASK [Applying environment variables]"
 
 source 01-set-params.sh
 run_command "[applying environment variables]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Changing the hostname and time zone ===
-PRINT_TASK "[TASK: Changing the hostname and time zone]"
+# Step 2:
+PRINT_TASK "TASK [Changing the hostname and time zone]"
 
 # Change hostname
 sudo hostnamectl set-hostname ${BASTION_HOSTNAME}
@@ -59,10 +56,9 @@ run_command "[reload ~/.bash_profile]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Disable and stop firewalld service ===
-PRINT_TASK "[TASK: Disable and stop firewalld service]"
+# Step 3:
+PRINT_TASK "TASK [Disable and stop firewalld service]"
 
 # Stop and disable firewalld services
 sudo systemctl disable --now firewalld &> /dev/null
@@ -70,12 +66,9 @@ run_command "[firewalld service stopped and disabled]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Change SELinux security policy ===
-PRINT_TASK "[TASK: Change SELinux security policy]"
+# Step 4:
+PRINT_TASK "TASK [Change SELinux security policy]"
 
 # Read the SELinux configuration
 permanent_status=$(sudo grep "^SELINUX=" /etc/selinux/config | cut -d= -f2)
@@ -91,7 +84,6 @@ else
     echo "failed: [selinux permanent security policy is $permanent_status (expected permissive or disabled)]"
 fi
 
-
 # Temporarily set SELinux security policy to permissive
 sudo setenforce 0 &>/dev/null
 # Check temporary SELinux security policy
@@ -105,11 +97,9 @@ fi
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Install the necessary rpm packages ===
-PRINT_TASK "[TASK: Install the necessary rpm packages]"
+# Step 5:
+PRINT_TASK "TASK [Install the necessary rpm packages]"
 
 # List of RPM packages to install
 packages=("wget" "net-tools" "vim-enhanced" "podman" "butane" "bind-utils" "bind" "haproxy" "git" "bash-completion" "jq" "nfs-utils" "httpd" "httpd-tools" "skopeo" "conmon" "httpd-manual")
@@ -132,15 +122,10 @@ done
 
 # Add an empty line after the task
 echo
-# ====================================================
 
+# Step 6:
+PRINT_TASK "TASK [Install openshift tool]"
 
-
-# === Task: Install openshift tool ===
-PRINT_TASK "[TASK: Install openshift tool]"
-
-# Step 1: Download the openshift-install
-# ----------------------------------------------------
 # Download the openshift-install
 sudo wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" &> /dev/null
 run_command "[download openshift-install tool]"
@@ -154,8 +139,6 @@ run_command "[modify /usr/local/bin/openshift-install permissions]"
 
 sudo rm -rf openshift-install-linux.tar.gz &> /dev/null
 
-# Step 2: Download the oc cli
-# ----------------------------------------------------
 # Delete the old version of oc cli
 sudo rm -f /usr/local/bin/oc &> /dev/null
 sudo rm -f /usr/local/bin/kubectl &> /dev/null
@@ -193,8 +176,6 @@ run_command "[modify /usr/local/bin/kubectl permissions]"
 sudo rm -f /usr/local/bin/README.md &> /dev/null
 sudo rm -rf $openshift_client &> /dev/null
 
-# Step 3: Download the oc mirror
-# ----------------------------------------------------
 # Get the RHEL version number
 rhel_version=$(sudo rpm -E %{rhel})
 if [ "$rhel_version" -eq 8 ]; then
@@ -234,11 +215,9 @@ run_command "[modify /usr/local/bin/kubens permissions]"
 # Add an empty line after the task
 echo
 
+# Step 7:
+PRINT_TASK "TASK [Setup and check httpd services]"
 
-# === Task: Setup and check httpd services ===
-PRINT_TASK "[TASK: Setup and check httpd services]"
-# Step 1: Update httpd listen port
-# ----------------------------------------------------
 # Update httpd listen port
 update_httpd_listen_port() {
     # Get the current listen port from httpd.conf
@@ -257,9 +236,6 @@ update_httpd_listen_port() {
 # Call the function to update listen port
 update_httpd_listen_port
 
-
-# Step 2: Create virtual host configuration and http dir
-# ----------------------------------------------------
 # Create virtual host configuration
 create_virtual_host_config() {
 # Create a virtual host configuration file
@@ -300,10 +276,6 @@ sudo rm -rf -p ${HTTPD_DIR} &> /dev/null
 sudo mkdir -p ${HTTPD_DIR} &> /dev/null
 run_command "[create http: ${HTTPD_DIR} director]"
 
-
-# Step 3: Enable and Restart httpd service
-# ----------------------------------------------------
-# List of services to handle
 # Enable and start service
 sudo systemctl enable --now httpd &> /dev/null
 run_command "[restart and enable httpd service]"
@@ -311,9 +283,6 @@ run_command "[restart and enable httpd service]"
 # Wait for the service to restart
 sleep 3
 
-
-# Step 4: Test
-# ----------------------------------------------------
 # Test httpd configuration
 sudo rm -rf httpd-test ${HTTPD_DIR}/httpd-test &> /dev/null
 sudo touch ${HTTPD_DIR}/httpd-test &> /dev/null
@@ -327,15 +296,10 @@ run_command "[delete the httpd test file]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
+# Step 7:
+PRINT_TASK "TASK [Setup nfs services]"
 
-
-# === Task: Setup nfs services ===
-PRINT_TASK "[TASK: Setup nfs services]"
-
-# Step 1: Create directory /user and change permissions and add NFS export
-# ----------------------------------------------------
 # Create NFS directories
 sudo rm -rf ${NFS_DIR} &> /dev/null
 sudo mkdir -p ${NFS_DIR} &> /dev/null
@@ -365,9 +329,6 @@ else
     echo "ok: [add nfs export configuration]"
 fi
 
-
-# Step 2: Enable and Restart nfs-server service
-# ----------------------------------------------------
 # Enable and start service
 sudo systemctl enable --now nfs-server &> /dev/null
 run_command "[restart and enable nfs-server service]"
@@ -375,9 +336,6 @@ run_command "[restart and enable nfs-server service]"
 # Wait for the service to restart
 sleep 3
 
-
-# Step 3: Test
-# ----------------------------------------------------
 # Function to check if NFS share is accessible
 
 # Create the mount point
@@ -400,16 +358,10 @@ run_command "[delete the test mounted nfs directory: /tmp/nfs-test]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
+# Step 8:
+PRINT_TASK "TASK [Setup named services]"
 
-
-
-# === Task: Setup named services ===
-PRINT_TASK "[TASK: Setup named services]"
-# Step 1: Generate DNS zone name/zone file name
-# ----------------------------------------------------
-# Generate reverse DNS zone name and reverse zone file name
 # Construct forward DNS zone name and zone file name
 FORWARD_ZONE_NAME="${BASE_DOMAIN}"
 FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
@@ -440,9 +392,6 @@ else
     echo "failed: [generate reverse DNS zone name or reverse zone file name]"
 fi
 
-
-# Step 2: Generate named service configuration file
-# ----------------------------------------------------
 sudo cat << EOF > /etc/named.conf
 options {
     listen-on port 53 { any; };
@@ -491,9 +440,6 @@ include "/etc/named.rfc1912.zones";
 EOF
 run_command "[generate named configuration file]"
 
-
-# Step 3: Generate forward zone file
-# ----------------------------------------------------
 # Clean up: Delete duplicate file
 sudo rm -f /var/named/${FORWARD_ZONE_FILE}
 
@@ -546,10 +492,6 @@ $(format_dns_entry "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}." "${REGISTRY_IP}")
 EOF
 run_command "[generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 
-
-# Step 4: Create reverse zone file
-# ----------------------------------------------------
-#!/bin/bash
 # Clean up: Delete duplicate file
 sudo rm -f /var/named/${REVERSE_ZONE_FILE}
 
@@ -631,8 +573,6 @@ else
     echo "failed: [generate reverse DNS zone file]"
 fi
 
-# Step 5: Check named configuration/Dns file 
-# ----------------------------------------------------
 # Check named configuration file
 sudo named-checkconf &>/dev/null
 run_command "[named configuration is valid]"
@@ -656,9 +596,6 @@ run_command "[add DNS_SERVER_IP to /etc/resolv.conf]"
 sudo chown named. /var/named/*.zone &> /dev/null
 run_command "[change ownership /var/named/*.zone]"
 
-
-# Step 7: Enable and Restart named service
-# ----------------------------------------------------
 # Enable and start service
 sudo systemctl enable --now named &> /dev/null
 run_command "[restart and enable named service]"
@@ -666,9 +603,6 @@ run_command "[restart and enable named service]"
 # Wait for the service to restart
 sleep 3
 
-
-# Step 8: Test nslookup
-# ----------------------------------------------------
 # List of hostnames and IP addresses to check
 hostnames=(
     "api.${CLUSTER_NAME}.${BASE_DOMAIN}"
@@ -713,14 +647,10 @@ fi
 
 # Add an empty line after the task
 echo
-# ====================================================
 
+# Step 9:
+PRINT_TASK "TASK [Setup HAproxy services]"
 
-
-# === Task: Setup HAproxy services ===
-PRINT_TASK "[TASK: Setup HAproxy services]"
-# Step 1: Generate haproxy service configuration file
-# ----------------------------------------------------
 # Setup haproxy services configuration
 sudo cat << EOF > /etc/haproxy/haproxy.cfg 
 global
@@ -792,27 +722,20 @@ listen default-ingress-router-443
 EOF
 run_command "[generate haproxy configuration file"
 
-# Step 2: Check haproxy configuration
-# ----------------------------------------------------
 # Path to HAProxy configuration file
 CONFIG_FILE="/etc/haproxy/haproxy.cfg"
 sudo haproxy -c -f "$CONFIG_FILE" &>/dev/null
 run_command "[haproxy configuration is valid]"
 
-
-# Step 3: Enable and Restart haproxy service
-# ----------------------------------------------------
 # Enable and start service
 sudo systemctl enable --now haproxy &> /dev/null
 run_command "[restart and enable haproxy service]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Install mirror registry ===
-PRINT_TASK "[TASK: Install mirror registry]"
+# Step 10:
+PRINT_TASK "TASK [Install mirror registry]"
 
 # Check if there is an active mirror registry pod
 if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
@@ -841,7 +764,6 @@ for file in "${files[@]}"; do
         fi
     fi
 done
-
 
 # Create installation directory
 sudo mkdir -p ${REGISTRY_INSTALL_DIR}
@@ -895,10 +817,9 @@ run_command "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# Task: Generate a defined install-config file
-PRINT_TASK "[TASK: Generate a defined install-config file]"
+# Step 11:
+PRINT_TASK "TASK [Generate a defined install-config file]"
 
 # Backup and format the registry CA certificate
 sudo rm -rf "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
@@ -964,11 +885,9 @@ run_command "[delete ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak file]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task:  Generate a manifests
-PRINT_TASK "[TASK: Generate a manifests]"
+# Step 12:
+PRINT_TASK "TASK [Generate a manifests]"
 
 # Create installation directory
 sudo rm -rf "${INSTALL_DIR}" &> /dev/null
@@ -994,11 +913,9 @@ fi
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task: Generate default ignition file
-PRINT_TASK "[TASK: Generate default ignition file]"
+# Step 13:
+PRINT_TASK "TASK [Generate default ignition file]"
 
 # Generate and modify ignition configuration files
 sudo openshift-install create ignition-configs --dir "${INSTALL_DIR}" &> /dev/null
@@ -1006,11 +923,9 @@ run_command "[generate default ignition file]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task: Generate an ignition file containing the node hostname
-PRINT_TASK "[TASK: Generate an ignition file containing the node hostname]"
+# Step 14:
+PRINT_TASK "TASK [Generate an ignition file containing the node hostname]"
 
 # Copy ignition files with appropriate hostnames
 BOOTSTRAP_HOSTNAME="${BOOTSTRAP_HOSTNAME}"
@@ -1047,11 +962,9 @@ run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task: Generate setup script file
-PRINT_TASK "[TASK: Generate setup script file]"
+# Step 15:
+PRINT_TASK "TASK [Generate setup script file]"
 
 sudo rm -rf ${INSTALL_DIR}/*.sh
 
@@ -1097,11 +1010,9 @@ run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task: Generate approve csr script file
-PRINT_TASK "[TASK: Generate approve csr script file]"
+# Step 16:
+PRINT_TASK "TASK [Generate approve csr script file]"
 
 # If the file exists, delete it
 sudo rm -rf "${INSTALL_DIR}/approve-csr.sh"
@@ -1119,5 +1030,3 @@ run_command "[Generate approve csr script file]"
 
 # Add an empty line after the task
 echo
-# ====================================================
-# ====================================================
