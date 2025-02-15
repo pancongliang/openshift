@@ -162,25 +162,6 @@ run_command  "[Login registry https://${REGISTRY_DOMAIN_NAME}:8443]"
 echo
 # ====================================================
 
-
-# Task: Update the global pull-secret
-PRINT_TASK "[TASK: Update the global pull-secret]"
-
-rm -rf pull-secret &>/dev/null
-oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret &>/dev/null
-run_command  "[Export pull-secret file]"
-
-podman login --authfile pull-secret ${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
-run_command  "[Authentication identity information to the pull-secret file]"
-
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret &>/dev/null
-run_command  "[Update global pull-secret]"
-
-
-# Add an empty line after the task
-echo
-# ====================================================
-
 # Task: Configuring additional trust stores for image registry access
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
@@ -204,6 +185,24 @@ else
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge &> /dev/null
   run_command  "[Trust the registry-cas configmap]"
 fi
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+# Task: Update the global pull-secret
+PRINT_TASK "[TASK: Update the global pull-secret]"
+
+rm -rf pull-secret &>/dev/null
+oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret &>/dev/null
+run_command  "[Export pull-secret file]"
+
+podman login --authfile pull-secret ${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
+run_command  "[Authentication identity information to the pull-secret file]"
+
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret &>/dev/null
+run_command  "[Update pull-secret for the cluster]"
+
 
 # Add an empty line after the task
 echo
