@@ -254,7 +254,7 @@ echo
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
 # Export the router-ca certificate
-oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null 2>&1
+oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
 run_command "[export the router-ca certificate]"
 
 sleep 30
