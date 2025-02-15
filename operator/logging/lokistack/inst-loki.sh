@@ -38,14 +38,14 @@ PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Uninstall first
 echo "info: [uninstall old rhsso resources...]"
-oc delete -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/04-clf-ui.yaml >/dev/null 2>&1 || true
+oc delete -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/04-clf-ui.yaml >/dev/null 2>&1 || true
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-config.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
 oc delete ns openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete ns openshift-logging >/dev/null 2>&1 || true
 oc delete sub loki-operator -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete sub cluster-logging -n openshift-operators >/dev/null 2>&1 || true
-oc delete sub cluster-observability-operator -n openshift-operators
+oc delete sub cluster-observability-operator -n openshift-operators >/dev/null 2>&1 || true
 
 # Deploy Minio with the specified YAML template
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
@@ -217,22 +217,34 @@ run_command "[create loki stack instance]"
 
 sleep 30
 
-# Check openshift-logging pod status
-EXPECTED_STATUS="Running"
-
+# Wait for openshift-logging pods to be in 'Running' state
+progress_started=false
 while true; do
-    # Check if all pods meet the expected READY and STATUS
-    if oc get po -n openshift-logging --no-headers | awk '$3 != "Completed" {
-        split($2, ready, "/");
-        if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
-    }' | grep -q "waiting"; then
-        echo "info: [not all pods have reached the expected status, waiting...]"
-        sleep 30
+    # Get the status of all pods
+    output=$(oc get po -n openshift-logging --no-headers |grep -v Completed | awk '{print $3}')
+    
+    # Check if any pod is not in the "Running" state
+    if echo "$output" | grep -vq "Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for pods to be in 'running' state"
+            progress_started=true  # Prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 10
     else
-        echo "ok: [all pods in namespace openshift-logging have reached the expected state]"
+        # Close the progress indicator if it was started
+        if $progress_started; then
+            echo "]"
+        fi
+
+        echo "ok: [all openshift-logging pods are in 'running' state]"
         break
     fi
 done
+
 
 oc project openshift-logging >/dev/null 2>&1
 
@@ -252,24 +264,35 @@ oc adm policy add-cluster-role-to-user collect-infrastructure-logs -z collector 
 run_command "[allow the collector’s service account to collect infra logs]"
 
 # Creating CLF CR and UIPlugin
-oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/04-clf-ui.yaml >/dev/null 2>&1
+oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/04-clf-ui.yaml >/dev/null 2>&1
 run_command "[creating CLF CR and UIPlugin]"
 
 sleep 30
 
-# Check openshift-logging pod status
-EXPECTED_STATUS="Running"
-
+# Wait for openshift-logging pods to be in 'Running' state
+progress_started=false
 while true; do
-    # Check if all pods meet the expected READY and STATUS
-    if oc get po -n openshift-logging --no-headers | awk '$3 != "Completed" {
-        split($2, ready, "/");
-        if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
-    }' | grep -q "waiting"; then
-        echo "info: [not all pods have reached the expected status, waiting...]"
-        sleep 30
+    # Get the status of all pods
+    output=$(oc get po -n openshift-logging --no-headers |grep -v Completed | awk '{print $3}')
+    
+    # Check if any pod is not in the "Running" state
+    if echo "$output" | grep -vq "Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for pods to be in 'running' state"
+            progress_started=true  # Prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 10
     else
-        echo "ok: [all pods in namespace openshift-logging have reached the expected state]"
+        # Close the progress indicator if it was started
+        if $progress_started; then
+            echo "]"
+        fi
+
+        echo "ok: [all openshift-logging pods are in 'running' state]"
         break
     fi
 done
