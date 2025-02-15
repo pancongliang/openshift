@@ -223,6 +223,7 @@ run_command  "[authentication identity information to the pull-secret file]"
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
 run_command  "[update pull-secret for the cluster]"
 
+sudo rm -rf pull-secret >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
