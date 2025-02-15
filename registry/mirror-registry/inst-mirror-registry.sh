@@ -20,7 +20,6 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -34,7 +33,8 @@ run_command() {
 }
 # ====================================================
 
-# === Task: Install infrastructure rpm ===
+
+# Step 1: 
 PRINT_TASK "TASK [Install infrastructure rpm]"
 
 # List of RPM packages to install
@@ -56,13 +56,12 @@ for package in "${packages[@]}"; do
     fi
 done
 
-
 # Add an empty line after the task
 echo
 # ====================================================
 
 
-# === Task: Delete existing duplicate data ===
+# Step 2:
 PRINT_TASK "TASK [Delete existing duplicate data]"
 
 # Check if there is an active mirror registry pod
@@ -103,8 +102,7 @@ echo
 # ====================================================
 
 
-
-# === Task: Install mirror registry ===
+# Step 3:
 PRINT_TASK "TASK [Install mirror registry]"
 
 # Create installation directory
@@ -182,7 +180,7 @@ echo
 # ====================================================
 
 
-# Task: Configuring additional trust stores for image registry access
+# Step 4:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Check if the registry-cas field exists
@@ -210,7 +208,8 @@ fi
 echo
 # ====================================================
 
-# Task: Update the global pull-secret
+
+# Step 5:
 PRINT_TASK "TASK [Update the global pull-secret]"
 
 sudo rm -rf pull-secret >/dev/null 2>&1
@@ -230,7 +229,7 @@ echo
 # ====================================================
 
 
-# === Task: Checking the cluster status ===
+# Step 6:
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
@@ -256,10 +255,8 @@ while true; do
     fi
 done
 
-
 # Check MCP status
 progress_started=false
-
 while true; do
     mcp_status=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
 
@@ -280,5 +277,6 @@ while true; do
     fi
 done
 
+# Add an empty line after the task
 echo
 # ====================================================
