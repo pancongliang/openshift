@@ -1111,7 +1111,7 @@ sudo cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
 
 for i in {1..720}; do 
-  sudo oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
+  oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
   sleep 10
 done 
 EOF
