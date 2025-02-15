@@ -167,13 +167,26 @@ echo
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
 
-sudo /usr/local/bin/oc delete cm registry-cas -n openshift-config &> /dev/null || true
-# Create a configmap containing the CA certificate
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-cas \
-     --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem \
-     -n openshift-config &> /dev/null
-run_command "[create a configmap containing the CA certificate]"
+#!/bin/bash
 
-# Additional trusted CA
-sudo /usr/local/bin/oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge &> /dev/null
-run_command "[additional trusted CA]"
+# Check if the registry-cas field exists
+REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas')
+
+if [[ -n "$REGISTRY_CAS" ]]; then
+  # If it exists, execute the following commands
+  sudo oc create configmap registry-config \
+    --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem \
+    -n openshift-config &> /dev/null
+  run_command  "[Create a configmap containing the registry CA certificate: registry-config]"
+  
+  oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
+  run_command  "[Trust the registry-config configmap]"
+else
+  # If it doesn't exist, execute the following commands
+  sudo oc create configmap registry-cas \
+    --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem \
+    -n openshift-config &> /dev/null
+  run_command  "[Create a configmap containing the registry CA certificate: registry-cas]"
+  oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge &> /dev/null
+  run_command  "[Trust the registry-cas configmap]"
+fi
