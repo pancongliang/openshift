@@ -26,7 +26,7 @@ run_command() {
     fi
 }
 
-# Task: Setup nfs services
+# Step 1:
 PRINT_TASK "[TASK: Setup nfs services]"
 
 # Install nfs-utils
