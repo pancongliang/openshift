@@ -27,7 +27,7 @@ run_command() {
 }
 
 # Step 1:
-PRINT_TASK "[TASK: Applying environment variables]"
+PRINT_TASK "TASK [Applying environment variables]"
 
 source 01-set-params.sh
 run_command "[applying environment variables]"
@@ -36,32 +36,32 @@ run_command "[applying environment variables]"
 echo
 
 # Step 2:
-PRINT_TASK "[TASK: Kubeconfig login and oc completion]"
+PRINT_TASK "TASK [Kubeconfig login and oc completion]"
 
 # kubeconfig login:
-sudo rm -rf ${INSTALL_DIR}/auth/kubeconfigbk &> /dev/null
-sudo cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk &> /dev/null
+sudo rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
+sudo cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
 echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
 run_command "[add kubeconfig to ~/.bash_profile]"
 
 # completion command:
-oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null || true
+oc completion bash >> /etc/bash_completion.d/oc_completion >/dev/null 2>&1 || true
 run_command "[add oc_completion]"
 
 # Effective immediately
-source /etc/bash_completion.d/oc_completion &> /dev/null || true
+source /etc/bash_completion.d/oc_completion >/dev/null 2>&1 || true
 
 # Add an empty line after the task
 echo
 
 # Step 3:
-PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
+PRINT_TASK "TASK [Configure data persistence for the image-registry operator]"
 
-sudo rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
-sudo mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
+sudo rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
+sudo mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
 run_command "[create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete -f ${IMAGE_REGISTRY_PV} &> /dev/null || true
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete -f ${IMAGE_REGISTRY_PV} >/dev/null 2>&1 || true
 
 sudo cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
 apiVersion: v1
@@ -80,37 +80,37 @@ spec:
 EOF
 run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml >/dev/null 2>&1
 run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
 
 sudo rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
 run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' >/dev/null 2>&1
 run_command "[change the Image registry operator configuration’s managementState from Removed to Managed]"
 
 # Leave the claim field blank to allow the automatic creation of an image-registry-storage PVC.
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' >/dev/null 2>&1
 run_command "[leave the claim field blank to allow the automatic creation of an image-registry-storage PVC]"
 
 # Add an empty line after the task
 echo
 
 # Step 4:
-PRINT_TASK "[TASK: Create htpasswd User]"
+PRINT_TASK "TASK [Create htpasswd User]"
 
 sudo rm -rf $INSTALL_DIR/users.htpasswd
-sudo htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
+sudo htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat >/dev/null 2>&1
 run_command "[create a user using the htpasswd tool]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
 run_command "[create a secret using the users.htpasswd file]"
 
 sudo rm -rf $INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-sudo cat  <<EOF | /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f - > /dev/null 2>&1
+sudo cat  <<EOF | /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f - >/dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -127,7 +127,7 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null || true
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1 || true
 run_command "[grant cluster-admin permissions to the admin user]"
 
 sleep 15
@@ -162,10 +162,10 @@ done
 echo
 
 # Step 5:
-PRINT_TASK "[TASK: Checking the cluster status]"
+PRINT_TASK "TASK [Checking the cluster status]"
 
 # Print task title
-PRINT_TASK "[TASK: Check status]"
+PRINT_TASK "TASK [Check status]"
 
 # Check cluster operator status
 progress_started=false
@@ -217,7 +217,7 @@ done
 echo
 
 # Step 6:
-PRINT_TASK "[TASK: Login cluster information]"
+PRINT_TASK "TASK [Login cluster information]"
 
 echo "info: [default setting is to use kubeconfig to login]"
 echo "info: [log in to the cluster using the htpasswd user: uset KUBECONFIG && oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
