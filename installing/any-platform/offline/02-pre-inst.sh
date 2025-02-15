@@ -815,7 +815,7 @@ echo
 PRINT_TASK "[TASK: Install mirror registry]"
 
 # Check if there is an active mirror registry pod
-if sudo podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
+if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
     sudo ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_DIR} &>/dev/null
     # Check the exit status of the uninstall command
@@ -890,7 +890,7 @@ sleep 5
 
 # Login to the registry
 sudo rm -rf $XDG_RUNTIME_DIR/containers
-sudo podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
+podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
 run_command "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
 # Add an empty line after the task
