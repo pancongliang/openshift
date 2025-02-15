@@ -1,6 +1,6 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-#set -u
+set -u
 set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
@@ -29,22 +29,20 @@ run_command() {
 }
 # ====================================================
 
-
-
 # === Task: Setup nfs services ===
 PRINT_TASK "[TASK: Setup nfs services]"
 
 # install nfs-utils
-sudo dnf install nfs-utils -y &> /dev/null
+sudo dnf install -y nfs-utils > /dev/null 2>&1
 run_command "[install nfs-utils package]"
 
 # Create NFS directories
-sudo rm -rf ${NFS_DIR}
-sudo mkdir -p ${NFS_DIR}
+sudo rm -rf ${NFS_DIR} > /dev/null 2>&1
+sudo mkdir -p ${NFS_DIR} > /dev/null 2>&1
 run_command "[create nfs director: ${NFS_DIR}]"
 
 # Add nfsnobody user if not exists
-if id "nfsnobody" &>/dev/null; then
+if id "nfsnobody" > /dev/null 2>&1; then
     echo "skipping: [nfsnobody user exists]"
 else
     useradd nfsnobody
@@ -52,10 +50,10 @@ else
 fi
 
 # Change ownership and permissions
-sudo chown -R nfsnobody.nfsnobody ${NFS_DIR}
+sudo chown -R nfsnobody.nfsnobody ${NFS_DIR} > /dev/null 2>&1
 run_command "[changing ownership of an NFS directory]"
 
-sudo chmod -R 777 ${NFS_DIR}
+sudo chmod -R 777 ${NFS_DIR} > /dev/null 2>&1
 run_command "[change NFS directory permissions]"
 
 # Add NFS export configuration
@@ -67,8 +65,5 @@ else
     echo "ok: [add nfs export configuration]"
 fi
 
-sudo systemctl enable nfs-server
-run_command "[enable nfs-server service]"
-
-sudo systemctl restart nfs-server
-run_command "[restart nfs-server service]"
+sudo systemctl enable nfs-server --now > /dev/null 2>&1
+run_command "[restart and enable nfs-server service]"
