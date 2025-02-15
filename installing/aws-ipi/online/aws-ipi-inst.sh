@@ -39,7 +39,7 @@ run_command() {
 }
 
 # Step 1:
-PRINT_TASK "[TASK: Set up AWS credentials]"
+PRINT_TASK "TASK [Set up AWS credentials]"
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
 sudo cat << EOF > "$HOME/.aws/credentials"
@@ -54,7 +54,7 @@ run_command "[Set up AWS credentials]"
 echo
 
 # Step 2:
-PRINT_TASK "[TASK: Install openshift-install adn oc-cli]"
+PRINT_TASK "TASK [Install openshift-install adn oc-cli]"
 
 # Determine the operating system
 OS_TYPE=$(uname -s)
@@ -166,7 +166,7 @@ fi
 echo
 
 # Step 3:
-PRINT_TASK "[TASK: Create openshift cluster]"
+PRINT_TASK "TASK [Create openshift cluster]"
 
 # Check if the SSH key exists
 if [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
@@ -241,7 +241,7 @@ done
 echo
 
 # Step 4:
-PRINT_TASK "[TASK: Create htpasswd User]"
+PRINT_TASK "TASK [Create htpasswd User]"
 
 sudo rm -rf $OCP_INSTALL_DIR/users.htpasswd
 sudo htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
@@ -291,7 +291,7 @@ done
 echo
 
 # Step 5:
-#PRINT_TASK "[TASK: Login OCP Cluster]"
+#PRINT_TASK "TASK [Login OCP Cluster]"
 
 #oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443 --insecure-skip-tls-verify &> /dev/null
 #run_command "[Log in to the cluster using the htpasswd user]"
@@ -300,7 +300,7 @@ echo
 echo
 
 # Step 6:
-PRINT_TASK "[TASK: Login cluster information]"
+PRINT_TASK "TASK [Login cluster information]"
 
 echo "info: [Log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo "info: [Log in to the cluster using kubeconfig:  export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig]"
