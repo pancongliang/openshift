@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # No need to create any resources, just specify parameters.
-# === Set the necessary variables === 
 # OpenShift version
 export OCP_RELEASE_VERSION="4.14.20"
 
@@ -18,7 +17,7 @@ export REGION="ap-northeast-1"
 export AVAILABILITY_ZONE="ap-northeast-1a"
 export TAG_NAME="$CLUSTER_NAME"     # Created AWS resource tag name
 
-# === Default parameters ===
+# Default parameters
 export INSTANCE_NAME="$TAG_NAME-bastion"
 export KEY_PAIR_NAME="$TAG_NAME-ec2-key"
 export STORAGE_SIZE="100" 
@@ -42,7 +41,6 @@ export PUBLIC_SUBNET_CIDR="10.0.0.0/24"
 export PRIVATE_SUBNET_CIDR="10.0.1.0/24"
 export S3_SERVICE_NAME="com.amazonaws.$REGION.s3"
 
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -52,13 +50,10 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
+# Setp 1:
+PRINT_TASK "TASK [Set environment variables]"
 
-# Task: Set environment variables
-PRINT_TASK "[TASK: Set environment variables]"
-
-# === Check all variables === 
 # Define variables
 missing_variables=()
 
@@ -121,4 +116,3 @@ fi
 
 # Add an empty line after the task
 echo
-# ====================================================
