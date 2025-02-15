@@ -14,8 +14,6 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
-
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -27,21 +25,18 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-
-# === Task: Applying environment variables ===
-PRINT_TASK "[TASK: Applying environment variables]"
+# Step 1:
+PRINT_TASK "TASK [Applying environment variables]"
 
 source 01-set-params.sh
 run_command "[applying environment variables]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# Task: Configure data persistence for the image-registry operator
-PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
+# Step 2:
+PRINT_TASK "TASK [Configure data persistence for the image-registry operator]"
 
 # completion command:
 oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null || true
@@ -89,11 +84,9 @@ run_command "[leave the claim field blank to allow the automatic creation of an 
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task: Configuring additional trust stores for image registry access
-PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
+# Step 3:
+PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Create a configmap containing the CA certificate
 oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
@@ -107,20 +100,19 @@ run_command "[additional trusted CA]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# Task: Disabling the default OperatorHub sources
-PRINT_TASK "[TASK: Disabling the default OperatorHub sources]"
+# Step 4:
+PRINT_TASK "TASK [Disabling the default OperatorHub sources]"
 
 # Disabling the default OperatorHub sources
 oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
 run_command "[disabling the default OperatorHub sources]"
 
+# Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Create htpasswd User ===
-PRINT_TASK "[TASK: Create htpasswd User]"
+# Step 5:
+PRINT_TASK "TASK [Create htpasswd User]"
 
 sudo rm -rf $INSTALL_DIR/users.htpasswd
 sudo htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
@@ -180,15 +172,14 @@ while true; do
     fi
 done
 
+# Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Checking the cluster status ===
-PRINT_TASK "[TASK: Checking the cluster status]"
+# Step 6:
+PRINT_TASK "TASK [Checking the cluster status]"
 
 # Print task title
-PRINT_TASK "[TASK: Check status]"
+PRINT_TASK "TASK [Check status]"
 
 # Check cluster operator status
 progress_started=false
@@ -236,13 +227,12 @@ while true; do
     fi
 done
 
+# Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Login cluster information ===
-PRINT_TASK "[TASK: Login cluster information]"
+# Step 7:
+PRINT_TASK "TASK [Login cluster information]"
 
 echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig]"
 echo
-# ====================================================
