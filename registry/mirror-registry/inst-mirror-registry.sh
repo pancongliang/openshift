@@ -166,9 +166,6 @@ echo
 # Task: Configuring additional trust stores for image registry access
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
-
-#!/bin/bash
-
 # Check if the registry-cas field exists
 REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas')
 
@@ -190,3 +187,63 @@ else
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge &> /dev/null
   run_command  "[Trust the registry-cas configmap]"
 fi
+
+# Add an empty line after the task
+echo
+# ====================================================
+
+
+# === Task: Checking the cluster status ===
+PRINT_TASK "[TASK: Checking the cluster status]"
+
+# Print task title
+PRINT_TASK "[TASK: Check status]"
+
+# Check cluster operator status
+progress_started=false
+while true; do
+    operator_status=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    
+    if echo "$operator_status" | grep -q -v "True False False"; then
+        if ! $progress_started; then
+            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            progress_started=true  
+        fi
+        
+        echo -n '.'
+        sleep 15
+    else
+        # Close progress indicator only if progress_started is true
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [all cluster operators have reached the expected state]"
+        break
+    fi
+done
+
+# Check MCP status
+progress_started=false
+
+while true; do
+    mcp_status=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
+
+    if echo "$mcp_status" | grep -q -v "True False False"; then
+        if ! $progress_started; then
+            echo -n "info: [waiting for all mcps to reach the expected state"
+            progress_started=true  
+        fi
+        
+        echo -n '.'
+        sleep 15
+    else
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [all mcp have reached the expected state]"
+        break
+    fi
+done
+
+echo
+# ====================================================
