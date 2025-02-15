@@ -9,10 +9,8 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
-
-# === Task: Install infrastructure rpm ===
+# Setp 1:
 PRINT_TASK "[TASK: Download script]"
 
 # Declare an array of scripts
