@@ -10,6 +10,7 @@ export CHANNEL_NAME="stable-3.13"
 export STORAGE_CLASS_NAME="managed-nfs-storage"
 #export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
+export NAMESPACE="quay-enterprise"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -51,7 +52,7 @@ run_command "[deploying minio object storage]"
 progress_started=false
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
+    output=$(oc get po -n minio --no-headers | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -74,18 +75,18 @@ while true; do
 done
 
 # Get Minio route URL
-export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
+export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
 run_command "[retrieved minio route host: $BUCKET_HOST]"
 
 sleep 20
 
 # Set Minio client alias
-oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin >/dev/null 2>&1
+oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin >/dev/null 2>&1
 run_command "[configured minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
-oc rsh -n ${NAMESPACE} deployments/minio mc --no-color mb my-minio/quay-bucket >/dev/null 2>&1
-run_command "[created bucket $BUCKET_NAME]"
+oc rsh -n minio deployments/minio mc --no-color mb my-minio/quay-bucket >/dev/null 2>&1
+run_command "[created bucket: quay-bucket]"
 
 # Print Minio address and credentials
 echo "info: [minio address: $BUCKET_HOST]"
@@ -147,7 +148,6 @@ while true; do
 done
 
 # Create a namespace
-export NAMESPACE="quay-enterprise"
 oc new-project $NAMESPACE >/dev/null 2>&1
 run_command "[create a $NAMESPACE namespace]"
 
