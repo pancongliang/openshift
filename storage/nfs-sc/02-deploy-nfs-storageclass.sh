@@ -32,7 +32,7 @@ run_command() {
 
 
 # Task: Install NFS storage class
-PRINT_TASK "[TASK: Install NFS storage class]"
+PRINT_TASK "TASK [Install NFS storage class]"
 
 export NAMESPACE="nfs-client-provisioner"
 
