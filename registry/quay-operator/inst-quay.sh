@@ -44,7 +44,7 @@ oc delete ns minio >/dev/null 2>&1 || true
 
 
 # Print task title
-PRINT_TASK "[TASK: Deploying Minio Object Storage]"
+PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
@@ -100,7 +100,7 @@ echo
 # ====================================================
 
 # Print task title
-PRINT_TASK "[TASK: Deploying Quay Operator]"
+PRINT_TASK "TASK [Deploying Quay Operator]"
 
 # Create a Subscription
 cat << EOF | oc apply -f - >/dev/null 2>&1
@@ -251,7 +251,7 @@ echo
 # ====================================================
 
 # Print task title
-PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
+PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Export the router-ca certificate
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
@@ -292,9 +292,10 @@ echo
 # ====================================================
 
 # Print task title
-PRINT_TASK "[TASK: Update pull-secret]"
+PRINT_TASK "TASK [Update pull-secret]"
 
 # Export pull-secret
+sudo rm -rf pull-secret
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
 run_command "[export pull-secret]"
 
@@ -335,7 +336,7 @@ echo
 
 # Check cluser operator status
 # Print task title
-PRINT_TASK "[TASK: Check status]"
+PRINT_TASK "TASK [Check status]"
 
 # Check cluster operator status
 progress_started=false
@@ -387,7 +388,7 @@ echo
 # ====================================================
 
 # Print task title
-PRINT_TASK "[TASK: Manually create a user]"
+PRINT_TASK "TASK [Manually create a user]"
 
 echo "note: [***you need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
 echo "note: [***you need to create a user in the Quay console with an ID of <quayadmin> and a PW of <password>***]"
