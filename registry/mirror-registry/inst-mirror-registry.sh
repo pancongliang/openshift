@@ -168,13 +168,13 @@ PRINT_TASK "[TASK: Update the global pull-secret]"
 
 rm -rf pull-secret &>/dev/null
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret &>/dev/null
-run_command  "[Export Pull-secret file]"
+run_command  "[Export pull-secret file]"
 
 podman login --authfile pull-secret ${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
-run_command  "[Pull-secret file that saves authentication information]"
+run_command  "[Authentication identity information to the pull-secret file]"
 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret &>/dev/null
-run_command  "[Update Pull-secret]"
+run_command  "[Update pull-secret]"
 
 
 # Add an empty line after the task
