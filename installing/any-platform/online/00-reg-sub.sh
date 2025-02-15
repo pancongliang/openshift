@@ -9,10 +9,9 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
-# Task: Sign up for a Red Hat Subscription
-PRINT_TASK "[TASK: Sign up for a Red Hat Subscription]"
+# Step 1:
+PRINT_TASK "TASK [Sign up for a Red Hat Subscription]"
 
 # Prompt for Red Hat Subscribe UserName
 read -p "Please input the Red Hat Subscribe UserName: " USER
@@ -37,4 +36,3 @@ sudo subscription-manager attach --pool="$POOL_ID"
 
 # Add an empty line after the task
 echo
-# ====================================================
