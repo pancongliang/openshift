@@ -144,11 +144,11 @@ sleep 60
 
 # Copy the rootCA certificate to the trusted source
 sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem
-run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem]"
+run_command "[Copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem]"
 
 # Trust the rootCA certificate
 sudo update-ca-trust
-run_command "[trust the rootCA certificate]"
+run_command "[Trust the rootCA certificate]"
 
 # Delete the tar package generated during installation
 sudo rm -rf pause.tar postgres.tar quay.tar redis.tar &>/dev/null
@@ -156,12 +156,30 @@ run_command "[Delete the tar package: pause.tar postgres.tar quay.tar redis.tar]
 
 # loggin registry
 sudo podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
-run_command  "[login registry https://${REGISTRY_DOMAIN_NAME}:8443]"
+run_command  "[Login registry https://${REGISTRY_DOMAIN_NAME}:8443]"
 
 # Add an empty line after the task
 echo
 # ====================================================
 
+
+# Task: Update the global pull-secret
+PRINT_TASK "[TASK: Update the global pull-secret]"
+
+rm -rf pull-secret &>/dev/null
+oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret &>/dev/null
+run_command  "[Export Pull-secret file]"
+
+podman login --authfile pull-secret ${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
+run_command  "[Pull-secret file that saves authentication information]"
+
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret &>/dev/null
+run_command  "[Update Pull-secret]"
+
+
+# Add an empty line after the task
+echo
+# ====================================================
 
 # Task: Configuring additional trust stores for image registry access
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
