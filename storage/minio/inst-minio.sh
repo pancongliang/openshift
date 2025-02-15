@@ -5,8 +5,10 @@ set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
+
 # Set environment variables
 export STORAGE_SIZE="50Gi"   # Requires default storage class
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -28,8 +30,6 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
-
 
 # Step 1:
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
