@@ -11,7 +11,6 @@ export REGION="ap-northeast-1"
 export AWS_ACCESS_KEY_ID="xxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxx"
 
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -32,10 +31,9 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-# === Task: Set up AWS credentials ===
-PRINT_TASK "[TASK: Set up AWS credentials]"
+# Step 1:
+PRINT_TASK "TASK [Set up AWS credentials]"
 
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
@@ -47,14 +45,13 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "[Set up AWS credentials]"
 
-# Add an empty line after the task
-echo
-# ====================================================
-
 # https://docs.aws.amazon.com/vpc/latest/userguide/delete-vpc.html#delete-vpc-cli
 
-# === Delete EC2 Instance ===
-PRINT_TASK "[TASK: Delete EC2 Instance]"
+# Add an empty line after the task
+echo
+
+# Step 2:
+PRINT_TASK "TASK [Delete EC2 Instance]"
 
 # Get subnet name
 SUBNET_NAME=$(aws --region $REGION ec2 describe-subnets \
@@ -74,14 +71,13 @@ run_command "[Terminating instance: $INSTANCE_NAME]"
 # Wait for deletion to complete
 aws --region $REGION ec2 wait instance-terminated --instance-ids $INSTANCE_ID
 
-# Add an empty line after the task
-echo
-# ====================================================
 sleep 5
 
+# Add an empty line after the task
+echo
 
-# === Delete Key Pair ===
-PRINT_TASK "[TASK: Delete Key Pair]"
+# Step 3:
+PRINT_TASK "TASK [Delete Key Pair]"
 
 export KEY_PAIR_NAME="$CLUSTER_ID-bastion-key"
 sudo rm -rf $HOME/.ssh/$KEY_PAIR_NAME.pem  > /dev/null
@@ -91,11 +87,9 @@ run_command "[Deleting key pair: $KEY_PAIR_NAME]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Delete Security Group ===
-PRINT_TASK "[TASK: Delete Security Group]"
+# Step 4:
+PRINT_TASK "TASK [Delete Security Group]"
 
 SECURITY_GROUP_NAME="$CLUSTER_ID-sg"
 SECURITY_GROUP_ID=$(aws --region $REGION ec2 describe-security-groups --filters "Name=tag:Name,Values=$SECURITY_GROUP_NAME" --query "SecurityGroups[].GroupId" --output text)
@@ -104,4 +98,3 @@ run_command "[Deleting security group: $SECURITY_GROUP_NAME]"
 
 # Add an empty line after the task
 echo
-# ====================================================
