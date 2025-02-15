@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # No need to create any resources, just specify parameters.
-# === Set the necessary variables === 
 # OpenShift release version
 export OCP_RELEASE_VERSION="4.16.12"
 
@@ -42,7 +41,7 @@ export WORKER03_IP="10.184.134.134"
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
-# === More parameters === 
+# More parameters
 # NFS directory is used to create image-registry pod pv
 export NFS_DIR="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
@@ -51,8 +50,7 @@ export IMAGE_REGISTRY_PV="image-registry"
 export HTTPD_DIR="/var/www/html/materials"
 export INSTALL_DIR="${HTTPD_DIR}/pre"
 
-# === Do not change the following parameters === 
-# Function to generate duplicate parameters
+# Do not change the following parameters
 export NFS_SERVER_IP="$BASTION_IP"
 export DNS_SERVER_IP="$BASTION_IP"
 export API_IP="$BASTION_IP"
@@ -72,12 +70,10 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
-# Task: Set environment variables
+# Step 1:
 PRINT_TASK "[TASK: Set environment variables]"
 
-# === Check all variables === 
 # Define variables
 missing_variables=()
 
@@ -149,20 +145,19 @@ fi
 
 # Add an empty line after the task
 echo
-# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
-    if [ $? -eq 0 ]; then
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
         echo "ok: $1"
     else
         echo "failed: $1"
+        exit 1
     fi
 }
-# ====================================================
 
-
-# Task: Prepare the pull-secret
+# Step 2:
 # PRINT_TASK "[TASK: Prepare the pull-secret]"
 
 # Prompt for pull-secret
