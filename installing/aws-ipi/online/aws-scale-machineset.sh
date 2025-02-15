@@ -25,11 +25,9 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-
-# === Task: Scaling machineset ===
-PRINT_TASK "[TASK: Scaling machineset]"
+# Step 1:
+PRINT_TASK "TASK [Scaling machineset]"
 
 # ./aws-scale-machineset.sh <Number of replicas>
 
