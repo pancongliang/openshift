@@ -903,7 +903,7 @@ sudo cp "${HTTPD_DIR}/install-config.yaml" "${INSTALL_DIR}"
 run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
-sudo /usr/local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" &> /dev/null
+openshift-install create manifests --dir "${INSTALL_DIR}" &> /dev/null
 run_command "[generate manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
@@ -924,7 +924,7 @@ echo
 PRINT_TASK "[TASK: Generate default ignition file]"
 
 # Generate and modify ignition configuration files
-sudo /usr/local/bin/openshift-install create ignition-configs --dir "${INSTALL_DIR}" &> /dev/null
+openshift-install create ignition-configs --dir "${INSTALL_DIR}" &> /dev/null
 run_command "[generate default ignition file]"
 
 # Add an empty line after the task
@@ -1035,7 +1035,7 @@ sudo cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
 
 for i in {1..720}; do 
-  sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
+  oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
   sleep 10
 done 
 EOF
