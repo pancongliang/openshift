@@ -33,9 +33,8 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-# === Task: Set up AWS credentials ===
+# Step 1:
 PRINT_TASK "[TASK: Set up AWS credentials]"
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
@@ -49,9 +48,8 @@ run_command "[Set up AWS credentials]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Get subnet information ===
+# Step 3:
 PRINT_TASK "[TASK: Get subnet information]"
 
 # Get subnet name
@@ -74,9 +72,8 @@ run_command "[Get Public Subnet ID: $PUBLIC_SUBNET_ID]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Create Security Group ===
+# Step 3:
 PRINT_TASK "[TASK: Create Security Group]"
 
 # Get vpn name and vpc id
@@ -110,9 +107,8 @@ run_command "[Default existing outbound rule - All traffic]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Create Bastion Instance ===
+# Step 4:
 PRINT_TASK "[TASK: Create Bastion Instance]"
 
 # Create and download the key pair file
@@ -154,9 +150,8 @@ run_command "[Wait for $INSTANCE_ID instance to be in running state]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Get access to Bastion Instance information ===
+# Step 5:
 PRINT_TASK "[TASK: Get access to Bastion Instance information]"
 
 # Modify permissions for the key pair file
@@ -229,7 +224,6 @@ run_command "[Additional trusted CA]"
 oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
 run_command "[Disabling the default OperatorHub sources]"
 echo
-# ====================================================
 EOF
 run_command "[Update mirror-registry script]"
 
@@ -247,7 +241,6 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -258,7 +251,6 @@ run_command() {
     fi
 }
 
-# === Task: Install infrastructure rpm ===
 PRINT_TASK "[TASK: Install infrastructure rpm]"
 
 # List of RPM packages to install
@@ -282,26 +274,20 @@ done
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Install openshift tool ===
 PRINT_TASK "[TASK: Install openshift tool]"
 
-# Step 1: Delete openshift tool
-# ----------------------------------------------------
 # Delete openshift tool
 files=(
     "/usr/local/bin/kubectl"
-    "/usr/local/bin/oc"
-    "/usr/local/bin/oc-mirror"
-    "/usr/local/bin/oc-mirror.tar.gz"
+    "oc"
+    "oc-mirror"
+    "oc-mirror.tar.gz"
 )
 for file in "${files[@]}"; do
     sudo rm -rf $file 2>/dev/null
 done
 
-# Step 2: Function to download and install tool
-# ----------------------------------------------------
 # Function to download and install .tar.gz tools
 install_tar_gz() {
     local tool_name="$1"
@@ -315,7 +301,7 @@ install_tar_gz() {
         run_command "[Unzip to /usr/local/bin/$tool_name]"
         # Remove the downloaded .tar.gz file
         sudo rm -rf "/usr/local/bin/openshift-client-linux.tar.gz" > /dev/null 
-        sudo rm -rf "/usr/local/bin/oc-mirror.tar.gz" > /dev/null 
+        sudo rm -rf "oc-mirror.tar.gz" > /dev/null 
     else
         echo "failed: [Download $tool_name tool]"
     fi
@@ -325,21 +311,19 @@ install_tar_gz() {
 install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
 install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
 
-sudo chmod a+x /usr/local/bin/oc-mirror > /dev/null 
-run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
+sudo chmod a+x oc-mirror > /dev/null 
+run_command "[Modify oc-mirror tool permissions]"
  
 sudo echo -e "\nClientAliveInterval 120\nClientAliveCountMax 720" | sudo tee -a /etc/ssh/sshd_config &> /dev/null
 sudo systemctl restart sshd &> /dev/null
 
-
 # completion command:
 oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true &> /dev/null
-sudo bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' &> /dev/null
+sudo bash -c 'oc completion bash >> /etc/bash_completion.d/oc_completion' &> /dev/null
 source /etc/bash_completion.d/oc_completio &> /dev/null
 
 # Add an empty line after the task
 echo
-# ====================================================
 EOF
 run_command "[Dowload ocp tool script]"
 
@@ -352,4 +336,3 @@ sudo rm -rf ./ocp-login.sh
 
 # Add an empty line after the task
 echo
-# ====================================================
