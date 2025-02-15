@@ -1,7 +1,5 @@
 #!/bin/bash
-
 # No need to create any resources, just specify parameters.
-# === Set the necessary variables === 
 # OpenShift release version
 export OCP_RELEASE_VERSION="4.12.30"
 
@@ -42,8 +40,6 @@ export WORKER03_IP="10.184.134.134"
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
-
-# === More parameters === 
 # Mirror-Registry is used to mirror ocp image
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="admin"
@@ -61,9 +57,8 @@ export IMAGE_REGISTRY_PV="image-registry"
 # Httpd and ocp ignition dir
 export HTTPD_DIR="/var/www/html/materials"
 export INSTALL_DIR="${HTTPD_DIR}/pre"
-
-# === Do not change the following parameters === 
-# Function to generate duplicate parameters
+ 
+# Do not change the following parameters
 export NFS_SERVER_IP="$BASTION_IP"
 export DNS_SERVER_IP="$BASTION_IP"
 export REGISTRY_IP="$BASTION_IP"
@@ -75,7 +70,6 @@ export LB_IP="$BASTION_IP"
 # Nslookup public network
 export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -85,12 +79,10 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
-# Task: Set environment variables
-PRINT_TASK "[TASK: Set environment variables]"
+# Step 1:
+PRINT_TASK "TASK [Set environment variables]"
 
-# === Check all variables === 
 # Define variables
 missing_variables=()
 
@@ -169,20 +161,20 @@ fi
 
 # Add an empty line after the task
 echo
-# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
-    if [ $? -eq 0 ]; then
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
         echo "ok: $1"
     else
         echo "failed: $1"
+        exit 1
     fi
 }
-# ====================================================
 
-# Task: Prepare the pull-secret
-PRINT_TASK "[TASK: Prepare the pull-secret]"
+# Step 2:
+PRINT_TASK "TASK [Prepare the pull-secret]"
 
 # Prompt for pull-secret
 # read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
@@ -194,4 +186,3 @@ PRINT_TASK "[TASK: Prepare the pull-secret]"
 
 # Add an empty line after the task
 # echo
-# ====================================================
