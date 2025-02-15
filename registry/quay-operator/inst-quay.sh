@@ -69,8 +69,9 @@ while true; do
         echo -n '.'
         sleep 2
     else
-        # Close the progress indicator and print the success message
-        echo "]"
+        if $progress_started; then
+            echo "]"
+        fi
         echo "ok: [minio pods are in 'running' state]"
         break
     fi
@@ -143,8 +144,9 @@ while true; do
         echo -n '.'
         sleep 2
     else
-        # Close the progress indicator and print the success message
-        echo "]"
+        if $progress_started; then
+            echo "]"
+        fi
         echo "ok: [quay operator pods are in 'running' state]"
         break
     fi
@@ -240,8 +242,9 @@ while true; do
         echo -n '.'
         sleep 10
     else
-        # Close the progress indicator and print the success message
-        echo "]"
+        if $progress_started; then
+            echo "]"
+        fi
         echo "ok: [quay pods are in 'running' state]"
         break
     fi
