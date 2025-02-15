@@ -29,15 +29,16 @@ run_command() {
     fi
 }
 
+# Step 1:
+PRINT_TASK "TASK [Install RHACS Operator]"
+
 # Delete custom resources
+echo "info: [uninstall custom resources...]"
 oc delete securedcluster stackrox-secured-cluster-services -n stackrox >/dev/null 2>&1 || true
 oc delete central stackrox-central-services -n stackrox >/dev/null 2>&1 || true
 oc delete ns stackrox >/dev/null 2>&1 || true
 oc delete subscription rhacs-operator -n rhacs-operator >/dev/null 2>&1 || true
 oc delete ns rhacs-operator >/dev/null 2>&1 || true
-
-# Step 1:
-PRINT_TASK "TASK [Install RHACS Operator]"
 
 # Create a namespace
 cat << EOF | oc apply -f - >/dev/null 2>&1
