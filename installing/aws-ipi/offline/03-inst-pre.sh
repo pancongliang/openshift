@@ -14,20 +14,15 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
-
-# Task: Enter pull-secret information
-PRINT_TASK "[TASK: Enter pull-secret information]"
+# Step 1:
+PRINT_TASK "TASK [Enter pull-secret information]"
 
 # Prompt for pull-secret
 read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
 
-
 # Add an empty line after the task
 echo
-# ====================================================
-
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -39,21 +34,18 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-# === Task: Applying environment variables ===
-PRINT_TASK "[TASK: Applying environment variables]"
+# Step 2:
+PRINT_TASK "TASK [Applying environment variables]"
 
 source 01-set-params.sh
 run_command "[applying environment variables]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Install infrastructure rpm ===
-PRINT_TASK "[TASK: Install infrastructure rpm]"
+# Step 3:
+PRINT_TASK "TASK [Install infrastructure rpm]"
 
 # List of RPM packages to install
 packages=("wget" "vim-enhanced" "podman" "butane" "git" "bash-completion" "jq" "skopeo")
@@ -76,14 +68,10 @@ done
 
 # Add an empty line after the task
 echo
-# ====================================================
 
+# Step 4:
+PRINT_TASK "TASK [Install openshift tool]"
 
-# === Task: Install openshift tool ===
-PRINT_TASK "[TASK: Install openshift tool]"
-
-# Step 1: Delete openshift tool
-# ----------------------------------------------------
 # Delete openshift tool
 files=(
     "/usr/local/bin/kubectl"
@@ -98,8 +86,6 @@ for file in "${files[@]}"; do
     sudo rm -rf $file 2>/dev/null
 done
 
-# Step 2: Function to download and install tool
-# ----------------------------------------------------
 # Function to download and install .tar.gz tools
 install_tar_gz() {
     local tool_name="$1"
@@ -129,11 +115,9 @@ run_command "[Modify /usr/local/bin/oc-mirror tool permissions]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Install AWS CLI ===
-PRINT_TASK "[TASK: Install AWS CLI]"
+# Step 5:
+PRINT_TASK "TASK [Install AWS CLI]"
 
 # Function to install AWS CLI on Linux
 install_awscli_linux() {
@@ -164,11 +148,9 @@ esac
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Set up AWS credentials ===
-PRINT_TASK "[TASK: Set up AWS credentials]"
+# Step 6:
+PRINT_TASK "TASK [Set up AWS credentials]"
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
 sudo cat << EOF > "$HOME/.aws/credentials"
@@ -181,14 +163,12 @@ run_command "[Set up AWS credentials]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Delete existing Mirror-Registry duplicate data ===
-PRINT_TASK "[TASK: Delete existing Mirror-Registry duplicate data]"
+# Step 7:
+PRINT_TASK "TASK [Delete existing Mirror-Registry duplicate data]"
 
 # Check if there is an active mirror registry pod
-if sudo podman pod ps | grep -E 'quay-pod.*Running' >/dev/null; then
+if podmanpod ps | grep -E 'quay-pod.*Running' >/dev/null; then
     # If the mirror registry pod is running, uninstall it
     ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
@@ -217,11 +197,9 @@ done
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Install Mirror-Registry ===
-PRINT_TASK "[TASK: Install Mirror-Registry]"
+# Step 8:
+PRINT_TASK "TASK [Install Mirror-Registry]"
 
 sudo mkdir -p ${REGISTRY_INSTALL_PATH}
 sudo mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
@@ -237,7 +215,6 @@ run_command "[Download mirror-registry package]"
 # Extract the downloaded mirror-registry package
 sudo tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ &> /dev/null
 run_command "[Extract the mirror-registry package]"
-
 
 echo "ok: [Start installing mirror-registry...]"
 echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
@@ -262,18 +239,16 @@ sudo update-ca-trust &>/dev/null
 run_command "[Trust the rootCA certificate]"
 
 # loggin registry
-sudo podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${HOSTNAME}:8443 &>/dev/null
+podmanlogin -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${HOSTNAME}:8443 &>/dev/null
 run_command  "[Login registry https://${HOSTNAME}:8443]"
 
 sudo rm -rf ./*.tar
+
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# Task: Mirror ocp image to mirror-registry
-PRINT_TASK "[TASK: Mirror ocp image to Mirror-Registry]"
+# Step 1:9
+PRINT_TASK "TASK [Mirror ocp image to Mirror-Registry]"
 
 # Prompt for pull-secret
 # read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
@@ -285,8 +260,8 @@ run_command "[Create a temporary file to store the pull secret]"
 
 # Login to the registry
 sudo rm -rf $XDG_RUNTIME_DIR/containers &>/dev/null
-sudo podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "https://${HOSTNAME}:8443" &>/dev/null
-sudo podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "https://${HOSTNAME}:8443" &>/dev/null
+podmanlogin -u "$REGISTRY_ID" -p "$REGISTRY_PW" "https://${HOSTNAME}:8443" &>/dev/null
+podmanlogin -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "https://${HOSTNAME}:8443" &>/dev/null
 run_command "[Add authentication information to pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
@@ -318,7 +293,7 @@ run_command "[Create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
 echo "ok: [Generate oc-mirror mirror log: ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log]"
-sudo oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls > ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log
+oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls > ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
@@ -328,12 +303,9 @@ run_command "[Remove temporary pull-secret file]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# Task: Generate a defined install-config file
-PRINT_TASK "[TASK: Generate a defined install-config file]"
+# Step 10:
+PRINT_TASK "TASK [Generate a defined install-config file]"
 
 # Backup and format the registry CA certificate
 sudo rm -rf "${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak"
@@ -451,4 +423,3 @@ run_command "[Delete the private zone in the $INSTALL/manifests/cluster-dns-02-c
 
 # Add an empty line after the task
 echo
-# ====================================================
