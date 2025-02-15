@@ -50,7 +50,7 @@ metadata:
   name: ${NAMESPACE}
 EOF
 oc delete -f namespace.yaml > /dev/null 2>&1 || true
-oc create -f namespace.yaml > /dev/null
+oc create -f namespace.yaml > /dev/null 2>&1
 run_command "[create new namespace: ${NAMESPACE}]"
 
 rm -rf namespace.yaml > /dev/null 2>&1 || true
@@ -125,7 +125,7 @@ roleRef:
 EOF
 
 oc delete -f sa_and_rbac.yaml > /dev/null 2>&1 || true
-oc create -f sa_and_rbac.yaml >/dev/null
+oc create -f sa_and_rbac.yaml > /dev/null 2>&1
 run_command "[create rbac configuration]"
 
 rm -rf sa_and_rbac.yaml > /dev/null 2>&1 || true
@@ -178,7 +178,7 @@ spec:
 EOF
 
 oc delete -f deployment.yaml > /dev/null 2>&1 || true
-oc create -f deployment.yaml >/dev/null
+oc create -f deployment.yaml > /dev/null 2>&1
 run_command "[deploy nfs-client-provisioner]"
 
 rm -rf deployment.yaml > /dev/null 2>&1 || true
@@ -225,7 +225,7 @@ parameters:
 EOF
 
 oc delete -f storageclass.yaml > /dev/null 2>&1 || true
-oc create -f storageclass.yaml >/dev/null
+oc create -f storageclass.yaml > /dev/null 2>&1
 run_command "[create nfs storage class]"
 
 rm -rf storageclass.yaml > /dev/null 2>&1 || true
