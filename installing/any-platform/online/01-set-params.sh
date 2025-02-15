@@ -72,7 +72,7 @@ PRINT_TASK() {
 }
 
 # Step 1:
-PRINT_TASK "[TASK: Set environment variables]"
+PRINT_TASK "TASK [Set environment variables]"
 
 # Define variables
 missing_variables=()
@@ -158,7 +158,7 @@ run_command() {
 }
 
 # Step 2:
-# PRINT_TASK "[TASK: Prepare the pull-secret]"
+# PRINT_TASK "TASK [Prepare the pull-secret]"
 
 # Prompt for pull-secret
 # read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
