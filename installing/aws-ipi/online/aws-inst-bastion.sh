@@ -35,7 +35,7 @@ run_command() {
 }
 
 # Step 1:
-PRINT_TASK "[TASK: Set up AWS credentials]"
+PRINT_TASK "TASK [Set up AWS credentials]"
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
 sudo cat << EOF > "$HOME/.aws/credentials"
@@ -50,7 +50,7 @@ run_command "[Set up AWS credentials]"
 echo
 
 # Step 3:
-PRINT_TASK "[TASK: Get subnet information]"
+PRINT_TASK "TASK [Get subnet information]"
 
 # Get subnet name
 SUBNET_NAME=$(aws --region $REGION ec2 describe-subnets \
@@ -74,7 +74,7 @@ run_command "[Get Public Subnet ID: $PUBLIC_SUBNET_ID]"
 echo
 
 # Step 3:
-PRINT_TASK "[TASK: Create Security Group]"
+PRINT_TASK "TASK [Create Security Group]"
 
 # Get vpn name and vpc id
 VPC_NAME=$(aws --region "$REGION" ec2 describe-vpcs --filters "Name=tag:Name,Values=$CLUSTER_ID*" --query "Vpcs[].Tags[?Key=='Name'].Value | [0]" --output text)
@@ -109,7 +109,7 @@ run_command "[Default existing outbound rule - All traffic]"
 echo
 
 # Step 4:
-PRINT_TASK "[TASK: Create Bastion Instance]"
+PRINT_TASK "TASK [Create Bastion Instance]"
 
 # Create and download the key pair file
 export KEY_PAIR_NAME="$CLUSTER_ID-bastion-key"
@@ -152,7 +152,7 @@ run_command "[Wait for $INSTANCE_ID instance to be in running state]"
 echo
 
 # Step 5:
-PRINT_TASK "[TASK: Get access to Bastion Instance information]"
+PRINT_TASK "TASK [Get access to Bastion Instance information]"
 
 # Modify permissions for the key pair file
 chmod 400 $HOME/.ssh/$KEY_PAIR_NAME.pem > /dev/null
@@ -192,7 +192,7 @@ run_command "[Dowload mirror-registry script]"
 
 sudo cat <<EOF >> inst-registry.sh
 # Task: Configuring additional trust stores for image registry access
-PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
+PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true &> /dev/null    
 run_command "[Login ocp cluster]"
@@ -251,7 +251,7 @@ run_command() {
     fi
 }
 
-PRINT_TASK "[TASK: Install infrastructure rpm]"
+PRINT_TASK "TASK [Install infrastructure rpm]"
 
 # List of RPM packages to install
 packages=("wget" "vim" "bash-completion" "jq")
@@ -275,7 +275,7 @@ done
 # Add an empty line after the task
 echo
 
-PRINT_TASK "[TASK: Install openshift tool]"
+PRINT_TASK "TASK [Install openshift tool]"
 
 # Delete openshift tool
 files=(
