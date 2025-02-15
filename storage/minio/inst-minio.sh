@@ -8,8 +8,6 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 # Set environment variables
 export STORAGE_SIZE="50Gi"   # Requires default storage class
 
-
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -19,7 +17,6 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -31,7 +28,6 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
 
 # Print task title
