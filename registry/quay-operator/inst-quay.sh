@@ -216,7 +216,7 @@ spec:
       overrides:
         replicas: 1
 EOF
-run_command "[create a quayre gistry]"
+run_command "[create a quay registry]"
 
 sleep 10
 
@@ -236,7 +236,7 @@ while true; do
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 10
+        sleep 20
     else
         if $progress_started; then
             echo "]"
