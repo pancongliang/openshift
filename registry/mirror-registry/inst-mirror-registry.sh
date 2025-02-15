@@ -161,3 +161,19 @@ run_command  "[login registry https://${REGISTRY_DOMAIN_NAME}:8443]"
 # Add an empty line after the task
 echo
 # ====================================================
+
+
+# Task: Configuring additional trust stores for image registry access
+PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
+
+
+sudo /usr/local/bin/oc delete cm registry-cas -n openshift-config &> /dev/null || true
+# Create a configmap containing the CA certificate
+sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-cas \
+     --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem \
+     -n openshift-config &> /dev/null
+run_command "[create a configmap containing the CA certificate]"
+
+# Additional trusted CA
+sudo /usr/local/bin/oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge &> /dev/null
+run_command "[additional trusted CA]"
