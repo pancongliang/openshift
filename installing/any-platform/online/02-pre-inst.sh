@@ -5,7 +5,6 @@ set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
