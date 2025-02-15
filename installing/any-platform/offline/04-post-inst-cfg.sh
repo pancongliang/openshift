@@ -44,8 +44,8 @@ echo
 PRINT_TASK "[TASK: Configure data persistence for the image-registry operator]"
 
 # completion command:
-sudo /usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null || true
-#run_command "[add oc_completion]"
+oc completion bash >> /etc/bash_completion.d/oc_completion &> /dev/null || true
+run_command "[add oc_completion]"
 
 # Effective immediately
 source /etc/bash_completion.d/oc_completion &> /dev/null || true
@@ -54,7 +54,7 @@ sudo rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
 sudo mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} &> /dev/null
 run_command "[create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
 
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete -f ${IMAGE_REGISTRY_PV} &> /dev/null || true
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete -f ${IMAGE_REGISTRY_PV} &> /dev/null || true
 
 sudo cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
 apiVersion: v1
@@ -73,18 +73,18 @@ spec:
 EOF
 run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
 
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml &> /dev/null
 run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
 
 sudo rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
 run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' &> /dev/null
 run_command "[change the Image registry operator configuration’s managementState from Removed to Managed]"
 
 # Leave the claim field blank to allow the automatic creation of an image-registry-storage PVC.
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' &> /dev/null
 run_command "[leave the claim field blank to allow the automatic creation of an image-registry-storage PVC]"
 
 # Add an empty line after the task
@@ -96,13 +96,13 @@ echo
 PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
 
 # Create a configmap containing the CA certificate
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
      --from-file=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem \
      -n openshift-config &> /dev/null
 run_command "[create a configmap containing the CA certificate]"
 
 # Additional trusted CA
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
 run_command "[additional trusted CA]"
 
 # Add an empty line after the task
@@ -113,7 +113,7 @@ echo
 PRINT_TASK "[TASK: Disabling the default OperatorHub sources]"
 
 # Disabling the default OperatorHub sources
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
 run_command "[disabling the default OperatorHub sources]"
 
 echo
@@ -126,7 +126,7 @@ sudo rm -rf $INSTALL_DIR/users.htpasswd
 sudo htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
 run_command "[create a user using the htpasswd tool]"
 
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
 run_command "[create a secret using the users.htpasswd file]"
 
 sudo rm -rf $INSTALL_DIR/users.htpasswd
@@ -149,7 +149,7 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null || true
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null || true
 run_command "[grant cluster-admin permissions to the admin user]"
 
 sleep 15
@@ -159,7 +159,7 @@ export AUTH_NAMESPACE="openshift-authentication"
 progress_started=false
 while true; do
     # Get the status of all pods
-    output=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -193,7 +193,7 @@ PRINT_TASK "[TASK: Check status]"
 # Check cluster operator status
 progress_started=false
 while true; do
-    operator_status=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
@@ -217,7 +217,7 @@ done
 progress_started=false
 
 while true; do
-    mcp_status=$(sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
+    mcp_status=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
 
     if echo "$mcp_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
