@@ -30,10 +30,9 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-# === Task: Set up AWS credentials ===
-PRINT_TASK "[TASK: Set up AWS credentials]"
+# Step 1:
+PRINT_TASK "TASK [Set up AWS credentials]"
 
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
@@ -45,11 +44,11 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "[Set up AWS credentials]"
 
+# Add an empty line after the task
 echo
 
-
-# === Task: Uninstalling a cluster ===
-PRINT_TASK "[TASK: Uninstalling a cluster]"
+# Step 2:
+PRINT_TASK "TASK [Uninstalling a cluster]"
 
 echo "info: [Uninstalling the cluster, waiting...]"
 sudo /usr/local/bin/openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
