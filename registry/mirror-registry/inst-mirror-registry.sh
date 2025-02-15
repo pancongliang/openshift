@@ -174,7 +174,7 @@ podman login --authfile pull-secret ${REGISTRY_DOMAIN_NAME}:8443 &>/dev/null
 run_command  "[Authentication identity information to the pull-secret file]"
 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret &>/dev/null
-run_command  "[Update pull-secret]"
+run_command  "[Update global pull-secret]"
 
 
 # Add an empty line after the task
