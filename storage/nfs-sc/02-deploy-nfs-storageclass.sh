@@ -9,8 +9,6 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 export NFS_SERVER_IP="10.184.134.128"
 export NFS_DIR="/nfs"
 
-
-# === Function to print a task with uniform length ===
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=90  # Adjust this to your desired maximum length
@@ -20,8 +18,6 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
-
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -34,16 +30,14 @@ run_command() {
     fi
 }
 
-# ====================================================
 
-
-# === Task: Install NFS storage class ===
+# Task: Install NFS storage class
 PRINT_TASK "[TASK: Install NFS storage class]"
 
 export NAMESPACE="nfs-client-provisioner"
 
 # Create namespace
-cat << EOF > namespace.yaml
+sudo cat << EOF > namespace.yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -53,10 +47,10 @@ oc delete -f namespace.yaml > /dev/null 2>&1 || true
 oc create -f namespace.yaml > /dev/null 2>&1
 run_command "[create new namespace: ${NAMESPACE}]"
 
-rm -rf namespace.yaml > /dev/null 2>&1 || true
+sudo rm -rf namespace.yaml > /dev/null 2>&1 || true
 
 # Create sa and rbac
-cat << EOF > sa_and_rbac.yaml
+sudo cat << EOF > sa_and_rbac.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -128,14 +122,14 @@ oc delete -f sa_and_rbac.yaml > /dev/null 2>&1 || true
 oc create -f sa_and_rbac.yaml > /dev/null 2>&1
 run_command "[create rbac configuration]"
 
-rm -rf sa_and_rbac.yaml > /dev/null 2>&1 || true
+sudo rm -rf sa_and_rbac.yaml > /dev/null 2>&1 || true
 
-# scc
+# Add scc
 oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner >/dev/null
 run_command "[add scc hostmount-anyuid to nfs-client-provisioner user]"
 
 # deployment
-cat << EOF > deployment.yaml
+sudo cat << EOF > deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -181,10 +175,9 @@ oc delete -f deployment.yaml > /dev/null 2>&1 || true
 oc create -f deployment.yaml > /dev/null 2>&1
 run_command "[deploy nfs-client-provisioner]"
 
-rm -rf deployment.yaml > /dev/null 2>&1 || true
+sudo rm -rf deployment.yaml > /dev/null 2>&1 || true
 
 # Wait for nfs-client-provisioner pods to be in 'Running' state
-# Initialize progress_started as false
 progress_started=false
 while true; do
     # Get the status of all pods
@@ -209,9 +202,8 @@ while true; do
     fi
 done
 
-
 # storage class
-cat << EOF > storageclass.yaml
+sudo cat << EOF > storageclass.yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -228,4 +220,4 @@ oc delete -f storageclass.yaml > /dev/null 2>&1 || true
 oc create -f storageclass.yaml > /dev/null 2>&1
 run_command "[create nfs storage class]"
 
-rm -rf storageclass.yaml > /dev/null 2>&1 || true
+sudo rm -rf storageclass.yaml > /dev/null 2>&1 || true
