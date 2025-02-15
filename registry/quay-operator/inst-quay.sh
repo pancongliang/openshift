@@ -10,7 +10,6 @@ export CHANNEL_NAME="stable-3.13"
 export STORAGE_CLASS_NAME="managed-nfs-storage"
 #export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
-export NAMESPACE="quay-enterprise"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -148,6 +147,7 @@ while true; do
 done
 
 # Create a namespace
+export NAMESPACE="quay-enterprise"
 oc new-project $NAMESPACE >/dev/null 2>&1
 run_command "[create a $NAMESPACE namespace]"
 
