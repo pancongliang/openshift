@@ -1,7 +1,12 @@
+#!/bin/bash
+# Enable strict mode for robust error handling and log failures with line number.
+set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+
 # Set environment variables
 export CHANNEL_NAME="stable"
-
-#!/bin/bash
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -12,32 +17,39 @@ PRINT_TASK() {
 
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
-# ====================================================
 
 # Function to check command success and display appropriate message
 run_command() {
-    if [ $? -eq 0 ]; then
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
         echo "ok: $1"
     else
         echo "failed: $1"
+        exit 1
     fi
 }
-# ====================================================
 
-# Print task title
-PRINT_TASK "[TASK: Install RHACS Operator]"
+# Delete custom resources
+oc delete securedcluster stackrox-secured-cluster-services -n stackrox >/dev/null 2>&1 || true
+oc delete central stackrox-central-services -n stackrox >/dev/null 2>&1 || true
+oc delete ns stackrox >/dev/null 2>&1 || true
+oc delete subscription rhacs-operator -n rhacs-operator >/dev/null 2>&1 || true
+oc delete ns rhacs-operator >/dev/null 2>&1 || true
+
+# Step 1:
+PRINT_TASK "TASK [Install RHACS Operator]"
 
 # Create a namespace
-cat << EOF | oc apply -f - >/dev/null
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Namespace
 metadata:
   name: rhacs-operator
 EOF
-run_command "[Create a rhacs-operator namespace]"
+run_command "[create a rhacs-operator namespace]"
 
 # Create a Subscription
-cat << EOF | oc create -f - >/dev/null
+cat << EOF | oc create -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -48,9 +60,9 @@ metadata:
 spec:
   upgradeStrategy: Default
 EOF
-run_command "[Create a operator group]"
+run_command "[create a operator group]"
 
-cat << EOF | oc apply -f - >/dev/null
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -65,44 +77,51 @@ spec:
   name: rhacs-operator
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[Installing RHACS Operator...]"
+run_command "[installing RHACS Operator...]"
 
 sleep 30
 
 # Approval IP
 export NAMESPACE="rhacs-operator"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null
-run_command "[Approve rhacs-operator install plan]"
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
+run_command "[approve rhacs-operator install plan]"
 
-# Chek Quay operator pod
-EXPECTED_READY="1/1"
-EXPECTED_STATUS="Running"
-
+# Chek rhacs-operator pod
+progress_started=false
 while true; do
-    # Get the status of pods matching quay-operator in the openshift-operators namespace
-    pod_status=$(oc get po -n rhacs-operator --no-headers | grep "rhacs" | awk '{print $2, $3}')
-
-    # Check if all matching pods have reached the expected Ready and Status values
-    if echo "$pod_status" | grep -q -v "$EXPECTED_READY $EXPECTED_STATUS"; then
-        echo "info: [ACS operator pods have not reached the expected status, waiting...]"
-        sleep 20
+    # Get the status of all pods
+    output=$(oc get po -n rhacs-operator --no-headers | grep "rhacs" | awk '{print $2, $3}')
+    # Check if any pod is not in the "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 2
     else
-        echo "ok: [ACS operator pods have reached the expected state]"
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [acs operator pods are in 'running' state]"
         break
     fi
 done
 
 # Create a namespace
-cat << EOF | oc apply -f - >/dev/null
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Namespace
 metadata:
   name: stackrox
 EOF
-run_command "[Create a stackrox namespace]"
+run_command "[create a stackrox namespace]"
 
 # Create a Central
-cat << EOF | oc apply -f - >/dev/null
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: platform.stackrox.io/v1alpha1
 kind: Central
 metadata:
@@ -137,7 +156,7 @@ spec:
         replicas: 3
     scannerComponent: Enabled
 EOF
-run_command "[Create a central instance]"
+run_command "[create a central instance]"
 
 sleep 30
 
@@ -150,53 +169,60 @@ while true; do
         split($2, ready, "/");
         if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
     }' | grep -q "waiting"; then
-        echo "info: [Not all pods have reached the expected status, waiting...]"
+        echo "info: [not all pods have reached the expected status, waiting...]"
         sleep 30
     else
-        echo "ok: [All pods in namespace stackrox have reached the expected state]"
+        echo "ok: [all pods in namespace stackrox have reached the expected state]"
         break
     fi
 done
 
 # Check if roxctl is already installed and operational
-if roxctl -h >/dev/null; then
-    run_command "[The roxctl tool already installed, skipping installation]"
+if roxctl -h >/dev/null 2>&1; then
+    run_command "[the roxctl tool already installed, skipping installation]"
 else
     # Download the roxctl tool
     arch="$(uname -m | sed "s/x86_64//")"; arch="${arch:+-$arch}"
-    curl -f -o roxctl "https://mirror.openshift.com/pub/rhacs/assets/latest/bin/Linux/roxctl${arch}" >/dev/null
-    run_command "[Downloaded roxctl tool]"
+    curl -f -o roxctl "https://mirror.openshift.com/pub/rhacs/assets/latest/bin/Linux/roxctl${arch}" >/dev/null 2>&1
+    run_command "[downloaded roxctl tool]"
 
     # Remove the old version (if it exists)
-    rm -f /usr/local/bin/roxctl >/dev/null
+    rm -f /usr/local/bin/roxctl >/dev/null 2>&1
     
     # Set execute permissions for the tool
-    chmod +x roxctl >/dev/null
-    run_command "[Set execute permissions for roxctl tool]"
+    chmod +x roxctl >/dev/null 2>&1
+    run_command "[set execute permissions for roxctl tool]"
 
     # Move the new version to /usr/local/bin
     mv -f roxctl /usr/local/bin/ >/dev/null
-    run_command "[Installed roxctl tool to /usr/local/bin/]"
+    run_command "[installed roxctl tool to /usr/local/bin/]"
 
     # Verify the installation
-    if roxctl -h >/dev/null; then
-        run_command "[roxctl tool installation complete]"
+    if roxctl -h >/dev/null 2>&1; then
+       echo "ok: [roxctl tool installation complete]"
     else
-        run_command "[Failed to install roxctl tool, proceeding without it]"
+       echo "failed: [roxctl tool installation complete]"
     fi
 fi
 
 # Creating resources by using the init bundle
+sudo rm -rf cluster_init_bundle.yaml
+
 export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
-roxctl -e "$ROX_CENTRAL_ADDRESS" central init-bundles generate cluster_init_bundle.yaml --output-secrets cluster_init_bundle.yaml >/dev/null
+
+roxctl -e "$ROX_CENTRAL_ADDRESS" central init-bundles generate cluster_init_bundle.yaml --output-secrets cluster_init_bundle.yaml >/dev/null 2>&1
+
 sleep 10
-oc apply -f cluster_init_bundle.yaml -n stackrox
-run_command "[Creating resources by using the init bundle]"
+
+oc apply -f cluster_init_bundle.yaml -n stackrox >/dev/null 2>&1
+run_command "[creating resources by using the init bundle]"
+
+sudo rm -rf cluster_init_bundle.yaml 
 
 sleep 10
 
 # Create a SecuredCluster
-cat << EOF | oc apply -f - >/dev/null
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: platform.stackrox.io/v1alpha1
 kind: SecuredCluster
 metadata:
@@ -232,23 +258,31 @@ spec:
         replicas: 3
     scannerComponent: AutoSense
 EOF
-run_command "[Create a secured cluster]"
+run_command "[create a secured cluster]"
 
-sleep 20
+sleep 10
 
-# Check pod status
-EXPECTED_STATUS="Running"
-
+# Chek rhacs-operator pod
+progress_started=false
 while true; do
-    # Check if all pods meet the expected READY and STATUS
-    if oc get po -n stackrox --no-headers | awk '$3 != "Completed" {
-        split($2, ready, "/");
-        if (ready[1] != ready[2] || $3 != "'$EXPECTED_STATUS'") print "waiting";
-    }' | grep -q "waiting"; then
-        echo "info: [Not all pods have reached the expected status, waiting...]"
-        sleep 30
+    # Get the status of all pods
+    output=$(oc get po -n stackrox --no-headers | grep "rhacs" | awk '{print $3}')
+    # Check if any pod is not in the "Running" state
+    if echo "$output" | grep -vq "Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 5
     else
-        echo "ok: [All pods in namespace stackrox have reached the expected state]"
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [all pods in namespace stackrox have reached the expected state]"
         break
     fi
 done
