@@ -61,7 +61,7 @@ sleep 30
 
 # Create the Keycloak resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc create -f - >/dev/null 2>&1
-run_command "[create keycloak Instance]"
+run_command "[create keycloak instance]"
 
 sleep 15
 
@@ -113,7 +113,7 @@ sleep 10
 progress_started=false
 while true; do
     # Check if the secret exists
-    secret_exists=$(oc get secret -n "$NAMESPACE" keycloak-client-secret-example-client --no-headers >/dev/null 2>&1)
+    secret_exists=$(oc get secret -n "$NAMESPACE" keycloak-client-secret-example-client --no-headers 2>/dev/null || true)
     
     if [ -n "$secret_exists" ]; then
         # If progress was displayed, close it properly
@@ -146,13 +146,15 @@ run_command "[grant cluster-admin privileges to the $USER_NAME account]"
 
 # Create client authenticator secret and ConfigMap containing router CA certificate
 oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config >/dev/null 2>&1
-oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null
+
+sudo rm -rf tls.crt >/dev/null 2>&1
+oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator --confirm >/dev/null >/dev/null 2>&1
 
 sleep 5
 
 oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config >/dev/null 2>&1
 run_command "[create client authenticator secret and configmap containing router-ca certificate]"
-rm -rf tls.crt >/dev/null 2>&1
+sudo rm -rf tls.crt >/dev/null 2>&1
 
 # Apply Identity Provider configuration
 export KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
