@@ -48,7 +48,7 @@ PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-run_command "[Applied Minio object]"
+run_command "[deploying minio object storage]"
 
 # Wait for Minio pods to be in 'Running' state
 # Initialize progress_started as false
@@ -80,13 +80,13 @@ done
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
-run_command "[retrieved Minio route host: $BUCKET_HOST]"
+run_command "[retrieved minio route host: $BUCKET_HOST]"
 
 sleep 20
 
 # Set Minio client alias
 oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin >/dev/null 2>&1
-run_command "[configured Minio client alias]"
+run_command "[configured minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 oc rsh -n ${NAMESPACE} deployments/minio mc --no-color mb my-minio/quay-bucket >/dev/null 2>&1
@@ -117,7 +117,7 @@ spec:
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[installing Quay Operator...]"
+run_command "[installing quay operator...]"
 
 # Approval IP
 export NAMESPACE="openshift-operators"
@@ -156,7 +156,7 @@ done
 # Create a namespace
 export NAMESPACE="quay-enterprise"
 oc new-project $NAMESPACE >/dev/null 2>&1
-run_command "[create a $NAMESPACE namespac]"
+run_command "[create a $NAMESPACE namespace]"
 
 # Create a quay config
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
@@ -184,6 +184,7 @@ DEFAULT_TAG_EXPIRATION: 1m
 TAG_EXPIRATION_OPTIONS:
     - 1m
 EOF
+run_command "[create a quay config file]"
 
 sleep 3
 # Create a secret containing the quay config
@@ -219,7 +220,7 @@ spec:
       overrides:
         replicas: 1
 EOF
-run_command "[create a quayregistry]"
+run_command "[create a quayre gistry]"
 
 sleep 15
 
@@ -325,7 +326,7 @@ sudo cat <<EOF > $AUTHFILE
 }
 EOF
 fi
-echo "ok: [authentication information for Quay Registry added to $AUTHFILE]"
+echo "ok: [authentication information for quay registry added to $AUTHFILE]"
 
 # Update pull-secret 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
