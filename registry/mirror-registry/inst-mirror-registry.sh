@@ -31,8 +31,6 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
-
 
 # Step 1: 
 PRINT_TASK "TASK [Install infrastructure rpm]"
@@ -58,8 +56,6 @@ done
 
 # Add an empty line after the task
 echo
-# ====================================================
-
 
 # Step 2:
 PRINT_TASK "TASK [Delete existing duplicate data]"
@@ -99,8 +95,6 @@ done
 
 # Add an empty line after the task
 echo
-# ====================================================
-
 
 # Step 3:
 PRINT_TASK "TASK [Install mirror registry]"
@@ -177,8 +171,6 @@ run_command  "[login registry https://${REGISTRY_DOMAIN_NAME}:8443]"
 
 # Add an empty line after the task
 echo
-# ====================================================
-
 
 # Step 4:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
@@ -206,8 +198,6 @@ fi
 
 # Add an empty line after the task
 echo
-# ====================================================
-
 
 # Step 5:
 PRINT_TASK "TASK [Update the global pull-secret]"
@@ -226,8 +216,6 @@ sudo rm -rf pull-secret >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
-# ====================================================
-
 
 # Step 6:
 PRINT_TASK "TASK [Checking the cluster status]"
@@ -279,4 +267,3 @@ done
 
 # Add an empty line after the task
 echo
-# ====================================================
