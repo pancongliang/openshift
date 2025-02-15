@@ -5,7 +5,6 @@ set -e
 set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -26,21 +25,21 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-# === Task: Applying environment variables ===
-PRINT_TASK "[TASK: Applying environment variables]"
+# Step 1:
+PRINT_TASK "TASK [Applying environment variables]"
 
 source 01-set-params.sh
 run_command "[applying environment variables]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
+# Add an empty line after the task
+echo
 
-# Task: Kubeconfig login and oc completion
-PRINT_TASK "[TASK: Kubeconfig login]"
+# Step 2:
+PRINT_TASK "TASK [Kubeconfig login]"
 
 # kubeconfig login:
 echo "export KUBECONFIG=${INSTALL}/auth/kubeconfig" >> $HOME/bash_profile
@@ -57,11 +56,9 @@ source /etc/bash_completion.d/oc_completion || true
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task: Create record
-PRINT_TASK "[TASK: Create *.apps.$CLUSTER_NAME.$BASE_DOMAIN record]"
+# Step 3:
+PRINT_TASK "TASK [Create *.apps.$CLUSTER_NAME.$BASE_DOMAIN record]"
 
 # Create *.apps.$CLUSTER_NAME.$BASE_DOMAIN record
 RECORD_NAME="*.apps"
@@ -93,24 +90,18 @@ run_command "[ Create *.apps.$CLUSTER_NAME.$BASE_DOMAIN record]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task: Disable the default OperatorHub sources
-PRINT_TASK "[TASK: Disable the default OperatorHub sources]"
+# Step 4:
+PRINT_TASK "TASK [Disable the default OperatorHub sources]"
 
 /usr/local/bin/oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' > /dev/null
 run_command "[ Disable the default OperatorHub sources]"
 
-
-
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# Task: Configuring additional trust stores for image registry access
-PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
+# Step 5:
+PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Create a configmap containing the CA certificate
 sudo /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
@@ -124,10 +115,9 @@ run_command "[additional trusted CA]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Create htpasswd User ===
-PRINT_TASK "[TASK: Create htpasswd User]"
+# Step 6:
+PRINT_TASK "TASK [Create htpasswd User]"
 
 sudo rm -rf $INSTALL_DIR/users.htpasswd
 sudo htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
@@ -187,15 +177,14 @@ while true; do
     fi
 done
 
+# Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Checking the cluster status ===
-PRINT_TASK "[TASK: Checking the cluster status]"
+# Step 7:
+PRINT_TASK "TASK [Checking the cluster status]"
 
 # Print task title
-PRINT_TASK "[TASK: Check status]"
+PRINT_TASK "TASK [Check status]"
 
 # Check cluster operator status
 progress_started=false
@@ -243,13 +232,12 @@ while true; do
     fi
 done
 
+# Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Login cluster information ===
-PRINT_TASK "[TASK: Login cluster information]"
+# Step 8:
+PRINT_TASK "TASK [Login cluster information]"
 
 echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig]"
 echo
-# ====================================================
