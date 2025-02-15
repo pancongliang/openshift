@@ -36,7 +36,7 @@ run_command() {
 }
 
 # Step 1:
-PRINT_TASK "[TASK: Deploying Single Sign-On Operator]"
+PRINT_TASK "TASK [Deploying Single Sign-On Operator]"
 
 # Uninstall first
 echo "info: [uninstall old rhsso resources...]"
