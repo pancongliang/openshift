@@ -25,10 +25,8 @@ run_command() {
         exit 1
     fi
 }
-# ====================================================
 
-
-# === Task: Applying environment variables ===
+# Setp 1:
 PRINT_TASK "[TASK: Applying environment variables]"
 
 source 01-set-params.sh
@@ -36,9 +34,9 @@ run_command "[applying environment variables]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Install AWS CLI ===
+
+# Setp 2:
 PRINT_TASK "[TASK: Install AWS CLI]"
 
 # Function to install AWS CLI on Linux
@@ -70,10 +68,8 @@ esac
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-# === Task: Set up AWS credentials ===
+# Setp 3:
 PRINT_TASK "[TASK: Set up AWS credentials]"
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
@@ -87,11 +83,8 @@ run_command "[Set up AWS credentials]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Create VPC ===
+# Setp 4:
 PRINT_TASK "[TASK: Create VPC]"
 
 # Create VPC and get VPC ID
@@ -112,11 +105,8 @@ run_command "[Enable DNS resolve for the VPC: $VPC_ID]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Create Subnets ===
+# Setp 5:
 PRINT_TASK "[TASK: Create Subnet]"
 
 # Create public subnet and get public subnet ID
@@ -137,11 +127,8 @@ run_command "[Add tag name to subnet name: ${VPC_NAME}-subnet-private1-${AVAILAB
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Create Internet Gateway ===
+# Setp 6:
 PRINT_TASK "[TASK: Create Internet Gateway]"
 
 # Create Internet Gateway
@@ -158,11 +145,8 @@ run_command "[Attach Internet Gateway $IGW_ID to VPC: $VPC_ID]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Create Routing Table ===
+# Setp 7:
 PRINT_TASK "[TASK: Create Routing Table]"
 
 # Create public Route Table
@@ -193,13 +177,10 @@ run_command "[Associate public Route Table with public subnet]"
 aws --region $REGION ec2 associate-route-table --subnet-id $PRIVATE_SUBNET_ID --route-table-id $PRIVATE_ROUTE_TABLE_ID > /dev/null
 run_command "[Associate private Route Table with private subnet]"
 
-
-
 # Add an empty line after the task
 echo
-# ====================================================
 
-# === Task: Create Security Group ===
+# Setp 8:
 PRINT_TASK "[TASK: Create Security Group]"
 
 # Create security group and get security group ID
@@ -227,11 +208,8 @@ run_command "[Default existing outbound rule - All traffic]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Create the VPC Endpoint for the S3 Service===
+# Setp 9:
 PRINT_TASK "[TASK: Create the VPC Endpoint for the S3 Service]"
 
 # Create the VPC endpoint for the S3 Service and get endpoint ID
@@ -244,11 +222,8 @@ run_command "[Add tag to S3 Service endpoint: $S3_ENDPOINT_NAME]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Create the VPC Endpoint for the ELB Service ===
+# Setp 9\10:
 PRINT_TASK "[TASK: Create the VPC Endpoint for the ELB Service]"
 
 # Create the VPC endpoint for the ELB Service and get endpoint ID
@@ -273,11 +248,8 @@ run_command "[Remove default security group IDs from ELB endpoint]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Create the VPC Endpoint for the EC2 Service ===
+# Setp 11:
 PRINT_TASK "[TASK: Create the VPC Endpoint for the EC2 Service]"
 
 # Create the VPC endpoint for the EC2 Service and get endpoint ID
@@ -302,11 +274,8 @@ run_command "[Remove default security group IDs from EC2 endpoint]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Create Private Hosted Zone ===
+# Setp 12:
 PRINT_TASK "[TASK: Create Private Hosted Zone]"
 
 # Create private hosted zone
@@ -321,11 +290,8 @@ run_command "[Create private hosted zone and get PHZ ID: $HOSTED_ZONE_ID]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Create Bastion Instance ===
+# Setp 13:
 PRINT_TASK "[TASK: Create Bastion Instance]"
 
 # Create and download the key pair file
@@ -340,7 +306,6 @@ AMI_ID=$(aws --region $REGION ec2 describe-images \
     --query "sort_by(Images, &CreationDate)[-1].ImageId" \
     --output text)
 run_command "[Retrieves the latest RHEL9 AMI ID that matches the specified name pattern: $AMI_ID]"
-
 
 # Create bastion ec2 instance
 INSTANCE_ID=$(aws --region $REGION ec2 run-instances \
@@ -366,11 +331,8 @@ run_command "[Wait for $INSTANCE_ID instance to be in running state]"
 
 # Add an empty line after the task
 echo
-# ====================================================
 
-
-
-# === Task: Get access to Bastion Instance information ===
+# Setp 13:
 PRINT_TASK "[TASK: Get access to Bastion Instance information]"
 
 # Modify permissions for the key pair file
@@ -398,4 +360,3 @@ run_command "[Modify permissions for the $INSTANCE_NAME file]"
 
 # Add an empty line after the task
 echo
-# ====================================================
