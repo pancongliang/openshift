@@ -48,6 +48,7 @@ oc delete sub cluster-logging -n openshift-operators >/dev/null 2>&1 || true
 oc delete sub cluster-observability-operator -n openshift-operators >/dev/null 2>&1 || true
 
 # Deploy Minio with the specified YAML template
+oc delete ns minio >/dev/null 2>&1 || true
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 run_command "[deploying minio object storage]"
 
@@ -244,7 +245,6 @@ while true; do
         break
     fi
 done
-
 
 oc project openshift-logging >/dev/null 2>&1
 
