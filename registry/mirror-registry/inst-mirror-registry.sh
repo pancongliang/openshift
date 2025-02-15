@@ -35,7 +35,7 @@ run_command() {
 # ====================================================
 
 # === Task: Install infrastructure rpm ===
-PRINT_TASK "[TASK: Install infrastructure rpm]"
+PRINT_TASK "TASK [Install infrastructure rpm]"
 
 # List of RPM packages to install
 packages=("wget" "podman")
@@ -63,7 +63,7 @@ echo
 
 
 # === Task: Delete existing duplicate data ===
-PRINT_TASK "[TASK: Delete existing duplicate data]"
+PRINT_TASK "TASK [Delete existing duplicate data]"
 
 # Check if there is an active mirror registry pod
 if sudo podman pod ps | grep -E 'quay-pod.*Running' >/dev/null 2>&1; then
@@ -105,7 +105,7 @@ echo
 
 
 # === Task: Install mirror registry ===
-PRINT_TASK "[TASK: Install mirror registry]"
+PRINT_TASK "TASK [Install mirror registry]"
 
 # Create installation directory
 sudo mkdir -p ${REGISTRY_INSTALL_PATH}
@@ -136,12 +136,9 @@ sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
      --initPassword ${REGISTRY_PW}
 run_command "[installation of mirror registry completed]"
 
-sleep 20
-
-# Check quay pod status in podman
 progress_started=false
 while true; do
-    # Get the status of all pods (removing the header line)
+    # Get the status of all pods
     output=$(sudo podman pod ps | awk 'NR>1' | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b3\b)')
     
     # Check if the pod is not in the "Running" state
@@ -156,13 +153,13 @@ while true; do
         echo -n '.'
         sleep 10
     else
-        # Close the progress indicator and print the success message
-        echo "]"
-        echo "ok: quay pod is in 'running' state]"
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [quay pod is in 'running' state]"
         break
     fi
 done
-
 
 # Copy the rootCA certificate to the trusted source
 sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem
@@ -186,7 +183,7 @@ echo
 
 
 # Task: Configuring additional trust stores for image registry access
-PRINT_TASK "[TASK: Configuring additional trust stores for image registry access]"
+PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Check if the registry-cas field exists
 REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas') >/dev/null 2>&1 || true
@@ -214,7 +211,7 @@ echo
 # ====================================================
 
 # Task: Update the global pull-secret
-PRINT_TASK "[TASK: Update the global pull-secret]"
+PRINT_TASK "TASK [Update the global pull-secret]"
 
 sudo rm -rf pull-secret >/dev/null 2>&1
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
@@ -233,7 +230,7 @@ echo
 
 
 # === Task: Checking the cluster status ===
-PRINT_TASK "[TASK: Checking the cluster status]"
+PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
 progress_started=false
@@ -257,6 +254,7 @@ while true; do
         break
     fi
 done
+
 
 # Check MCP status
 progress_started=false
