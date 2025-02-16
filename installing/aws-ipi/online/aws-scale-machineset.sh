@@ -35,13 +35,13 @@ PRINT_TASK "TASK [Scaling machineset]"
 #export MACHINESET='xxxxx-xxxxx-worker-ap-northeast-1d'   # oc get machinesets -n openshift-machine-api    
 
 MACHINESET=$(oc get machineset -n openshift-machine-api -o custom-columns=":metadata.name" | tail -n 1)
-run_command "[Specify the machine set to scale: $MACHINESET]"
+run_command "[specify the machine set to scale: $MACHINESET]"
 MACHINE=$(echo "$MACHINESET" | cut -d'-' -f3-)
 
 # Scale the machineset to 1 replica
 replicas=$1
 oc scale --replicas=$replicas machineset $MACHINESET -n openshift-machine-api > /dev/null
-run_command "[Scaling machineset $MACHINESET to $replicas replicas]"
+run_command "[scaling machineset $MACHINESET to $replicas replicas]"
 
 # Wait for the machineset to be in the desired state
 while true; do
@@ -53,10 +53,10 @@ while true; do
 
     # Check if these fields are all 1
     if [[ "$DESIRED" -eq $replicas && "$CURRENT" -eq $replicas && "$READY" -eq $replicas && "$AVAILABLE" -eq $replicas ]]; then
-        echo "ok: [Finished scaling machine set '$MACHINESET' to $replicas replicas.]"
+        echo "ok: [finished scaling machine set '$MACHINESET' to $replicas replicas.]"
         break
     else
-        echo "info: [Scaling machine set '$MACHINESET' to $replicas: DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
+        echo "info: [scaling machine set '$MACHINESET' to $replicas: DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
         sleep 50
     fi
 done
