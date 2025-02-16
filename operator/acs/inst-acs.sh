@@ -79,7 +79,7 @@ spec:
   name: rhacs-operator
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[installing RHACS Operator...]"
+run_command "[installing rhacs Operator...]"
 
 sleep 30
 
@@ -225,14 +225,20 @@ sudo rm -rf cluster_init_bundle.yaml
 
 export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
 
-roxctl -e "$ROX_CENTRAL_ADDRESS" central init-bundles generate cluster_init_bundle.yaml --output-secrets cluster_init_bundle.yaml >/dev/null 2>&1
+sleep 3
 
-sleep 10
+ROX_CENTRAL_ADMIN_PASS=$(oc -n stackrox get secret central-htpasswd -o go-template='{{index .data "password" | base64decode}}')
+
+sleep 3
+
+roxctl -e "${ROX_CENTRAL_ADDRESS}" -p "${ROX_CENTRAL_ADMIN_PASS}" central init-bundles generate init_bundle --output-secrets cluster_init_bundle.yaml --insecure-skip-tls-verify >/dev/null 2>&1
+
+sleep 3
 
 oc apply -f cluster_init_bundle.yaml -n stackrox >/dev/null 2>&1
 run_command "[creating resources by using the init bundle]"
 
-sudo rm -rf cluster_init_bundle.yaml 
+sudo rm -rf cluster_init_bundle.yaml
 
 sleep 10
 
