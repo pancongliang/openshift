@@ -39,16 +39,25 @@ PRINT_TASK "TASK [Deploying Minio Object Storage]"
 # Uninstall first
 echo "info: [uninstall old rhsso resources...]"
 oc delete -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/04-clf-ui.yaml >/dev/null 2>&1 || true
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-config.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
-oc delete ns openshift-operators-redhat >/dev/null 2>&1 || true
-oc delete ns openshift-logging >/dev/null 2>&1 || true
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/02-config.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
+
 oc delete sub loki-operator -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete sub cluster-logging -n openshift-operators >/dev/null 2>&1 || true
 oc delete sub cluster-observability-operator -n openshift-operators >/dev/null 2>&1 || true
 
+oc get csv -n openshift-operators-redhat | grep loki-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators-redhat >/dev/null 2>&1 || true
+oc get csv -n openshift-logging | grep cluster-logging | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-logging >/dev/null 2>&1 || true
+oc get csv -n openshift-operators | grep cluster-observability-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+
+oc delete ns openshift-operators-redhat >/dev/null 2>&1 || true
+oc delete ns openshift-logging >/dev/null 2>&1 || true
+
 # Deploy Minio with the specified YAML template
 oc delete ns minio >/dev/null 2>&1 || true
+
+sleep 20
+
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 run_command "[deploying minio object storage]"
 
@@ -209,11 +218,11 @@ export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host
 export ACCESS_KEY_ID="minioadmin"
 export ACCESS_KEY_SECRET="minioadmin"
 export BUCKET_NAME="loki-bucket"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/02-config.yaml | envsubst | oc create -f - >/dev/null 2>&1
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/02-config.yaml | envsubst | oc create -f - >/dev/null 2>&1
 run_command "[create object storage secret credentials]"
 
 # Create loki stack
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc create -f - >/dev/null 2>&1
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc create -f - >/dev/null 2>&1
 run_command "[create loki stack instance]"
 
 sleep 30
@@ -252,7 +261,7 @@ oc create sa collector -n openshift-logging >/dev/null 2>&1
 run_command "[create a service account for the collector]"
 
 oc adm policy add-cluster-role-to-user logging-collector-logs-writer -z collector >/dev/null 2>&1
-run_command "[allow the collector’s service account to write data to the LokiStack CR]"
+run_command "[allow the collector’s service account to write data to the lokistack cr]"
 
 oc adm policy add-cluster-role-to-user collect-application-logs -z collector >/dev/null 2>&1
 run_command "[allow the collector’s service account to collect app logs]"
@@ -265,7 +274,7 @@ run_command "[allow the collector’s service account to collect infra logs]"
 
 # Creating CLF CR and UIPlugin
 oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/04-clf-ui.yaml >/dev/null 2>&1
-run_command "[creating CLF CR and UIPlugin]"
+run_command "[creating clf cr and uiplugin]"
 
 sleep 30
 
