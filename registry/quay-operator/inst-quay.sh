@@ -10,6 +10,7 @@ export CHANNEL_NAME="stable-3.13"
 export STORAGE_CLASS_NAME="managed-nfs-storage"
 #export STORAGE_CLASS_NAME="gp2-csi"
 export STORAGE_SIZE="50Gi"
+export CATALOG_SOURCE_NAME=redhat-operators
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -112,7 +113,7 @@ spec:
   channel: ${CHANNEL_NAME}
   installPlanApproval: "Manual"
   name: quay-operator
-  source: redhat-operators
+  source: $CATALOG_SOURCE_NAME
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[installing quay operator...]"
