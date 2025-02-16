@@ -39,24 +39,24 @@ echo
 PRINT_TASK "TASK [Mirror ocp image to mirror-registry]"
 
 # Login to the registry
-sudo rm -rf $XDG_RUNTIME_DIR/containers
-podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
+rm -rf $XDG_RUNTIME_DIR/containers
+podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" >/dev/null 2>&1
 run_command  "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
-podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET_FILE}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" &>/dev/null
+podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET_FILE}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" >/dev/null 2>&1
 run_command "[add authentication information to pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-sudo cat ${PULL_SECRET_FILE} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
+cat ${PULL_SECRET_FILE} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
 run_command "[save the pull-secret file either as $XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create ImageSetConfiguration directory
-sudo rm -rf ${IMAGE_SET_CONF_PATH} &>/dev/null
-sudo mkdir ${IMAGE_SET_CONF_PATH} &>/dev/null
+rm -rf ${IMAGE_SET_CONF_PATH} >/dev/null 2>&1
+mkdir ${IMAGE_SET_CONF_PATH} >/dev/null 2>&1
 run_command "[create ${IMAGE_SET_CONF_PATH} directory]"
 
 # Create ImageSetConfiguration file
-sudo cat << EOF > ${IMAGE_SET_CONF_PATH}/imageset-config.yaml
+cat << EOF > ${IMAGE_SET_CONF_PATH}/imageset-config.yaml
 apiVersion: mirror.openshift.io/v1alpha2
 kind: ImageSetConfiguration
 storageConfig:
