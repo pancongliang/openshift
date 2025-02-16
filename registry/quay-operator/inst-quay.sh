@@ -46,7 +46,7 @@ oc get csv -n openshift-operators -o name | grep quay-operator | awk '{print $1}
 oc delete ns quay-enterprise >/dev/null 2>&1 || true
 oc delete ns minio >/dev/null 2>&1 || true
 
-sleep 10
+sleep 15
 
 # Deploy Minio with the specified YAML template
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
@@ -68,7 +68,7 @@ while true; do
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 1
+        sleep 3
     else
         if $progress_started; then
             echo "]"
