@@ -26,11 +26,9 @@ run_command() {
     fi
 }
 
-# Setp 1:
-PRINT_TASK "[TASK: Applying environment variables]"
-
+# Step 1:
+# Applying environment variables
 source 01-set-params.sh
-run_command "[applying environment variables]"
 
 # Add an empty line after the task
 echo
