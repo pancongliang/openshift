@@ -47,7 +47,7 @@ oc delete keycloakclient --all -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete keycloakrealm --all -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete keycloak --all -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete sub rhsso-operator -n $NAMESPACE >/dev/null 2>&1 || true
-oc get csv -n $NAMESPACE | grep rhsso-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n $NAMESPACE >/dev/null 2>&1 || true
+oc get csv -n $NAMESPACE -o name | grep rhsso-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete ns $NAMESPACE >/dev/null 2>&1 || true
 
 # Install the RHSSO operator
