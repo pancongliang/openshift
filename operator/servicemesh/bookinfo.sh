@@ -10,11 +10,12 @@ export BOOKINFO_NS=bookinfo
 
 
 # Delete custom resources
-echo "info: [uninstall custom resources...]"
-
+echo "uninstall custom resources..."
 oc delete ns $BOOKINFO_NS >/dev/null 2>&1 || true
 oc delete ServiceMeshMemberRoll --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || true
 oc delete ServiceMeshControlPlane --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || true
+oc delete kiali --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || true
+oc delete jaeger --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || true
 oc delete subscription elasticsearch-operator -n openshift-operators >/dev/null 2>&1 || true
 oc delete subscription kiali-ossm -n openshift-operators >/dev/null 2>&1 || true
 oc delete subscription jaeger-product -n openshift-operators >/dev/null 2>&1 || true
@@ -87,6 +88,8 @@ spec:
   sourceNamespace: openshift-marketplace
 EOM
 
+sleep 30
+
 #wait for crds
 for crd in servicemeshcontrolplanes.maistra.io servicemeshmemberrolls.maistra.io kialis.kiali.io jaegers.jaegertracing.io
 do
@@ -100,33 +103,32 @@ do
 done
 
 # Wait for Service Mesh Operator deployment
-servicemesh_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep istio)
+servicemesh_deployment=$(oc get deployment -n openshift-operators -o name | grep istio 2>/dev/null || true)
 while [ -z "${servicemesh_deployment}" ]; do
     sleep 2
-    servicemesh_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep istio)
+    servicemesh_deployment=$(oc get deployment -n openshift-operators -o name | grep istio 2>/dev/null || true)
 done
 
 # Wait for Kiali Operator deployment
-kiali_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep kiali)
+kiali_deployment=$(oc get deployment -n openshift-operators -o name | grep kiali 2>/dev/null || true)
 while [ -z "${kiali_deployment}" ]; do
     sleep 2
-    kiali_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep kiali)
+    kiali_deployment=$(oc get deployment -n openshift-operators -o name | grep kiali 2>/dev/null || true)
 done
 
-# Wait for Jaeger Operator deployment (修正 servicemesh_deployment 错误)
-jaeger_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep jaeger)
+# Wait for Jaeger Operator deployment
+jaeger_deployment=$(oc get deployment -n openshift-operators -o name | grep jaeger 2>/dev/null || true)
 while [ -z "${jaeger_deployment}" ]; do
     sleep 2
-    jaeger_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep jaeger)
+    jaeger_deployment=$(oc get deployment -n openshift-operators -o name | grep jaeger 2>/dev/null || true)
 done
 
 # Wait for Elastic Operator deployment
-elastic_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep elastic)
+elastic_deployment=$(oc get deployment -n openshift-operators -o name | grep elastic 2>/dev/null || true)
 while [ -z "${elastic_deployment}" ]; do
     sleep 2
-    elastic_deployment=$(oc get deployment -n openshift-operators -o name 2>/dev/null | grep elastic)
+    elastic_deployment=$(oc get deployment -n openshift-operators -o name | grep elastic 2>/dev/null || true)
 done
-
 
 echo "waiting for operator deployments to start..."
 for op in ${servicemesh_deployment} ${kiali_deployment} ${jaeger_deployment} ${elastic_deployment}; do
@@ -137,12 +139,11 @@ for op in ${servicemesh_deployment} ${kiali_deployment} ${jaeger_deployment} ${e
     while [ -z "$readyReplicas" ] || [ "$readyReplicas" = "0" ]; do
         sleep 1
         echo -n '.'
-        readyReplicas="$(oc get ${op} -n openshift-operators -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo 0)"
+        readyReplicas="$(oc get ${op} -n openshift-operators -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo 0))"
     done
     
     echo "done"
 done
-
 
 cat <<EOM | oc apply -f -
 apiVersion: v1
@@ -150,6 +151,8 @@ kind: Namespace
 metadata:
   name: ${CONTROL_PLANE_NS}
 EOM
+
+sleep 60
 
 echo "creating the scmp/smmr..."
 #create our smcp
@@ -194,12 +197,12 @@ EOM
 
 #wait for smcp to fully install
 echo -n "waiting for smcp to fully install (this will take a few moments) ..."
-basic_install_smcp=$(oc get smcp -n "${CONTROL_PLANE_NS}" basic 2>/dev/null | grep ComponentsReady)
+basic_install_smcp=$(oc get smcp -n "${CONTROL_PLANE_NS}" basic | grep ComponentsReady 2>/dev/null || true)
 
 while [ -z "${basic_install_smcp}" ]; do
     echo -n '.'
     sleep 5
-    basic_install_smcp=$(oc get smcp -n "${CONTROL_PLANE_NS}" basic 2>/dev/null | grep ComponentsReady)
+    basic_install_smcp=$(oc get smcp -n "${CONTROL_PLANE_NS}" basic | grep ComponentsReady 2>/dev/null || true)
 done
 
 echo "done."
