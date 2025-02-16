@@ -86,7 +86,7 @@ run_command() {
 }
 
 cat $PULL_SECRET_FILE >/dev/null 2>&1
-run_command "[create a temporary file to store the pull secret]"
+run_command "[check if the $PULL_SECRET_FILE file exists]"
 
 # Define variables
 missing_variables=()
