@@ -9,7 +9,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 export CHANNEL_NAME="stable-6.1"
 export STORAGE_CLASS_NAME="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
-export CATALOG_SOURCE=redhat-operators
+export CATALOG_SOURCE_NAME=redhat-operators
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -154,7 +154,7 @@ spec:
   channel: ${CHANNEL_NAME}
   installPlanApproval: "Manual"
   name: loki-operator
-  source: $CATALOG_SOURCE
+  source: $CATALOG_SOURCE_NAME
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[create a loki operator]"
@@ -178,7 +178,7 @@ spec:
   channel: ${CHANNEL_NAME}
   installPlanApproval: "Manual"
   name: cluster-logging
-  source: $CATALOG_SOURCE
+  source: $CATALOG_SOURCE_NAME
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[create a cluster-logging operator]"
@@ -193,7 +193,7 @@ spec:
   channel: development
   installPlanApproval: "Manual"
   name: cluster-observability-operator
-  source: $CATALOG_SOURCE
+  source: $CATALOG_SOURCE_NAME
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[create a cluster observability operator]"
