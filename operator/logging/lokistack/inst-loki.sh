@@ -46,9 +46,9 @@ oc delete sub loki-operator -n openshift-operators-redhat >/dev/null 2>&1 || tru
 oc delete sub cluster-logging -n openshift-operators >/dev/null 2>&1 || true
 oc delete sub cluster-observability-operator -n openshift-operators >/dev/null 2>&1 || true
 
-oc get csv -n openshift-operators-redhat -o name | grep loki-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators-redhat >/dev/null 2>&1 || true
-oc get csv -n openshift-logging -o name | grep cluster-logging | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-logging >/dev/null 2>&1 || true
-oc get csv -n openshift-operators -o name | grep cluster-observability-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-operators-redhat -o name | grep loki-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators-redhat >/dev/null 2>&1 || true
+oc get csv -n openshift-logging -o name | grep cluster-logging | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-logging >/dev/null 2>&1 || true
+oc get csv -n openshift-operators -o name | grep cluster-observability-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
 
 oc delete ns openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete ns openshift-logging >/dev/null 2>&1 || true
