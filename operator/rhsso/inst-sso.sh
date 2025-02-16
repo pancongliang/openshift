@@ -46,6 +46,7 @@ oc delete keycloakuser --all -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete keycloakclient --all -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete keycloakrealm --all -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete keycloak --all -n $NAMESPACE >/dev/null 2>&1 || true
+oc delete operatorgroup rhsso-operator-group $NAMESPACE >/dev/null 2>&1 || true
 oc delete sub rhsso-operator -n $NAMESPACE >/dev/null 2>&1 || true
 oc get csv -n $NAMESPACE -o name | grep rhsso-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete ns $NAMESPACE >/dev/null 2>&1 || true
