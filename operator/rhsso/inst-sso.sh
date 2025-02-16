@@ -138,6 +138,7 @@ while true; do
 done
 
 # Create a Keycloak user
+oc delete user $USER_NAME >/dev/null 2>&1 || true
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 run_command "[create a user named $USER_NAME]"
 
