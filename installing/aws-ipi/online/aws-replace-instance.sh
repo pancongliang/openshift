@@ -36,17 +36,17 @@ PRINT_TASK "TASK [Replace the instance type of the machine]"
 
 # Scale the machineset to 0 replicas
 oc scale --replicas=0 machineset $MACHINESET -n openshift-machine-api > /dev/null
-run_command "[Scaling machineset $MACHINESET to 0 replicas]"
+run_command "[scaling machineset $MACHINESET to 0 replicas]"
 
 MACHINE=$(echo "$MACHINESET" | cut -d'-' -f3-)
 
 # Wait for the machine to be deleted
 while true; do
     if oc get machines.machine.openshift.io -n openshift-machine-api | grep -q "$MACHINE"; then
-        echo "info: [Delete the '$MACHINE' machine...]"
+        echo "info: [delete the '$MACHINE' machine...]"
         sleep 30 
     else
-        echo "ok: [Deleted '$MACHINE' machine]"
+        echo "ok: [deleted '$MACHINE' machine]"
         break
     fi
 done
@@ -55,7 +55,7 @@ sleep 10
 
 # Patch the machineset to replace instance type
 oc -n openshift-machine-api patch machineset $MACHINESET --type=json -p="[{"op": "replace", "path": "/spec/template/spec/providerSpec/value/instanceType", "value": "$WORKER_INSTANCE_TYPE"}]" > /dev/null
-run_command "[Replace $MACHINESET with the instance of your machine $WORKER_INSTANCE_TYPE]"
+run_command "[replace $MACHINESET with the instance of your machine $WORKER_INSTANCE_TYPE]"
 
 # Scale the machineset to 1 replica
 oc scale --replicas=1 machineset $MACHINESET -n openshift-machine-api > /dev/null
@@ -71,10 +71,10 @@ while true; do
 
     # Check if these fields are all 1
     if [[ "$DESIRED" -eq 1 && "$CURRENT" -eq 1 && "$READY" -eq 1 && "$AVAILABLE" -eq 1 ]]; then
-        echo "ok: [The '$MACHINE' machine is installed"
+        echo "ok: [the '$MACHINE' machine is installed"
         break
     else
-        echo "info: [Installing machine '$MACHINE': DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
+        echo "info: [installing machine '$MACHINE': DESIRED=$DESIRED, CURRENT=$CURRENT, READY=$READY, AVAILABLE=$AVAILABLE]"
         sleep 50
     fi
 done
