@@ -79,7 +79,7 @@ spec:
   name: rhacs-operator
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[installing rhacs Operator...]"
+run_command "[installing rhacs operator...]"
 
 sleep 30
 
