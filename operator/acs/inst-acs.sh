@@ -37,7 +37,7 @@ echo "info: [uninstall custom resources...]"
 oc delete securedcluster stackrox-secured-cluster-services -n stackrox >/dev/null 2>&1 || true
 oc delete central stackrox-central-services -n stackrox >/dev/null 2>&1 || true
 oc delete subscription rhacs-operator -n rhacs-operator >/dev/null 2>&1 || true
-oc get csv -n rhacs-operator -o name | grep rhacs-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n rhacs-operator >/dev/null 2>&1 || true
+oc get csv -n rhacs-operator -o name | grep rhacs-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n rhacs-operator >/dev/null 2>&1 || true
 oc delete ns stackrox >/dev/null 2>&1 || true
 oc delete ns rhacs-operator >/dev/null 2>&1 || true
 
