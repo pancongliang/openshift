@@ -20,10 +20,10 @@ oc delete subscription kiali-ossm -n openshift-operators >/dev/null 2>&1 || true
 oc delete subscription jaeger-product -n openshift-operators >/dev/null 2>&1 || true
 oc delete subscription servicemeshoperator -n openshift-operators >/dev/null 2>&1 || true
 
-oc get csv -n openshift-operators | grep elasticsearch-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
-oc get csv -n openshift-operators | grep kiali-ossm | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
-oc get csv -n openshift-operators | grep jaeger-product | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
-oc get csv -n openshift-operators | grep servicemeshoperator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-operators -o name | grep elasticsearch-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-operators -o name | grep kiali-ossm | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-operators -o name | grep jaeger-product | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-operators -o name | grep servicemeshoperator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
 
 oc delete ns $CONTROL_PLANE_NS >/dev/null 2>&1 || true
 
