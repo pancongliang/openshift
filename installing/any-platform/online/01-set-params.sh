@@ -81,7 +81,6 @@ run_command() {
         echo "ok: $1"
     else
         echo "failed: $1"
-        exit 1
     fi
 }
 
