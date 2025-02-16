@@ -36,8 +36,9 @@ PRINT_TASK "TASK [Install RHACS Operator]"
 echo "info: [uninstall custom resources...]"
 oc delete securedcluster stackrox-secured-cluster-services -n stackrox >/dev/null 2>&1 || true
 oc delete central stackrox-central-services -n stackrox >/dev/null 2>&1 || true
-oc delete ns stackrox >/dev/null 2>&1 || true
 oc delete subscription rhacs-operator -n rhacs-operator >/dev/null 2>&1 || true
+oc get csv -n rhacs-operator | grep rhacs-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n rhacs-operator >/dev/null 2>&1 || true
+oc delete ns stackrox >/dev/null 2>&1 || true
 oc delete ns rhacs-operator >/dev/null 2>&1 || true
 
 # Create a namespace
@@ -87,11 +88,13 @@ export NAMESPACE="rhacs-operator"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve rhacs-operator install plan]"
 
+sleep 10
+
 # Chek rhacs-operator pod
 progress_started=false
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n rhacs-operator --no-headers | grep "rhacs" | awk '{print $2, $3}')
+    output=$(oc get po -n rhacs-operator --no-headers | grep "rhacs" | awk '{print $2, $3}' 2>/dev/null || true)
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
