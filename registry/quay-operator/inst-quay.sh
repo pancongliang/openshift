@@ -42,7 +42,7 @@ export NAMESPACE="quay-enterprise" || true
 oc delete quayregistry example-registry -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || true
-oc get csv -n openshift-operators -o name | grep quay-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-operators -o name | grep quay-operator | awk -F/ '{print $2}'  | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
 oc delete ns quay-enterprise >/dev/null 2>&1 || true
 oc delete ns minio >/dev/null 2>&1 || true
 
