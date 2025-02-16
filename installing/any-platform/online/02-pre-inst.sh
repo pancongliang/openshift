@@ -29,7 +29,7 @@ run_command() {
 # Step 1:
 PRINT_TASK "TASK [Applying environment variables]"
 
-source 01-set-params.sh
+source 01-set-params.sh >/dev/null 2>&1
 run_command "[applying environment variables]"
 
 # Add an empty line after the task
@@ -39,11 +39,11 @@ echo
 PRINT_TASK "TASK [Changing the hostname and time zone]"
 
 # Change hostname
-sudo hostnamectl set-hostname ${BASTION_HOSTNAME}
+hostnamectl set-hostname ${BASTION_HOSTNAME}
 run_command "[change hostname to ${BASTION_HOSTNAME}]"
 
 # Change time zone to UTC
-sudo timedatectl set-timezone UTC
+timedatectl set-timezone UTC
 run_command "[change time zone to UTC]"
 
 # Write LANG=en_US.UTF-8 to the ./bash_profile file]
@@ -51,8 +51,8 @@ echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
 run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
 
 # Reload ~/.bash_profile
-source ~/.bash_profile
-run_command "[reload ~/.bash_profile]"
+# source ~/.bash_profile >/dev/null 2>&1 || true
+# run_command "[reload ~/.bash_profile]"
 
 # Add an empty line after the task
 echo
@@ -61,41 +61,41 @@ echo
 PRINT_TASK "TASK [Disable and stop firewalld service]"
 
 # Stop and disable firewalld services
-sudo systemctl disable --now firewalld >/dev/null 2>&1
+systemctl disable --now firewalld >/dev/null 2>&1
 run_command "[firewalld service stopped and disabled]"
 
 # Add an empty line after the task
 echo
 
-# sudo firewall-cmd --permanent --add-port=6443/tcp         # kube-api-server on control plane
-# sudo firewall-cmd --permanent --add-port=22623/tcp        # machine-config server
-# sudo firewall-cmd --permanent- -add-service=http          # ingress 80
-# sudo firewall-cmd --permanent- -add-service=https         # ingress 443
-# sudo firewall-cmd --permanent --add-port=9000/tcp         # haproxy stats
-# sudo firewall-cmd --permanent --add-port=8443/tcp         # mirror registry
-# sudo firewall-cmd --permanent --add-port=8080/tcp         # httpd ignition
-# sudo firewall-cmd --permanent --add-port=53/tcp           # dns
-# sudo firewall-cmd --permanent --add-port=53/udp           # dns
-# sudo firewall-cmd --permanent --add-port=2049/tcp         # nfs
-# sudo firewall-cmd --permanent --add-port=111/tcp          # nfs
-# sudo firewall-cmd --permanent --add-port=111/udp          # nfs
-# sudo firewall-cmd --permanent --add-port=20048/tcp        # nfs
-# sudo firewall-cmd --permanent --add-port=20048/udp        # nfs
-# sudo firewall-cmd --permanent --add-port=32768-65535/tcp  # nfs
-# sudo firewall-cmd --permanent --add-port=32768-65535/udp  # nfs
-# sudo firewall-cmd --reload
-# sudo firewall-cmd --list-ports
-# sudo setsebool -P haproxy_connect_any 1                   # SELinux policy that allows HAProxy to connect to any network
+# firewall-cmd --permanent --add-port=6443/tcp         # kube-api-server on control plane
+# firewall-cmd --permanent --add-port=22623/tcp        # machine-config server
+# firewall-cmd --permanent- -add-service=http          # ingress 80
+# firewall-cmd --permanent- -add-service=https         # ingress 443
+# firewall-cmd --permanent --add-port=9000/tcp         # haproxy stats
+# firewall-cmd --permanent --add-port=8443/tcp         # mirror registry
+# firewall-cmd --permanent --add-port=8080/tcp         # httpd ignition
+# firewall-cmd --permanent --add-port=53/tcp           # dns
+# firewall-cmd --permanent --add-port=53/udp           # dns
+# firewall-cmd --permanent --add-port=2049/tcp         # nfs
+# firewall-cmd --permanent --add-port=111/tcp          # nfs
+# firewall-cmd --permanent --add-port=111/udp          # nfs
+# firewall-cmd --permanent --add-port=20048/tcp        # nfs
+# firewall-cmd --permanent --add-port=20048/udp        # nfs
+# firewall-cmd --permanent --add-port=32768-65535/tcp  # nfs
+# firewall-cmd --permanent --add-port=32768-65535/udp  # nfs
+# firewall-cmd --reload
+# firewall-cmd --list-ports
+# setsebool -P haproxy_connect_any 1                   # SELinux policy that allows HAProxy to connect to any network
 
 # Step 4:
 PRINT_TASK "TASK [Change SELinux security policy]"
 
 # Read the SELinux configuration
-permanent_status=$(sudo grep "^SELINUX=" /etc/selinux/config | cut -d= -f2)
+permanent_status=$(grep "^SELINUX=" /etc/selinux/config | cut -d= -f2)
 # Check if the permanent status is Enforcing
 if [[ $permanent_status == "enforcing" ]]; then
     # Change SELinux to permissive
-    sudo sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
+    sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
     permanent_status="permissive"
     echo "ok: [selinux permanent security policy changed to $permanent_status]"
 elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permissive" ]]; then
@@ -105,9 +105,9 @@ else
 fi
 
 # Temporarily set SELinux security policy to permissive
-sudo setenforce 0 >/dev/null 2>&1
+setenforce 0 >/dev/null 2>&1 || true
 # Check temporary SELinux security policy
-temporary_status=$(sudo getenforce)
+temporary_status=$(getenforce)
 # Check if temporary SELinux security policy is permissive or disabled
 if [[ $temporary_status == "Permissive" || $temporary_status == "Disabled" ]]; then
     echo "ok: [selinux temporary security policy is disabled]"
@@ -128,11 +128,11 @@ packages=("wget" "net-tools" "vim-enhanced" "butane" "podman" "bind-utils" "bind
 package_list="${packages[*]}"
 
 # Install all packages at once
-sudo dnf install -y $package_list >/dev/null 2>&1
+dnf install -y $package_list >/dev/null
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
-    sudo rpm -q $package >/dev/null 2>&1
+    rpm -q $package >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         echo "ok: [installed $package package]"
     else
@@ -147,27 +147,27 @@ echo
 PRINT_TASK "TASK [Install openshift and kubelet tool]"
 
 # Download the openshift-install
-sudo wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
+wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
 run_command "[download openshift-install tool]"
 
-sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
-sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
+rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
+tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
 run_command "[install openshift-install tool]"
 
-sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
+chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
 run_command "[modify /usr/local/bin/openshift-install permissions]"
 
-sudo rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
+rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
 # Delete the old version of oc cli
-sudo rm -f /usr/local/bin/oc >/dev/null 2>&1
-sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1
-sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
-sudo rm -f /usr/local/bin/kubectx >/dev/null 2>&1
-sudo rm -f /usr/local/bin/kubens >/dev/null 2>&1
+rm -f /usr/local/bin/oc >/dev/null 2>&1
+rm -f /usr/local/bin/kubectl >/dev/null 2>&1
+rm -f /usr/local/bin/README.md >/dev/null 2>&1
+rm -f /usr/local/bin/kubectx >/dev/null 2>&1
+rm -f /usr/local/bin/kubens >/dev/null 2>&1
 
 # Get the RHEL version number
-rhel_version=$(sudo rpm -E %{rhel})
+rhel_version=$(rpm -E %{rhel})
 run_command "[check RHEL version]"
 
 # Determine the download URL based on the RHEL version
@@ -180,24 +180,24 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the OpenShift client
-sudo wget -q "$download_url" -O "$openshift_client"
+wget -q "$download_url" -O "$openshift_client"
 run_command "[download OpenShift client tool]"
 
 # Extract the downloaded tarball to /usr/local/bin/
-sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
+tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
 run_command "[install openshift client tool]"
 
-sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
+chmod +x /usr/local/bin/oc >/dev/null 2>&1
 run_command "[modify /usr/local/bin/oc permissions]"
 
-sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
+chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
 run_command "[modify /usr/local/bin/kubectl permissions]"
 
-sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
-sudo rm -rf $openshift_client >/dev/null 2>&1
+rm -f /usr/local/bin/README.md >/dev/null 2>&1
+rm -rf $openshift_client >/dev/null 2>&1
 
 # Get the RHEL version number
-rhel_version=$(sudo rpm -E %{rhel})
+rhel_version=$(rpm -E %{rhel})
 if [ "$rhel_version" -eq 8 ]; then
     download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.14.35/oc-mirror.tar.gz"
     oc_mirror="oc-mirror.tar.gz"
@@ -207,31 +207,31 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the oc-mirror tool
-sudo wget -q "$download_url" -O "$oc_mirror"
+wget -q "$download_url" -O "$oc_mirror"
 run_command "[download oc-mirror tool]"
 
 # Remove the old oc-mirror binary and install the new one
-sudo rm -rf /usr/local/bin/oc-mirror >/dev/null 2>&1
-sudo tar -xzf "$oc_mirror" -C "/usr/local/bin/" >/dev/null 2>&1
+rm -rf /usr/local/bin/oc-mirror >/dev/null 2>&1
+tar -xzf "$oc_mirror" -C "/usr/local/bin/" >/dev/null 2>&1
 run_command "[install oc-mirror tool]"
 
-sudo chmod a+x /usr/local/bin/oc-mirror >/dev/null 2>&1
+chmod a+x /usr/local/bin/oc-mirror >/dev/null 2>&1
 run_command "[modify /usr/local/bin/oc-mirror permissions]"
 
-sudo rm -rf $oc_mirror >/dev/null 2>&1
+rm -rf $oc_mirror >/dev/null 2>&1
 
 # Download the kubectx tool
-sudo curl -sLo /usr/local/bin/kubectx https://raw.githubusercontent.com/ahmetb/kubectx/master/kubectx >/dev/null 2>&1
+curl -sLo /usr/local/bin/kubectx https://raw.githubusercontent.com/ahmetb/kubectx/master/kubectx >/dev/null 2>&1
 run_command "[install kubectx tool]"
 
-sudo chmod +x /usr/local/bin/kubectx >/dev/null 2>&1
+chmod +x /usr/local/bin/kubectx >/dev/null 2>&1
 run_command "[modify /usr/local/bin/kubectx permissions]"
 
 # Download the kubens tool
-sudo curl -sLo /usr/local/bin/kubens https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens >/dev/null 2>&1
+curl -sLo /usr/local/bin/kubens https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens >/dev/null 2>&1
 run_command "[install kubens tool]"
 
-sudo chmod +x /usr/local/bin/kubens >/dev/null 2>&1
+chmod +x /usr/local/bin/kubens >/dev/null 2>&1
 run_command "[modify /usr/local/bin/kubens permissions]"
 
 # Installing Krew Plugin Manager 
@@ -250,6 +250,7 @@ echo "export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"" >> ~/.bash_profile
 run_command "[add the $HOME/.krew/bin directory to your PATH environment variable]"
 
 # Installing kubectl neat 
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 kubectl krew install neat >/dev/null 2>&1
 run_command "[installing kubectl neat]"
 
@@ -262,12 +263,12 @@ PRINT_TASK "TASK [Setup and check httpd services]"
 # Update httpd listen port
 update_httpd_listen_port() {
     # Get the current listen port from httpd.conf
-    listen_port=$(sudo grep -v "#" /etc/httpd/conf/httpd.conf | grep -i 'Listen' | awk '{print $2}')
+    listen_port=$(grep -v "#" /etc/httpd/conf/httpd.conf | grep -i 'Listen' | awk '{print $2}')
     
     # Check if listen port is not 8080
     if [ "$listen_port" != "8080" ]; then
         # Change listen port to 8080
-        sudo sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
+        sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
         echo "ok: [change http listening port to 8080]"
     else
         echo "skipped: [http listen port is already 8080]"
@@ -280,7 +281,7 @@ update_httpd_listen_port
 # Create virtual host configuration
 create_virtual_host_config() {
 # Create a virtual host configuration file
-sudo cat << EOF > /etc/httpd/conf.d/base.conf
+cat << EOF > /etc/httpd/conf.d/base.conf
 <VirtualHost *:8080>
    ServerName ${BASTION_HOSTNAME}
    DocumentRoot ${HTTPD_DIR}
@@ -301,8 +302,8 @@ check_virtual_host_configuration() {
     virtual_host_config="/etc/httpd/conf.d/base.conf"
     
     # Check if expected values are present in the config
-    if sudo grep -q "ServerName $expected_server_name" "$virtual_host_config" && \
-       sudo grep -q "DocumentRoot $expected_document_root" "$virtual_host_config"; then
+    if grep -q "ServerName $expected_server_name" "$virtual_host_config" && \
+       grep -q "DocumentRoot $expected_document_root" "$virtual_host_config"; then
         echo "ok: [create virtual host configuration]"
     else
         echo "failed: [create virtual host configuration]"
@@ -313,26 +314,26 @@ check_virtual_host_configuration() {
 check_virtual_host_configuration
 
 # Create http dir
-sudo rm -rf ${HTTPD_DIR} >/dev/null 2>&1
-sudo mkdir -p ${HTTPD_DIR} >/dev/null 2>&1
+rm -rf ${HTTPD_DIR} >/dev/null 2>&1
+mkdir -p ${HTTPD_DIR} >/dev/null 2>&1
 run_command "[create http: ${HTTPD_DIR} director]"
 
 # Enable and start service
-sudo systemctl enable --now httpd >/dev/null 2>&1
+systemctl enable --now httpd >/dev/null 2>&1
 run_command "[restart and enable httpd service]"
 
 # Wait for the service to restart
 sleep 3
 
 # Test httpd configuration
-sudo rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
-sudo touch ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
+rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
+touch ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 run_command "[create httpd test file]"
 
-sudo wget -q http://${BASTION_IP}:8080/httpd-test
+wget -q http://${BASTION_IP}:8080/httpd-test
 run_command "[test httpd download function]"
 
-sudo rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
+rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 run_command "[delete the httpd test file]"
 
 # Add an empty line after the task
@@ -342,12 +343,12 @@ echo
 PRINT_TASK "TASK [Setup nfs services]"
 
 # Create NFS directories
-sudo rm -rf ${NFS_DIR} >/dev/null 2>&1
-sudo mkdir -p ${NFS_DIR} >/dev/null 2>&1
+rm -rf ${NFS_DIR} >/dev/null 2>&1
+mkdir -p ${NFS_DIR} >/dev/null 2>&1
 run_command "[create nfs director: ${NFS_DIR}]"
 
 # Add nfsnobody user if not exists
-if sudo id "nfsnobody" >/dev/null 2>&1; then
+if id "nfsnobody" >/dev/null 2>&1; then
     echo "skipped: [nfsnobody user exists]"
 else
     useradd nfsnobody
@@ -355,44 +356,46 @@ else
 fi
 
 # Change ownership and permissions
-sudo chown -R nfsnobody.nfsnobody ${NFS_DIR} >/dev/null 2>&1
+chown -R nfsnobody.nfsnobody ${NFS_DIR} >/dev/null 2>&1
 run_command "[changing ownership of an NFS directory]"
 
-sudo chmod -R 777 ${NFS_DIR} >/dev/null 2>&1
+chmod -R 777 ${NFS_DIR} >/dev/null 2>&1
 run_command "[change NFS directory permissions]"
 
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
-if sudo grep -q "$export_config_line" "/etc/exports"; then
+if grep -q "$export_config_line" "/etc/exports"; then
     echo "skipped: [nfs export configuration already exists]"
 else
-    echo "$export_config_line" >> "/etc/exports"
+    echo "$export_config_line" >> "/etc/exports" > /dev/null 2>&1
     echo "ok: [add nfs export configuration]"
 fi
 
 # Enable and start service
-sudo systemctl enable --now nfs-server >/dev/null 2>&1
+systemctl enable --now nfs-server >/dev/null 2>&1
 run_command "[restart and enable nfs-server service]"
 
+systemctl restart nfs-server >/dev/null 2>&1
 # Wait for the service to restart
-sleep 3
+sleep 10
 
 # Create the mount point
-sudo rm -rf /tmp/nfs-test >/dev/null 2>&1
-sudo mkdir -p /tmp/nfs-test >/dev/null 2>&1
+umount /tmp/nfs-test >/dev/null 2>&1 || true
+rm -rf /tmp/nfs-test >/dev/null 2>&1
+mkdir -p /tmp/nfs-test >/dev/null 2>&1
 run_command "[create an nfs mount directory for testing: /tmp/nfs-test]"
 
 # Attempt to mount the NFS share
-sudo mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test >/dev/null 2>&1
+mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test >/dev/null 2>&1
 run_command "[test mounts the nfs shared directory: /tmp/nfs-test]"
 
 # Unmount the NFS share
-sudo fuser -km /tmp/nfs-test >/dev/null 2>&1 || true
-sudo umount /tmp/nfs-test >/dev/null 2>&1 || true
+fuser -km /tmp/nfs-test >/dev/null 2>&1 || true
+umount /tmp/nfs-test >/dev/null 2>&1 || true
 run_command "[unmount the nfs shared directory: /tmp/nfs-test]"
 
 # Delete /tmp/nfs-test
-sudo rm -rf /tmp/nfs-test >/dev/null 2>&1
+rm -rf /tmp/nfs-test >/dev/null 2>&1
 run_command "[delete the test mounted nfs directory: /tmp/nfs-test]"
 
 # Add an empty line after the task
@@ -432,7 +435,7 @@ else
 fi
 
 # Generate named service configuration file
-sudo cat << EOF > /etc/named.conf
+cat << EOF > /etc/named.conf
 options {
     listen-on port 53 { any; };
     listen-on-v6 port 53 { ::1; };
@@ -481,7 +484,7 @@ EOF
 run_command "[generate named configuration file]"
 
 # Clean up: Delete duplicate file
-sudo rm -f /var/named/${FORWARD_ZONE_FILE}
+rm -f /var/named/${FORWARD_ZONE_FILE}
 
 # Create forward zone file
 # Function to format and align DNS entries
@@ -491,7 +494,7 @@ format_dns_entry() {
     printf "%-40s IN  A      %s\n" "$domain" "$ip"
 }
 
-sudo cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
+cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 \$TTL 1W
 @       IN      SOA     ns1.${BASE_DOMAIN}.        root (
                         201907070      ; serial
@@ -530,7 +533,7 @@ EOF
 run_command "[generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 
 # Clean up: Delete duplicate file
-sudo rm -f /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
+rm -f /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
 
 # Input file containing the original reverse DNS zone configuration
 reverse_zone_input_file="/var/named/reverse_zone_input_file"
@@ -539,7 +542,7 @@ reverse_zone_input_file="/var/named/reverse_zone_input_file"
 reverse_zone_output_file="/var/named/${REVERSE_ZONE_FILE}"
 
 # Create the input file with initial content
-sudo cat << EOF > "$reverse_zone_input_file"
+cat << EOF > "$reverse_zone_input_file"
 \$TTL 1W
 @       IN      SOA     ns1.${BASE_DOMAIN}.        root (
                         2019070700      ; serial
@@ -601,7 +604,7 @@ while IFS= read -r line; do
 done < "$reverse_zone_input_file"
 
 # Clean up: Delete input file
-sudo rm -f "$reverse_zone_input_file"
+rm -f "$reverse_zone_input_file"
 
 # Verify if the reverse DNS zone file was generated successfully
 if [ -f "$reverse_zone_output_file" ]; then
@@ -611,28 +614,28 @@ else
 fi
 
 # Check named configuration file
-sudo named-checkconf >/dev/null 2>&1
+named-checkconf >/dev/null 2>&1
 run_command "[named configuration is valid]"
 
 # Check forward zone file
-sudo named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} >/dev/null 2>&1
+named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} >/dev/null 2>&1
 run_command "[forward zone file is valid]"
 
 # Check reverse zone file
-sudo named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
+named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
 run_command "[reverse zone file is valid]"
 
 # Add dns ip to resolv.conf
-sudo sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
-sudo sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
-run_command "[add DNS_SERVER_IP to /etc/resolv.conf]"
+sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
+sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
+run_command "[add dns ip $DNS_SERVER_IP to /etc/resolv.conf]"
 
 # Change ownership
-sudo chown named. /var/named/*.zone
+chown named. /var/named/*.zone
 run_command "[change ownership /var/named/*.zone]"
 
 # Enable and start service
-sudo systemctl enable --now named  >/dev/null 2>&1
+systemctl enable --now named  >/dev/null 2>&1
 run_command "[restart and enable named service]"
 
 # Wait for the service to restart
@@ -665,7 +668,7 @@ all_successful=true
 failed_hostnames=()
 
 for hostname in "${hostnames[@]}"; do
-    sudo nslookup_result=$(nslookup "$hostname" 2>&1)
+    nslookup_result=$(nslookup "$hostname" 2>&1)
     if [ $? -ne 0 ]; then
         all_successful=false
         failed_hostnames+=("$hostname")
@@ -686,7 +689,7 @@ echo
 PRINT_TASK "TASK [Setup HAproxy services]"
 
 # Setup haproxy services configuration
-sudo cat << EOF > /etc/haproxy/haproxy.cfg 
+cat << EOF > /etc/haproxy/haproxy.cfg 
 global
   log         127.0.0.1 local2
   pidfile     /var/run/haproxy.pid
@@ -757,11 +760,11 @@ EOF
 run_command "[generate haproxy configuration file]"
 
 # Path to HAProxy configuration file
-sudo haproxy -c -f "$CONFIG_FILE" >/dev/null 2>&1
+haproxy -c -f /etc/haproxy/haproxy.cfg >/dev/null 2>&1
 run_command "[haproxy configuration is valid]"
 
 # Enable and start service
-sudo systemctl enable --now haproxy >/dev/null 2>&1
+systemctl enable --now haproxy >/dev/null 2>&1
 run_command "[restart and enable haproxy service]"
 
 # Add an empty line after the task
@@ -771,17 +774,17 @@ echo
 PRINT_TASK "TASK [Generate a defined install-config file]"
 
 # Create ssh-key for accessing CoreOS
-sudo rm -rf ${SSH_KEY_PATH} >/dev/null 2>&1
-sudo ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
+rm -rf ${SSH_KEY_PATH} >/dev/null 2>&1
+ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
 run_command "[create ssh-key for accessing coreos]"
 
 # Define variables
-export SSH_PUB_STR="$(sudo cat ${SSH_KEY_PATH}/id_rsa.pub)"
+export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
-sudo rm -rf ${HTTPD_DIR}/install-config.yaml >/dev/null 2>&1
+rm -rf ${HTTPD_DIR}/install-config.yaml >/dev/null 2>&1
 
-sudo cat << EOF > ${HTTPD_DIR}/install-config.yaml 
+cat << EOF > ${HTTPD_DIR}/install-config.yaml
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
 compute: 
@@ -816,12 +819,12 @@ echo
 PRINT_TASK "TASK [Generate a manifests]"
 
 # Create installation directory
-sudo rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
-sudo mkdir -p "${INSTALL_DIR}" >/dev/null 2>&1
+rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
+mkdir "${INSTALL_DIR}" >/dev/null 2>&1
 run_command "[create installation directory: ${INSTALL_DIR}]"
 
 # Copy install-config.yaml to installation directory
-sudo cp "${HTTPD_DIR}/install-config.yaml" "${INSTALL_DIR}"
+cp "${HTTPD_DIR}/install-config.yaml" "${INSTALL_DIR}"
 run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
@@ -829,9 +832,9 @@ openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
 run_command "[generate manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
-if sudo grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
+if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
   # Replace "mastersSchedulable: true" with "mastersSchedulable: false"
-  sudo sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"
+  sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"
   echo "ok: [disable the master node from scheduling custom pods]"
 else
   echo "skipped: [scheduling of custom pods on master nodes is already disabled]"
@@ -858,32 +861,32 @@ BOOTSTRAP_HOSTNAME="${BOOTSTRAP_HOSTNAME}"
 MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
 WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
 
-sudo cp "${INSTALL_DIR}/bootstrap.ign" "${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign"
+cp "${INSTALL_DIR}/bootstrap.ign" "${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign"
 run_command "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
 
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    sudo cp "${INSTALL_DIR}/master.ign" "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
+    cp "${INSTALL_DIR}/master.ign" "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
     run_command "[copy and customize the master.ign file name: append-${MASTER_HOSTNAME}.ign]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    sudo cp "${INSTALL_DIR}/worker.ign" "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
+    cp "${INSTALL_DIR}/worker.ign" "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
     run_command "[copy and customize the worker.ign file name: append-${WORKER_HOSTNAME}.ign]"
 done
 
 # Update hostname in ignition files
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    sudo sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
     run_command "[add the appropriate hostname field to the append-${MASTER_HOSTNAME}.ign file]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    sudo sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
     run_command "[add the appropriate hostname field to the append-${WORKER_HOSTNAME}.ign file]"
 done
 
 # Set correct permissions
-sudo chmod a+r "${INSTALL_DIR}"/*.ign
+chmod a+r "${INSTALL_DIR}"/*.ign
 run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
@@ -892,7 +895,7 @@ echo
 # Step 15:
 PRINT_TASK "TASK [Generate setup script file]"
 
-sudo rm -rf ${INSTALL_DIR}/*.sh
+rm -rf ${INSTALL_DIR}/*.sh
 
 # Function to generate setup script for a node
 generate_setup_script() {
@@ -900,7 +903,7 @@ generate_setup_script() {
     local IP_ADDRESS=$2
 
 # Generate a setup script for the node
-sudo cat << EOF > "${INSTALL_DIR}/inst-${HOSTNAME}.sh"
+cat << EOF > "${INSTALL_DIR}/inst-${HOSTNAME}.sh"
 #!/bin/bash
 # Configure network settings
 sudo nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_SERVER_IP} ipv4.method manual connection.autoconnect yes
@@ -931,7 +934,7 @@ generate_setup_script "${WORKER02_HOSTNAME}" "${WORKER02_IP}"
 generate_setup_script "${WORKER03_HOSTNAME}" "${WORKER03_IP}"
 
 # Make the script executable
-sudo chmod +x ${INSTALL_DIR}/*.sh
+chmod +x ${INSTALL_DIR}/*.sh
 run_command "[change ignition file permissions]"
 
 # Add an empty line after the task
@@ -941,10 +944,10 @@ echo
 PRINT_TASK "TASK [Generate approve csr script file]"
 
 # If the file exists, delete it
-sudo rm -rf "${INSTALL_DIR}/approve-csr.sh"
+rm -rf "${INSTALL_DIR}/approve-csr.sh"
 
 # Generate approve csr script file]
-sudo cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
+cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
 
 for i in {1..720}; do 
