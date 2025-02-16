@@ -8,6 +8,25 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 export CONTROL_PLANE_NS=istio-system
 export BOOKINFO_NS=bookinfo
 
+
+# Delete custom resources
+echo "info: [uninstall custom resources...]"
+
+oc delete ns $BOOKINFO_NS >/dev/null 2>&1 || true
+oc delete ServiceMeshMemberRoll --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || true
+oc delete ServiceMeshControlPlane --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || true
+oc delete subscription elasticsearch-operator -n openshift-operators >/dev/null 2>&1 || true
+oc delete subscription kiali-ossm -n openshift-operators >/dev/null 2>&1 || true
+oc delete subscription jaeger-product -n openshift-operators >/dev/null 2>&1 || true
+oc delete subscription servicemeshoperator -n openshift-operators >/dev/null 2>&1 || true
+
+oc get csv -n openshift-operators | grep elasticsearch-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-operators | grep kiali-ossm | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-operators | grep jaeger-product | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-operators | grep servicemeshoperator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+
+oc delete ns $CONTROL_PLANE_NS >/dev/null 2>&1 || true
+
 #install the elastic operator
 cat <<EOM | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
@@ -132,13 +151,6 @@ metadata:
   name: ${CONTROL_PLANE_NS}
 EOM
 
-cat <<EOM | oc apply -f -
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ${BOOKINFO_NS}
-EOM
-
 echo "creating the scmp/smmr..."
 #create our smcp
 cat <<EOM | oc apply -f -
@@ -191,6 +203,13 @@ while [ -z "${basic_install_smcp}" ]; do
 done
 
 echo "done."
+
+cat <<EOM | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${BOOKINFO_NS}
+EOM
 
 # install bookinfo
 echo "success, deploying bookinfo..."
