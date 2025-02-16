@@ -45,8 +45,8 @@ curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/l
 oc delete sub elasticsearch-operator -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete sub cluster-logging -n openshift-operators >/dev/null 2>&1 || true
 
-oc get csv -n openshift-operators-redhat -o name | grep elasticsearch-operator | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-operators-redhat >/dev/null 2>&1 || true
-oc get csv -n openshift-logging -o name | grep cluster-logging | awk '{print $1}' | xargs -I {} oc delete csv {} -n openshift-logging >/dev/null 2>&1 || true
+oc get csv -n openshift-operators-redhat -o name | grep elasticsearch-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators-redhat >/dev/null 2>&1 || true
+oc get csv -n openshift-logging -o name | grep cluster-logging | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-logging >/dev/null 2>&1 || true
 
 oc delete ns openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete ns openshift-logging >/dev/null 2>&1 || true
