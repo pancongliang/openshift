@@ -42,7 +42,7 @@ cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
-run_command "[Set up AWS credentials]"
+run_command "[set up aws credentials]"
 
 # Add an empty line after the task
 echo
@@ -50,6 +50,6 @@ echo
 # Step 2:
 PRINT_TASK "TASK [Uninstalling a cluster]"
 
-echo "info: [Uninstalling the cluster, waiting...]"
+echo "info: [uninstalling the cluster, waiting...]"
 openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
-run_command "[Uninstalled cluster]"
+run_command "[uninstalled cluster]"
