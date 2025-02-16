@@ -173,4 +173,3 @@ echo
 
 # Add an empty line after the task
 # echo
-# ====================================================
