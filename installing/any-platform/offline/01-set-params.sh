@@ -83,6 +83,19 @@ PRINT_TASK() {
 # Step 1:
 PRINT_TASK "TASK [Set environment variables]"
 
+# Function to check command success and display appropriate message
+run_command() {
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+    fi
+}
+
+cat $PULL_SECRET_FILE >/dev/null 2>&1
+run_command "[check if the $PULL_SECRET_FILE file exists]"
+
 # Define variables
 missing_variables=()
 
@@ -161,17 +174,6 @@ fi
 
 # Add an empty line after the task
 echo
-
-# Function to check command success and display appropriate message
-run_command() {
-    local exit_code=$?
-    if [ $exit_code -eq 0 ]; then
-        echo "ok: $1"
-    else
-        echo "failed: $1"
-        exit 1
-    fi
-}
 
 # Step 2:
 PRINT_TASK "TASK [Prepare the pull-secret]"
