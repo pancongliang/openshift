@@ -38,7 +38,8 @@ run_command() {
 PRINT_TASK "TASK [Set up AWS credentials]"
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
-sudo cat << EOF > "$HOME/.aws/credentials"
+
+cat << EOF | sudo tee "$HOME/.aws/credentials" >/dev/null 2>&1
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
@@ -155,7 +156,7 @@ echo
 PRINT_TASK "TASK [Get access to Bastion Instance information]"
 
 # Modify permissions for the key pair file
-chmod 400 $HOME/.ssh/$KEY_PAIR_NAME.pem > /dev/null
+chmod 400 $HOME/.ssh/$KEY_PAIR_NAME.pem >/dev/null 2>&1
 run_command "[modify permissions for the key pair file: $HOME/.ssh/$KEY_PAIR_NAME.pem]"
 
 # Get the public IP address of the bastion ec2 instance
@@ -163,18 +164,18 @@ INSTANCE_IP=$(aws --region $REGION ec2 describe-instances --instance-ids $INSTAN
 run_command "[get the public ip address of the instance: $INSTANCE_IP]"
 
 # Create access bastion machine file in current directory
-sudo rm -rf ./ocp-bastion.sh > /dev/null
-sudo cat << EOF > "./ocp-bastion.sh"
+sudo rm -rf ./ocp-bastion.sh > >/dev/null 2>&1
+cat << EOF | sudo tee ocp-bastion.sh >/dev/null 2>&1
 ssh -o StrictHostKeyChecking=no -i "$HOME/.ssh/$KEY_PAIR_NAME.pem" ec2-user@"$INSTANCE_IP"
 EOF
 run_command "[create access $INSTANCE_NAME file in current directory]"
 
 # Modify permissions for the key pair file
-sudo chmod 777 ./ocp-bastion.sh > /dev/null
+sudo chmod 777 ./ocp-bastion.sh > >/dev/null 2>&1
 run_command "[modify permissions for the $INSTANCE_NAME file]"
 
 # Dowload ocp login script
-sudo cat << EOF > "./ocp-login.sh"
+cat << EOF | sudo tee ocp-login.sh >/dev/null 2>&1
 oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true
 EOF
 run_command "[create access $INSTANCE_NAME file in current directory]"
@@ -194,34 +195,34 @@ sudo cat <<EOF >> inst-registry.sh
 # Task: Configuring additional trust stores for image registry access
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
-oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true &> /dev/null    
+oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true >/dev/null 2>&1    
 run_command "[login ocp cluster]"
 
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > \$HOME/pull-secret
 run_command "[dowload pull-secret]"
 
-sudo podman login -u "\$REGISTRY_ID" -p "\$REGISTRY_PW" --authfile "\$HOME/pull-secret" "\${REGISTRY_DOMAIN_NAME}:8443" &>/dev/null
+sudo podman login -u "\$REGISTRY_ID" -p "\$REGISTRY_PW" --authfile "\$HOME/pull-secret" "\${REGISTRY_DOMAIN_NAME}:8443" >/dev/null 2>&1
 run_command "[add authentication information to pull-secret]"
 
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=\$HOME/pull-secret &> /dev/null    
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=\$HOME/pull-secret >/dev/null 2>&1    
 run_command "[update pull-secret]"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-sudo cat \$HOME/pull-secret | jq . > \${XDG_RUNTIME_DIR}/containers/auth.json &> /dev/null    
+sudo cat \$HOME/pull-secret | jq . > \${XDG_RUNTIME_DIR}/containers/auth.json >/dev/null 2>&1    
 run_command "[save the pull-secret file either as \$XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create a configmap containing the CA certificate
 oc create configmap registry-config \
      --from-file=\${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/\${REGISTRY_DOMAIN_NAME}.ca.pem \
-     -n openshift-config &> /dev/null
+     -n openshift-config >/dev/null 2>&1
 run_command "[create a configmap containing the ca certificate]"
 
 # Additional trusted CA
-oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
+oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
 run_command "[additional trusted ca]"
 
 # Disabling the default OperatorHub sources
-oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' &> /dev/null
+oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' >/dev/null 2>&1
 run_command "[disabling the default operatorhub sources]"
 echo
 EOF
@@ -229,7 +230,7 @@ run_command "[update mirror-registry script]"
 
 
 # Dowload ocp tool script
-sudo cat << 'EOF' > inst-ocp-tool.sh
+cat << EOF | sudo tee inst-ocp-tool.sh >/dev/null 2>&1
 #!/bin/bash
 
 # Function to print a task with uniform length
@@ -260,11 +261,11 @@ packages=("wget" "vim" "bash-completion" "jq")
 package_list="${packages[*]}"
 
 # Install all packages at once
-sudo dnf install -y $package_list &>/dev/null
+sudo dnf install -y $package_list >/dev/null
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
-    sudo rpm -q $package &>/dev/null
+    sudo rpm -q $package >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         echo "ok: [installed $package package]"
     else
@@ -293,11 +294,11 @@ install_tar_gz() {
     local tool_name="$1"
     local tool_url="$2"  
     # Download the tool
-    sudo curl -L -o "/usr/local/bin/$(basename "$tool_url")" "$tool_url" &> /dev/null    
+    sudo curl -L -o "/usr/local/bin/$(basename "$tool_url")" "$tool_url" >/dev/null 2>&1    
     if [ $? -eq 0 ]; then
         echo "ok: [Download $tool_name tool]"        
         # Extract the downloaded tool
-        sudo tar xvf "/usr/local/bin/$(basename "$tool_url")" -C "/usr/local/bin/" &> /dev/null
+        sudo tar xvf "/usr/local/bin/$(basename "$tool_url")" -C "/usr/local/bin/" >/dev/null 2>&1
         run_command "[unzip to /usr/local/bin/$tool_name]"
         # Remove the downloaded .tar.gz file
         sudo rm -rf "/usr/local/bin/openshift-client-linux.tar.gz" > /dev/null 
@@ -314,13 +315,13 @@ install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64
 sudo chmod a+x oc-mirror > /dev/null 
 run_command "[modify oc-mirror tool permissions]"
  
-sudo echo -e "\nClientAliveInterval 120\nClientAliveCountMax 720" | sudo tee -a /etc/ssh/sshd_config &> /dev/null
-sudo systemctl restart sshd &> /dev/null
+sudo echo -e "\nClientAliveInterval 120\nClientAliveCountMax 720" | sudo tee -a /etc/ssh/sshd_config >/dev/null 2>&1
+sudo systemctl restart sshd >/dev/null 2>&1
 
 # completion command:
-oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true &> /dev/null
-sudo bash -c 'oc completion bash >> /etc/bash_completion.d/oc_completion' &> /dev/null
-source /etc/bash_completion.d/oc_completio &> /dev/null
+oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true >/dev/null 2>&1
+sudo bash -c 'oc completion bash >> /etc/bash_completion.d/oc_completion' >/dev/null 2>&1
+source /etc/bash_completion.d/oc_completio >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
@@ -328,7 +329,7 @@ EOF
 run_command "[dowload ocp tool script]"
 
 # Copy the installation script to the bastion ec2 instance
-sudo scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-registry.sh ./inst-ocp-tool.sh ./ocp-login.sh ec2-user@$INSTANCE_IP:~/ > /dev/null 2> /dev/null
+sudo scp -o StrictHostKeyChecking=no -o LogLevel=ERROR -i $HOME/.ssh/$KEY_PAIR_NAME.pem ./inst-registry.sh ./inst-ocp-tool.sh ./ocp-login.sh ec2-user@$INSTANCE_IP:~/ >/dev/null 2>&1
 run_command "[copy the inst-registry.sh and inst-ocp-tool.sh script to the $INSTANCE_NAME]"
 
 sudo rm -rf ./inst-*.sh
