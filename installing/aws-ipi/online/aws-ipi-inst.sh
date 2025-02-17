@@ -6,7 +6,7 @@ set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export OCP_VERSION=4.14.20
+export OCP_VERSION=4.16.20
 export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
 export PULL_SECRET_PATH="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
@@ -16,6 +16,7 @@ export REGION="ap-northeast-1"
 export AWS_ACCESS_KEY_ID="xxxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
 export WORKER_INSTANCE_TYPE='m6a.2xlarge'             # (m6a.4xlarge vcpu: 16 mem:64 / Bare Metal: c5n.metal)https://aws.amazon.com/cn/ec2/instance-types/m6a/
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -42,7 +43,7 @@ run_command() {
 PRINT_TASK "TASK [Set up AWS credentials]"
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
-sudo cat << EOF > "$HOME/.aws/credentials"
+cat << EOF | sudo tee "$HOME/.aws/credentials" > /dev/null
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
@@ -150,7 +151,7 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     run_command "[install openshift client tool]"
 
     sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
-    run_command "[Modify /usr/local/bin/oc permissions]"
+    run_command "[modify /usr/local/bin/oc permissions]"
     sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
     run_command "[modify /usr/local/bin/kubectl permissions]"
 
@@ -171,8 +172,8 @@ PRINT_TASK "TASK [Create openshift cluster]"
 # Check if the SSH key exists
 if [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
     sudo rm -rf ${SSH_KEY_PATH}
-    sudo ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1 >/dev/null 2>&1
-    run_command "[generate ssh keys:]"
+    sudo ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
+    run_command "[generate ssh keys]"
 else
     echo "info: [ssh key already exists, skip generation]"
 fi
@@ -181,7 +182,9 @@ sudo rm -rf $OCP_INSTALL_DIR >/dev/null 2>&1
 sudo mkdir -p $OCP_INSTALL_DIR >/dev/null 2>&1
 run_command "[create install dir: $OCP_INSTALL_DIR]"
 
-sudo cat << EOF > $OCP_INSTALL_DIR/install-config.yaml 
+sudo chmod -R 777 $OCP_INSTALL_DIR >/dev/null 2>&1
+
+cat << EOF | sudo tee $OCP_INSTALL_DIR/install-config.yaml >/dev/null 2>&1
 additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
@@ -215,7 +218,7 @@ platform:
   aws:
     region: $REGION
 publish: External
-pullSecret: '$(cat $PULL_SECRET_PATH)' 
+pullSecret: '$(cat $PULL_SECRET_PATH)'
 sshKey: |
   $(cat $SSH_KEY_PATH/id_rsa.pub)
 EOF
@@ -267,7 +270,7 @@ run_command "[create a secret using the users.htpasswd file]"
 sudo rm -rf $OCP_INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-sudo cat  <<EOF | /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
+sudo cat  <<EOF | oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -302,7 +305,7 @@ while true; do
         fi
         
         echo -n '.'
-        sleep 30
+        sleep 60
     else
         # Close progress indicator only if progress_started is true
         if $progress_started; then
@@ -326,7 +329,7 @@ while true; do
         fi
         
         echo -n '.'
-        sleep 30
+        sleep 60
     else
         if $progress_started; then
             echo "]"
@@ -340,7 +343,7 @@ done
 echo
 
 # Step 5:
-#PRINT_TASK "TASK [Login OCP Cluster]"
+# PRINT_TASK "TASK [Login OCP Cluster]"
 
 #oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443 --insecure-skip-tls-verify >/dev/null 2>&1
 #run_command "[log in to the cluster using the htpasswd user]"
@@ -353,5 +356,6 @@ PRINT_TASK "TASK [Login cluster information]"
 
 echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig]"
+
+# Add an empty line after the task
 echo
-# ====================================================
