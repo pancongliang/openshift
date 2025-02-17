@@ -34,15 +34,15 @@ run_command() {
 # Step 1:
 PRINT_TASK "TASK [Set up AWS credentials]"
 
-sudo rm -rf $HOME/.aws
-sudo mkdir -p $HOME/.aws
-cat << EOF | sudo tee "$HOME/.aws/credentials" > /dev/null
+rm -rf $HOME/.aws
+mkdir -p $HOME/.aws
+cat << EOF > "$HOME/.aws/credentials"
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
-run_command "[set up aws credentials]"
+run_command "[Set up AWS credentials]"
 
 # Add an empty line after the task
 echo
