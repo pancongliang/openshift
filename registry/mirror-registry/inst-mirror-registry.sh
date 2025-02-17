@@ -6,10 +6,10 @@ set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
-export REGISTRY_ID="admin"
-export REGISTRY_PW="password"
-export REGISTRY_INSTALL_PATH="/opt/quay-install"
+#export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
+#export REGISTRY_ID="admin"
+#export REGISTRY_PW="password"
+#export REGISTRY_INSTALL_PATH="/opt/quay-install"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
