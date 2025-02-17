@@ -37,7 +37,7 @@ PRINT_TASK "TASK [Set up AWS credentials]"
 
 sudo rm -rf $HOME/.aws
 sudo mkdir -p $HOME/.aws
-sudo cat << EOF > "$HOME/.aws/credentials"
+cat << EOF | sudo tee "$HOME/.aws/credentials" > /dev/null
 [default]
 cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
