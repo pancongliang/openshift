@@ -75,7 +75,7 @@ bash aws-inst-bastion.sh
 ssh ocp-bastion.sh
 # Run one by one 
 ls
-inst-registry.sh inst-ocp-tool.sh ocp-login.sh
+inst-ocp-tool.sh ocp-login.sh inst-registry.sh
 ```
 
 #### Scheduled installation and uninstallation of OpenShift IPI
