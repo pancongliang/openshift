@@ -191,43 +191,7 @@ export REGISTRY_INSTALL_PATH="\$HOME/quay-install"
 EOF
 run_command "[dowload mirror-registry script]"
 
-sudo cat <<EOF >> inst-registry.sh
-# Task: Configuring additional trust stores for image registry access
-PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
-
-oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true >/dev/null 2>&1    
-run_command "[login ocp cluster]"
-
-oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > \$HOME/pull-secret
-run_command "[dowload pull-secret]"
-
-sudo podman login -u "\$REGISTRY_ID" -p "\$REGISTRY_PW" --authfile "\$HOME/pull-secret" "\${REGISTRY_DOMAIN_NAME}:8443" >/dev/null 2>&1
-run_command "[add authentication information to pull-secret]"
-
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=\$HOME/pull-secret >/dev/null 2>&1    
-run_command "[update pull-secret]"
-
-# Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-sudo cat \$HOME/pull-secret | jq . > \${XDG_RUNTIME_DIR}/containers/auth.json >/dev/null 2>&1    
-run_command "[save the pull-secret file either as \$XDG_RUNTIME_DIR/containers/auth.json]"
-
-# Create a configmap containing the CA certificate
-oc create configmap registry-config \
-     --from-file=\${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/\${REGISTRY_DOMAIN_NAME}.ca.pem \
-     -n openshift-config >/dev/null 2>&1
-run_command "[create a configmap containing the ca certificate]"
-
-# Additional trusted CA
-oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
-run_command "[additional trusted ca]"
-
-# Disabling the default OperatorHub sources
-oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' >/dev/null 2>&1
-run_command "[disabling the default operatorhub sources]"
-echo
-EOF
-run_command "[update mirror-registry script]"
-
+rm -rf inst-mirror-registry.sh >/dev/null 2>&1
 
 # Dowload ocp tool script
 cat << EOF | sudo tee inst-ocp-tool.sh >/dev/null 2>&1
@@ -312,14 +276,13 @@ install_tar_gz() {
 install_tar_gz "openshift-client" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
 install_tar_gz "oc-mirror" "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
 
-sudo chmod a+x oc-mirror > /dev/null 
+sudo chmod a+x oc-mirror >/dev/null 2>&1
 run_command "[modify oc-mirror tool permissions]"
  
 sudo echo -e "\nClientAliveInterval 120\nClientAliveCountMax 720" | sudo tee -a /etc/ssh/sshd_config >/dev/null 2>&1
 sudo systemctl restart sshd >/dev/null 2>&1
 
 # completion command:
-oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true >/dev/null 2>&1
 sudo bash -c 'oc completion bash >> /etc/bash_completion.d/oc_completion' >/dev/null 2>&1
 source /etc/bash_completion.d/oc_completio >/dev/null 2>&1
 
