@@ -52,7 +52,7 @@ packages=("wget" "vim-enhanced" "podman" "butane" "git" "bash-completion" "jq" "
 package_list="${packages[*]}"
 
 # Install all packages at once
-sudo dnf install -y $package_list &>/dev/null
+sudo dnf install -y $package_list >/dev/null
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
