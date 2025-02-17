@@ -41,6 +41,8 @@ run_command() {
 
 # Step 1:
 PRINT_TASK "TASK [Set up AWS credentials]"
+
+# Create AWS credentials
 rm -rf $HOME/.aws
 mkdir -p $HOME/.aws
 
