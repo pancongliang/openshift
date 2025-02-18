@@ -58,7 +58,7 @@
   ```
 
 * Deploy Minio Object Storage:
-  [Deploy Minio and create `oadp-bucket`](storage/minio/readme.md)
+  [Deploy Minio and create `oadp-bucket`](blob/main/storage/minio/readme.md)
 
 ### Install and configure OADP Operator
 
