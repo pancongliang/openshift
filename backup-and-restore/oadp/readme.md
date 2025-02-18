@@ -58,7 +58,7 @@
   ```
 
 * Deploy Minio Object Storage:
-  [Deploy Minio and create `oadp-bucket`](https://github.com/pancongliang/openshift/blob/9d882e50dbbaf4434c31deec9b65c064cd749b0d/storage/minio/readme.md)
+  [Deploy Minio and create oadp-bucket](https://github.com/pancongliang/openshift/blob/9d882e50dbbaf4434c31deec9b65c064cd749b0d/storage/minio/readme.md)
 
 ### Install and configure OADP Operator
 
