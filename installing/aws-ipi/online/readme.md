@@ -9,6 +9,13 @@ curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installi
 vim aws-ipi-inst.sh
 ```
 
+#### Grant sudo password-free permissions
+~~~
+sudo visudo
+root            ALL = (ALL) ALL
+user1           ALL=(ALL) NOPASSWD: ALL
+~~~
+
 #### Installing a cluster quickly on AWS(Client Mac or RHEL:)
 
 ```
