@@ -83,10 +83,10 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     run_command "[download openshift-install]"
 
     rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
-    tar -xzf "$openshift_install" -C "/usr/local/bin/" >/dev/null 2>&1
+    sudo tar -xzf "$openshift_install" -C "/usr/local/bin/" >/dev/null 2>&1
     run_command "[install openshift-install]"
 
-    chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
+    sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
     rm -rf "$openshift_install" >/dev/null 2>&1
 
     # Determine the download URL for OpenShift Client
@@ -102,15 +102,15 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     curl -sL "$download_url" -o "$openshift_client"
     run_command "[download openshift-client]"
 
-    rm -f /usr/local/bin/oc >/dev/null 2>&1
-    rm -f /usr/local/bin/kubectl >/dev/null 2>&1
-    rm -f /usr/local/bin/README.md >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
 
-    tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
+    sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
     run_command "[install openshift-client]"
 
-    chmod +x /usr/local/bin/oc >/dev/null 2>&1
-    chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
+    sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
+    sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
     rm -rf "$openshift_client" >/dev/null 2>&1
 
 # Handle Linux
@@ -120,17 +120,17 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     run_command "[download openshift-install tool]"
 
     rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
-    tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
+    sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
     run_command "[install openshift-install tool]"
 
-    chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
+    sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
     run_command "[modify /usr/local/bin/openshift-install permissions]"
     rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
     # Delete the old version of oc cli
-    rm -f /usr/local/bin/oc >/dev/null 2>&1
-    rm -f /usr/local/bin/kubectl >/dev/null 2>&1
-    rm -f /usr/local/bin/README.md >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
 
     # Get the RHEL version number
     rhel_version=$(rpm -E %{rhel})
@@ -150,19 +150,20 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     run_command "[download openshift client tool]"
 
     # Extract the downloaded tarball to /usr/local/bin/
-    tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
+    sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
     run_command "[install openshift client tool]"
 
-    chmod +x /usr/local/bin/oc >/dev/null 2>&1
+    sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
     run_command "[modify /usr/local/bin/oc permissions]"
-    chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
+    
+    sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
     run_command "[modify /usr/local/bin/kubectl permissions]"
 
-    rm -f /usr/local/bin/README.md >/dev/null 2>&1
-    rm -rf $openshift_client >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
+    sudo rm -rf $openshift_client >/dev/null 2>&1
 
     # Install httpd-tools
-    dnf install httpd-tools -y >/dev/null 2>&1
+    sudo dnf install httpd-tools -y >/dev/null 2>&1
     run_command "[install httpd-tools]"
 fi
 
