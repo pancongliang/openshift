@@ -15,4 +15,4 @@
   
   source inst-docker-registry.sh
   ```
-* Configuring additional [trust](https://github.com/pancongliang/openshift/blob/main/registry/add-trust-registry/readme.md#configuring-additional-trust-stores-for-image-registry-access) stores for image registry access
+* Configuring additional [trust](/registry/add-trust-registry/readme.md) stores for image registry access
