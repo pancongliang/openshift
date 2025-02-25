@@ -12,7 +12,7 @@
 
 
 ### Create SC
-* Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs-sc/readme.md), if storage class has been deployed,only need to set the variables.
+* Deploy [NFS StorageClass](/storage/nfs-sc/readme.md), if storage class has been deployed,only need to set the variables.
 
 
 ### Create Noobaa
