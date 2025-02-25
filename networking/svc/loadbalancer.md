@@ -1,5 +1,5 @@
 ### Install and configure MetalLB Operator
-* Clusters installed in UPI mode need to [install MetalLB](https://github.com/pancongliang/openshift/blob/main/operator/metallb/readme.md) to provide load balancing IP for `svc`.
+* Clusters installed in UPI mode need to [install MetalLB](/operator/metallb/readme.md) to provide load balancing IP for `svc`.
 
 ### Create a test pod
 ~~~
