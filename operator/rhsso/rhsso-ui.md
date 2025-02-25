@@ -1,5 +1,3 @@
-[OpenShift 4 - 配置基于 Red Hat SSO 的 Identity Providers](https://blog.csdn.net/weixin_43902588/article/details/105303056)
-
 #### Installation and configuration the Red Hat Single Sign-On Operator
 1. Install the Red Hat Single Sign-On Operator.  
 ```
