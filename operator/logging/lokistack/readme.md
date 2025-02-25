@@ -31,8 +31,8 @@
 
 #### Install Minio Object Storage and NFS Storage Class
 
-* Install and configure [Minio Object Storage and NFS Storage Class](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-c-deploying-minio-with-nfs-storageclass-as-the-backend-storage).
-  If storageclass already exists, only [Minio Object Storage](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-b-deploying-minio-with-local-volume-as-the-backend-storage) will be installed.
+* Install and configure [Minio Object Storage and NFS Storage Class](/storage/nfs-sc/readme.md).
+  If storageclass already exists, only [Minio Object Storage](/storage/minio/readme.md) will be installed.
 
 
 * Create Object Storage secret credentials
@@ -71,8 +71,8 @@
   ```
 
 ####  Install lokistack using ODF or MCG/NFS-SC
-* Install and configure [odf-operator](https://github.com/pancongliang/openshift/blob/main/storage/odf/readme.md)
-* Install and configure [nfs-sc](https://github.com/pancongliang/openshift/tree/main/storage/nfs-sc) and [MCG](https://github.com/pancongliang/openshift/blob/main/storage/mcg/readme.md)
+* Install and configure [odf-operator](/storage/odf/readme.md)
+* Install and configure [nfs-sc](/storage/nfs-sc/readme.md) and [MCG](/storage/mcg/readme.md)
 * Create ObjectBucketClaim
    ```
    export NAMESPACE="openshift-logging"
