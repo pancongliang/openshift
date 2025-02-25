@@ -88,7 +88,7 @@ $ oc get mc | grep rendered-single |grep os-layer-add-wget
 rendered-single-ec19c64c098b084aae2221bf3c1b2b9b        4accd895aa8fe5ccbd166b9562fdcf5a2112c5ec   3.2.0             59s
 $ oc get node |grep worker-2.ocp4.example.com
 worker-2.ocp4.example.com   Ready,SchedulingDisabled   single,worker                 151d   v1.25.10+8c21020
-
+~~~
 
 ### 6.When the node is back in the Ready state, check that the node is using the custom layered image
 ~~~
