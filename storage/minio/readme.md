@@ -28,7 +28,7 @@
 
 #### Options C: Deploying Minio with NFS StorageClass as the Backend Storage
 
-* Deploy [NFS StorageClass](https://github.com/pancongliang/openshift/blob/main/storage/nfs-sc/readme.md), Can be skipped if a default storage class exists.
+* Deploy [NFS StorageClass](/storage/nfs-sc/readme.md), Can be skipped if a default storage class exists.
 
 * Deploy Minio Object Storage
 
