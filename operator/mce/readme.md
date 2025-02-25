@@ -1,7 +1,7 @@
 
-## Install and Configure MulticlusterEngine Operator
+## Install and Configure Multi Cluster Engine Operator
 
-### Install MulticlusterEngine Operator
+### Install Multi Cluster Engine Operator
 
 * To install the Operator using the default namespace, follow these steps:
 
@@ -14,7 +14,7 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
-### Create MulticlusterEngine Custom Resources
+### Create Multi Cluster Engine Custom Resources
 
 * Create the Central instance with the following command:
 
