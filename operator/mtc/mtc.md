@@ -37,7 +37,7 @@ $ oc rsync ~/test pod/nginx-5697898488-5lq8k:/data
 ~~~
 
 ### Install MinIO in the target cluster
-* Deploy [Minio Object Storage](https://github.com/pancongliang/openshift/blob/main/storage/minio/readme.md#options-c-deploying-minio-with-nfs-storageclass-as-the-backend-storage) and create a bucket named `mtc-bucket`
+* Deploy [Minio Object Storage](/storage/minio/readme.md) and create a bucket named `mtc-bucket`
 
 
 
