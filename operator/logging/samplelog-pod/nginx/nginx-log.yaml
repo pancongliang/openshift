@@ -55,6 +55,8 @@ spec:
         ports:
         - containerPort: 8080
           protocol: TCP
+        securityContext:
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /etc/nginx/nginx.conf
           name: nginx-config-volume
