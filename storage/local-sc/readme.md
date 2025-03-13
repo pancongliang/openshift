@@ -46,7 +46,7 @@ oc create -f - <<EOF
 apiVersion: "local.storage.openshift.io/v1"
 kind: "LocalVolume"
 metadata:
-  name: "local-disks"
+  name: "local-block"
   namespace: "openshift-local-storage" 
 spec:
   nodeSelector: 
@@ -57,7 +57,7 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "local-block" 
+    - storageClassName: "local-disk" 
       forceWipeDevicesAndDestroyAllData: false
       volumeMode: Block 
       devicePaths: 
@@ -74,7 +74,7 @@ oc create -f - <<EOF
 apiVersion: "local.storage.openshift.io/v1"
 kind: "LocalVolume"
 metadata:
-  name: "local-disks"
+  name: "local-fs"
   namespace: "openshift-local-storage" 
 spec:
   nodeSelector: 
@@ -85,11 +85,11 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "local-fs" 
+    - storageClassName: "local-disk" 
       forceWipeDevicesAndDestroyAllData: false
       volumeMode: Filesystem
       fsType: xfs
-      devicePaths: 
+      devicePaths:
         - ${DEVICE_PATH_1}
         ${DEVICE_PATH_2:+- ${DEVICE_PATH_2}}
         ${DEVICE_PATH_3:+- ${DEVICE_PATH_3}}
