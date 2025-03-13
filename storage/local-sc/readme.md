@@ -87,7 +87,8 @@ spec:
   storageClassDevices:
     - storageClassName: "local-fs" 
       forceWipeDevicesAndDestroyAllData: false
-      volumeMode: Filesystem 
+      volumeMode: Filesystem
+      fsType: xfs 6
       devicePaths: 
         - ${DEVICE_PATH_1}
         ${DEVICE_PATH_2:+- ${DEVICE_PATH_2}}
