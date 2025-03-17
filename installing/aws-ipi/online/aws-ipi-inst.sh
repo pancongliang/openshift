@@ -228,7 +228,7 @@ run_command "[create the install-config.yaml file]"
 
 echo "ok: [installing the OpenShift cluster]"
 
-openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
+/usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
 run_command "[install OpenShift AWS IPI completed]"
 
 # Check cluster operator status
