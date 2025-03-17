@@ -400,7 +400,7 @@ run_command "[Generate a defined install-config file]"
 sudo rm -rf ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak
 run_command "[Delete ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem.bak file]"
 
-sudo openshift-install create manifests --dir $INSTALL &>/dev/null
+sudo /usr/local/bin/openshift-install create manifests --dir $INSTALL &>/dev/null
 run_command "[Manifests created in: $INSTALL/manifests $INSTALL/openshift ]"
 
 # Delete the private zone in the cluster-dns-02-config.yml file
