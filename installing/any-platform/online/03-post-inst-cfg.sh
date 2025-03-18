@@ -130,7 +130,11 @@ sleep 15
 
 # Wait for OpenShift authentication pods to be in 'Running' state
 export AUTH_NAMESPACE="openshift-authentication"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+
 while true; do
     # Get the status of all pods
     output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
@@ -145,10 +149,20 @@ while true; do
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 2
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, oauth pods may still be initializing]"
+            break
+        fi
     else
         # Close the progress indicator and print the success message
-        echo "]"
+        if $progress_started; then
+            echo "]"
+        fi
         echo "ok: [all oauth pods are in 'running' state]"
         break
     fi
@@ -160,24 +174,37 @@ echo
 # Step 5:
 PRINT_TASK "TASK [Checking the cluster status]"
 
-# Print task title
-PRINT_TASK "TASK [Check status]"
-
 # Check cluster operator status
+MAX_RETRIES=20
+SLEEP_INTERVAL=15
 progress_started=false
+retry_count=0
+
 while true; do
-    operator_status=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    # Get the status of all cluster operators
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     
-    if echo "$operator_status" | grep -q -v "True False False"; then
+    # Check cluster operators status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [waiting for all cluster operators to reach the expected state"
-            progress_started=true  
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 15
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, cluster operator may still be initializing]"
+            break
+        fi
     else
-        # Close progress indicator only if progress_started is true
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
@@ -187,20 +214,36 @@ while true; do
 done
 
 # Check MCP status
+MAX_RETRIES=20
+SLEEP_INTERVAL=15
 progress_started=false
+retry_count=0
 
 while true; do
-    mcp_status=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
-
-    if echo "$mcp_status" | grep -q -v "True False False"; then
+    # Get the status of all mcp
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
+    
+    # Check mcp status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [waiting for all mcps to reach the expected state"
-            progress_started=true  
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 15
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, mcp may still be initializing]"
+            break
+        fi
     else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
