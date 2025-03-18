@@ -105,7 +105,7 @@ oc get sc
 
 ### Uninstall Local Storage Operator
 ```
-oc delete LocalVolume local-disk -n openshift-local-storage
+oc get localvolumes -n openshift-local-storage -o name | xargs -I {} oc delete {}
 oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {}
  
 #!/bin/bash
