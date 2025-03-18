@@ -57,7 +57,7 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "local-disk" 
+    - storageClassName: "local-block" 
       forceWipeDevicesAndDestroyAllData: false
       volumeMode: Block 
       devicePaths: 
@@ -85,7 +85,7 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "local-disk" 
+    - storageClassName: "local-fs" 
       forceWipeDevicesAndDestroyAllData: false
       volumeMode: Filesystem
       fsType: xfs
