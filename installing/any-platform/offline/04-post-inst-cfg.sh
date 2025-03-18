@@ -29,6 +29,7 @@ run_command() {
 # Step 1:
 # Applying environment variables
 source 01-set-params.sh
+export PATH="/usr/local/bin:$PATH"
 
 # Add an empty line after the task
 echo
