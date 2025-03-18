@@ -28,7 +28,6 @@ run_command() {
 
 # Step 1:
 source 01-set-params.sh
-run_command "[applying environment variables]"
 export PATH="/usr/local/bin:$PATH"
 
 # Add an empty line after the task
