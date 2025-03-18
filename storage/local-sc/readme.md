@@ -46,7 +46,7 @@ oc create -f - <<EOF
 apiVersion: "local.storage.openshift.io/v1"
 kind: "LocalVolume"
 metadata:
-  name: "local-block"
+  name: "local-disk"
   namespace: "openshift-local-storage" 
 spec:
   nodeSelector: 
@@ -74,7 +74,7 @@ oc create -f - <<EOF
 apiVersion: "local.storage.openshift.io/v1"
 kind: "LocalVolume"
 metadata:
-  name: "local-fs"
+  name: "local-disk"
   namespace: "openshift-local-storage" 
 spec:
   nodeSelector: 
