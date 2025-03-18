@@ -103,6 +103,23 @@ oc get pv |grep local
 oc get sc
 ```
 
+### Uninstall Local Storage Operator
+```
+oc delete LocalVolume local-disk -n openshift-local-storage
+oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {}
+ 
+#!/bin/bash
+for Hostname in $(oc get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
+do
+   echo "Delete the /mnt/local-storage/ file in the $Hostname node"
+   ssh -o StrictHostKeyChecking=no core@$Hostname sudo rm -rf /mnt/local-storage/*
+done
+
+export CHANNEL_NAME="stable"
+export CATALOG_SOURCE_NAME="redhat-operators"
+export NAMESPACE="openshift-local-storage"
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/01-operator.yaml | envsubst | oc delete -f -
+```
 
 
 ## Provisioning Local Volumes Without the Local Storage Operator
