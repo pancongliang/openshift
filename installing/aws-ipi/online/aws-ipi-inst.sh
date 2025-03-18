@@ -161,10 +161,6 @@ elif [ "$OS_TYPE" = "Linux" ]; then
 
     sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
     sudo rm -rf $openshift_client >/dev/null 2>&1
-
-    # Install httpd-tools
-    sudo dnf install httpd-tools -y >/dev/null 2>&1
-    run_command "[install httpd-tools]"
 fi
 
 # Add an empty line after the task
@@ -228,13 +224,15 @@ run_command "[create the install-config.yaml file]"
 
 echo "ok: [installing the OpenShift cluster]"
 
-/usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
+export PATH="/usr/local/bin:$PATH"
+
+openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
 run_command "[install OpenShift AWS IPI completed]"
 
 # Check cluster operator status
 progress_started=false
 while true; do
-    operator_status=$(/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
@@ -261,16 +259,18 @@ echo
 PRINT_TASK "TASK [Create htpasswd User]"
 
 rm -rf $OCP_INSTALL_DIR/users.htpasswd
-htpasswd -c -B -b $OCP_INSTALL_DIR/users.htpasswd admin redhat >/dev/null 2>&1
+cat << EOF > $OCP_INSTALL_DIR/users.htpasswd
+admin:$2y$05$.9uG3eMC1vrnhLIj8.v.POcGpFEN/STrpOw7yGQ5dnMmLbrKVVCmu
+EOF
 run_command "[create a user using the htpasswd tool]"
 
-/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
+oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
 run_command "[create a secret using the users.htpasswd file]"
 
 rm -rf $OCP_INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-cat  <<EOF | /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
+cat  <<EOF | oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -287,7 +287,7 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1
+oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1
 run_command "[grant cluster-admin permissions to the admin user]"
 
 echo "info: [restarting oauth pod, waiting...]"
@@ -296,7 +296,7 @@ sleep 100
 # Check cluster operator status
 progress_started=false
 while true; do
-    operator_status=$(/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
@@ -320,7 +320,7 @@ done
 progress_started=false
 
 while true; do
-    mcp_status=$(/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
+    mcp_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
 
     if echo "$mcp_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
