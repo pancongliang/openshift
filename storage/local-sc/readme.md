@@ -106,12 +106,14 @@ oc get sc
 ### Uninstall Local Storage Operator
 ```
 oc get localvolumes -n openshift-local-storage -o name | xargs -I {} oc -n openshift-local-storage delete {}
+oc get localvolume -n openshift-local-storage -o jsonpath='{.items[*].metadata.name}' | xargs -I {} oc patch localvolume {} -n openshift-local-storage --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]'
+
 oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {}
  
 #!/bin/bash
 for Hostname in $(oc get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
 do
-   echo "Delete the /mnt/local-storage/ file in the $Hostname node"
+   echo "delete the /mnt/local-storage/ file in the $Hostname node"
    ssh -o StrictHostKeyChecking=no core@$Hostname sudo rm -rf /mnt/local-storage/*
 done
 
