@@ -6,6 +6,7 @@ Install and configure the NFS server. Skip this step if it is already installed
 ```
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/01-install-nfs-package.sh
 
+vim 01-install-nfs-package.sh
 bash 01-install-nfs-package.sh
 ```
 
