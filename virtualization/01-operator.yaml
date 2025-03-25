@@ -22,5 +22,4 @@ spec:
   installPlanApproval: "Manual"
   sourceNamespace: openshift-marketplace
   name: kubevirt-hyperconverged
-  startingCSV: ${STARTING_CSV}
   channel: ${CHANNEL_NAME}
