@@ -1,12 +1,16 @@
 ## Deploy NFS StorageClass
 
 ### 1. Install and Configure the NFS Server
-Install and configure the NFS server. Skip this step if it is already installed
 
+Set Necessary Parameters
 ```
 wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/01-install-nfs-package.sh
 
 vim 01-install-nfs-package.sh
+```
+
+Install and configure the NFS server. Skip this step if it is already installed
+```
 bash 01-install-nfs-package.sh
 ```
 
