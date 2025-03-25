@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Set environment variables
+export NFS_DIR="/nfs"
+
 # Enable strict mode for robust error handling and log failures with line number.
 set -u
 set -e
