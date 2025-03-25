@@ -187,7 +187,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for pods to be in 'running' state"
+            echo -n "info: [waiting for pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
