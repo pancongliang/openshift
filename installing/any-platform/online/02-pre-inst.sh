@@ -633,9 +633,10 @@ run_command "[change ownership /var/named/*.zone]"
 # Enable and start service
 systemctl enable --now named  >/dev/null 2>&1
 run_command "[restart and enable named service]"
+systemctl restart --now named  >/dev/null 2>&1
 
 # Wait for the service to restart
-sleep 3
+sleep 15
 
 # List of hostnames and IP addresses to check
 hostnames=(
