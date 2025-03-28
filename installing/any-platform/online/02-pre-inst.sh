@@ -315,11 +315,14 @@ mkdir -p ${HTTPD_DIR} >/dev/null 2>&1
 run_command "[create http: ${HTTPD_DIR} director]"
 
 # Enable and start service
-systemctl enable --now httpd >/dev/null 2>&1
-run_command "[restart and enable httpd service]"
+systemctl enable httpd >/dev/null 2>&1
+run_command "[set the httpd service to start automatically at boot]"
+
+systemctl restart httpd >/dev/null 2>&1
+run_command "[restart httpd service]"
 
 # Wait for the service to restart
-sleep 3
+sleep 15
 
 # Test httpd configuration
 rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
@@ -368,12 +371,14 @@ else
 fi
 
 # Enable and start service
-systemctl enable --now nfs-server >/dev/null 2>&1
-run_command "[restart and enable nfs-server service]"
+systemctl enable nfs-server >/dev/null 2>&1
+run_command "[set the nfs-server service to start automatically at boot]"
 
 systemctl restart nfs-server >/dev/null 2>&1
+run_command "[restart nfs-server service]"
+
 # Wait for the service to restart
-sleep 10
+sleep 15
 
 # Create the mount point
 umount /tmp/nfs-test >/dev/null 2>&1 || true
@@ -384,6 +389,9 @@ run_command "[create an nfs mount directory for testing: /tmp/nfs-test]"
 # Attempt to mount the NFS share
 mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test >/dev/null 2>&1
 run_command "[test mounts the nfs shared directory: /tmp/nfs-test]"
+
+# Wait mount the NFS share
+sleep 10
 
 # Unmount the NFS share
 fuser -km /tmp/nfs-test >/dev/null 2>&1 || true
@@ -631,9 +639,11 @@ chown named. /var/named/*.zone
 run_command "[change ownership /var/named/*.zone]"
 
 # Enable and start service
-systemctl enable --now named  >/dev/null 2>&1
-run_command "[restart and enable named service]"
-systemctl restart --now named  >/dev/null 2>&1
+systemctl enable named  >/dev/null 2>&1
+run_command "[set the named service to start automatically at boot]"
+
+systemctl restart named  >/dev/null 2>&1
+run_command "[restart named service]"
 
 # Wait for the service to restart
 sleep 15
@@ -762,7 +772,13 @@ run_command "[haproxy configuration is valid]"
 
 # Enable and start service
 systemctl enable --now haproxy >/dev/null 2>&1
-run_command "[restart and enable haproxy service]"
+run_command "[set the haproxy service to start automatically at boot]"
+
+systemctl restart haproxy >/dev/null 2>&1
+run_command "[restart haproxy service]"
+
+# Wait for the service to restart
+sleep 15
 
 # Add an empty line after the task
 echo
