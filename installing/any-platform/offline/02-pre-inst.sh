@@ -271,11 +271,14 @@ mkdir -p ${HTTPD_DIR} >/dev/null 2>&1
 run_command "[create http: ${HTTPD_DIR} director]"
 
 # Enable and start service
-systemctl enable --now httpd >/dev/null 2>&1
-run_command "[restart and enable httpd service]"
+systemctl enable httpd >/dev/null 2>&1
+run_command "[set the httpd service to start automatically at boot]"
+
+systemctl restart httpd >/dev/null 2>&1
+run_command "[restart httpd service]"
 
 # Wait for the service to restart
-sleep 3
+sleep 15
 
 # Test httpd configuration
 rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
@@ -324,12 +327,14 @@ else
 fi
 
 # Enable and start service
-systemctl enable --now nfs-server >/dev/null 2>&1
-run_command "[restart and enable nfs-server service]"
+systemctl enable nfs-server >/dev/null 2>&1
+run_command "[set the nfs-server service to start automatically at boot]"
 
 systemctl restart nfs-server >/dev/null 2>&1
+run_command "[restart nfs-server service]"
+
 # Wait for the service to restart
-sleep 10
+sleep 15
 
 # Create the mount point
 umount /tmp/nfs-test >/dev/null 2>&1 || true
@@ -591,11 +596,14 @@ chown named. /var/named/*.zone >/dev/null 2>&1
 run_command "[change ownership /var/named/*.zone]"
 
 # Enable and start service
-systemctl enable --now named >/dev/null 2>&1
-run_command "[restart and enable named service]"
+systemctl enable named  >/dev/null 2>&1
+run_command "[set the named service to start automatically at boot]"
+
+systemctl restart named  >/dev/null 2>&1
+run_command "[restart named service]"
 
 # Wait for the service to restart
-sleep 3
+sleep 15
 
 # List of hostnames and IP addresses to check
 hostnames=(
@@ -722,7 +730,13 @@ run_command "[haproxy configuration is valid]"
 
 # Enable and start service
 systemctl enable --now haproxy >/dev/null 2>&1
-run_command "[restart and enable haproxy service]"
+run_command "[set the haproxy service to start automatically at boot]"
+
+systemctl restart haproxy >/dev/null 2>&1
+run_command "[restart haproxy service]"
+
+# Wait for the service to restart
+sleep 15
 
 # Add an empty line after the task
 echo
