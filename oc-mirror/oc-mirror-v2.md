@@ -87,7 +87,7 @@
 * Mirroring from disk to regitry(offline environment)
   ```
   MIRROR_REGISTRY=mirror.registry.example.com:8443
-  podman login -u admin -p redhat ${MIRROR_REGISTRY}
+  podman login -u admin -p password ${MIRROR_REGISTRY}
 
   MIRROR_IMAGE_PATH=./olm
   ls ${MIRROR_IMAGE_PATH}
@@ -101,14 +101,14 @@
 * Add local Image Registry credentials to the pull-secret
   ```
   MIRROR_REGISTRY=mirror.registry.example.com:8443
-  podman login -u admin -p redhat ${MIRROR_REGISTRY}
-  podman login -u admin -p redhat --authfile ./pull-secret ${MIRROR_REGISTRY}
+  podman login -u admin -p password ${MIRROR_REGISTRY}
+  podman login -u admin -p password --authfile ./pull-secret ${MIRROR_REGISTRY}
   cat ./pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
   ```
 
 * Mirror image sets to a registry
   ```
-  oc-mirror -c isc.yaml --workspace file://olm docker://${MIRROR_REGISTRY} --v2
+  oc-mirror -c isc.yaml --workspace file://olm docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
   ```
   
 ### Create IDMS, ITMS, CatalogSource, and Signature ConfigMap
@@ -159,7 +159,7 @@
   ```
 * Create a delete-images.yaml file by running the following command
   ```
-  oc-mirror delete --config disc.yaml --workspace file://${MIRROR_IMAGE_PATH} --v2 --generate docker://${MIRROR_REGISTRY}
+  oc-mirror delete --config disc.yaml --workspace file://${MIRROR_IMAGE_PATH} --v2 --generate docker://${MIRROR_REGISTRY} --dest-tls-verify=false
   ```
 * Verify that the delete-images.yaml file has been generated
   ```
@@ -168,5 +168,5 @@
   ```
 * After generate the delete-images YAML file, delete the images from the remote registry by running the following command
   ```
-  oc-mirror delete --v2 --delete-yaml-file ${MIRROR_IMAGE_PATH}/working-dir/delete/delete-images.yaml docker://${MIRROR_REGISTRY}
+  oc-mirror delete --v2 --delete-yaml-file ${MIRROR_IMAGE_PATH}/working-dir/delete/delete-images.yaml docker://${MIRROR_REGISTRY} --dest-tls-verify=false
   ```
