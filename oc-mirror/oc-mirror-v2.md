@@ -22,7 +22,6 @@
   
 * Save the file either as ~/.docker/config.json or $XDG_RUNTIME_DIR/containers/auth.json
   ```
-  podman login registr.redhat.io
   cat ./pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
   ```
 
