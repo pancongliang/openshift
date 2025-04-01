@@ -942,7 +942,7 @@ rm -rf "${INSTALL_DIR}/approve-csr.sh"
 # Generate approve csr script file]
 cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
-
+export PATH="/usr/local/bin:$PATH"
 for i in {1..720}; do 
   oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs --no-run-if-empty oc adm certificate approve
   sleep 10
