@@ -230,26 +230,6 @@ run_command "[install kubens tool]"
 chmod +x /usr/local/bin/kubens >/dev/null 2>&1
 run_command "[modify /usr/local/bin/kubens permissions]"
 
-# Installing Krew Plugin Manager 
-(
-  set -x; cd "$(mktemp -d)" &&
-  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-  KREW="krew-${OS}_${ARCH}" &&
-  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
-  tar zxf "${KREW}.tar.gz" &&
-  ./"${KREW}" install krew
-) >/dev/null 2>&1
-run_command "[installing krew plugin manager]"
-
-echo "export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"" >> ~/.bash_profile
-run_command "[add the $HOME/.krew/bin directory to your PATH environment variable]"
-
-# Installing kubectl neat 
-export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-kubectl krew install neat >/dev/null 2>&1
-run_command "[installing kubectl neat]"
-
 # Add an empty line after the task
 echo
 
