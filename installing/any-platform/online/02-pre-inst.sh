@@ -193,28 +193,28 @@ rm -f /usr/local/bin/README.md >/dev/null 2>&1
 rm -rf $openshift_client >/dev/null 2>&1
 
 # Get the RHEL version number
-rhel_version=$(rpm -E %{rhel})
-if [ "$rhel_version" -eq 8 ]; then
-    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.14.35/oc-mirror.tar.gz"
-    oc_mirror="oc-mirror.tar.gz"
-elif [ "$rhel_version" -eq 9 ]; then
-    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
-    oc_mirror="oc-mirror.tar.gz"
-fi
+#rhel_version=$(rpm -E %{rhel})
+#if [ "$rhel_version" -eq 8 ]; then
+#    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.14.35/oc-mirror.tar.gz"
+#    oc_mirror="oc-mirror.tar.gz"
+#elif [ "$rhel_version" -eq 9 ]; then
+#    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
+#    oc_mirror="oc-mirror.tar.gz"
+#fi
 
 # Download the oc-mirror tool
-wget -q "$download_url" -O "$oc_mirror"
-run_command "[download oc-mirror tool]"
+#wget -q "$download_url" -O "$oc_mirror"
+#run_command "[download oc-mirror tool]"
 
 # Remove the old oc-mirror binary and install the new one
-rm -rf /usr/local/bin/oc-mirror >/dev/null 2>&1
-tar -xzf "$oc_mirror" -C "/usr/local/bin/" >/dev/null 2>&1
-run_command "[install oc-mirror tool]"
+#rm -rf /usr/local/bin/oc-mirror >/dev/null 2>&1
+#tar -xzf "$oc_mirror" -C "/usr/local/bin/" >/dev/null 2>&1
+#run_command "[install oc-mirror tool]"
 
-chmod a+x /usr/local/bin/oc-mirror >/dev/null 2>&1
-run_command "[modify /usr/local/bin/oc-mirror permissions]"
+#chmod a+x /usr/local/bin/oc-mirror >/dev/null 2>&1
+#run_command "[modify /usr/local/bin/oc-mirror permissions]"
 
-rm -rf $oc_mirror >/dev/null 2>&1
+#rm -rf $oc_mirror >/dev/null 2>&1
 
 # Download the kubectx tool
 curl -sLo /usr/local/bin/kubectx https://raw.githubusercontent.com/ahmetb/kubectx/master/kubectx >/dev/null 2>&1
