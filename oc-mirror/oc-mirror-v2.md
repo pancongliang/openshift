@@ -159,6 +159,9 @@
   ```
 * Create a delete-images.yaml file by running the following command
   ```
+  MIRROR_IMAGE_PATH=./olm
+  MIRROR_REGISTRY=mirror.registry.example.com:8443
+  
   oc-mirror delete --config disc.yaml --workspace file://${MIRROR_IMAGE_PATH} --v2 --generate docker://${MIRROR_REGISTRY} --dest-tls-verify=false
   ```
 * Verify that the delete-images.yaml file has been generated
