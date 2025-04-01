@@ -145,8 +145,8 @@ PRINT_TASK "TASK [Install openshift and kubelet tool]"
 # Delete the old version of oc cli
 rm -f /usr/local/bin/oc* >/dev/null 2>&1
 rm -f /usr/local/bin/kube* >/dev/null 2>&1
-rm -f /usr/local/bin/README.md >/dev/null 2>&1
 rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
+rm -f /usr/local/bin/README.md >/dev/null 2>&1
 
 # Download the openshift-install
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
