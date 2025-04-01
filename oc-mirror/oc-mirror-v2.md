@@ -107,6 +107,7 @@
 
 * Mirror image sets to a registry
   ```
+  mkdir ./olm
   oc-mirror -c isc.yaml --workspace file://olm docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
   ```
   
