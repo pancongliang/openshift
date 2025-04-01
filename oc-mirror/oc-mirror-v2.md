@@ -2,6 +2,7 @@
 
 
 ### Installing the oc-mirror plug-in
+* Installing the oc-mirror plug-in
   ```
   curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
   tar -xvf oc-mirror.tar.gz
@@ -10,6 +11,7 @@
   ```
 
 ### Disabling the default OperatorHub sources
+* Disabling the default OperatorHub sources
   ```
   oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
   ```
