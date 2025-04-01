@@ -142,3 +142,34 @@
   openshift-pipelines-operator-rh             3m45s
   ···
   ```
+
+### Deleting images from a disconnected environment 
+
+* Create a disc.yaml file and include the following content
+  ```
+  cat > disc.yaml << EOF
+  apiVersion: mirror.openshift.io/v2alpha1
+  kind: DeleteImageSetConfiguration
+  delete:
+    operators:
+      - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.18
+        packages:
+        - name: openshift-pipelines-operator-rh
+          minVersion: '1.18.0'
+          maxVersion: '1.18.0'
+  EOF
+  ```
+* Create a delete-images.yaml file by running the following command
+  ```
+  oc mirror delete --config disc.yaml --workspace file://$MIRROR_IMAGE_PATH --v2 --generate docker://$MIRROR_REGISTRY
+  ```
+* Verify that the delete-images.yaml file has been generated
+  ```
+  ls $MIRROR_IMAGE_PATH/working-dir/delete
+  delete-imageset-config.yaml  delete-images.yaml
+  ```
+
+* After generate the delete-images YAML file, delete the images from the remote registry by running the following command
+  ```
+  oc mirror delete --v2 --delete-yaml-file $MIRROR_IMAGE_PATH/working-dir/delete/delete-images.yaml docker://$MIRROR_REGISTRY
+  ```
