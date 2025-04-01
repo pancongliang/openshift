@@ -156,11 +156,9 @@ run_command "[modify /usr/local/bin/openshift-install permissions]"
 rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
 # Delete the old version of oc cli
-rm -f /usr/local/bin/oc >/dev/null 2>&1
-rm -f /usr/local/bin/kubectl >/dev/null 2>&1
+rm -f /usr/local/bin/oc* >/dev/null 2>&1
+rm -f /usr/local/bin/kube* >/dev/null 2>&1
 rm -f /usr/local/bin/README.md >/dev/null 2>&1
-rm -f /usr/local/bin/kubectx >/dev/null 2>&1
-rm -f /usr/local/bin/kubens >/dev/null 2>&1
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
@@ -206,8 +204,7 @@ rm -rf $openshift_client >/dev/null 2>&1
 #wget -q "$download_url" -O "$oc_mirror"
 #run_command "[download oc-mirror tool]"
 
-# Remove the old oc-mirror binary and install the new one
-#rm -rf /usr/local/bin/oc-mirror >/dev/null 2>&1
+# Install oc-mirror  tool
 #tar -xzf "$oc_mirror" -C "/usr/local/bin/" >/dev/null 2>&1
 #run_command "[install oc-mirror tool]"
 
