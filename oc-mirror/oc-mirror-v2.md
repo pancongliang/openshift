@@ -80,8 +80,8 @@
 
   ```
   MIRROR_IMAGE_PATH=./mirror
-  mkdir $MIRROR_IMAGE_PATH
-  oc mirror -c isc.yaml file://$MIRROR_IMAGE_PATH --v2
+  mkdir ${MIRROR_IMAGE_PATH}
+  oc mirror -c isc.yaml file://${MIRROR_IMAGE_PATH} --v2
   ```
 
 * Migrate the mirror file and isc.yaml file to a disconnected environment
@@ -101,7 +101,6 @@
 * Mirroring from disk to regitry(offline environment)
   ```
   MIRROR_IMAGE_PATH=./mirror
-
   ls ${MIRROR_IMAGE_PATH}
   mirror_000001.tar  working-dir
 
@@ -127,11 +126,11 @@
 
 * Create IDMS and catalogsource
   ```
-  ls $MIRROR_IMAGE_PATH/working-dir/cluster-resources/
+  ls ${MIRROR_IMAGE_PATH}/working-dir/cluster-resources/
   cc-redhat-operator-index-v4-18.yaml  cs-redhat-operator-index-v4-18.yaml  idms-oc-mirror.yaml
 
-  oc create -f $MIRROR_IMAGE_PATH/working-dir/cluster-resources/idms-oc-mirror.yaml
-  oc create -f $MIRROR_IMAGE_PATH/working-dir/cc-redhat-operator-index-v4-18.yaml
+  oc create -f ${MIRROR_IMAGE_PATH}/working-dir/cluster-resources/idms-oc-mirror.yaml
+  oc create -f ${MIRROR_IMAGE_PATH}/working-dir/cc-redhat-operator-index-v4-18.yaml
 
   oc get catalogsource -n openshift-marketplace
   NAME                      DISPLAY   TYPE   PUBLISHER   AGE
@@ -144,7 +143,7 @@
   ```
 * If release images are mirrored, create a signature-configmap
   ```
-  oc create -f $MIRROR_IMAGE_PATH/working-dir/cluster-resources/signature-configmap.json  
+  oc create -f ${MIRROR_IMAGE_PATH}/working-dir/cluster-resources/signature-configmap.json  
   ```
 
 ### Deleting images from a disconnected environment 
@@ -165,15 +164,14 @@
   ```
 * Create a delete-images.yaml file by running the following command
   ```
-  oc mirror delete --config disc.yaml --workspace file://$MIRROR_IMAGE_PATH --v2 --generate docker://$MIRROR_REGISTRY
+  oc mirror delete --config disc.yaml --workspace file://${MIRROR_IMAGE_PATH} --v2 --generate docker://${MIRROR_REGISTRY}
   ```
 * Verify that the delete-images.yaml file has been generated
   ```
-  ls $MIRROR_IMAGE_PATH/working-dir/delete
+  ls ${MIRROR_IMAGE_PATH}/working-dir/delete
   delete-imageset-config.yaml  delete-images.yaml
   ```
-
 * After generate the delete-images YAML file, delete the images from the remote registry by running the following command
   ```
-  oc mirror delete --v2 --delete-yaml-file $MIRROR_IMAGE_PATH/working-dir/delete/delete-images.yaml docker://$MIRROR_REGISTRY
+  oc mirror delete --v2 --delete-yaml-file ${MIRROR_IMAGE_PATH}/working-dir/delete/delete-images.yaml docker://${MIRROR_REGISTRY}
   ```
