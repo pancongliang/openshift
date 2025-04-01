@@ -74,22 +74,21 @@
   EOF
   ```
 ### Optional A: Mirroring an image set in a fully disconnected environment
-* Mirroring from mirror to disk 
-
+* Mirroring from mirror to disk(Environment with Internet access) 
   ```
   MIRROR_IMAGE_PATH=./olm
   mkdir ${MIRROR_IMAGE_PATH}
   oc-mirror -c isc.yaml file://${MIRROR_IMAGE_PATH} --v2
   ```
 
-* Migrate the mirror file and isc.yaml file to a disconnected environment
+* Migrate the mirror file and isc.yaml file to a fully disconnected environment
 
-* Mirroring from disk to regitry(offline environment)
+* Mirroring from disk to regitry(fully disconnected environment)
   ```
+  MIRROR_IMAGE_PATH=./olm
   MIRROR_REGISTRY=mirror.registry.example.com:8443
   podman login -u admin -p password ${MIRROR_REGISTRY}
 
-  MIRROR_IMAGE_PATH=./olm
   ls ${MIRROR_IMAGE_PATH}
   mirror_000001.tar  working-dir
 
