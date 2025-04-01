@@ -76,23 +76,23 @@
 ### Optional A: Mirroring an image set in a fully disconnected environment
 * Mirroring from mirror to disk(Environment with Internet access) 
   ```
-  MIRROR_IMAGE_PATH=./olm
-  mkdir ${MIRROR_IMAGE_PATH}
-  oc-mirror -c isc.yaml file://${MIRROR_IMAGE_PATH} --v2
+  MIRROR_RESOURCES_DIR=./olm
+  mkdir ${MIRROR_RESOURCES_DIR}
+  oc-mirror -c isc.yaml file://${MIRROR_RESOURCES_DIR} --v2
   ```
 
 * Migrate the mirror file and isc.yaml file to a fully disconnected environment
 
 * Mirroring from disk to regitry(fully disconnected environment)
   ```
-  MIRROR_IMAGE_PATH=./olm
+  MIRROR_RESOURCES_DIR=./olm
   MIRROR_REGISTRY=mirror.registry.example.com:8443
   podman login -u admin -p password ${MIRROR_REGISTRY}
 
-  ls ${MIRROR_IMAGE_PATH}
+  ls ${MIRROR_RESOURCES_DIR}
   mirror_000001.tar  working-dir
 
-  oc-mirror -c isc.yaml --from file://${MIRROR_IMAGE_PATH} docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
+  oc-mirror -c isc.yaml --from file://${MIRROR_RESOURCES_DIR} docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
   ```
 
 ### Optional B: Mirroring an image set in a partially disconnected environment
@@ -107,7 +107,8 @@
 
 * Mirror image sets to a registry
   ```
-  mkdir ./olm
+  MIRROR_RESOURCES_DIR=./olm
+  mkdir ${MIRROR_RESOURCES_DIR}
   oc-mirror -c isc.yaml --workspace file://olm docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
   ```
   
@@ -115,14 +116,14 @@
 
 * Create IDMS, ITMS and catalogsource
   ```
-  ls ${MIRROR_IMAGE_PATH}/working-dir/cluster-resources/
+  ls ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/
   cc-redhat-operator-index-v4-18.yaml  cs-redhat-operator-index-v4-18.yaml  idms-oc-mirror.yaml
 
-  oc create -f ${MIRROR_IMAGE_PATH}/working-dir/cluster-resources/idms-oc-mirror.yaml
-  oc create -f ${MIRROR_IMAGE_PATH}/working-dir/cluster-resources/cs-redhat-operator-index-v4-18.yaml
+  oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/idms-oc-mirror.yaml
+  oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/cs-redhat-operator-index-v4-18.yaml
 
   # Generated if at least one image from the image set is mirrored by tag, Please note that MCO drains the nodes for ImageTagMirrorSet objects
-  oc create -f ${MIRROR_IMAGE_PATH}/working-dir/cluster-resources/itms-oc-mirror.yaml  
+  oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/itms-oc-mirror.yaml  
 
   oc get catalogsource -n openshift-marketplace
   NAME                             DISPLAY   TYPE   PUBLISHER   AGE
@@ -135,10 +136,10 @@
   ```
 * If release images are mirrored, create a signature-configmap and itms ITMS
   ```
-  oc create -f ${MIRROR_IMAGE_PATH}/working-dir/cluster-resources/signature-configmap.yaml
+  oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/signature-configmap.yaml
 
   # Please note that MCO drains the nodes for ImageTagMirrorSet objects
-  oc create -f ${MIRROR_IMAGE_PATH}/working-dir/cluster-resources/itms-oc-mirror.yaml  
+  oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/itms-oc-mirror.yaml  
   ```
 
 ### Deleting images from a disconnected environment 
@@ -159,17 +160,17 @@
   ```
 * Create a delete-images.yaml file by running the following command
   ```
-  MIRROR_IMAGE_PATH=./olm
+  MIRROR_RESOURCES_DIR=./olm
   MIRROR_REGISTRY=mirror.registry.example.com:8443
   
-  oc-mirror delete --config disc.yaml --workspace file://${MIRROR_IMAGE_PATH} --v2 --generate docker://${MIRROR_REGISTRY} --dest-tls-verify=false
+  oc-mirror delete --config disc.yaml --workspace file://${MIRROR_RESOURCES_DIR} --v2 --generate docker://${MIRROR_REGISTRY} --dest-tls-verify=false
   ```
 * Verify that the delete-images.yaml file has been generated
   ```
-  ls ${MIRROR_IMAGE_PATH}/working-dir/delete
+  ls ${MIRROR_RESOURCES_DIR}/working-dir/delete
   delete-imageset-config.yaml  delete-images.yaml
   ```
 * After generate the delete-images YAML file, delete the images from the remote registry by running the following command
   ```
-  oc-mirror delete --v2 --delete-yaml-file ${MIRROR_IMAGE_PATH}/working-dir/delete/delete-images.yaml docker://${MIRROR_REGISTRY} --dest-tls-verify=false
+  oc-mirror delete --v2 --delete-yaml-file ${MIRROR_RESOURCES_DIR}/working-dir/delete/delete-images.yaml docker://${MIRROR_REGISTRY} --dest-tls-verify=false
   ```
