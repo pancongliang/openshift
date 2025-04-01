@@ -123,9 +123,9 @@
   oc mirror -c isc.yaml --workspace file://olm docker://${MIRROR_REGISTRY} --v2
   ```
   
-### Create icsp and catalogsource
+### Create IDMS, ITMS, CatalogSource, and Signature ConfigMap.
 
-* Create icsp and catalogsource
+* Create IDMS and catalogsource
   ```
   ls $MIRROR_IMAGE_PATH/working-dir/cluster-resources/
   cc-redhat-operator-index-v4-18.yaml  cs-redhat-operator-index-v4-18.yaml  idms-oc-mirror.yaml
@@ -141,6 +141,10 @@
   NAME                              CATALOG   AGE
   openshift-pipelines-operator-rh             3m45s
   ···
+  ```
+* If release images are mirrored, create a signature-configmap
+  ```
+  oc create -f $MIRROR_IMAGE_PATH/working-dir/cluster-resources/signature-configmap.json  
   ```
 
 ### Deleting images from a disconnected environment 
