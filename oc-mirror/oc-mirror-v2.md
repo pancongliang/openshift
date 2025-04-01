@@ -2,17 +2,17 @@
 
 
 ### Installing the oc-mirror plug-in
-```
-curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
-tar -xvf oc-mirror.tar.gz
-chmod +x ./oc-mirror
-sudo mv ./oc-mirror /usr/local/bin/
-```
+  ```
+  curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
+  tar -xvf oc-mirror.tar.gz
+  chmod +x ./oc-mirror
+  sudo mv ./oc-mirror /usr/local/bin/
+  ```
 
 ### Disabling the default OperatorHub sources
-```
-oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
-```
+  ```
+  oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+  ```
 
 ### Configuring credentials that allow images to be mirrored
 
