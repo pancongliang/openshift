@@ -30,10 +30,6 @@ run_command() {
 # Applying environment variables
 source 01-set-params.sh
 
-# Add an empty line after the task
-echo
-
-
 # Setp 2:
 PRINT_TASK "[TASK: Install AWS CLI]"
 
