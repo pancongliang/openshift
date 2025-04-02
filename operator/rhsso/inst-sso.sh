@@ -59,6 +59,48 @@ run_command "[install rhsso operator]"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve the install plan]"
 
+
+# Wait for rhsso-operator pods to be in 'Running' state
+NAMESPACE="rhsso"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
+progress_started=false
+retry_count=0
+pod_name=rhsso-operator
+
+while true; do
+    # Get the status of all pods
+    output=$(oc get po -n "$NAMESPACE" | awk '{print $2, $3}')
+    
+    # Check if any pod is not in the "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            break
+        fi
+    else
+        # Close the progress indicator and print the success message
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [all $pod_name pods are in 'running' state]"
+        break
+    fi
+done
+
 sleep 30
 
 # Create the Keycloak resource
