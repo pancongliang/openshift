@@ -120,6 +120,11 @@ oc rsh -n minio deployments/minio mc --no-color rb --force my-minio/loki-bucket 
 oc rsh -n minio deployments/minio mc --no-color mb my-minio/loki-bucket >/dev/null 2>&1
 run_command "[created bucket loki-bucket]"
 
+# Set environment variables
+export ACCESS_KEY_ID="minioadmin"
+export ACCESS_KEY_SECRET="minioadmin"
+export BUCKET_NAME="loki-bucket"
+
 echo "ok: [minio default id/pw: minioadmin/minioadmin]"
 
 # Add an empty line after the task
