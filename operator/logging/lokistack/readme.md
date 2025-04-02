@@ -22,7 +22,7 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   export NAMESPACE="openshift-operators-redhat"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-  export NAMESPACE="openshift-operators"
+  export NAMESPACE="openshift-cluster-observability-operator"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
