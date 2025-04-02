@@ -137,7 +137,7 @@ retry_count=0
 
 while true; do
     # Get the status of all pods
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -182,7 +182,7 @@ retry_count=0
 
 while true; do
     # Get the status of all cluster operators
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check cluster operators status
     if echo "$output" | grep -q -v "True False False"; then
@@ -219,11 +219,9 @@ SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
 
-sleep 5
-
 while true; do
     # Get the status of all mcp
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check mcp status
     if echo "$output" | grep -q -v "True False False"; then
