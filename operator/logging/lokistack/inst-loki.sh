@@ -89,8 +89,6 @@ progress_started=false
 retry_count=0
 pod_name=minio
 
-sleep 5
-
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
@@ -283,8 +281,6 @@ progress_started=false
 retry_count=0
 pod_name=logging-operator
 
-sleep 5
-
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep cluster-logging-operator | awk '{print $2, $3}' || true)
@@ -326,8 +322,6 @@ progress_started=false
 retry_count=0
 pod_name=loki-operator
 
-sleep 5
-
 while true; do
     # Get the status of all pods
     output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep loki-operator | awk '{print $2, $3}' || true)
@@ -368,8 +362,6 @@ SLEEP_INTERVAL=2
 progress_started=false
 retry_count=0
 pod_name=observability-operator
-
-sleep 5
 
 while true; do
     # Get the status of all pods
@@ -455,8 +447,6 @@ SLEEP_INTERVAL=2
 progress_started=false
 retry_count=0
 pod_name=observability-operator
-
-sleep 5
 
 while true; do
     # Get the status of all pods
@@ -564,8 +554,6 @@ SLEEP_INTERVAL=2
 progress_started=false
 retry_count=0
 pod_name=observability-operator
-
-sleep 5
 
 while true; do
     # Get the status of all pods
