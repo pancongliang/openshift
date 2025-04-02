@@ -60,16 +60,16 @@ oc delete operatorgroups cluster-logging -n openshift-logging >/dev/null 2>&1 ||
 oc delete ns openshift-logging >/dev/null 2>&1 || true
 oc delete ns openshift-cluster-observability-operator >/dev/null 2>&1 || true
 
+sleep 5
+
 # Add an empty line after the task
 echo
-
-sleep 20
 
 # Step 1:
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Check if the Deployment exists
-if oc get deployment -n minio | grep -q "^minio "; then
+if oc get deployment minio -n minio >/dev/null 2>&1; then
     echo "ok: [minio already exists, skipping deployment]"
 else
     echo "info: [minio not found, starting deployment...]"
@@ -79,31 +79,51 @@ else
     run_command "[deploying minio object storage]"
 fi
 
+sleep 5
+
 # Wait for Minio pods to be in 'Running' state
+NAMESPACE="minio"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=minio
+
+sleep 5
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n minio --no-headers | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 2
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            break
+        fi
     else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [minio pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
+
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
@@ -131,9 +151,21 @@ echo "ok: [minio default id/pw: minioadmin/minioadmin]"
 echo
 
 # Step 2:
-PRINT_TASK "[TASK: Install OpenShift Logging]"
+PRINT_TASK "TASK [Install OpenShift Logging]"
 
 # Create a namespace
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-logging
+  annotations:
+    openshift.io/node-selector: ""
+  labels:
+    openshift.io/cluster-monitoring: "true"
+EOF
+run_command "[create a openshift-logging namespace]"
+
 cat << EOF | oc apply -f - >/dev/null 2>&1 || true
 apiVersion: v1
 kind: Namespace
@@ -150,18 +182,6 @@ cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openshift-logging
-  annotations:
-    openshift.io/node-selector: ""
-  labels:
-    openshift.io/cluster-monitoring: "true"
-EOF
-run_command "[create a openshift-logging namespace]"
-
-cat << EOF | oc apply -f - >/dev/null 2>&1
-apiVersion: v1
-kind: Namespace
-metadata:
   name: openshift-cluster-observability-operator
   annotations:
     openshift.io/node-selector: ""
@@ -171,28 +191,6 @@ EOF
 run_command "[create a openshift-cluster-observability-operator namespace]"
 
 # Create a OperatorGroup
-cat << EOF | oc apply -f - >/dev/null 2>&1
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: openshift-operators-redhat
-  namespace: openshift-operators-redhat 
-spec: {}
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: "loki-operator"
-  namespace: "openshift-operators-redhat" 
-spec:
-  channel: ${LOKI_CHANNEL_NAME}
-  installPlanApproval: "Manual"
-  name: loki-operator
-  source: $CATALOG_SOURCE_NAME
-  sourceNamespace: openshift-marketplace
-EOF
-run_command "[create a loki operator]"
-
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
@@ -215,7 +213,29 @@ spec:
   source: $CATALOG_SOURCE_NAME
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[create a cluster-logging operator]"
+run_command "[create a cluster-logging-operator]"
+
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-operators-redhat
+  namespace: openshift-operators-redhat 
+spec: {}
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: "loki-operator"
+  namespace: "openshift-operators-redhat" 
+spec:
+  channel: ${LOKI_CHANNEL_NAME}
+  installPlanApproval: "Manual"
+  name: loki-operator
+  source: $CATALOG_SOURCE_NAME
+  sourceNamespace: openshift-marketplace
+EOF
+run_command "[create a loki-operator]"
 
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1
@@ -238,12 +258,12 @@ spec:
   source: $CATALOG_SOURCE_NAME
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[create a cluster observability operator]"
+run_command "[create a cluster-observability-operator]"
 
 # Approval IP
 export NAMESPACE="openshift-logging"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "[approve cluster-logging install plan]"
+run_command "[approve cluster-logging-operator install plan]"
 
 export NAMESPACE="openshift-operators-redhat"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
@@ -255,85 +275,135 @@ run_command "[approve cluster-observability-operator install plan]"
 
 sleep 15
 
-# Wait for cluster-logging-operator pods to be in 'Running' state
+# Wait for logging-operator pods to be in 'Running' state
+NAMESPACE="openshift-logging"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=logging-operator
+
+sleep 5
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n openshift-logging --no-headers |grep cluster-logging-operator | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers |grep cluster-logging-operator | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for cluster-logging-operator pods to be in 'running' state"
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 2
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            break
+        fi
     else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [cluster-logging-operator pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
 
 # Wait for loki-operator pods to be in 'Running' state
+NAMESPACE="openshift-operators-redhat"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=loki-operator
+
+sleep 5
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n openshift-operators-redhat --no-headers |grep loki-operator | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers |grep loki-operator | awk '{print $2, $3}')
     
     # Check if any pod is not in the "2/2 Running" state
     if echo "$output" | grep -vq "2/2 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for loki-operator pods to be in 'running' state"
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 2
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            break
+        fi
     else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [loki-operator pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
 
-# Wait for openshift-cluster-observability-operator pods to be in 'Running' state
+# Wait for observability-operator pods to be in 'Running' state
+NAMESPACE="openshift-cluster-observability-operator"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=observability-operator
+
+sleep 5
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n openshift-cluster-observability-operator --no-headers |grep -v Completed | awk '{print $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers |grep -v Completed | awk '{print $3}')
     
     # Check if any pod is not in the "Running" state
     if echo "$output" | grep -vq "Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for observability-operator pods to be in 'running' state"
-            progress_started=true  # Prevent duplicate messages
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 10
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            break
+        fi
     else
-        # Close the progress indicator if it was started
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-
-        echo "ok: [all openshift-cluster-observability-operator pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
+
 
 # create object storage secret credentials
 cat << EOF | oc apply -f - >/dev/null 2>&1
@@ -376,32 +446,47 @@ spec:
 EOF
 run_command "[create loki stack instance]"
 
-sleep 30
+sleep 25
 
 # Wait for openshift-logging pods to be in 'Running' state
+NAMESPACE="openshift-logging"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=observability-operator
+
+sleep 5
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n openshift-logging --no-headers |grep -v Completed | awk '{print $3}')
-    
+    output=$(oc get po -n "$NAMESPACE" --no-headers |grep -v Completed | awk '{print $3}')
+
     # Check if any pod is not in the "Running" state
     if echo "$output" | grep -vq "Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
-            progress_started=true  # Prevent duplicate messages
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 10
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            break
+        fi
     else
-        # Close the progress indicator if it was started
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-
-        echo "ok: [all openshift-logging pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
@@ -470,32 +555,47 @@ spec:
 EOF
 run_command "[creating cluster log forwarder resources]"
 
-sleep 30
+sleep 25
 
 # Wait for openshift-logging pods to be in 'Running' state
+NAMESPACE="openshift-logging"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=observability-operator
+
+sleep 5
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n openshift-logging --no-headers |grep -v Completed | awk '{print $3}')
-    
+    output=$(oc get po -n "$NAMESPACE" --no-headers |grep -v Completed | awk '{print $3}')
+
     # Check if any pod is not in the "Running" state
     if echo "$output" | grep -vq "Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
-            progress_started=true  # Prevent duplicate messages
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 10
+        sleep "$SLEEP_INTERVAL"
+        ((retry_count++))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            break
+        fi
     else
-        # Close the progress indicator if it was started
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-
-        echo "ok: [all openshift-logging pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
