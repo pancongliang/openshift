@@ -71,7 +71,7 @@ metadata:
   name: cluster-observability-operator
   namespace: openshift-cluster-observability-operator
 spec:
-  channel: development
+  channel: stable
   installPlanApproval: "Manual"
   name: cluster-observability-operator
   source: ${CATALOG_SOURCE_NAME}
