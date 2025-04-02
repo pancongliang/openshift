@@ -33,8 +33,8 @@ run_command() {
     fi
 }
 
-# Step 1:
-PRINT_TASK "TASK [Deploying Minio Object Storage]"
+# Step 0:
+PRINT_TASK "TASK [Uninstall old quay resources...]"
 
 # Delete custom resources
 echo "info: [uninstall custom resources...]"
@@ -45,44 +45,64 @@ oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || t
 oc get csv -n openshift-operators -o name | grep quay-operator | awk -F/ '{print $2}'  | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
 oc delete ns quay-enterprise >/dev/null 2>&1 || true
 
-sleep 15
+sleep 5
+
+# Add an empty line after the task
+echo
 
 # Step 1:
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Check if the Deployment exists
-if oc get deployment -n minio | grep -q "^minio "; then
+if oc get deployment minio -n minio >/dev/null 2>&1; then
     echo "ok: [minio already exists, skipping deployment]"
 else
     echo "info: [minio not found, starting deployment...]"
 
     # Deploy MinIO
-    sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f - >/dev/null 2>&1
+    curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f - >/dev/null 2>&1
     run_command "[deploying minio object storage]"
 fi
 
+sleep 5
+
 # Wait for Minio pods to be in 'Running' state
+NAMESPACE="minio"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=minio
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n minio --no-headers | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 3
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            exit 1 
+        fi
     else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [minio pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
@@ -101,6 +121,11 @@ run_command "[configured minio client alias]"
 oc rsh -n minio deployments/minio mc --no-color rb --force my-minio/quay-bucket >/dev/null 2>&1 || true
 oc rsh -n minio deployments/minio mc --no-color mb my-minio/quay-bucket >/dev/null 2>&1
 run_command "[created bucket: quay-bucket]"
+
+# Set environment variables
+export ACCESS_KEY_ID="minioadmin"
+export ACCESS_KEY_SECRET="minioadmin"
+export BUCKET_NAME="quay-bucket"
 
 echo "ok: [minio default id/pw: minioadmin/minioadmin]"
 
@@ -128,33 +153,48 @@ run_command "[installing quay operator...]"
 
 # Approval IP
 export NAMESPACE="openshift-operators"
-sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
+curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve openshift-operators install plan]"
 
 sleep 10
 
-# Initialize progress_started as false
+# Wait for quay-operator pods to be in 'Running' state
+NAMESPACE="openshift-operators"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=quay-operator
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers | grep "quay-operator" | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | grep "quay-operator" | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 2
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            exit 1 
+        fi
     else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [quay operator pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
@@ -165,12 +205,7 @@ oc new-project $NAMESPACE >/dev/null 2>&1
 run_command "[create a $NAMESPACE namespace]"
 
 # Create a quay config
-export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
-export ACCESS_KEY_ID="minioadmin"
-export ACCESS_KEY_SECRET="minioadmin"
-export BUCKET_NAME="quay-bucket"
-
-sudo cat << EOF > config.yaml
+cat << EOF > config.yaml
 DISTRIBUTED_STORAGE_CONFIG:
   default:
     - RadosGWStorage
@@ -198,7 +233,7 @@ sleep 10
 oc create secret generic quay-config --from-file=config.yaml -n $NAMESPACE >/dev/null 2>&1
 run_command "[create a secret containing quay-config]"
 
-sudo rm -rf config.yaml >/dev/null 2>&1
+rm -rf config.yaml >/dev/null 2>&1
 
 # Create a Quay Registry
 cat << EOF | oc apply -f - >/dev/null 2>&1
@@ -231,28 +266,43 @@ run_command "[create a quay registry]"
 
 sleep 10
 
-# Check quay pod status
+# Wait for quay pods to be in 'Running' state
+NAMESPACE="openshift-operators"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=quay=
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers |grep -v Completed | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep -v Completed | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [waiting for $pod_name namespace pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 20
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name namespace pods may still be initializing]"
+            exit 1 
+        fi
     else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [quay pods are in 'running' state]"
+        echo "ok: [all $pod_name namespace pods are in 'running' state]"
         break
     fi
 done
@@ -264,12 +314,14 @@ echo
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Export the router-ca certificate
+rm -rf tls.crt >/dev/null
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null 2>&1
 run_command "[export the router-ca certificate]"
 
 sleep 10
 
 # Create a configmap containing the CA certificate
+export NAMESPACE="quay-enterprise"
 export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}') >/dev/null 2>&1
 
 sleep 10
@@ -295,7 +347,7 @@ else
   run_command  "[trust the registry-cas configmap]"
 fi
 
-sudo rm -rf tls.crt >/dev/null
+rm -rf tls.crt >/dev/null
 
 # Add an empty line after the task
 echo
@@ -304,7 +356,7 @@ echo
 PRINT_TASK "TASK [Update pull-secret]"
 
 # Export pull-secret
-sudo rm -rf pull-secret
+rm -rf pull-secret
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
 run_command "[export pull-secret]"
 
@@ -321,7 +373,7 @@ if [ -f "$AUTHFILE" ]; then
      '.auths[$registry] = {auth: $auth}' \
      "$AUTHFILE" > tmp-authfile && mv -f tmp-authfile "$AUTHFILE"
 else
-sudo cat <<EOF > $AUTHFILE
+cat <<EOF > $AUTHFILE
 {
     "auths": {
         "$REGISTRY": {
@@ -337,8 +389,8 @@ echo "ok: [authentication information for quay registry added to $AUTHFILE]"
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
 run_command "[update pull-secret for the cluster]"
 
-sudo rm -rf tmp-authfile >/dev/null 2>&1
-sudo rm -rf pull-secret >/dev/null 2>&1
+rm -rf tmp-authfile >/dev/null 2>&1
+rm -rf pull-secret >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
@@ -347,20 +399,36 @@ echo
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
+MAX_RETRIES=20
+SLEEP_INTERVAL=15
 progress_started=false
+retry_count=0
+
 while true; do
-    operator_status=$(oc get co --no-headers | awk '{print $3, $4, $5}')
+    # Get the status of all cluster operators
+    output=$(oc get co --no-headers | awk '{print $3, $4, $5}')
     
-    if echo "$operator_status" | grep -q -v "True False False"; then
+    # Check cluster operators status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [waiting for all cluster operators to reach the expected state"
-            progress_started=true  
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 20
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, cluster operator may still be initializing]"
+            break
+        fi
     else
-        # Close progress indicator only if progress_started is true
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
@@ -370,20 +438,36 @@ while true; do
 done
 
 # Check MCP status
+MAX_RETRIES=20
+SLEEP_INTERVAL=15
 progress_started=false
+retry_count=0
 
 while true; do
-    mcp_status=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
-
-    if echo "$mcp_status" | grep -q -v "True False False"; then
+    # Get the status of all mcp
+    output=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
+    
+    # Check mcp status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [waiting for all mcps to reach the expected state"
-            progress_started=true  
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 20
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, mcp may still be initializing]"
+            break
+        fi
     else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
