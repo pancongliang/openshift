@@ -34,7 +34,7 @@ PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
 oc delete ns minio >/dev/null 2>&1 || true
-sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
+sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 run_command "[deploying minio object storage]]"
 
 # Wait for Minio pods to be in 'Running' state
