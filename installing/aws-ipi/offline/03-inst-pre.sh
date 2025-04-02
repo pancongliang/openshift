@@ -39,9 +39,6 @@ run_command() {
 # Applying environment variables
 source 01-set-params.sh
 
-# Add an empty line after the task
-echo
-
 # Step 3:
 PRINT_TASK "TASK [Install infrastructure rpm]"
 
