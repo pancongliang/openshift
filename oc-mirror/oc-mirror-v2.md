@@ -1,7 +1,7 @@
-## Mirror an image set in a full disconnected environment using the oc-mirror plugin
+## Mirror an image set in a disconnected environment using the oc-mirror v2 plugin
 
 
-### Installing the oc-mirror plug-in
+### Installing the oc-mirror plugin
 * Installing the oc-mirror plug-in
   ```
   curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
