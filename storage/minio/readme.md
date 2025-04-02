@@ -7,7 +7,7 @@
 * EmptyDir is a temporary storage volume used to provide transient storage space during the lifetime of a Pod.  
 
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-ephemeral-volume.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-ephemeral.yaml | envsubst | oc apply -f -
   
   oc get pod,route -n minio
   ```
@@ -21,7 +21,7 @@
   export STORAGE_SIZE="50Gi"
   ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/minio-data
 
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-local-storage.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-local-store.yaml | envsubst | oc apply -f -
 
   oc get pod,route,pvc -n minio
   ```
@@ -34,7 +34,7 @@
 
   ```
   export STORAGE_SIZE="50Gi"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f -
 
   oc get pod,route,pvc -n minio
   ```
