@@ -135,6 +135,8 @@ SLEEP_INTERVAL=2
 progress_started=false
 retry_count=0
 
+sleep 5
+
 while true; do
     # Get the status of all pods
     output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers | awk '{print $2, $3}')
@@ -180,6 +182,8 @@ SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
 
+sleep 5
+
 while true; do
     # Get the status of all cluster operators
     output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
@@ -218,6 +222,8 @@ MAX_RETRIES=20
 SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
+
+sleep 5
 
 while true; do
     # Get the status of all mcp
