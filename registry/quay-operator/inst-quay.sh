@@ -44,13 +44,22 @@ oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || true
 oc get csv -n openshift-operators -o name | grep quay-operator | awk -F/ '{print $2}'  | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
 oc delete ns quay-enterprise >/dev/null 2>&1 || true
-oc delete ns minio >/dev/null 2>&1 || true
 
 sleep 15
 
-# Deploy Minio with the specified YAML template
-sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-run_command "[deploying minio object storage]"
+# Step 1:
+PRINT_TASK "TASK [Deploying Minio Object Storage]"
+
+# Check if the Deployment exists
+if oc get deployment -n minio | grep -q "^minio "; then
+    echo "ok: [minio already exists, skipping deployment]"
+else
+    echo "info: [minio not found, starting deployment...]"
+
+    # Deploy MinIO
+    sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f - >/dev/null 2>&1
+    run_command "[deploying minio object storage]"
+fi
 
 # Wait for Minio pods to be in 'Running' state
 progress_started=false
@@ -80,7 +89,7 @@ done
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-run_command "[retrieved minio route host: $BUCKET_HOST]"
+run_command "[minio route host: $BUCKET_HOST]"
 
 sleep 20
 
@@ -89,12 +98,11 @@ oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmi
 run_command "[configured minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
+oc rsh -n minio deployments/minio mc --no-color rb --force my-minio/quay-bucket >/dev/null 2>&1 || true
 oc rsh -n minio deployments/minio mc --no-color mb my-minio/quay-bucket >/dev/null 2>&1
 run_command "[created bucket: quay-bucket]"
 
-# Print Minio address and credentials
-echo "info: [minio address: $BUCKET_HOST]"
-echo "info: [minio default id/pw: minioadmin/minioadmin]"
+echo "ok: [minio default id/pw: minioadmin/minioadmin]"
 
 # Add an empty line after the task
 echo
