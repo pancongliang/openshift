@@ -107,15 +107,9 @@ done
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-run_command "[retrieved minio route host: $BUCKET_HOST]"
+run_command "[minio route host: $BUCKET_HOST]"
 
 sleep 20
-
-# Create Object Storage secret credentials
-export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-export ACCESS_KEY_ID="minioadmin"
-export ACCESS_KEY_SECRET="minioadmin"
-export BUCKET_NAME="loki-bucket"
 
 # Set Minio client alias
 oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin >/dev/null 2>&1
@@ -126,9 +120,7 @@ oc rsh -n minio deployments/minio mc --no-color rb --force my-minio/loki-bucket 
 oc rsh -n minio deployments/minio mc --no-color mb my-minio/loki-bucket >/dev/null 2>&1
 run_command "[created bucket loki-bucket]"
 
-# Print Minio address and credentials
-echo "info: [minio address: $BUCKET_HOST]"
-echo "info: [minio default id/pw: minioadmin/minioadmin]"
+echo "ok: [minio default id/pw: minioadmin/minioadmin]"
 
 # Add an empty line after the task
 echo
