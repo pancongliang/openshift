@@ -35,7 +35,7 @@ run_command() {
     fi
 }
 
-# Step 1:
+# Step 0:
 PRINT_TASK "TASK [Uninstall old logging resources...]"
 
 # Uninstall first
