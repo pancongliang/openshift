@@ -338,18 +338,17 @@ spec:
       targetLabel: pod_name
 EOF
 
-export NAMESPACE=minio
 cat << EOF | oc create -f -
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ${NAMESPACE}
+  name: minio
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
-  namespace: ${NAMESPACE}
+  namespace: minio
 spec:
   selector:
     matchLabels:
@@ -380,7 +379,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: minio-pvc
-  namespace: ${NAMESPACE}
+  namespace: minio
 spec:
   storageClassName: ${STORAGE_CLASS_NAME}
   accessModes:
@@ -393,7 +392,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: minio
-  namespace: ${NAMESPACE}
+  namespace: minio
 spec:
   selector:
     app: minio
@@ -411,7 +410,7 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: minio-console
-  namespace: ${NAMESPACE}
+  namespace: minio
   labels:
     app: minio
 spec:
@@ -425,7 +424,7 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: minio
-  namespace: ${NAMESPACE}
+  namespace: minio
   labels:
     app: minio
 spec:
@@ -439,7 +438,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio-client
-  namespace: ${NAMESPACE}
+  namespace: minio
 spec:
   replicas: 1
   selector:
@@ -466,33 +465,61 @@ spec:
 EOF
 
 # Wait for Minio pods to be in 'Running' state
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=minio
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
+    output=$(oc get po -n minio --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 2
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            exit 1 
+        fi
     else
         # Close the progress indicator and print the success message
-        echo "]"
-        echo "ok: [minio pods are in 'running' state]"
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
 
-export BUCKET_HOST=$(oc get route minio -n ${NAMESPACE} -o jsonpath='http://{.spec.host}')
-oc rsh -n ${NAMESPACE} deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
-oc rsh -n ${NAMESPACE} deployments/minio mc mb my-minio/tempo
+# Get Minio route URL
+export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
+run_command "[minio route host: $BUCKET_HOST]"
+
+sleep 20
+
+# Set Minio client alias
+oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin >/dev/null 2>&1
+run_command "[configured minio client alias]"
+
+# Create buckets for Loki, Quay, OADP, and MTC
+oc rsh -n minio deployments/minio mc --no-color rb --force my-minio/tempo >/dev/null 2>&1 || true
+oc rsh -n minio deployments/minio mc --no-color mb my-minio/tempo >/dev/null 2>&1
+run_command "[created bucket: quay-bucket]"
+
+echo "ok: [minio default id/pw: minioadmin/minioadmin]"
 
 cat << EOF | oc create -f -
 apiVersion: v1
