@@ -93,7 +93,7 @@ sleep 5
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -106,13 +106,13 @@ while true; do
         # Print progress indicator (dots)
         echo -n '.'
         sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
+        retry_count=$((retry_count + 1))
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
             echo "failed: [reached max retries, $pod_name pods may still be initializing]"
-            break
+            exit 1 
         fi
     else
         # Close the progress indicator and print the success message
@@ -287,7 +287,7 @@ sleep 5
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers |grep cluster-logging-operator | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep cluster-logging-operator | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -300,13 +300,13 @@ while true; do
         # Print progress indicator (dots)
         echo -n '.'
         sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
+        retry_count=$((retry_count + 1))
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
             echo "failed: [reached max retries, $pod_name pods may still be initializing]"
-            break
+            exit 1 
         fi
     else
         # Close the progress indicator and print the success message
@@ -330,7 +330,7 @@ sleep 5
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers |grep loki-operator | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep loki-operator | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "2/2 Running" state
     if echo "$output" | grep -vq "2/2 Running"; then
@@ -343,13 +343,13 @@ while true; do
         # Print progress indicator (dots)
         echo -n '.'
         sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
+        retry_count=$((retry_count + 1))
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
             echo "failed: [reached max retries, $pod_name pods may still be initializing]"
-            break
+            exit 1 
         fi
     else
         # Close the progress indicator and print the success message
@@ -373,7 +373,7 @@ sleep 5
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers |grep -v Completed | awk '{print $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep -v Completed | awk '{print $3}' || true)
     
     # Check if any pod is not in the "Running" state
     if echo "$output" | grep -vq "Running"; then
@@ -386,13 +386,13 @@ while true; do
         # Print progress indicator (dots)
         echo -n '.'
         sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
+        retry_count=$((retry_count + 1))
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
             echo "failed: [reached max retries, $pod_name pods may still be initializing]"
-            break
+            exit 1 
         fi
     else
         # Close the progress indicator and print the success message
@@ -460,7 +460,7 @@ sleep 5
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers |grep -v Completed | awk '{print $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep -v Completed | awk '{print $3}' || true)
 
     # Check if any pod is not in the "Running" state
     if echo "$output" | grep -vq "Running"; then
@@ -473,13 +473,13 @@ while true; do
         # Print progress indicator (dots)
         echo -n '.'
         sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
+        retry_count=$((retry_count + 1))
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
             echo "failed: [reached max retries, $pod_name pods may still be initializing]"
-            break
+            exit 1 
         fi
     else
         # Close the progress indicator and print the success message
@@ -569,7 +569,7 @@ sleep 5
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers |grep -v Completed | awk '{print $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep -v Completed | awk '{print $3}' || true)
 
     # Check if any pod is not in the "Running" state
     if echo "$output" | grep -vq "Running"; then
@@ -582,13 +582,13 @@ while true; do
         # Print progress indicator (dots)
         echo -n '.'
         sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
+        retry_count=$((retry_count + 1))
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
             echo "failed: [reached max retries, $pod_name pods may still be initializing]"
-            break
+            exit 1 
         fi
     else
         # Close the progress indicator and print the success message
@@ -599,3 +599,6 @@ while true; do
         break
     fi
 done
+
+# Add an empty line after the task
+echo
