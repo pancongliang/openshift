@@ -361,6 +361,9 @@ while true; do
     fi
 done
 
+# Add an empty line after the task
+echo
+
 # Step 6:
 PRINT_TASK "TASK [Login cluster information]"
 
@@ -369,4 +372,6 @@ ACS_PW=$(oc get secret central-htpasswd -n stackrox -o jsonpath='{.data.password
 
 echo "info: [acs console: $ACS_CONSOLE]"
 echo "info: [acs user id: admin  pw: $ACS_PW]"
+
+# Add an empty line after the task
 echo
