@@ -35,8 +35,9 @@ run_command() {
     fi
 }
 
-# Step 1:
-PRINT_TASK "TASK [Deploying Single Sign-On Operator]"
+
+# Step 0:
+PRINT_TASK "TASK [Uninstall old rhsso resources...]"
 
 # Uninstall first
 echo "info: [uninstall old rhsso resources...]"
@@ -50,6 +51,12 @@ oc delete operatorgroup rhsso-operator-group $NAMESPACE >/dev/null 2>&1 || true
 oc delete sub rhsso-operator -n $NAMESPACE >/dev/null 2>&1 || true
 oc get csv -n $NAMESPACE -o name | grep rhsso-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete ns $NAMESPACE >/dev/null 2>&1 || true
+
+# Add an empty line after the task
+echo
+
+# Step 1:
+PRINT_TASK "TASK [Deploying Single Sign-On Operator]"
 
 # Install the RHSSO operator
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/01-operator.yaml | envsubst | oc apply -f - >/dev/null 2>&1
@@ -70,7 +77,7 @@ pod_name=rhsso-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -83,13 +90,13 @@ while true; do
         # Print progress indicator (dots)
         echo -n '.'
         sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
+        retry_count=$((retry_count + 1))
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
             echo "failed: [reached max retries, $pod_name pods may still be initializing]"
-            break
+            exit 1 
         fi
     else
         # Close the progress indicator and print the success message
@@ -110,30 +117,42 @@ run_command "[create keycloak instance]"
 sleep 15
 
 # Wait for Keycloak pods to be in 'Running' state
-# Initialize progress tracking
+NAMESPACE="rhsso"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=keycloak
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
-            progress_started=true  # Prevent duplicate messages
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 1.5
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            exit 1
+        fi
     else
-        # Close the progress indicator if it was started
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-
-        echo "ok: [all keycloak pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
@@ -154,28 +173,43 @@ run_command "[create client custom resource]"
 sleep 10
 
 # Initialize progress tracking
+# Configuration
+NAMESPACE="rhsso" 
+SECRET_NAME="keycloak-client-secret-example-client"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+
 while true; do
     # Check if the secret exists
-    secret_exists=$(oc get secret -n "$NAMESPACE" keycloak-client-secret-example-client --no-headers 2>/dev/null || true)
+    secret_exists=$(oc get secret -n "$NAMESPACE" "$SECRET_NAME" --no-headers 2>/dev/null || true)
     
     if [ -n "$secret_exists" ]; then
         # If progress was displayed, close it properly
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [keycloak-client-secret-example-client secret is created]"
+        echo "ok: [$SECRET_NAME secret is created]"
         break
     else
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for keycloak-client-secret-example-client secret to be created"
+            echo -n "info: [waiting for $SECRET_NAME secret to be created"
             progress_started=true  # Mark progress as started
         fi
         
         # Print progress indicator
         echo -n '.'
-        sleep 15
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $SECRET_NAME secret was not created]"
+            exit 1 
+        fi
     fi
 done
 
@@ -209,33 +243,48 @@ run_command "[apply identity provider configuration]"
 
 
 # Wait for OpenShift authentication pods to be in 'Running' state
+NAMESPACE="openshift-authentication"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=oauth
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n openshift-authentication --no-headers | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
-            progress_started=true  # Prevent duplicate messages
+            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 10
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            exit
+        fi
     else
-        # Close the progress indicator if it was started
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all oauth pods are in 'running' state]"
+        echo "ok: [all $pod_name pods are in 'running' state]"
         break
     fi
 done
 
 # Configure OpenShift console logout redirection to Keycloak
+NAMESPACE="rhsso"
 KEYCLOAK_CLIENT_NAME='example-client'
 KEYCLOAK_CLIENT_SECRET="keycloak-client-secret-${KEYCLOAK_CLIENT_NAME}"
 OPENID_CLIENT_ID=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_ID}' | base64 -d)
@@ -267,3 +316,6 @@ echo "info: [keycloak host: $KEYCLOAK_HOST]"
 echo "info: [keycloak console username: $KEYCLOAK_ADMIN_USER]"
 echo "info: [keycloak console password: $KEYCLOAK_ADMIN_PASSWORD]"
 echo "info: [user created by keycloak: $USER_NAME/$PASSWORD]"
+
+# Add an empty line after the task
+echo
