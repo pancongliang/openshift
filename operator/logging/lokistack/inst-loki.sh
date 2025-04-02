@@ -6,10 +6,13 @@ set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export CHANNEL_NAME="stable-6.1"
+export LOGGING_CHANNEL_NAME="stable-6.1"
+export LOKI_CHANNEL_NAME="stable-6.1"
+export OBSERVABILITY_CHANNEL_NAME="stable"
+export CATALOG_SOURCE_NAME=redhat-operators
 export STORAGE_CLASS_NAME="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
-export CATALOG_SOURCE_NAME=redhat-operators
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -32,38 +35,49 @@ run_command() {
     fi
 }
 
-
-
 # Step 1:
 PRINT_TASK "TASK [Uninstall old logging resources...]"
 
 # Uninstall first
 echo "info: [uninstall old logging resources...]"
-oc delete -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/04-clf-ui.yaml >/dev/null 2>&1 || true
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/02-config.yaml | envsubst | oc delete -f - >/dev/null 2>&1 || true
+oc delete uiplugin logging >/dev/null 2>&1 || true
+oc delete clusterlogforwarder collector -n openshift-logging >/dev/null 2>&1 || true
+oc delete lokistack logging-loki -n openshift-logging >/dev/null 2>&1 || true
+oc delete secret loki-bucket-credentials -n openshift-logging >/dev/null 2>&1 || true
 
 oc delete sub loki-operator -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete sub cluster-logging -n openshift-operators >/dev/null 2>&1 || true
-oc delete sub cluster-observability-operator -n openshift-operators >/dev/null 2>&1 || true
+oc delete sub cluster-observability-operator -n openshift-cluster-observability-operator >/dev/null 2>&1 || true
 
 oc get csv -n openshift-operators-redhat -o name | grep loki-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc get csv -n openshift-logging -o name | grep cluster-logging | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-logging >/dev/null 2>&1 || true
 oc get csv -n openshift-operators -o name | grep cluster-observability-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
 
-oc delete ns openshift-operators-redhat >/dev/null 2>&1 || true
-oc delete ns openshift-logging >/dev/null 2>&1 || true
+oc delete -n openshift-operators-redhat operatorgroups openshift-operators-redhat >/dev/null 2>&1 || true
+oc delete -n cluster-observability-operator operatorgroups cluster-observability-operator >/dev/null 2>&1 || true
+oc delete -n openshift-logging operatorgroups cluster-logging >/dev/null 2>&1 || true
 
-# Deploy Minio with the specified YAML template
-oc delete ns minio >/dev/null 2>&1 || true
+oc delete ns openshift-logging >/dev/null 2>&1 || true
+oc delete ns openshift-cluster-observability-operator >/dev/null 2>&1 || true
+
+# Add an empty line after the task
+echo
 
 sleep 20
 
 # Step 1:
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
-sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/deploy-minio-with-persistent-volume.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-run_command "[deploying minio object storage]"
+# Check if the Deployment exists
+if oc get deployment -n minio | grep -q "^minio "; then
+    echo "ok: [minio already exists, skipping deployment]"
+else
+    echo "info: [minio not found, starting deployment...]"
+
+    # Deploy MinIO
+    sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f - >/dev/null 2>&1
+    run_command "[deploying minio object storage]"
+fi
 
 # Wait for Minio pods to be in 'Running' state
 progress_started=false
@@ -97,11 +111,18 @@ run_command "[retrieved minio route host: $BUCKET_HOST]"
 
 sleep 20
 
+# Create Object Storage secret credentials
+export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
+export ACCESS_KEY_ID="minioadmin"
+export ACCESS_KEY_SECRET="minioadmin"
+export BUCKET_NAME="loki-bucket"
+
 # Set Minio client alias
 oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin >/dev/null 2>&1
 run_command "[configured minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
+oc rsh -n minio deployments/minio mc --no-color rb --force my-minio/loki-bucket >/dev/null 2>&1 || true
 oc rsh -n minio deployments/minio mc --no-color mb my-minio/loki-bucket >/dev/null 2>&1
 run_command "[created bucket loki-bucket]"
 
@@ -116,7 +137,7 @@ echo
 PRINT_TASK "[TASK: Install OpenShift Logging]"
 
 # Create a namespace
-cat << EOF | oc apply -f - >/dev/null 2>&1
+cat << EOF | oc apply -f - >/dev/null 2>&1 || true
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -140,6 +161,18 @@ metadata:
 EOF
 run_command "[create a openshift-logging namespace]"
 
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-cluster-observability-operator
+  annotations:
+    openshift.io/node-selector: ""
+  labels:
+    openshift.io/cluster-monitoring: "true"
+EOF
+run_command "[create a openshift-cluster-observability-operator namespace]"
+
 # Create a OperatorGroup
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1
@@ -155,7 +188,7 @@ metadata:
   name: "loki-operator"
   namespace: "openshift-operators-redhat" 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${LOKI_CHANNEL_NAME}
   installPlanApproval: "Manual"
   name: loki-operator
   source: $CATALOG_SOURCE_NAME
@@ -179,7 +212,7 @@ metadata:
   name: cluster-logging
   namespace: openshift-logging 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${LOGGING_CHANNEL_NAME}
   installPlanApproval: "Manual"
   name: cluster-logging
   source: $CATALOG_SOURCE_NAME
@@ -188,13 +221,21 @@ EOF
 run_command "[create a cluster-logging operator]"
 
 cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-cluster-observability-operator
+  namespace: openshift-cluster-observability-operator
+spec:
+  upgradeStrategy: Default
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: cluster-observability-operator
-  namespace: openshift-operators
+  namespace: openshift-cluster-observability-operator
 spec:
-  channel: development
+  channel: ${OBSERVABILITY_CHANNEL_NAME}
   installPlanApproval: "Manual"
   name: cluster-observability-operator
   source: $CATALOG_SOURCE_NAME
@@ -211,22 +252,131 @@ export NAMESPACE="openshift-operators-redhat"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve loki-operator install plan]"
 
-export NAMESPACE="openshift-operators"
+export NAMESPACE="openshift-cluster-observability-operator"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve cluster-observability-operator install plan]"
 
-sleep 30
+sleep 15
 
-# Create Object Storage secret credentials
-export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-export ACCESS_KEY_ID="minioadmin"
-export ACCESS_KEY_SECRET="minioadmin"
-export BUCKET_NAME="loki-bucket"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/02-config.yaml | envsubst | oc create -f - >/dev/null 2>&1
+# Wait for cluster-logging-operator pods to be in 'Running' state
+progress_started=false
+while true; do
+    # Get the status of all pods
+    output=$(oc get po -n openshift-logging --no-headers |grep cluster-logging-operator | awk '{print $2, $3}')
+    
+    # Check if any pod is not in the "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for cluster-logging-operator pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 2
+    else
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [cluster-logging-operator pods are in 'running' state]"
+        break
+    fi
+done
+
+# Wait for loki-operator pods to be in 'Running' state
+progress_started=false
+while true; do
+    # Get the status of all pods
+    output=$(oc get po -n openshift-operators-redhat --no-headers |grep loki-operator | awk '{print $2, $3}')
+    
+    # Check if any pod is not in the "2/2 Running" state
+    if echo "$output" | grep -vq "2/2 Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for loki-operator pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 2
+    else
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [loki-operator pods are in 'running' state]"
+        break
+    fi
+done
+
+# Wait for openshift-cluster-observability-operator pods to be in 'Running' state
+progress_started=false
+while true; do
+    # Get the status of all pods
+    output=$(oc get po -n openshift-cluster-observability-operator --no-headers |grep -v Completed | awk '{print $3}')
+    
+    # Check if any pod is not in the "Running" state
+    if echo "$output" | grep -vq "Running"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for observability-operator pods to be in 'running' state"
+            progress_started=true  # Prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep 10
+    else
+        # Close the progress indicator if it was started
+        if $progress_started; then
+            echo "]"
+        fi
+
+        echo "ok: [all openshift-cluster-observability-operator pods are in 'running' state]"
+        break
+    fi
+done
+
+# create object storage secret credentials
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${BUCKET_NAME}-credentials
+  namespace: openshift-logging
+stringData:
+  access_key_id: ${ACCESS_KEY_ID}
+  access_key_secret: ${ACCESS_KEY_SECRET}
+  bucketnames: ${BUCKET_NAME}
+  endpoint: ${BUCKET_HOST}
+  region: minio
+EOF
 run_command "[create object storage secret credentials]"
 
-# Create loki stack
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc create -f - >/dev/null 2>&1
+sleep 5
+
+# Create loki stack instance
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: logging-loki
+  namespace: openshift-logging
+spec:
+  managementState: Managed
+  size: 1x.demo
+  storage:
+    schemas:
+    - effectiveDate: '2024-10-01'
+      version: v13
+    secret:
+      name: ${BUCKET_NAME}-credentials
+      type: s3
+  storageClassName: ${STORAGE_CLASS_NAME}
+  tenants:
+    mode: openshift-logging
+EOF
 run_command "[create loki stack instance]"
 
 sleep 30
@@ -277,8 +427,51 @@ oc adm policy add-cluster-role-to-user collect-infrastructure-logs -z collector 
 run_command "[allow the collector’s service account to collect infra logs]"
 
 # Creating CLF CR and UIPlugin
-oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/logging/lokistack/04-clf-ui.yaml >/dev/null 2>&1
-run_command "[creating clf cr and uiplugin]"
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: observability.openshift.io/v1alpha1
+kind: UIPlugin
+metadata:
+  name: logging
+spec:
+  type: Logging
+  logging:
+    lokiStack:
+      name: logging-loki
+EOF
+run_command "[creating uiplugin resources]"
+
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: collector
+  namespace: openshift-logging
+spec:
+  serviceAccount:
+    name: collector
+  outputs:
+  - name: default-lokistack
+    type: lokiStack
+    lokiStack:
+      authentication:
+        token:
+          from: serviceAccount
+      target:
+        name: logging-loki
+        namespace: openshift-logging
+    tls:
+      ca:
+        key: service-ca.crt
+        configMapName: openshift-service-ca.crt
+  pipelines:
+  - name: default-logstore
+    inputRefs:
+    - application
+    - infrastructure
+    outputRefs:
+    - default-lokistack
+EOF
+run_command "[creating cluster log forwarder resources]"
 
 sleep 30
 
