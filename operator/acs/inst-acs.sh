@@ -227,7 +227,7 @@ export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spe
 
 sleep 3
 
-ROX_CENTRAL_ADMIN_PASS=$(oc -n stackrox get secret central-htpasswd -o go-template='{{index .data "password" | base64decode}}')
+export ROX_CENTRAL_ADMIN_PASS=$(oc -n stackrox get secret central-htpasswd -o go-template='{{index .data "password" | base64decode}}')
 
 sleep 3
 
