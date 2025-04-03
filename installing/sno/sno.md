@@ -68,7 +68,7 @@ mkdir ocp
 cp install-config.yaml ocp
 ./openshift-install --dir=ocp create single-node-ignition-config
 alias coreos-installer='podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release'
-openshift-install --dir=ocp create single-node-ignition-config
+./openshift-install --dir=ocp create single-node-ignition-config
 ~~~
 
 ### Embed ignition data into RHCOS ISO
