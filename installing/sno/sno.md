@@ -75,6 +75,6 @@
 * After the installation is complete, check the environment by running the following command:
   ~~~
   export KUBECONFIG=ocp/auth/kubeconfig
-  oc get nodes
-  oc get co
+  ./oc get nodes
+  ./oc get co
   ~~~
