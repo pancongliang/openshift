@@ -44,13 +44,18 @@ run_command() {
     fi
 }
 
+PRINT_TASK "TASK [Delete old SNO resources...]"
+
 # Delete old data
-rm -rf oc
-rm -rf oc.tar.gz
-rm -rf openshift-install
-rm -rf openshift-install-$CLIENT_OS_ARCH.tar.gz
-rm -rf ocp
-rm -rf rhcos-live.iso
+echo "info: [delete old sno resources...]"
+rm -rf oc >/dev/null 2>&1 || true
+rm -rf oc.tar.gz >/dev/null 2>&1 || true
+rm -rf openshift-install >/dev/null 2>&1 || true
+rm -rf openshift-install-$CLIENT_OS_ARCH.tar.gz >/dev/null 2>&1 || true
+rm -rf ocp >/dev/null 2>&1 || true
+rm -rf rhcos-live.iso >/dev/null 2>&1 || true
+rm -rf README.md >/dev/null 2>&1 || true
+echo 
 
 # Step 1:
 PRINT_TASK "TASK [Installing single-node OpenShift manually]"
@@ -82,6 +87,7 @@ run_command "[modify openshift install permissions]"
 # Clean up downloaded archives
 rm -rf oc.tar.gz
 rm -rf openshift-install-$CLIENT_OS_ARCH.tar.gz
+rm -rf README.md
 
 # Fetch the CoreOS live ISO download link from OpenShift installer
 ISO_URL=$(./openshift-install coreos print-stream-json | grep location | grep $ARCH | grep iso | cut -d\" -f4)
@@ -95,7 +101,7 @@ mkdir ocp
 run_command "[create installation directory: ocp]"
 
 # Generate the OpenShift installation configuration file
-cat << EOF > ocp/install-config.yaml >/dev/null 2>&1
+cat << EOF > ocp/install-config.yaml 2>/dev/null
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
 compute:
