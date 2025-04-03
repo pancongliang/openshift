@@ -146,5 +146,6 @@ run_command "[modify kernel arguments for network configuration]"
 # Clean up downloaded archives
 rm -rf oc.tar.gz >/dev/null 2>&1 || true
 rm -rf kubectl >/dev/null 2>&1 || true
+rm -rf openshift-install >/dev/null 2>&1 || true
 rm -rf openshift-install-$CLIENT_OS_ARCH.tar.gz >/dev/null 2>&1 || true
 rm -rf README.md >/dev/null 2>&1 || true
