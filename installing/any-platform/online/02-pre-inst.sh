@@ -150,13 +150,13 @@ rm -f /usr/local/bin/README.md >/dev/null 2>&1
 
 # Download the openshift-install
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
-run_command "[download openshift-install tool]"
+run_command "[download openshift install tool]"
 
 tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
-run_command "[install openshift-install tool]"
+run_command "[install openshift install tool]"
 
 chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
-run_command "[modify /usr/local/bin/openshift-install permissions]"
+run_command "[modify /usr/local/bin/openshift install permissions]"
 
 rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
