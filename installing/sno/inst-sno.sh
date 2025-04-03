@@ -49,6 +49,7 @@ PRINT_TASK "TASK [Delete old SNO resources...]"
 # Delete old data
 echo "info: [delete old sno resources...]"
 rm -rf oc >/dev/null 2>&1 || true
+rm -rf kubectl >/dev/null 2>&1 || true
 rm -rf oc.tar.gz >/dev/null 2>&1 || true
 rm -rf openshift-install >/dev/null 2>&1 || true
 rm -rf openshift-install-$CLIENT_OS_ARCH.tar.gz >/dev/null 2>&1 || true
@@ -83,11 +84,6 @@ run_command "[install openshift install tool]"
 # Modify permissions for the OpenShift installer
 chmod +x openshift-install >/dev/null 2>&1
 run_command "[modify openshift install permissions]"
-
-# Clean up downloaded archives
-rm -rf oc.tar.gz
-rm -rf openshift-install-$CLIENT_OS_ARCH.tar.gz
-rm -rf README.md
 
 # Fetch the CoreOS live ISO download link from OpenShift installer
 ISO_URL=$(./openshift-install coreos print-stream-json | grep location | grep $ARCH | grep iso | cut -d\" -f4)
@@ -146,3 +142,9 @@ run_command "[embed ignition configuration into the coreos live iso]"
 # Modify kernel arguments for network configuration
 podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release iso kargs modify -a "ip=$SNO_IP::$SNO_GW:$SNO_NETMASK:$CLUSTER_NAME.$BASE_DOMAIN:$SNO_INTERFACE:off:$SNO_DNS" rhcos-live.iso >/dev/null 2>&1
 run_command "[modify kernel arguments for network configuration]"
+
+# Clean up downloaded archives
+rm -rf oc.tar.gz >/dev/null 2>&1 || true
+rm -rf kubectl >/dev/null 2>&1 || true
+rm -rf openshift-install-$CLIENT_OS_ARCH.tar.gz >/dev/null 2>&1 || true
+rm -rf README.md >/dev/null 2>&1 || true
