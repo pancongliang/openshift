@@ -136,13 +136,13 @@ run_command "[create ocp/install-config.yaml file]"
 run_command "[create single-node-ignition-config]"
 
 # Define an alias for the CoreOS installer
-alias coreos-installer='podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release'
-run_command "[define an alias for the coreos installer]"
+#alias coreos-installer='podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release'
+#run_command "[define an alias for the coreos installer]"
 
 # Embed ignition configuration into the CoreOS live ISO
-coreos-installer iso ignition embed -fi ocp/bootstrap-in-place-for-live-iso.ign rhcos-live.iso
+podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release iso ignition embed -fi ocp/bootstrap-in-place-for-live-iso.ign rhcos-live.iso >/dev/null 2>&1
 run_command "[embed ignition configuration into the coreos live iso]"
 
 # Modify kernel arguments for network configuration
-coreos-installer iso kargs modify -a "ip=$SNO_IP::$SNO_GW:$SNO_NETMASK:$CLUSTER_NAME.$BASE_DOMAIN:$SNO_INTERFACE:off:$SNO_DNS" rhcos-live.iso
+podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release iso kargs modify -a "ip=$SNO_IP::$SNO_GW:$SNO_NETMASK:$CLUSTER_NAME.$BASE_DOMAIN:$SNO_INTERFACE:off:$SNO_DNS" rhcos-live.iso >/dev/null 2>&1
 run_command "[modify kernel arguments for network configuration]"
