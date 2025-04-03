@@ -28,10 +28,13 @@
 
 * Mount the CoreOS ISO and boot
 
-* Execute the following command in the client
-~~~
-./openshift-install --dir=ocp wait-for install-complete
-~~~
+* On the client host, monitor the installation by running the following command
+  ~~~
+  ./openshift-install --dir=ocp wait-for install-complete
+  ~~~
+
+* The server restarts several times while deploying the control plane.
+
 
 ### After the second boot, correct the hostname and DNS settings.
 * If the provided DNS does not have reverse domain name resolution, correct the hostname and DNS settings after the second startup.
@@ -69,7 +72,7 @@
   ~~~
 
 ### Verification
-* Log in to the cluster using kubeconfig
+* After the installation is complete, check the environment by running the following command:
   ~~~
   export KUBECONFIG=ocp/auth/kubeconfig
   oc get nodes
