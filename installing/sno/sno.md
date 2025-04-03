@@ -1,5 +1,16 @@
 ### Installing single-node OpenShift manually
 
+* Install podman 
+  ~~~
+  # RHEL:
+  yum install -y podman
+
+  # MAC
+  brew install podman
+  podman machine init
+  podman machine start
+  ~~~
+  
 * Setting Environment Variables
   ~~~
   # SNO Node
