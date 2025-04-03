@@ -59,7 +59,7 @@ rm -rf README.md >/dev/null 2>&1 || true
 echo 
 
 # Step 1:
-PRINT_TASK "TASK [Installing single-node OpenShift manually]"
+PRINT_TASK "TASK [Generating the installation ISO with coreos-installer]"
 
 # Download OpenShift client tool
 curl -s -k https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_VERSION/openshift-client-$CLIENT_OS_ARCH.tar.gz -o oc.tar.gz
