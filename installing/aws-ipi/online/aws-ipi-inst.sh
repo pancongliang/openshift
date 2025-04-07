@@ -259,9 +259,7 @@ echo
 PRINT_TASK "TASK [Create htpasswd User]"
 
 rm -rf $OCP_INSTALL_DIR/users.htpasswd
-cat << EOF > $OCP_INSTALL_DIR/users.htpasswd
-admin:$2y$05$.9uG3eMC1vrnhLIj8.v.POcGpFEN/STrpOw7yGQ5dnMmLbrKVVCmu
-EOF
+echo 'admin:$2y$05$.9uG3eMC1vrnhLIj8.v.POcGpFEN/STrpOw7yGQ5dnMmLbrKVVCmu' > $OCP_INSTALL_DIR/users.htpasswd
 run_command "[create a user using the htpasswd tool]"
 
 sleep 10
