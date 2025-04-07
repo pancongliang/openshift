@@ -4,16 +4,16 @@ oc new-app --name todo --image quay.io/redhattraining/todo-angular:v1.1
 
 oc new-app --name hello-openshift --image quay.io/redhattraining/hello-openshift:latest
 
-oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+oc new-app --name nginx --image quay.io/redhattraining/hello-world-nginx:v1.0
 
-oc new-app --name loadtest --docker-image quay.io/redhattraining/loadtest:v1.0
+oc new-app --name loadtest --image quay.io/redhattraining/loadtest:v1.0
 
-oc new-app --name famous-quotes --docker-image quay.io/redhattraining/famous-quotes:2.1
+oc new-app --name famous-quotes --image quay.io/redhattraining/famous-quotes:2.1
 
-oc new-app --name todo --docker-image quay.io/redhattraining/todo-angular:v1.2
+oc new-app --name todo --image quay.io/redhattraining/todo-angular:v1.2
 
 # PVC
-oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+oc new-app --name nginx --image quay.io/redhattraining/hello-world-nginx:v1.0
 
 export STORAGE_CLASS=managed-nfs-storage
 
@@ -26,7 +26,7 @@ oc set volumes deployment/nginx \
 #### Database
 ~~~
 oc new-app --name=mysql \
-   --docker-image registry.access.redhat.com/rhscl/mysql-57-rhel7:latest \
+   --image registry.access.redhat.com/rhscl/mysql-57-rhel7:latest \
    -e MYSQL_USER=user1 -e MYSQL_PASSWORD=mypa55 -e MYSQL_DATABASE=testdb \
    -e MYSQL_ROOT_PASSWORD=r00tpa55
 
@@ -39,7 +39,7 @@ oc set volumes deployment/mysql \
 ~~~
 ~~~
 oc new-app --name postgresql \
-   --docker-image registry.redhat.io/rhel8/postgresql-12:1-43 \
+   --image registry.redhat.io/rhel8/postgresql-12:1-43 \
    -e POSTGRESQL_USER=redhat \
    -e POSTGRESQL_PASSWORD=redhat123 \
    -e POSTGRESQL_DATABASE=persistentdb
