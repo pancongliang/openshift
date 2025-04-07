@@ -152,11 +152,11 @@ fi
 
 # Download the OpenShift client
 wget -q "$download_url" -O "$openshift_client"
-run_command "[download openshift client tool]"
+run_command "[download openshift-client tool]"
 
 # Extract the downloaded tarball to /usr/local/bin/
 tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
-run_command "[install openshift client tool]"
+run_command "[install openshift-client tool]"
 
 chmod +x /usr/local/bin/oc >/dev/null 2>&1
 run_command "[modify /usr/local/bin/oc permissions]"
