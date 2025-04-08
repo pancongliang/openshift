@@ -82,7 +82,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     curl -sL "$download_url" -o "$openshift_install"
     run_command "[download openshift-install]"
 
-    rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
     sudo tar -xzf "$openshift_install" -C "/usr/local/bin/" >/dev/null 2>&1
     run_command "[install openshift-install]"
 
@@ -119,7 +119,7 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "[download openshift-install tool]"
 
-    rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
     sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
     run_command "[install openshift-install tool]"
 
