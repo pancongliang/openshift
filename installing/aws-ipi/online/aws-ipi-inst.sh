@@ -9,7 +9,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 export OCP_VERSION=4.16.20
 export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
-export PULL_SECRET_PATH="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET_PATH="$HOME/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export REGION="ap-northeast-1"
@@ -43,7 +43,7 @@ run_command() {
 PRINT_TASK "TASK [Set up AWS credentials]"
 
 # Create AWS credentials
-rm -rf $HOME/.aws
+rm -rf $HOME/.aws >/dev/null 2>&1 || true
 mkdir -p $HOME/.aws
 
 cat << EOF > "$HOME/.aws/credentials"
@@ -82,7 +82,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     curl -sL "$download_url" -o "$openshift_install"
     run_command "[download openshift-install]"
 
-    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1 || true
     sudo tar -xzf "$openshift_install" -C "/usr/local/bin/" >/dev/null 2>&1
     run_command "[install openshift-install]"
 
@@ -102,9 +102,9 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     curl -sL "$download_url" -o "$openshift_client"
     run_command "[download openshift-client]"
 
-    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1
-    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1
-    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1 || true
+    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1 || true
+    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
 
     sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
     run_command "[install openshift-client]"
@@ -119,7 +119,7 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "[download openshift-install tool]"
 
-    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1 || true
     sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
     run_command "[install openshift-install tool]"
 
@@ -128,9 +128,9 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
     # Delete the old version of oc cli
-    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1
-    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1
-    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1 || true
+    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1 || true
+    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
 
     # Get the RHEL version number
     rhel_version=$(rpm -E %{rhel})
@@ -159,8 +159,8 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
     run_command "[modify /usr/local/bin/kubectl permissions]"
 
-    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
-    sudo rm -rf $openshift_client >/dev/null 2>&1
+    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
+    sudo rm -rf $openshift_client >/dev/null 2>&1 || true
 fi
 
 # Add an empty line after the task
@@ -178,7 +178,7 @@ else
     echo "info: [ssh key already exists, skip generation]"
 fi
 
-rm -rf $OCP_INSTALL_DIR >/dev/null 2>&1
+sudo rm -rf $OCP_INSTALL_DIR >/dev/null 2>&1 || true
 mkdir -p $OCP_INSTALL_DIR >/dev/null 2>&1
 run_command "[create install dir: $OCP_INSTALL_DIR]"
 
