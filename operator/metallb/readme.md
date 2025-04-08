@@ -26,6 +26,10 @@
 * Define Address Pool Range
   ```
   export ADDRESSES="10.184.134.135-10.184.134.136"
+
+  # or 
+ 
+  export ADDRESSES="10.184.134.135/24"
   ```
 * Create the Address Pool
   ```
