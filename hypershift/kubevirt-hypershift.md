@@ -74,8 +74,9 @@
    ```
    oc get pods -n hypershift
    ```
-3. Wildcard ingress routes are required because the guest cluster’s base domain will be a subdomain of the infrastructure cluster’s *.apps DNS record.
-   > Note: For example, if the RHACM hub uses `*.apps.ocp4.example.com` as the default ingress domain, a Hosted Cluster named `my-cluster-1` will use a subdomain like `*.apps.my-cluster-1.ocp4.example.com` when deployed with the HyperShift KubeVirt provider.
+3. Configuring the default ingress and DNS for hosted control planes on OpenShift Virtualization:
+   > Note: By default, OpenShift clusters include an ingress controller that requires a wildcard DNS record. When using the KubeVirt provider with HyperShift, Hosted Clusters are created as subdomains of the RHACM hub's domain.
+     For example, if the RHACM hub uses `*.apps.ocp4.example.com` as the default ingress domain, a Hosted Cluster named `my-cluster-1` will use a subdomain like `*.apps.my-cluster-1.ocp4.example.com` when deployed with the HyperShift KubeVirt provider.
    ```
    oc patch ingresscontroller -n openshift-ingress-operator default --type=json -p '[{ "op": "add", "path": "/spec/routeAdmission", "value": {"wildcardPolicy": "WildcardsAllowed"}}]'
    ```
