@@ -303,8 +303,6 @@
    echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
    ```
 
-   
-
 ### Deleting a Hosted Cluster
 1. **Deleting a Hosted Cluster**
    ```
@@ -314,3 +312,7 @@
    ```
    hcp destroy cluster kubevirt --name $HOSTED_CLUSTER_NAME
    ```
+
+### Reference Documentation
+[Effortlessly And Efficiently Provision OpenShift Clusters With OpenShift Virtualization](https://www.redhat.com/en/blog/effortlessly-and-efficiently-provision-openshift-clusters-with-openshift-virtualization)
+[Create a Kubevirt cluster](https://hypershift-docs.netlify.app/how-to/kubevirt/create-kubevirt-cluster/)
