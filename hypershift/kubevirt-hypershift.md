@@ -35,7 +35,7 @@
 - Install the OpenShift [Virtualization](/virtualization/readme.md) Operator.
 
 ### Installing MetalLB Operator
-- Install the [MetalLB](/operator/metallb/readme.md) Operator to provide a network load balancer for the Hosted Cluster API endpoints.
+- Install the [MetalLB](/operator/metallb/readme.md) Operator to provide a network load balancer for the Hosted Cluster.
 
 ### Configuring Multi Cluster Engine Operator
 - Install the Multi Cluster Engine [MCE](/operator/mce/readme.md) Operator.
@@ -74,15 +74,24 @@
    ```
    oc get pods -n hypershift
    ```
-3. Configuring the default ingress and DNS for hosted control planes on OpenShift Virtualization:
-   > Note: By default, OpenShift clusters include an ingress controller that requires a wildcard DNS record. When using the KubeVirt provider with HyperShift, Hosted Clusters are created as subdomains of the RHACM hub's domain.
-     For example, if the RHACM hub uses `*.apps.ocp4.example.com` as the default ingress domain, a Hosted Cluster named `my-cluster-1` will use a subdomain like `*.apps.my-cluster-1.ocp4.example.com` when deployed with the HyperShift KubeVirt provider.
+### Ingress and DNS configuration
+
+#### Optional A: Default Ingress and DNS Behavior
+- Configuring the default ingress and DNS for hosted control planes on OpenShift Virtualization:
+   > By default, OpenShift clusters include an ingress controller that requires a wildcard DNS record. When using the KubeVirt provider with HyperShift, Hosted Clusters are created as subdomains of the RHACM hub's domain.  
+   > For example, if the RHACM hub uses `*.apps.ocp4.example.com` as the default ingress domain, a Hosted Cluster named `my-cluster-1` will use a subdomain like `*.apps.my-cluster-1.ocp4.example.com` when deployed with the HyperShift KubeVirt provider.
    ```
    oc patch ingresscontroller -n openshift-ingress-operator default --type=json -p '[{ "op": "add", "path": "/spec/routeAdmission", "value": {"wildcardPolicy": "WildcardsAllowed"}}]'
    ```
+   > **Note:**
+   > When you use the default hosted cluster ingress, connectivity is limited to HTTPS traffic over port 443. Plain HTTP traffic over port 80 is rejected. This limitation applies to only the default ingress behavior.
+
+
+#### Optional B: [Customized Ingress and DNS Behavior](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/hosted_control_planes/deploying-hosted-control-planes#hcp-virt-ingress-dns-custom)
+
 
 ### Demo
-####  Creating and Managing a Hosted Cluster
+####  Creating a hosted cluster with the KubeVirt platform
 
 1. **Downlod the HCP CLI and pull-secret**
    ```
@@ -104,7 +113,8 @@
    ```
 
 3. **Create the Hosted Cluster**
-   > Note: If do not provide any advanced storage configuration, the default storage class is used for the KubeVirt virtual machine (VM) images, the KubeVirt Container Storage Interface (CSI) mapping, and the etcd volumes.
+   > **Note:**  
+   > If do not provide any advanced storage configuration, the default storage class is used for the KubeVirt virtual machine (VM) images, the KubeVirt Container Storage Interface (CSI) mapping, and the etcd volumes.
    ```
    # oc new-project $HOSTED_CLUSTER_NAMESPACE
    
@@ -191,8 +201,6 @@
 
      oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
-
-
      
 ####  Accessing a hosted cluster
 * Generate Kubeconfig file and access the customer cluster
@@ -209,7 +217,7 @@
    export KUBEADMIN_PASSWORD=$(oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d)
 
    unset KUBECONFIG
-   oc login $HOSTED_CLUSTER_API -u kuebadmin -p $KUBEADMIN_PASSWORD
+   oc login $HOSTED_CLUSTER_API -u kubeadmin -p $KUBEADMIN_PASSWORD
    ```
 
 * Log in to the Guest Cluster OCP Console using the kubeadmin account
