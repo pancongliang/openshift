@@ -90,7 +90,7 @@
   EOF
   ~~~
 
-### Setting up a wildcard DNS 
+#### Setting up a wildcard DNS 
 * Set up a wildcard DNS record or CNAME that references the external IP of the load balancer service.
 
 * Get the external IP address by entering the following command:
@@ -118,5 +118,5 @@
   ~~~
 
 
-### Configuring MetalLB 
+#### Configuring MetalLB 
 * You must install the MetalLB Operator before you configure [MetalLB](/operator/metallb/readme.md).
