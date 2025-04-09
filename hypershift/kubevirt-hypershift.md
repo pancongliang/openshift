@@ -35,7 +35,7 @@
 - Install the OpenShift [Virtualization](/virtualization/readme.md) Operator.
 
 ### Installing MetalLB Operator
-- Install the [MetalLB](/operator/metallb/readme.md) Operator.
+- Install the [MetalLB](/operator/metallb/readme.md) Operator to provide a network load balancer for the Hosted Cluster API endpoints.
 
 ### Configuring Multi Cluster Engine Operator
 - Install the Multi Cluster Engine [MCE](/operator/mce/readme.md) Operator.
@@ -74,7 +74,8 @@
    ```
    oc get pods -n hypershift
    ```
-3. AIngress wildcard routes are required since the guest cluster's base domain will be a subdomain of the infra cluster's `*apps` A record:
+3. Wildcard ingress routes are required because the guest cluster’s base domain will be a subdomain of the infrastructure cluster’s *.apps DNS record.
+   > Note: For example, if the RHACM hub uses `*.apps.ocp4.example.com` as the default ingress domain, a Hosted Cluster named `my-cluster-1` will use a subdomain like `*.apps.my-cluster-1.ocp4.example.com` when deployed with the HyperShift KubeVirt provider.
    ```
    oc patch ingresscontroller -n openshift-ingress-operator default --type=json -p '[{ "op": "add", "path": "/spec/routeAdmission", "value": {"wildcardPolicy": "WildcardsAllowed"}}]'
    ```
