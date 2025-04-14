@@ -3,11 +3,11 @@
 
 ### Install httpd
 ```
-$ yum install -y httpd
+yum install -y httpd
 
-$ sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf 
+sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf 
 
-$ cat > /var/www/html/index.html << EOF
+cat > /var/www/html/index.html << EOF
 <html>
   <body>
     <h1>Hello World!</h1>
@@ -15,12 +15,12 @@ $ cat > /var/www/html/index.html << EOF
 </html>
 EOF
 
-$ systemctl restart httpd
+systemctl restart httpd
 ```
 
 ### Assigning an egress IP address to a namespace
 ```
-$ cat << EOF | oc apply -f -
+cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -29,10 +29,10 @@ metadata:
     env: prod
 EOF
 
-$ oc project test-egress
-$ oc new-app --name loadtest --docker-image quay.io/redhattraining/loadtest:v1.0
+oc project test-egress
+oc new-app --name loadtest --docker-image quay.io/redhattraining/loadtest:v1.0
 
-$ cat << EOF | oc apply -f -
+cat << EOF | oc apply -f -
 apiVersion: k8s.ovn.org/v1
 kind: EgressIP
 metadata:
@@ -46,10 +46,10 @@ spec:
       env: prod
 EOF
 
-$ oc label nodes worker01.ocp4.example.com k8s.ovn.org/egress-assignable="" 
-$ oc label nodes worker02.ocp4.example.com k8s.ovn.org/egress-assignable="" 
+oc label nodes worker01.ocp4.example.com k8s.ovn.org/egress-assignable="" 
+oc label nodes worker02.ocp4.example.com k8s.ovn.org/egress-assignable="" 
 
-$ oc get egressip -o yaml
+oc get egressip -o yaml
 ···
   status:
     items:
@@ -61,11 +61,12 @@ $ oc get egressip -o yaml
 
 ### Test egress ip availability
 ```
-$ POD_NAME=$(oc get po -n test-egress -o jsonpath='{.items[0].metadata.name}')
-$ oc -n test-egress rsh $POD_NAME curl http://10.184.134.128:8080/index.html | grep Hello
+POD_NAME=$(oc get po -n test-egress -o jsonpath='{.items[0].metadata.name}')
+oc -n test-egress rsh $POD_NAME curl http://10.184.134.128:8080/index.html | grep Hello
     <h1>Hello World!</h1>
 
-$ tail -10 /var/log/httpd/access_log
+tail -10 /var/log/httpd/access_log
+···
 10.184.134.135 - - [14/Nov/2024:06:24:05 +0000] "GET /index.html HTTP/1.1" 200 60 "-" "curl/7.29.0"
 10.184.134.135 - - [14/Nov/2024:06:24:23 +0000] "GET /index.html HTTP/1.1" 200 60 "-" "curl/7.29.0"
 10.184.134.135 - - [14/Nov/2024:06:24:28 +0000] "GET /index.html HTTP/1.1" 200 60 "-" "curl/7.29.0"
