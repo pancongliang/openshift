@@ -126,18 +126,13 @@ done
 **Wiping unused disk from a Node**
 ```
 #!/bin/bash
-for Hostname in $(oc get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
-do
-   ssh -q -T -o StrictHostKeyChecking=no core@$Hostname \
-       "disks=\$(lsblk -dnlo NAME,TYPE | awk '\$2 == \"disk\" {print \$1}'); \
-       for disk in \$disks; do \
-           if ! lsblk /dev/\$disk | grep -q '/boot\|/var\|/ '; then \
-               if ! lsblk /dev/\$disk | grep -q 'part'; then \
-                   sudo wipefs -a /dev/\$disk >/dev/null 2>&1; \
-                   echo \"Wiping unused /dev/\$disk in the $Hostname node\"; \
-               fi; \
-           fi; \
-       done"
+for Hostname in $(oc get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
+    ssh -qT -o StrictHostKeyChecking=no core@$Hostname \
+        "for disk in \$(lsblk -dnlo NAME,TYPE | awk '\$2==\"disk\"{print \$1}'); do
+            lsblk /dev/\$disk | grep -q '/boot\|/var\|/ \|part' || 
+            { sudo wipefs -a /dev/\$disk >/dev/null 2>&1 &&
+              echo \"Wiped unused /dev/\$disk on $Hostname\"; }
+        done"
 done
 ```
 
