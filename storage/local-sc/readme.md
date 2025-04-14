@@ -105,7 +105,7 @@ oc get sc
 
 ### Uninstall Local Storage Operator
 
-**Delete previously created resources**
+**1. Delete previously created resources**
 ```
 oc get localvolumes -n openshift-local-storage -o name | xargs -I {} oc -n openshift-local-storage delete {}
 
@@ -113,7 +113,7 @@ oc get localvolume -n openshift-local-storage -o jsonpath='{.items[*].metadata.n
 
 oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {}
 ```
-**Deleting Local Storage Data(/mnt/local-storage/*) from a Node**
+**2. Deleting Local Storage Data(/mnt/local-storage/*) from a Node**
 ```
 #!/bin/bash
 for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
@@ -123,7 +123,7 @@ do
 done
 ```
 
-**Wiping unused disk from a Node**
+**3. Wiping unused disk from a Node**
 ```
 #!/bin/bash
 for Hostname in $(oc get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
@@ -136,7 +136,7 @@ for Hostname in $(oc get nodes -o jsonpath='{.items[*].status.addresses[?(@.type
 done
 ```
 
-**Deleting Local Storage Operator**
+**4. Deleting Local Storage Operator**
 ```
 export CHANNEL_NAME="stable"
 export CATALOG_SOURCE_NAME="redhat-operators"
