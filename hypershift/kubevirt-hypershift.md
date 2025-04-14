@@ -101,10 +101,11 @@
    ```
    curl -Lk $(oc get consoleclidownload hcp-cli-download -o json | jq -r '.spec.links[] | select(.text=="Download hcp CLI for Linux for x86_64").href') | tar xvz -C /usr/local/bin/
    ```
-   Download the [pull secret](https://console.redhat.com/openshift/install/pull-secret).
+   
+2. **Download the [pull secret](https://console.redhat.com/openshift/install/pull-secret)*
 
 
-2. **Configure Environment Variables**
+3. **Configure Environment Variables**
    ```
    export HOSTED_CLUSTER_NAMESPACE="clusters" # Contains the namespace of HostedCluster and NodePool custom resources. The default namespace is clusters.
    export HOSTED_CLUSTER_NAME="my-cluster-1"
@@ -116,7 +117,7 @@
    export WORKER_COUNT="2"
    ```
 
-3. **Create the Hosted Cluster**
+4. **Create the Hosted Cluster**
    > **Note:**  
    > If do not provide any advanced storage configuration, the default storage class is used for the KubeVirt virtual machine (VM) images, the KubeVirt Container Storage Interface (CSI) mapping, and the etcd volumes.
    ```
@@ -141,12 +142,12 @@
      #--base-domain <base-domain>
    ```
 
-4. **Monitor Resources**
+5. **Monitor Resources**
    ```
    oc wait --for=condition=Ready --namespace $HOSTED_CONTROL_PLANE_NAMESPACE vm --all --timeout=600s
    ```
 
-5. **Examine the Hosted Cluster**
+6. **Examine the Hosted Cluster**
    - Verify the status of guest cluster:
      ```
      oc get hc -A
@@ -176,7 +177,7 @@
      oc get pvc -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
 
-6. **Scaling a node pool**
+7. **Scaling a node pool**
      ```
      oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
 
@@ -185,7 +186,7 @@
      oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
 
-7. **Adding node pools**
+8. **Adding node pools**
      ```
      export NODEPOOL_NAME=${HOSTED_CLUSTER_NAME}-work
      export WORKER_COUNT="2"
