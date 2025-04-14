@@ -320,4 +320,5 @@
 
 ### Reference Documentation
 [Effortlessly And Efficiently Provision OpenShift Clusters With OpenShift Virtualization](https://www.redhat.com/en/blog/effortlessly-and-efficiently-provision-openshift-clusters-with-openshift-virtualization)
+
 [Create a Kubevirt cluster](https://hypershift-docs.netlify.app/how-to/kubevirt/create-kubevirt-cluster/)
