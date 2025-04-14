@@ -177,7 +177,9 @@
      oc get pvc -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
 
-7. **Scaling a node pool**
+####  Scaling and Adding a node pool
+
+1. **Scaling a node pool**
      ```
      oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
 
@@ -186,7 +188,7 @@
      oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
 
-8. **Adding node pools**
+2. **Adding node pools**
      ```
      export NODEPOOL_NAME=${HOSTED_CLUSTER_NAME}-work
      export WORKER_COUNT="2"
