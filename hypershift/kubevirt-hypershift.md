@@ -88,7 +88,7 @@
 
 
 #### Optional B: [Customized Ingress and DNS Behavior]
-* [Deploying a hosted cluster that specifies the base domain](hypershift/ingress-and-dns.md)
+* [Deploying a hosted cluster that specifies the base domain](openshift/hypershift/ingress-and-dns.md)
 * [Official Documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/hosted_control_planes/deploying-hosted-control-planes#hcp-virt-ingress-dns-custom)
 
 
