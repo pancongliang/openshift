@@ -104,19 +104,45 @@ oc get sc
 ```
 
 ### Uninstall Local Storage Operator
+
+**Delete previously created resources**
 ```
 oc get localvolumes -n openshift-local-storage -o name | xargs -I {} oc -n openshift-local-storage delete {}
+
 oc get localvolume -n openshift-local-storage -o jsonpath='{.items[*].metadata.name}' | xargs -I {} oc patch localvolume {} -n openshift-local-storage --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]'
 
 oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {}
- 
+```
+**Deleting Local Storage Data(/mnt/local-storage/*) from a Node**
+```
 #!/bin/bash
-for Hostname in $(oc get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
+for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
 do
    echo "delete the /mnt/local-storage/ file in the $Hostname node"
    ssh -o StrictHostKeyChecking=no core@$Hostname sudo rm -rf /mnt/local-storage/*
 done
+```
 
+**Wiping unused disk from a Node**
+```
+#!/bin/bash
+for Hostname in $(oc get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
+do
+   ssh -q -T -o StrictHostKeyChecking=no core@$Hostname \
+       "disks=\$(lsblk -dnlo NAME,TYPE | awk '\$2 == \"disk\" {print \$1}'); \
+       for disk in \$disks; do \
+           if ! lsblk /dev/\$disk | grep -q '/boot\|/var\|/ '; then \
+               if ! lsblk /dev/\$disk | grep -q 'part'; then \
+                   sudo wipefs -a /dev/\$disk >/dev/null 2>&1; \
+                   echo \"Wiping unused /dev/\$disk in the $Hostname node\"; \
+               fi; \
+           fi; \
+       done"
+done
+```
+
+**Deleting Local Storage Operator**
+```
 export CHANNEL_NAME="stable"
 export CATALOG_SOURCE_NAME="redhat-operators"
 export NAMESPACE="openshift-local-storage"
