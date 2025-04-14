@@ -288,6 +288,7 @@ check_virtual_host_configuration
 
 # Create http dir
 rm -rf ${HTTPD_DIR} >/dev/null 2>&1
+sleep 1
 mkdir -p ${HTTPD_DIR} >/dev/null 2>&1
 run_command "[create http: ${HTTPD_DIR} director]"
 
@@ -303,6 +304,7 @@ sleep 15
 
 # Test httpd configuration
 rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
+sleep 1
 touch ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 run_command "[create httpd test file]"
 
@@ -320,6 +322,7 @@ PRINT_TASK "TASK [Setup nfs services]"
 
 # Create NFS directories
 rm -rf ${NFS_DIR} >/dev/null 2>&1
+sleep 1
 mkdir -p ${NFS_DIR} >/dev/null 2>&1
 run_command "[create nfs director: ${NFS_DIR}]"
 
@@ -360,6 +363,7 @@ sleep 15
 # Create the mount point
 umount /tmp/nfs-test >/dev/null 2>&1 || true
 rm -rf /tmp/nfs-test >/dev/null 2>&1
+sleep 1
 mkdir -p /tmp/nfs-test >/dev/null 2>&1
 run_command "[create an nfs mount directory for testing: /tmp/nfs-test]"
 
@@ -765,6 +769,7 @@ PRINT_TASK "TASK [Generate a defined install-config file]"
 
 # Create ssh-key for accessing CoreOS
 rm -rf ${SSH_KEY_PATH} >/dev/null 2>&1
+sleep 1
 ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
 run_command "[create ssh-key for accessing coreos]"
 
@@ -773,7 +778,7 @@ export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
 rm -rf ${HTTPD_DIR}/install-config.yaml >/dev/null 2>&1
-
+sleep 1
 cat << EOF > ${HTTPD_DIR}/install-config.yaml
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
@@ -810,6 +815,7 @@ PRINT_TASK "TASK [Generate a manifests]"
 
 # Create installation directory
 rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
+sleep 1
 mkdir "${INSTALL_DIR}" >/dev/null 2>&1
 run_command "[create installation directory: ${INSTALL_DIR}]"
 
