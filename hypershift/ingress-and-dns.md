@@ -119,4 +119,4 @@
 
 
 #### Configuring MetalLB 
-* You must install the MetalLB Operator before you configure [MetalLB](/operator/metallb/readme.md).
+* Setting up [MetalLB](/operator/metallb/readme.md) for the Ingress Controller
