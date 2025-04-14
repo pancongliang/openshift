@@ -35,7 +35,7 @@
 - Install the OpenShift [Virtualization](/virtualization/readme.md) Operator.
 
 ### Installing MetalLB Operator
-- Install the [MetalLB](/operator/metallb/readme.md) Operator to provide a network load balancer for the Hosted Cluster.
+- Install the [MetalLB](/operator/metallb/readme.md) Operator to provide a network load balancer for the Hosted Clusters API.
 
 ### Configuring Multi Cluster Engine Operator
 - Install the Multi Cluster Engine [MCE](/operator/mce/readme.md) Operator.
