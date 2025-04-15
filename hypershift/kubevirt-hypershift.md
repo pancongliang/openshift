@@ -32,7 +32,7 @@
    ```
 
 ### Installing OpenShift Virtualization
-- Install the OpenShift [Virtualization](/operator/virtualization/readme.md) Operator and use KubeVirt to create virtual machines (worker nodes) for the managed cluster.
+- Install the OpenShift [Virtualization](/virtualization/readme.md) Operator and use KubeVirt to create virtual machines (worker nodes) for the managed cluster.
 
 ### Installing MetalLB Operator
 - Install the [MetalLB](/operator/metallb/readme.md) Operator to provide a network load balancer for the Hosted Clusters API.
