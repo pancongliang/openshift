@@ -25,8 +25,8 @@
   - HyperShift
 
 ### Installing OpenShift Data Foundation
-1. Install [ODF](/storage/odf/readme.md) using local storage devices for Hypershift ETCD Storage, Node Root Volume Storage, and KubeVirt CSI Storage.
-3. Annotate a default storage class for HyperShift to persist VM workers and guest cluster etcd pods:
+- Install [ODF](/storage/odf/readme.md) using local storage devices for Hypershift ETCD Storage, Node Root Volume Storage, and KubeVirt CSI Storage.
+- Annotate a default storage class for HyperShift to persist VM workers and guest cluster etcd pods:
    ```
    oc patch storageclass ocs-storagecluster-ceph-rbd -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
    ```
@@ -58,7 +58,7 @@
   ```
 
 ### Enabling HyperShift
-1. Apply the following YAML to enable the HyperShift operator:
+- Apply the following YAML to enable the HyperShift operator:
    ```
    oc apply -f - <<EOF
    apiVersion: addon.open-cluster-management.io/v1alpha1
@@ -70,13 +70,14 @@
      installNamespace: open-cluster-management-agent-addon
    EOF
    ```
-2. Verify the HyperShift operator pods are running in the "hypershift" namespace:
+   
+- Verify the HyperShift operator pods are running in the "hypershift" namespace:
    ```
    oc get pods -n hypershift
    ```
 ### Ingress and DNS configuration
 
-#### Optional A: Default Ingress and DNS Behavior
+- Optional A: Default Ingress and DNS Behavior
 * Configuring the default ingress and DNS for hosted control planes on OpenShift Virtualization:
    > By default, OpenShift clusters include an ingress controller that requires a wildcard DNS record. When using the KubeVirt provider with HyperShift, Hosted Clusters are created as subdomains of the RHACM hub's domain.  
    > For example, if the RHACM hub uses `*.apps.ocp4.example.com` as the default ingress domain, a Hosted Cluster named `my-cluster-1` will use a subdomain like `*.apps.my-cluster-1.ocp4.example.com` when deployed with the HyperShift KubeVirt provider.
@@ -87,25 +88,25 @@
    > When you use the default hosted cluster ingress, connectivity is limited to HTTPS traffic over port 443. Plain HTTP traffic over port 80 is rejected. This limitation applies to only the default ingress behavior.
 
 
-#### Optional B: [Customized Ingress and DNS Behavior]
+- Optional B: [Customized Ingress and DNS Behavior]
 * [Deploying a hosted cluster that specifies the base domain](ingress-and-dns.md)
 * [Official Documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/hosted_control_planes/deploying-hosted-control-planes#hcp-virt-ingress-dns-custom)
 
 
 ### Demo
-* This demo will create a hosted cluster with the KubeVirt platform using the default ingress and DNS.
+- This demo will create a hosted cluster with the KubeVirt platform using the default ingress and DNS.
 
 ####  Creating a hosted cluster with the KubeVirt platform
 
-1. **Downlod the HCP CLI and pull-secret**
+- Downlod the HCP CLI and pull-secret
    ```
    curl -Lk $(oc get consoleclidownload hcp-cli-download -o json | jq -r '.spec.links[] | select(.text=="Download hcp CLI for Linux for x86_64").href') | tar xvz -C /usr/local/bin/
    ```
    
-2. **Download the [pull secret](https://console.redhat.com/openshift/install/pull-secret)*
+- Download the [pull secret](https://console.redhat.com/openshift/install/pull-secret)
 
 
-3. **Configure Environment Variables**
+- Configure Environment Variables
    ```
    export HOSTED_CLUSTER_NAMESPACE="clusters" # Contains the namespace of HostedCluster and NodePool custom resources. The default namespace is clusters.
    export HOSTED_CLUSTER_NAME="my-cluster-1"
@@ -117,7 +118,7 @@
    export WORKER_COUNT="2"
    ```
 
-4. **Create the Hosted Cluster**
+- Create the Hosted Cluster
    > **Note:**  
    > If do not provide any advanced storage configuration, the default storage class is used for the KubeVirt virtual machine (VM) images, the KubeVirt Container Storage Interface (CSI) mapping, and the etcd volumes.
    ```
@@ -140,12 +141,12 @@
      #--base-domain <base-domain>
    ```
 
-5. **Monitor Resources**
+- Monitor Resources
    ```
    oc wait --for=condition=Ready --namespace $HOSTED_CONTROL_PLANE_NAMESPACE vm --all --timeout=600s
    ```
 
-6. **Examine the Hosted Cluster**
+- Examine the Hosted Cluster
    - Verify the status of guest cluster:
      ```
      oc get hc -A
@@ -177,7 +178,7 @@
 
 ####  Scaling and Adding a node pool
 
-1. **Scaling a node pool**
+- Scaling a node pool
      ```
      oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
 
@@ -186,7 +187,7 @@
      oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
      ```
 
-2. **Adding node pools**
+- Adding node pools
      ```
      export NODEPOOL_NAME=${HOSTED_CLUSTER_NAME}-work
      export WORKER_COUNT="2"
@@ -208,7 +209,7 @@
      ```
      
 ####  Accessing a hosted cluster
-* Generate Kubeconfig file and access the customer cluster
+- Generate Kubeconfig file and access the customer cluster
    ```
    hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig"
    # or
@@ -216,7 +217,7 @@
    
    export KUBECONFIG=$HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
    ```
-* Log in to the Guest Cluster using the Kubeadmin account
+- Log in to the Guest Cluster using the Kubeadmin account
    ```
    export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
    export KUBEADMIN_PASSWORD=$(oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d)
@@ -225,7 +226,7 @@
    oc login $HOSTED_CLUSTER_API -u kubeadmin -p $KUBEADMIN_PASSWORD
    ```
 
-* Log in to the Guest Cluster OCP Console using the kubeadmin account
+- Log in to the Guest Cluster OCP Console using the kubeadmin account
    ```
    oc get route -n $HOSTED_CONTROL_PLANE_NAMESPACE oauth -o jsonpath='https://{.spec.host}'
    echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
@@ -234,36 +235,35 @@
    ```
 
 #### Quickly switch kubeconfig between OCP Hub and Hypershift
-*  Quickly switch kubeconfig through alias
-   ```
-   echo "alias ctx1='export KUBECONFIG=$HOME/.kube/hub-kubeconfig'" >> ~/.bashrc
-   echo "alias ctx2='export KUBECONFIG=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig'" >> ~/.bashrc
-   source ~/.bashrc
-   ```
+- Quickly switch kubeconfig through alias
+  ```
+  echo "alias ctx1='export KUBECONFIG=$HOME/.kube/hub-kubeconfig'" >> ~/.bashrc
+  echo "alias ctx2='export KUBECONFIG=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig'" >> ~/.bashrc
+  source ~/.bashrc
+  ```
    
-*  Quickly switch environments through context   
-   ```
-   export KUBECONFIG=$HOME/hub-kubeconfig:$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
-   oc config view --merge --flatten > $HOME/kubeconfig
-   export KUBECONFIG=$HOME/kubeconfig
+- Quickly switch environments through context   
+  ```
+  export KUBECONFIG=$HOME/hub-kubeconfig:$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+  oc config view --merge --flatten > $HOME/kubeconfig
+  export KUBECONFIG=$HOME/kubeconfig
    
-   oc config get-contexts
-   oc config use-context <name>
-   ```
-
+  oc config get-contexts
+  oc config use-context <name>
+  ```
 
 #### Configuring HTPasswd-based user authentication
-1. **Create a file with the username and password**
+- Create a file with the username and password
    ```
    htpasswd -b -c users.htpasswd admin redhat
    ```
    
-2. **Create a Secret object from a file**
+- Create a Secret object from a file
    ```
    oc create secret generic ${HOSTED_CLUSTER_NAME}-htpass-secret --from-file=htpasswd=users.htpasswd -n $HOSTED_CLUSTER_NAMESPACE
    ```
    
-3. **Create an HTPasswd-based identityProvider configuration file**
+- Create an HTPasswd-based identityProvider configuration file
    ```
    cat << EOF > patch.yaml
    spec:
@@ -279,22 +279,22 @@
    EOF
    ```
    
-4. **Use patch.yaml to update the hostedcluster configuration named $HOSTED_CLUSTER_NAME**
+- Use patch.yaml to update the hostedcluster configuration named $HOSTED_CLUSTER_NAME
    ```
    oc patch hostedcluster ${HOSTED_CLUSTER_NAME} -n $HOSTED_CLUSTER_NAMESPACE --type merge --patch-file patch.yaml
    ```
    
-5. **View oauth-openshift related pod updates**
+- View oauth-openshift related pod updates
    ```
    oc get pod -n $HOSTED_CONTROL_PLANE_NAMESPACE | grep oauth-openshift -w
    ```
    
-6. **Configuring access permissions for hosted cluster users**
+- Configuring access permissions for hosted cluster users
    ```
    oc adm policy add-cluster-role-to-user cluster-admin admin --kubeconfig=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
    ```
    
-7. **Access Verification**
+- Access Verification
    ```
    export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
 
@@ -302,23 +302,24 @@
    oc login $HOSTED_CLUSTER_API -u admin -p redhat
    ```
 
-8. **Get the hosted cluster's oauth and console urls**
+- Get the hosted cluster's oauth and console urls
    ```
    oc get route -n $HOSTED_CONTROL_PLANE_NAMESPACE oauth -o jsonpath='https://{.spec.host}'
    echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
    ```
 
 ### Deleting a Hosted Cluster
-1. **Deleting a Hosted Cluster**
+- Deleting a Hosted Cluster
    ```
    oc delete managedcluster $HOSTED_CLUSTER_NAME
    ```
-2. **Destroy an HCP Hosted Cluster on KubeVirt**
+   
+- Destroy an HCP Hosted Cluster on KubeVirt
    ```
    hcp destroy cluster kubevirt --name $HOSTED_CLUSTER_NAME
    ```
 
 ### Reference Documentation
-[Effortlessly And Efficiently Provision OpenShift Clusters With OpenShift Virtualization](https://www.redhat.com/en/blog/effortlessly-and-efficiently-provision-openshift-clusters-with-openshift-virtualization)
+- [Effortlessly And Efficiently Provision OpenShift Clusters With OpenShift Virtualization](https://www.redhat.com/en/blog/effortlessly-and-efficiently-provision-openshift-clusters-with-openshift-virtualization)
 
-[Create a Kubevirt cluster](https://hypershift-docs.netlify.app/how-to/kubevirt/create-kubevirt-cluster/)
+- [Create a Kubevirt cluster](https://hypershift-docs.netlify.app/how-to/kubevirt/create-kubevirt-cluster/)
