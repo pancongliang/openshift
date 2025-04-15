@@ -121,8 +121,6 @@
    > **Note:**  
    > If do not provide any advanced storage configuration, the default storage class is used for the KubeVirt virtual machine (VM) images, the KubeVirt Container Storage Interface (CSI) mapping, and the etcd volumes.
    ```
-   # oc new-project $HOSTED_CLUSTER_NAMESPACE
-   
    hcp create cluster kubevirt \
      --name $HOSTED_CLUSTER_NAME \
      --release-image quay.io/openshift-release-dev/ocp-release:$OCP_VERSION-x86_64 \
