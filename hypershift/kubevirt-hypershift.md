@@ -25,21 +25,21 @@
   - HyperShift
 
 ### Installing OpenShift Data Foundation
-1. Install OpenShift Data Foundation ([ODF](/storage/odf/readme.md)) using local storage devices.
-2. Annotate a default storage class for HyperShift to persist VM workers and guest cluster etcd pods:
+1. Install [ODF](/storage/odf/readme.md) using local storage devices for Hypershift ETCD Storage, Node Root Volume Storage, and KubeVirt CSI Storage.
+3. Annotate a default storage class for HyperShift to persist VM workers and guest cluster etcd pods:
    ```
    oc patch storageclass ocs-storagecluster-ceph-rbd -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
    ```
 
 ### Installing OpenShift Virtualization
-- Install the OpenShift [Virtualization](/virtualization/readme.md) Operator.
+- Install the OpenShift [Virtualization](/operator/virtualization/readme.md) Operator and use KubeVirt to create virtual machines (worker nodes) for the managed cluster.
 
 ### Installing MetalLB Operator
 - Install the [MetalLB](/operator/metallb/readme.md) Operator to provide a network load balancer for the Hosted Clusters API.
-
+   
 ### Configuring Multi Cluster Engine Operator
-- Install the Multi Cluster Engine [MCE](/operator/mce/readme.md) Operator.
-
+- Install the ACM or [MCE](/operator/mce/readme.md) Operator. The MCE Operator lifecycle manages the creation, import, administration, and destruction of Kubernetes clusters across various cloud providers, private clouds, and on-premises data centers.
+  
 ### Setting Up Cluster Manager
 - The local-cluster ManagedCluster allows the MCE components to treat the cluster it runs on as a host for guest clusters:
   > Note: The command might fail initially if the ManagedCluster CRD is not yet registered. Retry after a few minutes.
