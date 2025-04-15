@@ -236,16 +236,16 @@
 #### Quickly switch kubeconfig between OCP Hub and Hypershift
 *  Quickly switch kubeconfig through alias
    ```
-   echo "alias ctx1='export KUBECONFIG=/$HOME/.kube/hub-kubeconfig'" >> ~/.bashrc
-   echo "alias ctx2='export KUBECONFIG=/$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig'" >> ~/.bashrc
+   echo "alias ctx1='export KUBECONFIG=$HOME/.kube/hub-kubeconfig'" >> ~/.bashrc
+   echo "alias ctx2='export KUBECONFIG=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig'" >> ~/.bashrc
    source ~/.bashrc
    ```
    
 *  Quickly switch environments through context   
    ```
-   export KUBECONFIG=/$HOME/hub-kubeconfig:/$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
-   oc config view --merge --flatten > /$HOME/kubeconfig
-   export KUBECONFIG=/$HOME/kubeconfig
+   export KUBECONFIG=$HOME/hub-kubeconfig:$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+   oc config view --merge --flatten > $HOME/kubeconfig
+   export KUBECONFIG=$HOME/kubeconfig
    
    oc config get-contexts
    oc config use-context <name>
