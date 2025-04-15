@@ -19,7 +19,14 @@
 * Create the Central instance with the following command:
 
   ```
-  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/operator/mce/02-multiclusterengine.yaml
+  cat << EOF | oc apply -f -
+  apiVersion: multicluster.openshift.io/v1
+  kind: MultiClusterEngine
+  metadata:
+    name: multiclusterengine
+    namespace: multicluster-engine
+  spec: {}
+  EOF
   ```
 
 ### Check Resources
