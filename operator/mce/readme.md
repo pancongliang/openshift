@@ -6,7 +6,7 @@
 * To install the Operator using the default namespace, follow these steps:
 
   ```
-  export CHANNEL_NAME="stable-2.7"
+  export CHANNEL_NAME="stable-2.8"
   export CATALOG_SOURCE_NAME="redhat-operators"
   export NAMESPACE="multicluster-engine"
 
