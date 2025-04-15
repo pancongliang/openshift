@@ -1,6 +1,6 @@
 #!/bin/bash
 
-start_ip=210
+start_ip=100
 end_ip=220
 network="10.184.134"
 
