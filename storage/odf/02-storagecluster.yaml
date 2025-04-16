@@ -14,6 +14,8 @@ spec:
         cpu: "3"
         memory: "8Gi"
   monDataDirHostPath: /var/lib/rook
+  multiCloudGateway:
+    disableLoadBalancerService: true
   storageDeviceSets:
   - count: 1  # Modify count to desired value. For each set of 3 disks increment the count by 1.
     dataPVCTemplate:
