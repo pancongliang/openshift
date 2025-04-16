@@ -44,9 +44,9 @@
 
 
 ### Uninstalling OpenShift Data Foundation
--  [Uninstalling OpenShift Data Foundation in Internal mode](https://access.redhat.com/articles/6525111)
+-  [Uninstalling](https://access.redhat.com/articles/6525111) OpenShift Data Foundation in Internal mode
 
 ### Reference Documentation
--  [Install Red Hat OpenShift Data Foundation 4.X in internal-attached mode using command line interface](https://access.redhat.com/articles/5692201)
+-  Install Red Hat OpenShift Data Foundation 4.X in [internal-attached mode](https://access.redhat.com/articles/5692201) using command line interface
 
--  [Install Red Hat OpenShift Data Foundation 4.X in internal mode using command line interface](https://access.redhat.com/articles/5683981)
+-  Install Red Hat OpenShift Data Foundation 4.X in [internal mode](https://access.redhat.com/articles/5683981) using command line interface
