@@ -206,7 +206,7 @@ sudo rm -rf pull-secret >/dev/null 2>&1
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
 run_command  "[export pull-secret file]"
 
-podman login --authfile pull-secret ${REGISTRY_DOMAIN_NAME}:8443 >/dev/null 2>&1
+podman login $REGISTRY_ID $REGISTRY_PW --authfile pull-secret ${REGISTRY_DOMAIN_NAME}:8443 >/dev/null 2>&1
 run_command  "[authentication identity information to the pull-secret file]"
 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
