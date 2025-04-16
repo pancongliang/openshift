@@ -131,8 +131,10 @@
      --cores $CPU \
      --auto-repair \
      --namespace $HOSTED_CLUSTER_NAMESPACE
-     #--etcd-storage-class ocs-storagecluster-ceph-rbd \
-     #--control-plane-availability-policy SingleReplica \
+     #--control-plane-availability-policy SingleReplica
+     #--control-plane-availability-policy HighlyAvailable 
+     #--etcd-storage-class ocs-storagecluster-ceph-rbd
+     #--control-plane-availability-policy SingleReplica
      #--infra-availability-policy SingleReplica
      #--root-volume-storage-class <root_volume_storage_class>
      #--root-volume-size <volume_size>
@@ -140,7 +142,6 @@
      #--infra-volumesnapshot-class-mapping=<infrastructure_volume_snapshot_class>/<hosted_volume_snapshot_class>
      #--base-domain <base-domain>
      #--control-plane-availability-policy HighlyAvailable
-     #--control-plane-availability-policy SingleReplica
    ```
 
 - Monitor Resources
