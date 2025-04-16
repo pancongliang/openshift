@@ -77,7 +77,7 @@
    ```
 ### Ingress and DNS configuration
 
-- Optional A: Default Ingress and DNS Behavior
+#### Optional A: Default Ingress and DNS Behavior
 * Configuring the default ingress and DNS for hosted control planes on OpenShift Virtualization:
    > By default, OpenShift clusters include an ingress controller that requires a wildcard DNS record. When using the KubeVirt provider with HyperShift, Hosted Clusters are created as subdomains of the RHACM hub's domain.  
    > For example, if the RHACM hub uses `*.apps.ocp4.example.com` as the default ingress domain, a Hosted Cluster named `my-cluster-1` will use a subdomain like `*.apps.my-cluster-1.ocp4.example.com` when deployed with the HyperShift KubeVirt provider.
@@ -88,7 +88,7 @@
    > When you use the default hosted cluster ingress, connectivity is limited to HTTPS traffic over port 443. Plain HTTP traffic over port 80 is rejected. This limitation applies to only the default ingress behavior.
 
 
-- Optional B: [Customized Ingress and DNS Behavior]
+#### Optional B: Customized Ingress and DNS Behavior
 * [Deploying a hosted cluster that specifies the base domain](ingress-and-dns.md)
 * [Official Documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.18/html/hosted_control_planes/deploying-hosted-control-planes#hcp-virt-ingress-dns-custom)
 
