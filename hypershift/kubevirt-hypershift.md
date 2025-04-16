@@ -139,6 +139,8 @@
      #--infra-storage-class-mapping=<infrastructure_storage_class>/<hosted_storage_class> # Mapping KubeVirt CSI storage classes
      #--infra-volumesnapshot-class-mapping=<infrastructure_volume_snapshot_class>/<hosted_volume_snapshot_class>
      #--base-domain <base-domain>
+     #--control-plane-availability-policy HighlyAvailable
+     #--control-plane-availability-policy SingleReplica
    ```
 
 - Monitor Resources
