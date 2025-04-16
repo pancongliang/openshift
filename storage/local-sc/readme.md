@@ -28,7 +28,7 @@
   sh discover-block-device.sh sd*
   ```
 
-- Set device path variables, ensuring each path is unique. Skip if already set
+- Set the device path variables to ensure that each path is unique. If the variables are the same, apply only one
   ```
   export DEVICE_PATH_1=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
 
