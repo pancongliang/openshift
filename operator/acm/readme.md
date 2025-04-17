@@ -32,7 +32,7 @@
 
 ### Check Resources
 
-* Check multi cluster hub Status
+* Run the following command to get the custom resource. It can take up to 10 minutes for the MultiClusterHub custom resource status to display as Running in the status.phase field after you run the command
   ```
   oc get mch -o=jsonpath='{.items[0].status.phase}'
   ```
