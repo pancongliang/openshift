@@ -6,6 +6,7 @@
   ```
   curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/inst-mirror-registry.sh
 
+  vim inst-mirror-registry.sh
   export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
   export REGISTRY_ID="admin"
   export REGISTRY_PW="password"
