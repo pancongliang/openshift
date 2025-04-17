@@ -1,0 +1,45 @@
+
+
+## Install and Configure Multi Cluster Engine Operator
+
+### Install Multi Cluster Engine Operator
+
+* To install the Operator using the default namespace, follow these steps:
+
+  ```
+  export CHANNEL_NAME="release-2.12"
+  export CATALOG_SOURCE_NAME="redhat-operators"
+  export NAMESPACE="open-cluster-management"
+
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/acm/01-operator.yaml | envsubst | oc create -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+  ```
+
+### Create Multi Cluster Engine Custom Resources
+
+* Create the Central instance with the following command:
+
+  ```
+  cat << EOF | oc apply -f -
+  apiVersion: operator.open-cluster-management.io/v1
+  kind: MultiClusterHub
+  metadata:
+    name: multiclusterhub
+    namespace: open-cluster-management
+  spec: {}
+  EOF
+  ```
+
+### Check Resources
+
+* Check MulticlusterEngine Status
+  ```
+  oc get mch -o=jsonpath='{.items[0].status.phase}'
+  ```
+
+* Check pod
+  ```
+  oc get pods -n open-cluster-management-hub
+  oc get pods -n open-cluster-management-agent
+  oc get pods -n open-cluster-management-agent-addon
+  ```
