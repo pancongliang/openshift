@@ -38,7 +38,7 @@
 
 * Check pod
   ```
-  oc get pods -n open-cluster-management-hub
+  oc get pods -n open-cluster-management
   oc get pods -n open-cluster-management-agent
   oc get pods -n open-cluster-management-agent-addon
   ```
