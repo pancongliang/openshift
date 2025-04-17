@@ -1,8 +1,8 @@
 
 
-## Install and Configure Multi Cluster Engine Operator
+## Install and Configure Advanced Cluster Management Operator
 
-### Install Multi Cluster Engine Operator
+### Install Advanced Cluster Management Operator
 
 * To install the Operator using the default namespace, follow these steps:
 
@@ -15,9 +15,9 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
-### Create Multi Cluster Engine Custom Resources
+### Create Advanced Cluster Management Custom Resources
 
-* Create the Central instance with the following command:
+* Create the MultiClusterHub with the following command:
 
   ```
   cat << EOF | oc apply -f -
@@ -32,7 +32,7 @@
 
 ### Check Resources
 
-* Check MulticlusterEngine Status
+* Check MultiClusterHub Status
   ```
   oc get mch -o=jsonpath='{.items[0].status.phase}'
   ```
