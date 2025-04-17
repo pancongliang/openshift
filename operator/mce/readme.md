@@ -16,7 +16,7 @@
 
 ### Create Multi Cluster Engine Custom Resources
 
-* Create the Central instance with the following command:
+* Create the multi cluster engine with the following command:
 
   ```
   cat << EOF | oc apply -f -
@@ -31,7 +31,7 @@
 
 ### Check Resources
 
-* Check MulticlusterEngine Status
+* Check multi cluster engine Status
   ```
   oc get mce -o=jsonpath='{.items[0].status.phase}'
   ```
