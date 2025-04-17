@@ -17,7 +17,7 @@
 
 ### Create Advanced Cluster Management Custom Resources
 
-* Create the MultiClusterHub with the following command:
+* Create the multi cluster hub with the following command:
 
   ```
   cat << EOF | oc apply -f -
@@ -32,7 +32,7 @@
 
 ### Check Resources
 
-* Check MultiClusterHub Status
+* Check multi cluster hub Status
   ```
   oc get mch -o=jsonpath='{.items[0].status.phase}'
   ```
