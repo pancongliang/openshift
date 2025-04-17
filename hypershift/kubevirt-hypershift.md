@@ -111,7 +111,7 @@
    export HOSTED_CLUSTER_NAMESPACE="clusters" # Contains the namespace of HostedCluster and NodePool custom resources. The default namespace is clusters.
    export HOSTED_CLUSTER_NAME="my-cluster-1"
    export HOSTED_CONTROL_PLANE_NAMESPACE="$HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME"
-   export OCP_VERSION="4.16.12"
+   export OCP_VERSION="4.16.23"
    export PULL_SECRET="$HOME/pull-secret" 
    export MEM="8Gi"
    export CPU="2"
