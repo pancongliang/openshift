@@ -110,6 +110,8 @@
   oc get localvolume -n openshift-local-storage -o jsonpath='{.items[*].metadata.name}' | xargs -I {} oc patch localvolume {} -n openshift-local-storage --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]'
 
   oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {}
+  oc get sc | grep local | awk '{print $1}' | xargs -I {} oc delete sc {}
+
   ```
   
 - Deleting Local Storage Data(/mnt/local-storage/*) from a Node
