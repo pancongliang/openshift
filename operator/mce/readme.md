@@ -33,7 +33,7 @@
 
 * Check multi cluster engine Status
   ```
-  oc get mce -o=jsonpath='{.items[0].status.phase}'
+  oc get mce -o=jsonpath='{.items[0].status.phase}' -n multicluster-engine
   ```
 
 * Check pod
