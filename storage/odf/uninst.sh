@@ -189,3 +189,10 @@ for pv in $(oc get pv -o jsonpath='{.items[*].metadata.name}'); do
   fi
 done
 
+
+#!/bin/bash
+for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
+do
+   echo "reboot $Hostname node"
+   ssh -o StrictHostKeyChecking=no core@$Hostname sudo reboot
+done
