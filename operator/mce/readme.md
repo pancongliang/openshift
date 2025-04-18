@@ -48,7 +48,8 @@
 
 - Removing MultiClusterHub resources by using commands 
   ```
-  oc delete multiclusterengine --all -n multicluster-engine
+  oc delete mce multiclusterengine -n multicluster-engine
+  oc patch mce multiclusterengine -n multicluster-engine -p '{"metadata":{"finalizers":[]}}' --type=merge
   ```
 
 - Remove Multicluster Engine and ClusterServiceVersion
