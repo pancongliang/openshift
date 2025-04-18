@@ -495,7 +495,7 @@ helper  IN      A       ${DNS_SERVER_IP}
 helper.ocp4     IN      A       ${DNS_SERVER_IP}
 ;
 ; The api identifies the IP of load balancer.
-ocp.inst        IN      A       ${BASTION_IP} 
+ocp.inst.       IN      A       ${BASTION_IP} 
 EOF
 run_command "[generate forward DNS zone file: /var/named/ocp.inst.zone]"
 
