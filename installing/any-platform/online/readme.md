@@ -50,7 +50,7 @@
   ```
   bash 02-pre-inst.sh
 
-  $ ls ${INSTALL_DIR}/set*
+  $ ls ${INSTALL_DIR}/inst*
   inst-bootstrap.sh  inst-master01.sh  inst-master02.sh  inst-master03.sh  inst-worker01.sh  inst-worker02.sh  inst-worker03.sh
   ```
 
