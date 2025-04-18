@@ -49,7 +49,8 @@
 
 - Removing MultiClusterHub resources by using commands 
   ```
-  oc delete multiclusterhub --all -n open-cluster-management
+  oc delete mch multiclusterhub -n open-cluster-management
+  oc patch mch multiclusterhub -n open-cluster-management -p '{"metadata":{"finalizers":[]}}' --type=merge
   ```
 
 - Cleaning up artifacts before reinstalling
