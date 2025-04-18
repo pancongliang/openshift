@@ -63,3 +63,9 @@
   oc delete crd multiclusterengines.multicluster.openshift.io
   oc delete mce --all -n multicluster-engine
    ```
+
+- Remove Project
+  ```
+  oc delete ns open-cluster-management open-cluster-management-agent open-cluster-management-agent-addon multicluster-engine hive
+  oc delete ns local-cluster clusters
+  ```
