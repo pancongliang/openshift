@@ -49,8 +49,12 @@
 
   ```
   bash 02-pre-inst.sh
+  ```
 
-  $ (cd "${INSTALL_DIR}" && ls -d bs m[0-9] w[0-9])
+* Check whether the node installation script is generated:
+  ```
+  (cd "${INSTALL_DIR}" && ls -d bs m[0-9] w[0-9])
+
   bs  m1  m2  m3  w1  w2  w3
   ```
 
