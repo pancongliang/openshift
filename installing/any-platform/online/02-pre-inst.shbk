@@ -886,34 +886,41 @@ PRINT_TASK "TASK [Generate an ignition file containing the node hostname]"
 
 # Copy ignition files with appropriate hostnames
 BOOTSTRAP_HOSTNAME="bs"
-MASTER_HOSTNAMES=("m${MASTER01_HOSTNAME: -1}" "m${MASTER02_HOSTNAME: -1}" "m${MASTER03_HOSTNAME: -1}")
-WORKER_HOSTNAMES=("w${WORKER01_HOSTNAME: -1}" "w${WORKER02_HOSTNAME: -1}" "w${WORKER03_HOSTNAME: -1}")
+MASTER_ABBREVS=("m${MASTER01_HOSTNAME: -1}" "m${MASTER02_HOSTNAME: -1}" "m${MASTER03_HOSTNAME: -1}")
+WORKER_ABBREVS=("w${WORKER01_HOSTNAME: -1}" "w${WORKER02_HOSTNAME: -1}" "w${WORKER03_HOSTNAME: -1}")
+
+MASTER_FULL_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
+WORKER_FULL_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
 
 cp "${INSTALL_DIR}/bootstrap.ign" "${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign"
-run_command "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
+run_command "[copy bootstrap.ign to ${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign]"
 
-for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    cp "${INSTALL_DIR}/master.ign" "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
-    run_command "[copy and customize the master.ign file name: append-${MASTER_HOSTNAME}.ign]"
+for ABBREV in "${MASTER_ABBREVS[@]}"; do
+    cp "${INSTALL_DIR}/master.ign" "${INSTALL_DIR}/append-${ABBREV}.ign"
+    run_command "[copy master.ign to ${INSTALL_DIR}/append-${ABBREV}.ign]"
 done
 
-for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    cp "${INSTALL_DIR}/worker.ign" "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
-    run_command "[copy and customize the worker.ign file name: append-${WORKER_HOSTNAME}.ign]"
+for ABBREV in "${WORKER_ABBREVS[@]}"; do
+    cp "${INSTALL_DIR}/worker.ign" "${INSTALL_DIR}/append-${ABBREV}.ign"
+    run_command "[copy worker.ign to ${INSTALL_DIR}/append-${ABBREV}.ign]"
 done
 
-MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOSTNAME}")
-WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
-
-# Update hostname in ignition files
-for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
-    run_command "[add the appropriate hostname field to the append-${MASTER_HOSTNAME}.ign file]"
+# Update master hostname in ignition files
+for i in "${!MASTER_FULL_HOSTNAMES[@]}"; do
+    MASTER_FULL_NAME="${MASTER_FULL_HOSTNAMES[$i]}"
+    MASTER_ABBREV_NAME="${MASTER_ABBREVS[$i]}"
+    
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_FULL_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${MASTER_ABBREV_NAME}.ign"
+    run_command "[update hostname in ${INSTALL_DIR}/append-${MASTER_ABBREV_NAME}.ign]"
 done
 
-for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
-    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
-    run_command "[add the appropriate hostname field to the append-${WORKER_HOSTNAME}.ign file]"
+# Update worker hostname in ignition files
+for i in "${!WORKER_FULL_HOSTNAMES[@]}"; do
+    WORKER_FULL_NAME="${WORKER_FULL_HOSTNAMES[$i]}"
+    WORKER_ABBREV_NAME="${WORKER_ABBREVS[$i]}"
+    
+    sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_FULL_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${WORKER_ABBREV_NAME}.ign"
+    run_command "[update hostname in ${INSTALL_DIR}/append-${WORKER_ABBREV_NAME}.ign]"
 done
 
 # Set correct permissions
@@ -925,10 +932,6 @@ echo
 
 # Step 15:
 PRINT_TASK "TASK [Generate setup script file]"
-
-rm -rf ${INSTALL_DIR}/bs
-rm -rf ${INSTALL_DIR}/m*
-rm -rf ${INSTALL_DIR}/w*
 
 # Function to generate setup script for a node
 generate_setup_script() {
@@ -988,7 +991,7 @@ for i in {1..720}; do
   sleep 10
 done 
 EOF
-run_command "[Generate approve csr script file]"
+run_command "[generate approve csr script: ${INSTALL_DIR}/ocp4cert_approver.sh]"
 
 # Add an empty line after the task
 echo
