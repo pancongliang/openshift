@@ -62,10 +62,21 @@
   oc delete validatingwebhookconfiguration multiclusterengines.multicluster.openshift.ioo
   oc delete crd multiclusterengines.multicluster.openshift.io
   oc delete mce --all -n multicluster-engine
-   ```
-
+  ```
+  
 - Remove Project
   ```
   oc delete ns open-cluster-management open-cluster-management-agent open-cluster-management-agent-addon multicluster-engine hive
   oc delete ns local-cluster clusters
+  oc delete managedclusteraddons.addon.open-cluster-management.io --all -n local-cluster
+  oc delete manifestworks.work.open-cluster-management.io --all -n local-cluster
+  oc delete rolebindings.authorization.openshift.io --all -n local-cluster
+  oc delete rolebindings.rbac.authorization.k8s.io --all -n local-cluster
+  oc delete rolebinding open-cluster-management:managedcluster:local-cluster:work -n local-cluster
+  
+  oc patch managedclusteraddons.addon.open-cluster-management.io hypershift-addon -n local-cluster -p '{"metadata":{"finalizers":[]}}' --type=merge
+  oc patch manifestworks.work.open-cluster-management.io addon-hypershift-addon-deploy-0 -n local-cluster -p '{"metadata":{"finalizers":[]}}' --type=merge
+  oc patch manifestworks.work.open-cluster-management.io local-cluster-klusterlet -n local-cluster -p '{"metadata":{"finalizers":[]}}' --type=merge
+  oc patch manifestworks.work.open-cluster-management.io local-cluster-klusterlet-crds -n local-cluster -p '{"metadata":{"finalizers":[]}}' --type=merge
+  oc patch rolebindinopen-cluster-management:managedcluster:local-cluster:work -n local-cluster  -p '{"metadata":{"finalizers":[]}}' --type=merge
   ```
