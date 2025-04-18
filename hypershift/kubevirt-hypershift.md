@@ -38,7 +38,7 @@
 - Install the [MetalLB](/operator/metallb/readme.md) Operator to provide a network load balancer for the Hosted Clusters API.
    
 ### Configuring Multi Cluster Engine Operator
-- Install the ACM or [MCE](/operator/mce/readme.md) Operator. The MCE Operator lifecycle manages the creation, import, administration, and destruction of Kubernetes clusters across various cloud providers, private clouds, and on-premises data centers.
+- Install the [ACM](/operator/acm/readme.md) or [MCE](/operator/mce/readme.md) Operator. The MCE Operator lifecycle manages the creation, import, administration, and destruction of Kubernetes clusters across various cloud providers, private clouds, and on-premises data centers.
   
 ### Setting Up Cluster Manager
 - The local-cluster ManagedCluster allows the MCE components to treat the cluster it runs on as a host for guest clusters:
