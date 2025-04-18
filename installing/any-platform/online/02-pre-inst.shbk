@@ -308,7 +308,7 @@ sleep 1
 touch ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 run_command "[create httpd test file]"
 
-wget -q http://ocp.inst:8080/httpd-test
+wget -q http://${BASTION_IP}:8080/httpd-test
 run_command "[test httpd download function]"
 
 rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
