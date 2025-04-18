@@ -346,7 +346,7 @@ export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsi
 if grep -q "$export_config_line" "/etc/exports"; then
     echo "skipped: [nfs export configuration already exists]"
 else
-    echo "$export_config_line" >> "/etc/exports" > /dev/null 2>&1
+    echo "$export_config_line" >> "/etc/exports"
     echo "ok: [add nfs export configuration]"
 fi
 
