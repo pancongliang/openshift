@@ -42,3 +42,16 @@
   oc get pods -n open-cluster-management-agent
   oc get pods -n open-cluster-management-agent-addon
   ```
+
+### Uninstalling
+
+- Removing MultiClusterHub resources by using commands 
+  ```
+  oc delete multiclusterengine --all -n multicluster-engine
+  ```
+
+- Cleaning up artifacts before reinstalling
+  ```
+  oc get csv -n multicluster-engine | grep multicluster | awk '{print $1}' | xargs -I {} oc delete csv {} -n multicluster-engine
+  oc delete sub multicluster-engine -n multicluster-engine
+  ```
