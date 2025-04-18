@@ -59,8 +59,7 @@
 - If the multicluster engine custom resource is not being removed, remove any potential remaining artifacts by running the clean-up script.
   ```
   oc delete apiservice v1.admission.cluster.open-cluster-management.io v1.admission.work.open-cluster-management.io
-  oc delete validatingwebhookconfiguration multiclusterengines.multicluster.openshift.io
-  oc get mce --all -A
-
+  oc delete validatingwebhookconfiguration multiclusterengines.multicluster.openshift.ioo
+  oc delete crd multiclusterengines.multicluster.openshift.io
   oc delete mce --all -n multicluster-engine
    ```
