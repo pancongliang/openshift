@@ -55,3 +55,12 @@
   oc get csv -n multicluster-engine | grep multicluster | awk '{print $1}' | xargs -I {} oc delete csv {} -n multicluster-engine
   oc delete sub multicluster-engine -n multicluster-engine
   ```
+  
+- If the multicluster engine custom resource is not being removed, remove any potential remaining artifacts by running the clean-up script.
+  ```
+  oc delete apiservice v1.admission.cluster.open-cluster-management.io v1.admission.work.open-cluster-management.io
+  oc delete validatingwebhookconfiguration multiclusterengines.multicluster.openshift.io
+  oc get mce --all -A
+
+  oc delete mce --all -n multicluster-engine
+   ```
