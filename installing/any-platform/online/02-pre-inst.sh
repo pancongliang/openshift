@@ -858,16 +858,16 @@ MASTER_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03_HOST
 WORKER_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
 
 cp "${INSTALL_DIR}/bootstrap.ign" "${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign"
-run_command "[copy and customize the bootstrap.ign file name: append-${BOOTSTRAP_HOSTNAME}.ign]"
+run_command "[copy bootstrap.ign to append-${BOOTSTRAP_HOSTNAME}.ign]"
 
 for MASTER_HOSTNAME in "${MASTER_HOSTNAMES[@]}"; do
     cp "${INSTALL_DIR}/master.ign" "${INSTALL_DIR}/append-${MASTER_HOSTNAME}.ign"
-    run_command "[copy and customize the master.ign file name: append-${MASTER_HOSTNAME}.ign]"
+    run_command "[copy master.ign to append-${MASTER_HOSTNAME}.ign]"
 done
 
 for WORKER_HOSTNAME in "${WORKER_HOSTNAMES[@]}"; do
     cp "${INSTALL_DIR}/worker.ign" "${INSTALL_DIR}/append-${WORKER_HOSTNAME}.ign"
-    run_command "[copy and customize the worker.ign file name: append-${WORKER_HOSTNAME}.ign]"
+    run_command "[copy worker.ign to append-${WORKER_HOSTNAME}.ign]"
 done
 
 # Update hostname in ignition files
@@ -951,7 +951,7 @@ for i in {1..720}; do
   sleep 10
 done 
 EOF
-run_command "[Generate approve csr script file]"
+run_command "[generate approve csr script: ${INSTALL_DIR}/ocp4cert_approver.sh]"
 
 # Add an empty line after the task
 echo
