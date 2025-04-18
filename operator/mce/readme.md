@@ -38,6 +38,7 @@
 
 * Check pod
   ```
+  oc get pods -n  multicluster-engine
   oc get pods -n open-cluster-management
   oc get pods -n open-cluster-management-agent
   oc get pods -n open-cluster-management-agent-addon
