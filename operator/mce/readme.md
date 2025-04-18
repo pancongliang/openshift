@@ -63,6 +63,7 @@
   oc delete apiservice v1.admission.cluster.open-cluster-management.io v1.admission.work.open-cluster-management.io
   oc delete validatingwebhookconfiguration multiclusterengines.multicluster.openshift.ioo
   oc delete crd multiclusterengines.multicluster.openshift.io
+  oc delete crd multiclusterapplicationsetreports.apps.open-cluster-management.io multiclusterhubs.operator.open-cluster-management.io multiclusterobservabilities.observability.open-cluster-management.io serviceimports.multicluster.x-k8s.io internalenginecomponents.multicluster.openshift.io
   oc delete mce --all -n multicluster-engine
   ```
   
