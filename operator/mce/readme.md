@@ -50,7 +50,7 @@
   oc delete multiclusterengine --all -n multicluster-engine
   ```
 
-- Cleaning up artifacts before reinstalling
+- Remove Multicluster Engine and ClusterServiceVersion
   ```
   oc get csv -n multicluster-engine | grep multicluster | awk '{print $1}' | xargs -I {} oc delete csv {} -n multicluster-engine
   oc delete sub multicluster-engine -n multicluster-engine
