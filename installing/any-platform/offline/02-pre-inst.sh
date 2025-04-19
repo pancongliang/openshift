@@ -115,7 +115,7 @@ done
 echo
 
 # Step 6:
-PRINT_TASK "TASK [Install openshift tool]"
+PRINT_TASK "TASK [Install openshift and kubectl tool]"
 
 # Download the openshift-install
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
