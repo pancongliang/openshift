@@ -6,8 +6,8 @@ export OCP_RELEASE_VERSION="4.16.12"
 
 # OpenShift install-config
 export PULL_SECRET_FILE="$HOME/pull-secret"   #  Download https://cloud.redhat.com/openshift/install/metal/installer-provisioned and copy it to the specified path
-export CLUSTER_NAME="ocp4"
-export BASE_DOMAIN="example.com"
+export CLUSTER_NAME="ocp"
+export BASE_DOMAIN="lab.local"
 export SSH_KEY_PATH="$HOME/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
 export POD_CIDR="10.128.0.0/14"
@@ -33,13 +33,13 @@ export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
 export WORKER03_HOSTNAME="worker03"
 export BASTION_IP="10.184.134.128"
-export BOOTSTRAP_IP="10.184.134.101"
-export MASTER01_IP="10.184.134.129"
-export MASTER02_IP="10.184.134.130"
-export MASTER03_IP="10.184.134.131"
-export WORKER01_IP="10.184.134.132"
-export WORKER02_IP="10.184.134.133"
-export WORKER03_IP="10.184.134.134"
+export BOOTSTRAP_IP="10.184.134.223"
+export MASTER01_IP="10.184.134.243"
+export MASTER02_IP="10.184.134.241"
+export MASTER03_IP="10.184.134.207"
+export WORKER01_IP="10.184.134.238"
+export WORKER02_IP="10.184.134.246"
+export WORKER03_IP="10.184.134.202"
 
 # More options, no changes required
 # NFS directory is used to create image-registry pod pv
