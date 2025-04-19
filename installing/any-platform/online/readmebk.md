@@ -65,7 +65,7 @@
 
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://ocp.inst:8080/pre/bs | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/bs | sh
   [root@localhost ~]$ reboot
   ```
 
@@ -86,7 +86,7 @@
 
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://ocp.inst:8080/pre/m1 | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/m1 | sh
   [root@localhost ~]$ reboot
   ```
 * Repeat the process for all Control-Plane nodes.
@@ -104,7 +104,7 @@
 
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://ocp.inst:8080/pre/w1 | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/w1 | sh
   [root@localhost ~]$ reboot
   ```
 
