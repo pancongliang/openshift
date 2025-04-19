@@ -140,7 +140,7 @@ done
 echo
 
 # Step 6:
-PRINT_TASK "TASK [Install openshift and kubelet tool]"
+PRINT_TASK "TASK [Install openshift and kubectl tool]"
 
 # Delete the old version of oc cli
 rm -f /usr/local/bin/oc* >/dev/null 2>&1
