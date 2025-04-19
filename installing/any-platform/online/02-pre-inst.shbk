@@ -394,12 +394,12 @@ FORWARD_ZONE_NAME="${BASE_DOMAIN}"
 FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
 
 # Check if the forward DNS zone name and zone file name are generated successfully
-if [ -n "$FORWARD_ZONE_NAME" ] && [ -n "$FORWARD_ZONE_FILE" ]; then
-    echo "ok: [generate forward DNS zone name $FORWARD_ZONE_NAME]"
-    echo "ok: [generate forward zone file name $FORWARD_ZONE_FILE]"
-else
-    echo "failed: [generate forward DNS zone name or forward zone file name]"
-fi
+#if [ -n "$FORWARD_ZONE_NAME" ] && [ -n "$FORWARD_ZONE_FILE" ]; then
+#    echo "ok: [generate forward DNS zone name $FORWARD_ZONE_NAME]"
+#    echo "ok: [generate forward zone file name $FORWARD_ZONE_FILE]"
+#else
+#    echo "failed: [generate forward DNS zone name or forward zone file name]"
+#fi
 
 # Generate reverse DNS zone name and reverse zone file name 
 # Extract the last two octets from the IP address
@@ -412,12 +412,12 @@ REVERSE_ZONE_NAME="${OCTET1}.${OCTET0}.in-addr.arpa"
 REVERSE_ZONE_FILE="${OCTET1}.${OCTET0}.zone"
 
 # Check if the reverse DNS zone name and zone file name are generated successfully
-if [ -n "$REVERSE_ZONE_NAME" ] && [ -n "$REVERSE_ZONE_FILE" ]; then
-    echo "ok: [generate reverse DNS zone name $REVERSE_ZONE_NAME]"
-    echo "ok: [generate reverse zone file name $REVERSE_ZONE_FILE]"
-else
-    echo "failed: [generate reverse DNS zone name or reverse zone file name]"
-fi
+#if [ -n "$REVERSE_ZONE_NAME" ] && [ -n "$REVERSE_ZONE_FILE" ]; then
+#    echo "ok: [generate reverse DNS zone name $REVERSE_ZONE_NAME]"
+#    echo "ok: [generate reverse zone file name $REVERSE_ZONE_FILE]"
+#else
+#    echo "failed: [generate reverse DNS zone name or reverse zone file name]"
+#fi
 
 # Generate named service configuration file
 cat << EOF > /etc/named.conf
