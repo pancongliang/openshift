@@ -703,19 +703,15 @@ else
 fi
 
 # OpenShift Node Hostname Resolve
-cat << EOF > /etc/hosts
-127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
-::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-
-# OpenShift Node Hostname Resolve
-"${BOOTSTRAP_IP}" "${BOOTSTRAP_HOSTNAME}"
-"${MASTER01_IP}"  "${MASTER01_HOSTNAME}"
-"${MASTER02_IP}"  "${MASTER02_HOSTNAME}"
-"${MASTER03_IP}"  "${MASTER03_HOSTNAME}"
-"${WORKER01_IP}"  "${WORKER01_HOSTNAME}"
-"${WORKER02_IP}"  "${WORKER02_HOSTNAME}"
-"${WORKER03_IP}"  "${WORKER03_HOSTNAME}" 
-EOF
+{
+  printf "%-15s %s\n" "${BOOTSTRAP_IP}"    "${BOOTSTRAP_HOSTNAME}"
+  printf "%-15s %s\n" "${MASTER01_IP}"     "${MASTER01_HOSTNAME}"
+  printf "%-15s %s\n" "${MASTER02_IP}"     "${MASTER02_HOSTNAME}"
+  printf "%-15s %s\n" "${MASTER03_IP}"     "${MASTER03_HOSTNAME}"
+  printf "%-15s %s\n" "${WORKER01_IP}"     "${WORKER01_HOSTNAME}"
+  printf "%-15s %s\n" "${WORKER02_IP}"     "${WORKER02_HOSTNAME}"
+  printf "%-15s %s\n" "${WORKER03_IP}"     "${WORKER03_HOSTNAME}"
+} | tee -a /etc/hosts >/dev/null
 run_command "[add hostname and ip to /etc/hosts]"
 
 # Add an empty line after the task
