@@ -702,6 +702,22 @@ else
     echo "failed: [dns resolve failed for the following domain/ip: ${failed_hostnames[*]}]"
 fi
 
+# OpenShift Node Hostname Resolve
+cat << EOF > /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+# OpenShift Node Hostname Resolve
+"${BOOTSTRAP_IP}" "${BOOTSTRAP_HOSTNAME}"
+"${MASTER01_IP}"  "${MASTER01_HOSTNAME}"
+"${MASTER02_IP}"  "${MASTER02_HOSTNAME}"
+"${MASTER03_IP}"  "${MASTER03_HOSTNAME}"
+"${WORKER01_IP}"  "${WORKER01_HOSTNAME}"
+"${WORKER02_IP}"  "${WORKER02_HOSTNAME}"
+"${WORKER03_IP}"  "${WORKER03_HOSTNAME}" 
+EOF
+run_command "[add hostname and ip to /etc/hosts]"
+
 # Add an empty line after the task
 echo
 
