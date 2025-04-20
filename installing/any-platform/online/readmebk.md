@@ -72,7 +72,7 @@
 * After the reboot, check for error messages:
  
   ```
-  [root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}
+  [root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}
   [core@localhost ~]$ sudo -i
   [root@localhost ~]$ netstat -ntplu | grep -E '6443|22623'
   [root@localhost ~]$ podman ps
