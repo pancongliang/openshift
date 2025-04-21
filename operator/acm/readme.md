@@ -48,10 +48,22 @@
 
 ### Uninstalling
 
+- Prerequisites 
+  ```
+  oc delete discoveryconfigs --all --all-namespaces
+  oc delete agentserviceconfig --all
+  oc delete mco observability
+  ```
+  
 - Removing MultiClusterHub resources by using commands 
   ```
   oc delete mch multiclusterhub -n open-cluster-management
-  oc patch mch multiclusterhub -n open-cluster-management -p '{"metadata":{"finalizers":[]}}' --type=merge
+  ```
+
+- Remove Multicluster Engine and ClusterServiceVersion
+  ```
+  oc get csv -n open-cluster-management | grep advanced-cluster-management | awk '{print $1}' | xargs -I {} oc delete csv {} -n open-cluster-management
+  oc delete sub advanced-cluster-management -n open-cluster-management
   ```
 
 - Cleaning up artifacts before reinstalling
@@ -64,27 +76,4 @@
   oc delete crd klusterletaddonconfigs.agent.open-cluster-management.io placementbindings.policy.open-cluster-management.io policies.policy.open-cluster-management.io userpreferences.console.open-cluster-management.io discoveredclusters.discovery.open-cluster-management.io discoveryconfigs.discovery.open-cluster-management.io
   oc delete mutatingwebhookconfiguration ocm-mutating-webhook managedclustermutators.admission.cluster.open-cluster-management.io multicluster-observability-operator
   oc delete validatingwebhookconfiguration channels.apps.open.cluster.management.webhook.validator application-webhook-validator multiclusterhub-operator-validating-webhook ocm-validating-webhook multicluster-observability-operator multiclusterengines.multicluster.openshift.io
-  ```
-
-- Remove Multicluster Engine and ClusterServiceVersion
-  ```
-  oc get csv -n open-cluster-management | grep advanced-cluster-management | awk '{print $1}' | xargs -I {} oc delete csv {} -n open-cluster-management
-  oc delete sub advanced-cluster-management -n open-cluster-management
-  ```
-
-- Remove Project
-  ```
-  oc delete ns open-cluster-management open-cluster-management-agent open-cluster-management-agent-addon multicluster-engine hive
-  oc delete ns local-cluster clusters
-  oc delete managedclusteraddons.addon.open-cluster-management.io --all -n local-cluster
-  oc delete manifestworks.work.open-cluster-management.io --all -n local-cluster
-  oc delete rolebindings.authorization.openshift.io --all -n local-cluster
-  oc delete rolebindings.rbac.authorization.k8s.io --all -n local-cluster
-  oc delete rolebinding open-cluster-management:managedcluster:local-cluster:work -n local-cluster
-  
-  oc patch managedclusteraddons.addon.open-cluster-management.io hypershift-addon -n local-cluster -p '{"metadata":{"finalizers":[]}}' --type=merge
-  oc patch manifestworks.work.open-cluster-management.io addon-hypershift-addon-deploy-0 -n local-cluster -p '{"metadata":{"finalizers":[]}}' --type=merge
-  oc patch manifestworks.work.open-cluster-management.io local-cluster-klusterlet -n local-cluster -p '{"metadata":{"finalizers":[]}}' --type=merge
-  oc patch manifestworks.work.open-cluster-management.io local-cluster-klusterlet-crds -n local-cluster -p '{"metadata":{"finalizers":[]}}' --type=merge
-  oc patch rolebindinopen-cluster-management:managedcluster:local-cluster:work -n local-cluster  -p '{"metadata":{"finalizers":[]}}' --type=merge
   ```
