@@ -41,7 +41,13 @@
 - Install the [ACM](/operator/acm/readme.md) or [MCE](/operator/mce/readme.md) Operator. The MCE Operator lifecycle manages the creation, import, administration, and destruction of Kubernetes clusters across various cloud providers, private clouds, and on-premises data centers.
   
 ### Setting Up Cluster Manager
-- The local-cluster ManagedCluster allows the MCE components to treat the cluster it runs on as a host for guest clusters:
+
+- First, check whether the `local-cluster` has been automatically imported to the hub cluster (default import in MCE 2.7 and later):
+  ```
+  oc get managedclusters local-cluster
+  ```
+
+- If the local-cluster is not imported, apply the following configuration to treat it as a ManagedCluster, allowing MCE components to use it as a host for managing guest clusters:
   > Note: The command might fail initially if the ManagedCluster CRD is not yet registered. Retry after a few minutes.
   ```
   oc apply -f - <<EOF
@@ -58,34 +64,51 @@
   ```
 
 ### Enabling HyperShift
-- Apply the following YAML to enable the HyperShift operator:
-   ```
-   oc apply -f - <<EOF
-   apiVersion: addon.open-cluster-management.io/v1alpha1
-   kind: ManagedClusterAddOn
-   metadata:
-     name: hypershift-addon
-     namespace: local-cluster
-   spec:
-     installNamespace: open-cluster-management-agent-addon
-   EOF
-   ```
+
+- First check if hypershift-addon is enabled (enabled by default):
+  ```
+  oc get mce multiclusterengine -o json | jq '.spec.overrides.components[] | select(.name == "hypershift-local-hosting" or .name == "hypershift")'
+  {
+    "configOverrides": {},
+    "enabled": true,
+    "name": "hypershift-local-hosting"
+  }
+  {
+    "configOverrides": {},
+    "enabled": true,
+    "name": "hypershift"
+  }
+  ```
+
+- If not enabled, apply the following YAML to enable the HyperShift operator:
+  ```
+  oc apply -f - <<EOF
+  apiVersion: addon.open-cluster-management.io/v1alpha1
+  kind: ManagedClusterAddOn
+  metadata:
+    name: hypershift-addon
+    namespace: local-cluster
+  spec:
+    installNamespace: open-cluster-management-agent-addon
+  EOF
+  ```
    
 - Verify the HyperShift operator pods are running in the "hypershift" namespace:
-   ```
-   oc get pods -n hypershift
-   ```
+  ```
+  oc get pods -n hypershift
+  ```
+  
 ### Ingress and DNS configuration
 
 #### Optional A: Default Ingress and DNS Behavior
 * Configuring the default ingress and DNS for hosted control planes on OpenShift Virtualization:
-   > By default, OpenShift clusters include an ingress controller that requires a wildcard DNS record. When using the KubeVirt provider with HyperShift, Hosted Clusters are created as subdomains of the RHACM hub's domain.  
-   > For example, if the RHACM hub uses `*.apps.ocp4.example.com` as the default ingress domain, a Hosted Cluster named `my-cluster-1` will use a subdomain like `*.apps.my-cluster-1.ocp4.example.com` when deployed with the HyperShift KubeVirt provider.
-   ```
-   oc patch ingresscontroller -n openshift-ingress-operator default --type=json -p '[{ "op": "add", "path": "/spec/routeAdmission", "value": {"wildcardPolicy": "WildcardsAllowed"}}]'
-   ```
-   > **Note:**
-   > When you use the default hosted cluster ingress, connectivity is limited to HTTPS traffic over port 443. Plain HTTP traffic over port 80 is rejected. This limitation applies to only the default ingress behavior.
+  > By default, OpenShift clusters include an ingress controller that requires a wildcard DNS record. When using the KubeVirt provider with HyperShift, Hosted Clusters are created as subdomains of the RHACM hub's domain.  
+  > For example, if the RHACM hub uses `*.apps.ocp4.example.com` as the default ingress domain, a Hosted Cluster named `my-cluster-1` will use a subdomain like `*.apps.my-cluster-1.ocp4.example.com` when deployed with the HyperShift KubeVirt provider.
+  ```
+  oc patch ingresscontroller -n openshift-ingress-operator default --type=json -p '[{ "op": "add", "path": "/spec/routeAdmission", "value": {"wildcardPolicy": "WildcardsAllowed"}}]'
+  ```
+  > **Note:**
+  > When you use the default hosted cluster ingress, connectivity is limited to HTTPS traffic over port 443. Plain HTTP traffic over port 80 is rejected. This limitation applies to only the default ingress behavior.
 
 
 #### Optional B: Customized Ingress and DNS Behavior
@@ -99,30 +122,30 @@
 ####  Creating a hosted cluster with the KubeVirt platform
 
 - Downlod the HCP CLI and pull-secret
-   ```
-   curl -Lk $(oc get consoleclidownload hcp-cli-download -o json | jq -r '.spec.links[] | select(.text=="Download hcp CLI for Linux for x86_64").href') | tar xvz -C /usr/local/bin/
-   ```
+  ```
+  curl -Lk $(oc get consoleclidownload hcp-cli-download -o json | jq -r '.spec.links[] | select(.text=="Download hcp CLI for Linux for x86_64").href') | tar xvz -C /usr/local/bin/
+  ```
    
 - Download the [pull secret](https://console.redhat.com/openshift/install/pull-secret)
 
 
 - Configure Environment Variables
-   ```
-   export HOSTED_CLUSTER_NAMESPACE="clusters" # Contains the namespace of HostedCluster and NodePool custom resources. The default namespace is clusters.
-   export HOSTED_CLUSTER_NAME="my-cluster-1"
-   export HOSTED_CONTROL_PLANE_NAMESPACE="$HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME"
-   export OCP_VERSION="4.16.23"
-   export PULL_SECRET="$HOME/pull-secret" 
-   export MEM="8Gi"
-   export CPU="2"
-   export WORKER_COUNT="2"
-   ```
+  ```
+  export HOSTED_CLUSTER_NAMESPACE="clusters" # Contains the namespace of HostedCluster and NodePool custom resources. The default namespace is clusters.
+  export HOSTED_CLUSTER_NAME="my-cluster-1"
+  export HOSTED_CONTROL_PLANE_NAMESPACE="$HOSTED_CLUSTER_NAMESPACE-$HOSTED_CLUSTER_NAME"
+  export OCP_VERSION="4.16.23"
+  export PULL_SECRET="$HOME/pull-secret" 
+  export MEM="8Gi"
+  export CPU="2"
+  export WORKER_COUNT="2"
+  ```
 
 - Create the Hosted Cluster
    > **Note:**  
    > If do not provide any advanced storage configuration, the default storage class is used for the KubeVirt virtual machine (VM) images, the KubeVirt Container Storage Interface (CSI) mapping, and the etcd volumes.
-   ```
-   hcp create cluster kubevirt \
+  ```
+  hcp create cluster kubevirt \
      --name $HOSTED_CLUSTER_NAME \
      --release-image quay.io/openshift-release-dev/ocp-release:$OCP_VERSION-x86_64 \
      --node-pool-replicas $WORKER_COUNT \
@@ -139,12 +162,12 @@
      #--infra-storage-class-mapping=<infrastructure_storage_class>/<hosted_storage_class> # Mapping KubeVirt CSI storage classes
      #--infra-volumesnapshot-class-mapping=<infrastructure_volume_snapshot_class>/<hosted_volume_snapshot_class>
      #--base-domain <base-domain>
-   ```
+  ```
 
 - Monitor Resources
-   ```
-   oc wait --for=condition=Ready --namespace $HOSTED_CONTROL_PLANE_NAMESPACE vm --all --timeout=600s
-   ```
+  ```
+  oc wait --for=condition=Ready --namespace $HOSTED_CONTROL_PLANE_NAMESPACE vm --all --timeout=600s
+  ```
 
 - Examine the Hosted Cluster
    - Verify the status of guest cluster:
@@ -179,52 +202,52 @@
 ####  Scaling and Adding a node pool
 
 - Scaling a node pool
-     ```
-     oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
+  ```
+  oc get nodepool -n $HOSTED_CLUSTER_NAMESPACE
 
-     oc -n $HOSTED_CLUSTER_NAMESPACE scale nodepool $HOSTED_CLUSTER_NAME --replicas=3
+  oc -n $HOSTED_CLUSTER_NAMESPACE scale nodepool $HOSTED_CLUSTER_NAME --replicas=3
 
-     oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
-     ```
+  oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
+  ```
 
 - Adding node pools
-     ```
-     export NODEPOOL_NAME=${HOSTED_CLUSTER_NAME}-work
-     export WORKER_COUNT="2"
-     export MEM="6Gi"
-     export CPU="4"
-     export DISK="16"
+  ```
+  export NODEPOOL_NAME=${HOSTED_CLUSTER_NAME}-work
+  export WORKER_COUNT="2"
+  export MEM="6Gi"
+  export CPU="4"
+  export DISK="16"
      
-     hcp create nodepool kubevirt \
-       --cluster-name $HOSTED_CLUSTER_NAME \
-       --name $NODEPOOL_NAME \
-       --node-count $WORKER_COUNT \
-       --memory $MEM \
-       --cores $CPU \
-       --root-volume-size $DISK
+  hcp create nodepool kubevirt \
+    --cluster-name $HOSTED_CLUSTER_NAME \
+    --name $NODEPOOL_NAME \
+    --node-count $WORKER_COUNT \
+    --memory $MEM \
+    --cores $CPU \
+    --root-volume-size $DISK
 
-     oc get nodepools --namespace $HOSTED_CLUSTER_NAMESPACE
+  oc get nodepools --namespace $HOSTED_CLUSTER_NAMESPACE
 
-     oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
-     ```
+  oc get vm -n $HOSTED_CONTROL_PLANE_NAMESPACE
+  ```
      
 ####  Accessing a hosted cluster
 - Generate Kubeconfig file and access the customer cluster
-   ```
-   hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig"
-   # or
-   oc extract -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-admin-kubeconfig --to=- > $HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+  ```
+  hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig"
+  # or
+  oc extract -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-admin-kubeconfig --to=- > $HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
    
-   export KUBECONFIG=$HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
-   ```
+  export KUBECONFIG=$HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+  ```
 - Log in to the Guest Cluster using the Kubeadmin account
-   ```
+  ```
    export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
    export KUBEADMIN_PASSWORD=$(oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d)
 
-   unset KUBECONFIG
-   oc login $HOSTED_CLUSTER_API -u kubeadmin -p $KUBEADMIN_PASSWORD
-   ```
+  unset KUBECONFIG
+  oc login $HOSTED_CLUSTER_API -u kubeadmin -p $KUBEADMIN_PASSWORD
+  ```
 
 - Log in to the Guest Cluster OCP Console using the kubeadmin account
    ```
@@ -254,70 +277,70 @@
 
 #### Configuring HTPasswd-based user authentication
 - Create a file with the username and password
-   ```
-   htpasswd -b -c users.htpasswd admin redhat
-   ```
+  ```
+  htpasswd -b -c users.htpasswd admin redhat
+  ```
    
 - Create a Secret object from a file
-   ```
-   oc create secret generic ${HOSTED_CLUSTER_NAME}-htpass-secret --from-file=htpasswd=users.htpasswd -n $HOSTED_CLUSTER_NAMESPACE
-   ```
+  ```
+  oc create secret generic ${HOSTED_CLUSTER_NAME}-htpass-secret --from-file=htpasswd=users.htpasswd -n $HOSTED_CLUSTER_NAMESPACE
+  ```
    
 - Create an HTPasswd-based identityProvider configuration file
-   ```
-   cat << EOF > patch.yaml
-   spec:
-     configuration:
-       oauth:
-         identityProviders:
-           - htpasswd:
-               fileData:
-                 name: ${HOSTED_CLUSTER_NAME}-htpass-secret
-             mappingMethod: claim
-             name: my_htpasswd_provider
-             type: HTPasswd
-   EOF
-   ```
+  ```
+  cat << EOF > patch.yaml
+  spec:
+    configuration:
+      oauth:
+        identityProviders:
+          - htpasswd:
+              fileData:
+                name: ${HOSTED_CLUSTER_NAME}-htpass-secret
+            mappingMethod: claim
+            name: my_htpasswd_provider
+            type: HTPasswd
+  EOF
+  ```
    
 - Use patch.yaml to update the hostedcluster configuration named $HOSTED_CLUSTER_NAME
-   ```
-   oc patch hostedcluster ${HOSTED_CLUSTER_NAME} -n $HOSTED_CLUSTER_NAMESPACE --type merge --patch-file patch.yaml
-   ```
+  ```
+  oc patch hostedcluster ${HOSTED_CLUSTER_NAME} -n $HOSTED_CLUSTER_NAMESPACE --type merge --patch-file patch.yaml
+  ```
    
 - View oauth-openshift related pod updates
-   ```
-   oc get pod -n $HOSTED_CONTROL_PLANE_NAMESPACE | grep oauth-openshift -w
-   ```
+  ```
+  oc get pod -n $HOSTED_CONTROL_PLANE_NAMESPACE | grep oauth-openshift -w
+  ```
    
 - Configuring access permissions for hosted cluster users
-   ```
-   oc adm policy add-cluster-role-to-user cluster-admin admin --kubeconfig=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
-   ```
+  ```
+  oc adm policy add-cluster-role-to-user cluster-admin admin --kubeconfig=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+  ```
    
 - Access Verification
-   ```
-   export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
+  ```
+  export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
 
-   unset KUBECONFIG
-   oc login $HOSTED_CLUSTER_API -u admin -p redhat
-   ```
+  unset KUBECONFIG
+  oc login $HOSTED_CLUSTER_API -u admin -p redhat
+  ```
 
 - Get the hosted cluster's oauth and console urls
-   ```
-   oc get route -n $HOSTED_CONTROL_PLANE_NAMESPACE oauth -o jsonpath='https://{.spec.host}'
-   echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
-   ```
+  ```
+  oc get route -n $HOSTED_CONTROL_PLANE_NAMESPACE oauth -o jsonpath='https://{.spec.host}'
+  echo "https://console-openshift-console.apps.$HOSTED_CLUSTER_NAME.$(oc get ingresscontroller -n openshift-ingress-operator default -o jsonpath='{.status.domain}')"
+  ```
 
 ### Deleting a Hosted Cluster
 - Deleting a Hosted Cluster
-   ```
-   oc delete managedcluster $HOSTED_CLUSTER_NAME
-   ```
+  ```
+  oc delete managedcluster $HOSTED_CLUSTER_NAME
+  ```
    
 - Destroy an HCP Hosted Cluster on KubeVirt
-   ```
-   hcp destroy cluster kubevirt --name $HOSTED_CLUSTER_NAME
-   ```
+  ```
+  hcp destroy cluster kubevirt --name $HOSTED_CLUSTER_NAME
+  ```
 
 ### Reference Documentation
 - [Effortlessly And Efficiently Provision OpenShift Clusters With OpenShift Virtualization](https://www.redhat.com/en/blog/effortlessly-and-efficiently-provision-openshift-clusters-with-openshift-virtualization)
