@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Default variable
+# export DOMAIN_NAME=""
+# export CERTS_PATH="/root/certs"
+export CA_CN="Test Workspace Signer"
+export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=90  # Adjust this to your desired maximum length
@@ -12,12 +18,6 @@ PRINT_TASK() {
 
 # Task: Generate a self-signed certificate
 PRINT_TASK "[TASK: Generate a self-signed certificate]"
-
-# Default variable
-# export DOMAIN_NAME=""
-# export CERTS_PATH="/root/certs"
-export CA_CN="Test Workspace Signer"
-export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 
 # Function to check command success and display appropriate message
 check_command_result() {
