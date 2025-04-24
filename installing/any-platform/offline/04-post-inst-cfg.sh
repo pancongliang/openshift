@@ -92,6 +92,32 @@ run_command "[leave the claim field blank to allow the automatic creation of an 
 echo
 
 # Step 4:
+PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
+
+# Create a configmap containing the CA certificate
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
+     --from-file=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem \
+     -n openshift-config >/dev/null 2>&1
+run_command "[create a configmap containing the CA certificate]"
+
+# Additional trusted CA
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
+run_command "[additional trusted CA]"
+
+# Add an empty line after the task
+echo
+
+# Step 5:
+PRINT_TASK "TASK [Disabling the default OperatorHub sources]"
+
+# Disabling the default OperatorHub sources
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' >/dev/null 2>&1
+run_command "[disabling the default OperatorHub sources]"
+
+# Add an empty line after the task
+echo
+
+# Step 6:
 PRINT_TASK "TASK [Create htpasswd User]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
@@ -169,7 +195,7 @@ done
 # Add an empty line after the task
 echo
 
-# Step 5:
+# Step 7:
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
@@ -253,7 +279,7 @@ done
 # Add an empty line after the task
 echo
 
-# Step 6:
+# Step 7:
 PRINT_TASK "TASK [Login cluster information]"
 
 echo "info: [default setting is to use kubeconfig to login]"
