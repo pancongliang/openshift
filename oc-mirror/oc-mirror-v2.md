@@ -2,6 +2,7 @@
 
 
 ### Installing the oc-mirror plugin
+
 * Installing the oc-mirror plug-in
   ```
   curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
@@ -19,8 +20,9 @@
 
 * Download [pull-secret](https://console.redhat.com/openshift/install/pull-secret)
   
-* Save the file either as ~/.docker/config.json or $XDG_RUNTIME_DIR/containers/auth.json
+* Save the file either as $XDG_RUNTIME_DIR/containers/auth.json
   ```
+  mkdir -p $XDG_RUNTIME_DIR/containers
   cat ./pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
   ```
 
@@ -38,19 +40,17 @@
 
 * Find channels for the selected package
   ```
-  oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.18 --package=cluster-logging
+  oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.18 --package=openshift-gitops-operator
   ```
 
 * Find package versions within the selected channel
   ```
-  oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.18 --package=cluster-logging --channel=stable-6.1
+  oc-mirror list operators --catalog=registry.redhat.io/redhat/redhat-operator-index:v4.18 --package=openshift-gitops-operator --channel=gitops-1.6
   ```
-
 
 ### Creating the image set configuration
 
 * Creating the image set configuration
-
   ```
   cat > isc.yaml << EOF
   kind: ImageSetConfiguration
@@ -61,7 +61,6 @@
       - name: stable-4.18
         minVersion: 4.18.2
         maxVersion: 4.18.2
-      graph: true
     operators:
     - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.18
       packages:
@@ -73,21 +72,26 @@
         maxVersion: 1.16.0
   EOF
   ```
+  
 ### Optional A: Mirroring an image set in a fully disconnected environment
 * Mirroring from mirror to disk(Environment with Internet access) 
   ```
   MIRROR_RESOURCES_DIR=./olm
   mkdir ${MIRROR_RESOURCES_DIR}
+
   oc-mirror -c isc.yaml file://${MIRROR_RESOURCES_DIR} --v2
   ```
 
-* Migrate the mirror file and isc.yaml file to a fully disconnected environment
+* Migrate the `MIRROR_RESOURCES_DIR` and `isc.yaml` file to a fully disconnected environment
 
 * Mirroring from disk to regitry(fully disconnected environment)
   ```
   MIRROR_RESOURCES_DIR=./olm
+  
   MIRROR_REGISTRY=mirror.registry.example.com:8443
-  podman login -u admin -p password ${MIRROR_REGISTRY}
+  MIRROR_REGISTRY_ID='admin'
+  MIRROR_REGISTRY_PW='password'
+  podman login -u $MIRROR_REGISTRY_ID -p $MIRROR_REGISTRY_PW ${MIRROR_REGISTRY}
 
   ls ${MIRROR_RESOURCES_DIR}
   mirror_000001.tar  working-dir
@@ -100,8 +104,11 @@
 * Add local Image Registry credentials to the pull-secret
   ```
   MIRROR_REGISTRY=mirror.registry.example.com:8443
-  podman login -u admin -p password ${MIRROR_REGISTRY}
-  podman login -u admin -p password --authfile ./pull-secret ${MIRROR_REGISTRY}
+  MIRROR_REGISTRY_ID='admin'
+  MIRROR_REGISTRY_PW='password'
+  podman login -u $MIRROR_REGISTRY_ID -p $MIRROR_REGISTRY_PW --authfile ./pull-secret ${MIRROR_REGISTRY}
+
+  mkdir -p $XDG_RUNTIME_DIR/containers 
   cat ./pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
   ```
 
@@ -109,42 +116,31 @@
   ```
   MIRROR_RESOURCES_DIR=./olm
   mkdir ${MIRROR_RESOURCES_DIR}
+
   oc-mirror -c isc.yaml --workspace file://olm docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
   ```
   
 ### Create IDMS, ITMS, CatalogSource, and Signature ConfigMap
 
-* Create IDMS, ITMS and catalogsource
+* Create IDMS and ITMS object 
   ```
-  ls ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/
-  cc-redhat-operator-index-v4-18.yaml  cs-redhat-operator-index-v4-18.yaml  idms-oc-mirror.yaml
-
   oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/idms-oc-mirror.yaml
-  oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/cs-redhat-operator-index-v4-18.yaml
 
-  # Generated if at least one image from the image set is mirrored by tag, Please note that MCO drains the nodes for ImageTagMirrorSet objects
+  # Please note that MCO will drain nodes that have ITMS objects applied to them
   oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/itms-oc-mirror.yaml  
-
-  oc get catalogsource -n openshift-marketplace
-  NAME                             DISPLAY   TYPE   PUBLISHER   AGE
-  cs-redhat-operator-index-v4-18             grpc               3m19s
-
-  oc get packagemanifest -n openshift-marketplace
-  NAME                              CATALOG   AGE
-  openshift-pipelines-operator-rh             3m45s
-  ···
+  ```
+* Creating a catalogsource object
+  ```
+  oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/cs-redhat-operator-index-v4-18.yaml  
   ```
 * If release images are mirrored, create a signature-configmap and itms ITMS
   ```
   oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/signature-configmap.yaml
-
-  # Please note that MCO drains the nodes for ImageTagMirrorSet objects
-  oc create -f ${MIRROR_RESOURCES_DIR}/working-dir/cluster-resources/itms-oc-mirror.yaml  
   ```
 
 ### Deleting images from a disconnected environment 
 
-* Create a disc.yaml file and include the following content
+* Create a delete image set configuration object containing the objects to be deleted
   ```
   cat > disc.yaml << EOF
   apiVersion: mirror.openshift.io/v2alpha1
@@ -153,17 +149,21 @@
     operators:
       - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.18
         packages:
-        - name: openshift-pipelines-operator-rh
-          minVersion: '1.18.0'
-          maxVersion: '1.18.0'
+        - name: openshift-gitops-operator
+          minVersion: '1.16.0'
+          maxVersion: '1.16.0'
   EOF
   ```
 * Create a delete-images.yaml file by running the following command
   ```
-  MIRROR_RESOURCES_DIR=./olm
-  MIRROR_REGISTRY=mirror.registry.example.com:8443
+  PREVIOUS_MIRROR_RESOURCES_DIR=./olm
   
-  oc-mirror delete --config disc.yaml --workspace file://${MIRROR_RESOURCES_DIR} --v2 --generate docker://${MIRROR_REGISTRY} --dest-tls-verify=false
+  MIRROR_REGISTRY=mirror.registry.example.com:8443
+  MIRROR_REGISTRY_ID='admin'
+  MIRROR_REGISTRY_PW='password'
+  podman login -u $MIRROR_REGISTRY_ID -p $MIRROR_REGISTRY_PW ${MIRROR_REGISTRY}
+  
+  oc-mirror delete --config disc.yaml --workspace file://${PREVIOUS_MIRROR_RESOURCES_DIR} --v2 --generate docker://${MIRROR_REGISTRY} --dest-tls-verify=false
   ```
 * Verify that the delete-images.yaml file has been generated
   ```
