@@ -440,12 +440,6 @@ options {
     session-keyfile "/run/named/session.key";
 };
 
-zone "ocp.inst" IN {
-    type master;
-    file "ocp.inst.zone";
-    allow-query { any; };
-};
-
 zone "${FORWARD_ZONE_NAME}" IN {
     type master;
     file "${FORWARD_ZONE_FILE}";
@@ -473,31 +467,6 @@ zone "." IN {
 include "/etc/named.rfc1912.zones";
 EOF
 run_command "[generate named configuration file]"
-
-# Clean up: Delete duplicate file
-rm -f /var/named//var/named/ocp.inst.zone
-
-# Create forward zone file
-cat << EOF > "/var/named/ocp.inst.zone"
-\$TTL 1W
-@       IN      SOA     ns1.ocp.inst.        root (
-                        201907070      ; serial
-                        3H              ; refresh (3 hours)
-                        30M             ; retry (30 minutes)
-                        2W              ; expiry (2 weeks)
-                        1W )            ; minimum (1 week)
-        IN      NS      ns1.ocp.inst.
-;
-;
-ns1     IN      A       ${DNS_SERVER_IP}
-;
-helper  IN      A       ${DNS_SERVER_IP}
-helper.ocp4     IN      A       ${DNS_SERVER_IP}
-;
-; The api identifies the IP of load balancer.
-ocp.inst.       IN      A       ${BASTION_IP} 
-EOF
-run_command "[generate forward DNS zone file: /var/named/ocp.inst.zone]"
 
 # Clean up: Delete duplicate file
 rm -f /var/named/${FORWARD_ZONE_FILE}
