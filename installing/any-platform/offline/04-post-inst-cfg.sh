@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -u
@@ -32,11 +33,23 @@ source 01-set-params.sh
 export PATH="/usr/local/bin:$PATH"
 
 # Step 2:
-PRINT_TASK "TASK [Configure data persistence for the image-registry operator]"
+PRINT_TASK "TASK [Kubeconfig login and oc completion]"
+
+# kubeconfig login:
+rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
+cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
+echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
+run_command "[add kubeconfig to ~/.bash_profile]"
 
 # completion command:
 oc completion bash >> /etc/bash_completion.d/oc_completion >/dev/null 2>&1 || true
 run_command "[add oc_completion]"
+
+# Add an empty line after the task
+echo
+
+# Step 3:
+PRINT_TASK "TASK [Configure data persistence for the image-registry operator]"
 
 rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
 mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
@@ -78,33 +91,7 @@ run_command "[leave the claim field blank to allow the automatic creation of an 
 # Add an empty line after the task
 echo
 
-# Step 3:
-PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
-
-# Create a configmap containing the CA certificate
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
-     --from-file=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem \
-     -n openshift-config >/dev/null 2>&1
-run_command "[create a configmap containing the CA certificate]"
-
-# Additional trusted CA
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
-run_command "[additional trusted CA]"
-
-# Add an empty line after the task
-echo
-
 # Step 4:
-PRINT_TASK "TASK [Disabling the default OperatorHub sources]"
-
-# Disabling the default OperatorHub sources
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' >/dev/null 2>&1
-run_command "[disabling the default OperatorHub sources]"
-
-# Add an empty line after the task
-echo
-
-# Step 5:
 PRINT_TASK "TASK [Create htpasswd User]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
@@ -117,7 +104,7 @@ run_command "[create a secret using the users.htpasswd file]"
 rm -rf $INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-cat  <<EOF | /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f - > /dev/null 2>&1
+cat  <<EOF | /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f - >/dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -134,7 +121,7 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin /dev/null 2>&1 || true
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1 || true
 run_command "[grant cluster-admin permissions to the admin user]"
 
 sleep 15
@@ -266,9 +253,9 @@ done
 # Add an empty line after the task
 echo
 
-# Step 7:
+# Step 6:
 PRINT_TASK "TASK [Login cluster information]"
 
-echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
-echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig]"
+echo "info: [default setting is to use kubeconfig to login]"
+echo "info: [log in to the cluster using the htpasswd user: uset KUBECONFIG && oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo
