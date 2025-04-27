@@ -122,13 +122,13 @@
 * To approve the Certificate Signing Request (CSR), run the following command:
 
   ```
+  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
   bash ${INSTALL_DIR}/ocp4cert_approver.sh &
   ```
 
 * Check the node status and operators:
 
   ```
-  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
   oc get node
   oc get co | grep -v '.True.*False.*False'
   ```
