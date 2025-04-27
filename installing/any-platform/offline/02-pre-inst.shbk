@@ -634,7 +634,6 @@ sleep 15
 
 # List of hostnames and IP addresses to check
 hostnames=(
-    "ocp.inst"
     "api.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
