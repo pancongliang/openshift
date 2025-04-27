@@ -31,7 +31,7 @@
 
 #### Install Minio Object Storage and NFS Storage Class
 
-* Install and configure [Minio Object Storage and NFS Storage Class](/storage/nfs-sc/readme.md).
+* Install and configure [Minio Object Storage](/storage/minio/readme.md) and [NFS Storage Class](/storage/nfs-sc/readme.md).
   If storageclass already exists, only [Minio Object Storage](/storage/minio/readme.md) will be installed.
 
 
