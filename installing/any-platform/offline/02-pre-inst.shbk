@@ -881,7 +881,6 @@ sleep 5
 # Login to the registry
 rm -rf $XDG_RUNTIME_DIR/containers >/dev/null 2>&1 || true
 mkdir -p $XDG_RUNTIME_DIR/containers >/dev/null 2>&1 || true
-
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" >/dev/null 2>&1
 run_command "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
