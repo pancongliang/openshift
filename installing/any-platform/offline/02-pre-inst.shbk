@@ -876,11 +876,6 @@ run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-tru
 update-ca-trust >/dev/null 2>&1
 run_command "[trust the rootCA certificate]"
 
-# Delete the tar package generated during installation
-rm -rf ${REGISTRY_INSTALL_DIR}/*.tar.gz >/dev/null 2>&1 || true
-rm -rf ${REGISTRY_INSTALL_DIR}/*.tar >/dev/null 2>&1 || true
-run_command "[delete the mirror registry package]"
-
 sleep 5
 
 # Login to the registry
