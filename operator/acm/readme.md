@@ -35,15 +35,16 @@
 * Run the following command to get the custom resource. It can take up to 10 minutes for the MultiClusterHub custom resource status to display as Running in the status.phase field after you run the command
   ```
   oc get mch -o=jsonpath='{.items[0].status.phase}' -n open-cluster-management
-  oc get mce -o=jsonpath='{.items[0].status.phase}' -n multicluster-engine
   ```
 
-* Check pod
+* Check pod and mce
   ```
-  oc get pods -n multicluster-engine
   oc get pods -n open-cluster-management
   oc get pods -n open-cluster-management-agent
   oc get pods -n open-cluster-management-agent-addon
+  oc get pods -n open-cluster-management-hub
+  oc get pods -n multicluster-engine
+  oc get mce -o=jsonpath='{.items[0].status.phase}' -n multicluster-engine
   ```
 
 ### Uninstalling
