@@ -59,7 +59,7 @@
   
 ### Mirror ocp release image
 
-* RMirror the OCP release image by running the following command:
+* Mirror the OCP release image by running the following command:
   
   ```
   bash 03-mirror-img.sh
