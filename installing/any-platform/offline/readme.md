@@ -138,7 +138,7 @@
 * Repeat the process for all worker nodes.Configure the image registry operator's data persistence by running the script:
 
   ```
-  bash 03-post-inst-cfg.sh
+  bash 04-post-inst-cfg.sh
   source /etc/bash_completion.d/oc_completion
   source $HOME/.bash_profile
   ```
