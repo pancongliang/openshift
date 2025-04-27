@@ -4,7 +4,7 @@
 
 Set Necessary Parameters
 ```
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/01-install-nfs-package.sh
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/01-inst-nfs-package.sh
 
 vim 01-install-nfs-package.sh
 ```
@@ -18,7 +18,7 @@ bash 01-install-nfs-package.sh
 
 Set Necessary Parameters
 ```
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/02-deploy-nfs-storageclass.sh
+wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/nfs-sc/02-inst-nfs-sc.sh
 
 vim 02-deploy-nfs-storageclass.sh
 ```
