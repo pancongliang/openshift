@@ -139,6 +139,7 @@
 
   ```
   bash 04-post-inst-cfg.sh
+  oc completion bash >> /etc/bash_completion.d/oc_completion
   source /etc/bash_completion.d/oc_completion
   source $HOME/.bash_profile
   ```
