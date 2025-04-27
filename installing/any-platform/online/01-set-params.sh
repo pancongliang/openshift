@@ -2,12 +2,12 @@
 
 # No need to create any resources, just specify parameters.
 # OpenShift release version
-export OCP_RELEASE_VERSION="4.16.12"
+export OCP_RELEASE_VERSION="4.16.26"
 
 # OpenShift install-config
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   #  Download https://cloud.redhat.com/openshift/install/metal/installer-provisioned and copy it to the specified path
-export CLUSTER_NAME="ocp"
-export BASE_DOMAIN="lab.local"
+export CLUSTER_NAME="ocp4"
+export BASE_DOMAIN="example.com"
 export SSH_KEY_PATH="$HOME/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
 export POD_CIDR="10.128.0.0/14"
