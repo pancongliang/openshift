@@ -21,7 +21,7 @@
 * To download the installation script, run the following command:
 
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-dl-script.sh | sh
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/offline/00-dl-script.sh | sh
   ```
 
 ### Register Subscription
