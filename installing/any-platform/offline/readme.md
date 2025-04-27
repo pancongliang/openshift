@@ -48,9 +48,13 @@
 
   ```
   bash 02-pre-inst.sh
+  ```
+  
+* Check whether the node installation script is generated:
+  ```
+  (cd "${INSTALL_DIR}" && ls -d bs m[0-9] w[0-9])
 
-  $ ls ${INSTALL_DIR}/set*
-  inst-bootstrap.sh  inst-master01.sh  inst-master02.sh  inst-master03.sh  inst-worker01.sh  inst-worker02.sh  inst-worker03.sh
+  bs  m1  m2  m3  w1  w2  w3
   ```
   
 ### Mirror ocp release image
@@ -67,14 +71,14 @@
 
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/inst-bootstrap.sh | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/bs | sh
   [root@localhost ~]$ reboot
   ```
 
 * After the reboot, check for error messages:
  
   ```
-  [root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}
+  [root@bastion ~]# ssh core@${BOOTSTRAP_HOSTNAME}
   [core@localhost ~]$ sudo -i
   [root@localhost ~]$ netstat -ntplu | grep -E '6443|22623'
   [root@localhost ~]$ podman ps
@@ -88,7 +92,7 @@
 
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/inst-master01.sh | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/m1 | sh
   [root@localhost ~]$ reboot
   ```
 * Repeat the process for all Control-Plane nodes.
@@ -106,7 +110,7 @@
 
   ```
   [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/inst-worker01.sh | sh
+  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/w1 | sh
   [root@localhost ~]$ reboot
   ```
 
@@ -134,8 +138,9 @@
 * Repeat the process for all worker nodes.Configure the image registry operator's data persistence by running the script:
 
   ```
-  bash 04-post-inst-cfg.sh
+  bash 03-post-inst-cfg.sh
   source /etc/bash_completion.d/oc_completion
+  source $HOME/.bash_profile
   ```
 
 
@@ -144,12 +149,6 @@
 * Repeat the process for all worker nodes. Can login to OpenShift using the following command:
 
   ```
-  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443
-  ```
-
-* Or, use the KUBECONFIG environment variable:
-
-  ```
-  echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> $HOME/.bash_profile
-  source $HOME/.bash_profile
+  unset KUBECONFIG
+  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443 --insecure-skip-tls-verify=false
   ```
