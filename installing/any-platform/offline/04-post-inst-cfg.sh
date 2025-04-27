@@ -155,7 +155,7 @@ sleep 15
 # Wait for OpenShift authentication pods to be in 'Running' state
 export AUTH_NAMESPACE="openshift-authentication"
 MAX_RETRIES=60
-SLEEP_INTERVAL=2
+SLEEP_INTERVAL=10
 progress_started=false
 retry_count=0
 
@@ -199,7 +199,7 @@ echo
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
-MAX_RETRIES=20
+MAX_RETRIES=30
 SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
@@ -238,7 +238,7 @@ while true; do
 done
 
 # Check MCP status
-MAX_RETRIES=20
+MAX_RETRIES=30
 SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
