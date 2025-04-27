@@ -841,7 +841,7 @@ sudo ${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
      --sqliteStorage ${REGISTRY_INSTALL_DIR}/sqlite-storage \
      --initUser ${REGISTRY_ID} \
      --initPassword ${REGISTRY_PW}
-run_command "[installation of mirror registry completed]"
+run_command "[Install mirror registry]"
 
 progress_started=false
 while true; do
