@@ -232,6 +232,7 @@
   ```
      
 ####  Accessing a hosted cluster
+
 - Generate Kubeconfig file and access the customer cluster
   ```
   hcp create kubeconfig --name="$HOSTED_CLUSTER_NAME" > "$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig"
@@ -240,10 +241,11 @@
    
   export KUBECONFIG=$HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
   ```
+  
 - Log in to the Guest Cluster using the Kubeadmin account
   ```
-   export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
-   export KUBEADMIN_PASSWORD=$(oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d)
+  export HOSTED_CLUSTER_API=https://$(oc get hostedcluster -n $HOSTED_CLUSTER_NAMESPACE ${HOSTED_CLUSTER_NAME} -ojsonpath={.status.controlPlaneEndpoint.host}):6443
+  export KUBEADMIN_PASSWORD=$(oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d)
 
   unset KUBECONFIG
   oc login $HOSTED_CLUSTER_API -u kubeadmin -p $KUBEADMIN_PASSWORD
@@ -258,6 +260,7 @@
    ```
 
 #### Quickly switch kubeconfig between OCP Hub and Hypershift
+
 - Quickly switch kubeconfig through alias
   ```
   echo "alias ctx1='export KUBECONFIG=$HOME/.kube/hub-kubeconfig'" >> ~/.bashrc
@@ -276,6 +279,7 @@
   ```
 
 #### Configuring HTPasswd-based user authentication
+
 - Create a file with the username and password
   ```
   htpasswd -b -c users.htpasswd admin redhat
@@ -332,6 +336,7 @@
   ```
 
 ### Deleting a Hosted Cluster
+
 - Deleting a Hosted Cluster
   ```
   oc delete managedcluster $HOSTED_CLUSTER_NAME
