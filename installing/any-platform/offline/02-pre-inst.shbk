@@ -779,7 +779,8 @@ sleep 15
 # Add an empty line after the task
 echo
 
-# Step 11:
+# Offline settings
+# Step 11: 
 PRINT_TASK "TASK [Install mirror registry]"
 
 # Check if there is an active mirror registry pod
@@ -876,21 +877,33 @@ update-ca-trust >/dev/null 2>&1
 run_command "[trust the rootCA certificate]"
 
 # Delete the tar package generated during installation
-rm -rf pause.tar postgres.tar quay.tar redis.tar >/dev/null 2>&1
-run_command "[delete the tar package: pause.tar postgres.tar quay.tar redis.tar]"
+rm -rf ${REGISTRY_INSTALL_DIR}/*.tar.gz >/dev/null 2>&1 || true
+rm -rf ${REGISTRY_INSTALL_DIR}/*.tar >/dev/null 2>&1 || true
+run_command "[delete the mirror registry package]"
 
 sleep 5
 
 # Login to the registry
-rm -rf $XDG_RUNTIME_DIR/containers
+rm -rf $XDG_RUNTIME_DIR/containers >/dev/null 2>&1 || true
+mkdir -p $XDG_RUNTIME_DIR/containers >/dev/null 2>&1 || true
+
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" >/dev/null 2>&1
 run_command "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
 # Add an empty line after the task
 echo
 
+# Offline settings
 # Step 12:
 PRINT_TASK "TASK [Generate a defined install-config file]"
+
+# Backup and format the registry CA certificate
+rm -rf "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
+cp "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
+run_command "[backup registry CA certificate]"
+
+sed -i 's/^/  /' "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
+run_command "[format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
 rm -rf ${SSH_KEY_PATH} >/dev/null 2>&1
@@ -899,6 +912,8 @@ ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
 run_command "[create ssh-key for accessing coreos]"
 
 # Define variables
+export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak)"
+export REGISTRY_AUTH=$(echo -n "${REGISTRY_ID}:${REGISTRY_PW}" | base64)
 export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Generate a defined install-config file
