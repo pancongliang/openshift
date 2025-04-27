@@ -119,13 +119,13 @@
 
 ### Approval of CSR
 
-* Repeat the process for all worker nodes.To approve the Certificate Signing Request (CSR), run the following command:
+* To approve the Certificate Signing Request (CSR), run the following command:
 
   ```
   bash ${INSTALL_DIR}/ocp4cert_approver.sh &
   ```
 
-* Repeat the process for all worker nodes.Check the node status and operators:
+* Check the node status and operators:
 
   ```
   export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
@@ -133,9 +133,9 @@
   oc get co | grep -v '.True.*False.*False'
   ```
 
-### Configure Image-Registry-Operator Data Persistence
+### Configure mirror repository data persistence and create htpasswd user and trust mirror registry
 
-* Repeat the process for all worker nodes.Configure the image registry operator's data persistence by running the script:
+* Configure mirror repository data persistence and create htpasswd user and trust mirror registry:
 
   ```
   bash 04-post-inst-cfg.sh
@@ -146,7 +146,7 @@
 
 ### Login to OpenShift
 
-* Repeat the process for all worker nodes. Can login to OpenShift using the following command:
+* Can login to OpenShift using the following command:
 
   ```
   unset KUBECONFIG
