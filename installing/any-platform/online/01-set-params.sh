@@ -5,7 +5,7 @@
 export OCP_RELEASE_VERSION="4.16.12"
 
 # OpenShift install-config
-export PULL_SECRET_FILE="$HOME/pull-secret"   #  Download https://cloud.redhat.com/openshift/install/metal/installer-provisioned and copy it to the specified path
+export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   #  Download https://cloud.redhat.com/openshift/install/metal/installer-provisioned and copy it to the specified path
 export CLUSTER_NAME="ocp"
 export BASE_DOMAIN="lab.local"
 export SSH_KEY_PATH="$HOME/.ssh"
