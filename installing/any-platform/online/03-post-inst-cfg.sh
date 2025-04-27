@@ -172,7 +172,7 @@ echo
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
-MAX_RETRIES=50
+MAX_RETRIES=60
 SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
@@ -211,7 +211,7 @@ while true; do
 done
 
 # Check MCP status
-MAX_RETRIES=50
+MAX_RETRIES=60
 SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
