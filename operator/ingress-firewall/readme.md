@@ -11,7 +11,7 @@
   export CATALOG_SOURCE_NAME="redhat-operators"
   export NAMESPACE="openshift-ingress-node-firewall"
 
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/ingress-firewall/01-oeprator.yaml | envsubst | oc create -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/ingress-firewall/01-operator.yaml | envsubst | oc create -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
