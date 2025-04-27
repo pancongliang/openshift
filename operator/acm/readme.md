@@ -1,88 +1,66 @@
 
 
-## Install and Configure Ingress Node Firewall Operator
+## Install and Configure Advanced Cluster Management Operator
 
-### Install Ingress Node Firewall Operator
+### Install Advanced Cluster Management Operator
 
 * To install the Operator using the default namespace, follow these steps:
 
   ```
   export CHANNEL_NAME="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"
-  export NAMESPACE="openshift-ingress-node-firewall"
+  export NAMESPACE="open-cluster-management"
 
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/ingress-firewall/01-oeprator.yaml | envsubst | oc create -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/acm/01-oeprator.yaml | envsubst | oc create -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
-### Create an IngressNodeFirewallConfig custom resource
+### Create Multi Cluster Hub Custom Resources
 
-* Create an IngressNodeFirewallConfig custom resource:
+* Create the Multi Cluster Hub with the following command:
 
   ```
   cat << EOF | oc apply -f -
-  apiVersion: ingressnodefirewall.openshift.io/v1alpha1
-  kind: IngressNodeFirewallConfig
+  apiVersion: operator.open-cluster-management.io/v1
+  kind: MultiClusterHub
   metadata:
-    name: ingressnodefirewallconfig
-    namespace: openshift-ingress-node-firewall
-  spec:
-    nodeSelector:
-      node-role.kubernetes.io/worker: ""
+    name: multiclusterhub
+    namespace: open-cluster-management
+  spec: {}
   EOF
   ```
 
-### Create an Ingress Node Firewall rules object
+### Check Resources
 
-* Create a Deny ssh Ingress Node Firewall rules
+* Check multi cluster hub Status
   ```
-  cat << EOF | oc apply -f -
-  apiVersion: ingressnodefirewall.openshift.io/v1alpha1
-  kind: IngressNodeFirewall
-  metadata:
-   name: ingressnodefirewall-zero-trust
-  spec:
-   interfaces:
-   - ens33 
-   nodeSelector:
-     matchLabels:
-       node-role.kubernetes.io/worker: ""
-   ingress:
-   - sourceCIDRs:
-        - 0.0.0.0/0 
-     rules:
-     - order: 10
-       protocolConfig:
-         protocol: TCP
-         tcp:
-           ports: 22
-       action: Allow
-     - order: 20
-       action: Deny
-  EOF
+  oc get mch -o=jsonpath='{.items[0].status.phase}' -n open-cluster-management
   ```
-* Create a Deny Nodeport Ingress Node Firewall rules
+
+* Check pod
   ```
-  cat << EOF | oc apply -f -
-  apiVersion: ingressnodefirewall.openshift.io/v1alpha1
-  kind: IngressNodeFirewall
-  metadata:
-    name: ingressnodefirewall-worker
-  spec:
-    interfaces:
-    - ens33
-    nodeSelector:
-      matchLabels:
-        node-role.kubernetes.io/worker: ""
-    ingress:
-    - sourceCIDRs:
-      - 0.0.0.0/0
-      rules:
-      - order: 20
-        protocolConfig:
-          protocol: TCP
-          tcp:
-            ports: 30000-32767
-        action: Deny
-  EOF
+  oc get pods -n open-cluster-management
+  oc get pods -n open-cluster-management-agent
+  oc get pods -n open-cluster-management-agent-addon
+  ```
+
+### Uninstalling
+
+- Removing MultiClusterHub resources by using commands 
+  ```
+  oc delete mch multiclusterhub -n open-cluster-management
+  ```
+
+- Remove Multicluster Engine and ClusterServiceVersion
+  ```
+  oc get csv -n open-cluster-management | grep multicluster | awk '{print $1}' | xargs -I {} oc delete csv {} -n multicluster-engine
+  oc delete sub multicluster-engine -n multicluster-engine
+  ```
+  
+- If the multicluster engine custom resource is not being removed, remove any potential remaining artifacts by running the clean-up script
+  ```
+  #!/bin/bash
+  oc delete apiservice v1.admission.cluster.open-cluster-management.io v1.admission.work.open-cluster-management.io
+  oc delete validatingwebhookconfiguration multiclusterengines.multicluster.openshift.io
+  oc delete mce --all
   ```
