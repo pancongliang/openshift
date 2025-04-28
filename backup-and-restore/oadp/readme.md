@@ -1,15 +1,8 @@
 ##  OADP Application backup and restore
 
-### Install dependent components
-* Install velero client on bastion machine:
-  ```
-  VERSION=v1.7.1
-  cd ~/ && curl -OL https://github.com/vmware-tanzu/velero/releases/download/${VERSION}/velero-${VERSION}-linux-amd64.tar.gz
-  tar -xvf velero-${VERSION}-linux-amd64.tar.gz
-  mv velero-${VERSION}-linux-amd64/velero /usr/local/bin/
-  ```
+### Install Install Object Storage
 
-* Deploy [Minio and create oadp-bucket](/storage/minio/readme.md)
+* Install [Minio and create oadp-bucket](/storage/minio/readme.md)
 
 ### Install and configure OADP Operator
 
