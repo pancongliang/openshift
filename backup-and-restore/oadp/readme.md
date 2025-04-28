@@ -63,17 +63,10 @@
 
 * Install OADP Operator:
   ```
-  export CHANNEL_NAME="stable-1.3"
+  export CHANNEL_NAME="stable-1.4"
   export CATALOG_SOURCE_NAME="redhat-operators"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/backup-and-restore/oadp/01-operator.yaml | envsubst | oc apply -f -
-
-  sleep 6
-
-  oc patch installplan $(oc get ip -n openshift-adp  -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}') -n openshift-adp --type merge --patch '{"spec":{"approved":true}}'
-
-  oc get po -n openshift-adp
-  NAME                                               READY   STATUS    RESTARTS   AGE
-  openshift-adp-controller-manager-7f6f5fcf6-ndxcn   1/1     Running   0          89s
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/backup-and-restore/oadp/01-operator.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
 * Create a Secret named "cloud-credentials" in the openshift-adp project to allow access to Minio:
@@ -85,6 +78,7 @@
   EOF
 
   oc create secret generic cloud-credentials -n openshift-adp --from-file cloud=/root/credentials-velero
+  rm -rf /root/credentials-velero
   ```
 
 * Create DataProtectionApplication:
@@ -110,7 +104,8 @@
   oc get backupStorageLocations -n openshift-adp
   NAME           PHASE       LAST VALIDATED   AGE   DEFAULT
   dpa-sample-1   Available   8s               38s   true
-  
+
+  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
   velero get backup-locations -n openshift-adp
   NAME           PROVIDER   BUCKET/PREFIX        PHASE       LAST VALIDATED                  ACCESS MODE   DEFAULT
   dpa-sample-1   aws        oadp-bucket/velero   Available   2023-12-14 05:19:40 +0000 UTC   ReadWrite     true
@@ -143,7 +138,8 @@
   ```
   oc get backup -n openshift-adp sample-backup -o jsonpath='{.status.phase}'
   Completed
-  
+
+  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
   velero get backup -n openshift-adp
   NAME            STATUS      ERRORS   WARNINGS   CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
   sample-backup   Completed   0        0          2023-12-14 05:26:05 +0000 UTC   29d       dpa-sample-1       <none>
@@ -165,6 +161,12 @@
   [2023-12-14 05:26:16 UTC] 3.6KiB STANDARD velero-backup.json
   ```
 
+* If a backup error occurs, can view the Log by the following method
+  ```
+  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
+
+  velero backup logs sample-backup
+  ```
 ###  Restoring applications
 * Delete the namespace to back up the object:
   ```
@@ -236,6 +238,13 @@
   sh-4.4$ exit
   ```
 
+* If a restore error occurs, can view the Log by the following method
+  ```
+  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
+
+  velero restore logs sample-restore
+  ```
+  
 ### Scheduling backups using Schedule CR
 * Create a Schedule CR, as in the following example:  
   ```
@@ -260,7 +269,7 @@
   EOF
   ```
 
- * Verify that the status of the Schedule CR:
+* Verify that the status of the Schedule CR:
   ```
   oc get schedule -n openshift-adp
   NAME                           STATUS    SCHEDULE       LASTBACKUP   AGE   PAUSED
