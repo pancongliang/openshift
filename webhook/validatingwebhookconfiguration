@@ -1,0 +1,232 @@
+cat > ca.crt << EOF
+-----BEGIN CERTIFICATE-----
+MIIDETCCAfmgAwIBAgIUQcnKuT0zgVzkznPB/3RGOZT6dYkwDQYJKoZIhvcNAQEL
+BQAwFzEVMBMGA1UEAwwMYWRtaXNzaW9uX2NhMCAXDTIzMDgwMzAyMzYwMFoYDzIy
+OTcwNTE4MDIzNjAwWjAXMRUwEwYDVQQDDAxhZG1pc3Npb25fY2EwggEiMA0GCSqG
+SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDPNVOwHxpn3CczaLq5JZ4tgbXHXJC6a+T7
+w/WPaGfam5Js2vWdcrECLO0sm5S+10aCAG0LFO6a3P2ZvbaEZBo1MBEC/ApeNPyf
+NqBeqtDuDiygx6dVpF/Z8x/k3+mgICRZWat8On9tGR5OjyP9d+HK/TJMba2fhQbl
+5kk/2smpamq1mjVVKXDYuB5Py8UgKj41fmXDEopH+WUyi8dFl/rI1oPI+EXyETYP
+E6hpiDDmRrKogbRdV894N9rk2V7LYc4cHQ7QsnNvdvbOWyPWja2NMSXhyzViNCQu
+uhTl1iu6m34CS7KQ6nyplrHeBmxyr+T1vzp/zLXIrW9zKWTMqcrJAgMBAAGjUzBR
+MB0GA1UdDgQWBBSLsJxAYo6dFD1Ev9Qjbbzw3cAQtTAfBgNVHSMEGDAWgBSLsJxA
+Yo6dFD1Ev9Qjbbzw3cAQtTAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUA
+A4IBAQBhNlQMFkt45uTTbdT2qOsWvWArDrq9TH/7MqHAfR9skGVUiTz1I7BXubRk
+WtHWiV/JnmGYpk806ni32Xie2yd3/aOY10hbX9Oy8jCHqaaMrQ49TKzx++JBaIXa
+5zjnD4h2hZdnQjXGf5BKy5Dw3Ws0klx4clCb4zXiY5FTC/Fc2uERYTPwLmcOjLC5
+xSHXjHeDO8Td2K0V9seQb6iCDdyMantuCoxKWELvA0lIxPxg6H4afmnzfE5eZmBk
+UarRtvmwB9zPskyI/LI1ETc2MNEnNZoDAfvIOUe95TF8/t7WU5xzpfAd1p9cgh4r
+PjKZgFU//eleapRF/QTeqjjnW09m
+-----END CERTIFICATE-----
+EOF
+
+cat > server.key << EOF
+-----BEGIN RSA PRIVATE KEY-----
+MIIEogIBAAKCAQEA0zp3vZRLM7GTusLRGXxfX3UaE/Yq7Bu6PDnVXt5Hu2eXEWAp
+GqFDWA5v6I5kimKfonopapqle+7NxU1i+k0VsTtlnCj5cV7Vxrc0Wq1wQOr1Uxww
+HyHdACL9uTAnPzwiCNab7dL9DjEkjtpnPnIj+/YNp9k2eJNDeT4Un8KnP3MBT4jw
+p7clNA6yX9Z1Xk7NF1+iwUJDguepDSVa+S2HaWhJFejVTdGs3YLorNkS+SImtrlT
+dljY35TG1fj+++j5F/0sRrWyyOHS2qgv9WX59/i6AeavbAUCkWogz7MOQ4CTM9ES
+te7P+BxFcrUzgNe1oGS6Nuqp7tEFftIWvLqe2QIDAQABAoIBAAT+E8hyUdi18MTw
+R9rvWp25+dTQ87DC8wLrZwSoAlAGocZyXGZZu2rAZJq9itjOffFsK8BuSU0Flu17
+58P8wG+A9OTc/xBT6n+Y4u7lvIp8QzIkr2p89WlEanTPE45mEHPfBq53Vy3XsYKC
+3P/X2Mviw+3cr3HoIScjdX9VLXjNZw3InbwwtdzX4r80i2itrRpT7w9gQ71K11bZ
+bc0YAkZjGsZLFCWpLxTtshUR606JCSzkitnoa0h7Sy1beCR0EIzY/CT3HMn02dy/
+s1mKTibMgpM6ryzK/dTPdWOf3Ucmvsqz++WMKsxgCsHC/llHJpKYBRuFr38z1aGW
+AGnv/tECgYEA98JEK3jdXivhCBgB02wbQUJ57nnrnqYksJ99Uwn+f+IZfVY1RAF9
+JY+gA88cMx7mRmJp9B/z4LqiXy2Hf5fKxRVn+mz0RlBkcRrh0pmeBYAHb9dkAell
+sAWF13g8I9S5sIALIZeIenxeJxTO0P/bxN0G8WeSVUEZoRIB7ypRz/UCgYEA2kEi
+eVtmPxcYFTGi82LmZvnpRqei0DxbE+n55XjiHm9yTUDMx+EujzfxRUGPMr3qnL8e
+qSNILl5dY7/N9w7ONoDsn250SMLreu+cCjBfZCwj9xRSWk02ms0f6kyD0qGs8qi8
+wMXOOvNsSger3JeLFlI5o92XoA8rcBbvOZifONUCgYBAKWMWDvrlBGAGhJEUe46j
+W9/PzmsibsxZoTQHaTMrUxZeyxCISApsy8EYu24GHx5rY9kki5HQxQR/uX65oEm2
+uFBxHf40p2UblWad74Jo0jsaz6DqjdLzvrpmjpCkhtZ/yukXDfMeJU8Mt+rHXTtA
+xCykH7pZsb49ZDh0A3WkcQKBgBPD2EpjM5Q9FCo/L4GZEEJ9GVoTrlPrU1gvVTkp
+xFh7QT+rwZ/MTbocl9XsxPoUZt3BFRa+IjhIxW5WHWHlTllzPXqGtzMrq8WbU2c8
+0DazJKKojXiuC2bjcqN2QG3fxFjJXSacAzwldUYTAcZdVvQziBLF64hMN2PUP9/Y
+aXrtAoGAdo4/BtajbTCV+JtpkA+Mk3cAVhVTPGS7tXSb4vvb0wNIPVOuDX4atDfV
+J2jTu6BL8Zx03sxEsr4vHA/Re4G5A5jJoSF1eC9tEbTsRlst9xIwh3pIuxZY+goZ
+Y8wf3xU6l1l4Fgy8tsxKydGLf9zIJ8R5fiC2H3MahOU4D+5KpJc=
+-----END RSA PRIVATE KEY-----
+EOF
+
+cat > server.crt << EOF
+-----BEGIN CERTIFICATE-----
+MIIDJjCCAg6gAwIBAgIUMgcH105MEgjaOkkYSsT5za8mKmUwDQYJKoZIhvcNAQEL
+BQAwFzEVMBMGA1UEAwwMYWRtaXNzaW9uX2NhMCAXDTIzMDgwMzAyNDc0NFoYDzIy
+OTcwNTE4MDI0NzQ0WjAiMSAwHgYDVQQDDBd3ZWJob29rLndlYmhvb2t0ZXN0LnN2
+YzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANM6d72USzOxk7rC0Rl8
+X191GhP2Kuwbujw51V7eR7tnlxFgKRqhQ1gOb+iOZIpin6J6KWqapXvuzcVNYvpN
+FbE7ZZwo+XFe1ca3NFqtcEDq9VMcMB8h3QAi/bkwJz88IgjWm+3S/Q4xJI7aZz5y
+I/v2DafZNniTQ3k+FJ/Cpz9zAU+I8Ke3JTQOsl/WdV5OzRdfosFCQ4LnqQ0lWvkt
+h2loSRXo1U3RrN2C6KzZEvkiJra5U3ZY2N+UxtX4/vvo+Rf9LEa1ssjh0tqoL/Vl
++ff4ugHmr2wFApFqIM+zDkOAkzPRErXuz/gcRXK1M4DXtaBkujbqqe7RBX7SFry6
+ntkCAwEAAaNdMFswCQYDVR0TBAIwADALBgNVHQ8EBAMCBeAwHQYDVR0lBBYwFAYI
+KwYBBQUHAwIGCCsGAQUFBwMBMCIGA1UdEQQbMBmCF3dlYmhvb2sud2ViaG9va3Rl
+c3Quc3ZjMA0GCSqGSIb3DQEBCwUAA4IBAQA1cpl9MrfV10LHHpGxEnVK6Hcfd3Tw
+mzM9dHhwOSS6pP6cFHaIdyEsOapcWMOls7mEeZVOD5jbIWQ2LTCM2E9cQ/SOYvqF
+o6Z0eMNrooUw4ocBzuXAN9pgn3Xc+25ZXH/q2T2xn2SHw7OPpbXqzKTyn+qgv4yL
+zewr8tcFja6YEXjIhcplAMY6C2ldGD4SRik7THSyK3LF1LoV5A9sA9uf/iU8evz/
+S+whZLzwhAhKLY062iuqOpPFeFZG1eFPY7GBChUil4nI8PcWCT5jt2hNktvx3LLI
+F4grsscrfsogb0Q23rsihRk3kpgAnTd59FZ686Yy5KztkkAzdQjrCo+Q
+-----END CERTIFICATE-----
+EOF
+
+cat > main.py  << EOF
+from flask import Flask, request
+import ssl
+
+app = Flask(__name__)
+
+@app.route('/', methods=['POST'])
+def webhook():    
+    # validate from INPUT data
+    result = validate(request.json)
+ 
+    return {
+      "kind": "AdmissionReview",
+      "apiVersion": "admission.k8s.io/v1beta1",
+      "response": {
+        "allowed": result,
+        "status": {
+          "reason": "From test-webhook, may or may not be allowed"
+        }
+      }
+}
+
+'''
+def validate(review):
+    # denying all Pod creating
+    if (review['request']['object']['kind'] == 'Pod') and \
+        (review['request']['operation'] == 'CREATE'):
+        return False  # Deny
+    return True       # Accept
+'''
+
+def validate(review):
+    return True       # Accept
+
+##################################
+# Webhook needs to serve TLS
+##################################
+context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+context.load_verify_locations('./ca.crt')
+context.load_cert_chain('./server.crt', './server.key')
+
+app.run(host='0.0.0.0', debug=True, ssl_context=context, port=8443)
+EOF
+
+cat > Dockerfile << EOF
+FROM python:3.7
+RUN pip install flask
+ADD main.py .
+ADD server.key .
+ADD server.crt .
+ADD ca.crt .
+CMD ["python", "-u", "main.py"]
+EOF
+
+
+
+# Build Dockerfile
+podman build -t mirror.registry.example.com:8443/webhooktest:latest1 .
+podman push mirror.registry.example.com:8443/webhooktest:latest1
+
+cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: webhooktest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook
+  namespace: webhooktest
+spec:
+  selector:
+    app: webhook
+  ports:
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webhook
+  namespace: webhooktest
+  labels:
+    app: webhook
+  annotations:
+    sidecar.istio.io/inject: "true"
+spec:
+  containers:
+  - name: webhook
+    image: mirror.registry.example.com:8443/webhooktest:latest1
+EOF
+
+cat << EOF | oc apply -f -
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: val-webhook
+webhooks:
+  - admissionReviewVersions:
+      - v1beta1
+    name: val-webhook.coffeewhale.com
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+            - webhooktest
+    rules:
+      - operations:
+          - CREATE
+        apiGroups:
+          - ""
+        apiVersions:
+          - v1
+        resources:
+          - "*"
+    sideEffects: None
+    clientConfig:
+      caBundle: |
+        LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURFVENDQWZtZ0F3SUJBZ0lVUWNuS3VUMHpn
+        Vnprem5QQi8zUkdPWlQ2ZFlrd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0Z6RVZNQk1HQTFVRUF3d01Z
+        V1J0YVhOemFXOXVYMk5oTUNBWERUSXpNRGd3TXpBeU16WXdNRm9ZRHpJeQpPVGN3TlRFNE1ESXpO
+        akF3V2pBWE1SVXdFd1lEVlFRRERBeGhaRzFwYzNOcGIyNWZZMkV3Z2dFaU1BMEdDU3FHClNJYjNE
+        UUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURQTlZPd0h4cG4zQ2N6YUxxNUpaNHRnYlhIWEpDNmEr
+        VDcKdy9XUGFHZmFtNUpzMnZXZGNyRUNMTzBzbTVTKzEwYUNBRzBMRk82YTNQMlp2YmFFWkJvMU1C
+        RUMvQXBlTlB5ZgpOcUJlcXREdURpeWd4NmRWcEYvWjh4L2szK21nSUNSWldhdDhPbjl0R1I1T2p5
+        UDlkK0hLL1RKTWJhMmZoUWJsCjVray8yc21wYW1xMW1qVlZLWERZdUI1UHk4VWdLajQxZm1YREVv
+        cEgrV1V5aThkRmwvckkxb1BJK0VYeUVUWVAKRTZocGlERG1ScktvZ2JSZFY4OTROOXJrMlY3TFlj
+        NGNIUTdRc25OdmR2Yk9XeVBXamEyTk1TWGh5elZpTkNRdQp1aFRsMWl1Nm0zNENTN0tRNm55cGxy
+        SGVCbXh5citUMXZ6cC96TFhJclc5ektXVE1xY3JKQWdNQkFBR2pVekJSCk1CMEdBMVVkRGdRV0JC
+        U0xzSnhBWW82ZEZEMUV2OVFqYmJ6dzNjQVF0VEFmQmdOVkhTTUVHREFXZ0JTTHNKeEEKWW82ZEZEM
+        UV2OVFqYmJ6dzNjQVF0VEFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQQ
+        pBNElCQVFCaE5sUU1Ga3Q0NXVUVGJkVDJxT3NXdldBckRycTlUSC83TXFIQWZSOXNrR1ZVaVR6MUk
+        3Qlh1YlJrCld0SFdpVi9Kbm1HWXBrODA2bmkzMlhpZTJ5ZDMvYU9ZMTBoYlg5T3k4akNIcWFhTXJR
+        NDlUS3p4KytKQmFJWGEKNXpqbkQ0aDJoWmRuUWpYR2Y1Qkt5NUR3M1dzMGtseDRjbENiNHpYaVk1
+        RlRDL0ZjMnVFUllUUHdMbWNPakxDNQp4U0hYakhlRE84VGQySzBWOXNlUWI2aUNEZHlNYW50dUNv
+        eEtXRUx2QTBsSXhQeGc2SDRhZm1uemZFNWVabUJrClVhclJ0dm13Qjl6UHNreUkvTEkxRVRjMk1O
+        RW5OWm9EQWZ2SU9VZTk1VEY4L3Q3V1U1eHpwZkFkMXA5Y2doNHIKUGpLWmdGVS8vZWxlYXBSRi9R
+        VGVxampuVzA5bQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+      service:
+        namespace: webhooktest
+        name: webhook
+        port: 443
+EOF
+
+$ oc get validatingwebhookconfiguration val-webhook 
+NAME          WEBHOOKS   AGE
+val-webhook   1          6m46s
+
+$ oc adm must-gather  
+$ omc use must-gather.local.8932909608218718029
+
+$ omc get po -n webhooktest
+NAME      READY   STATUS    RESTARTS   AGE
+webhook   1/1     Running   0          3m
