@@ -27,6 +27,9 @@ spec:
         - openshift
         - aws
         - kubevirt
+    nodeAgent:
+      enable: true
+      uploaderType: kopia
   snapshotLocations:
     - velero:
         config:
