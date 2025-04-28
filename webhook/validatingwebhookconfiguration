@@ -126,8 +126,6 @@ ADD ca.crt .
 CMD ["python", "-u", "main.py"]
 EOF
 
-
-
 # Build Dockerfile
 podman build -t mirror.registry.example.com:8443/webhooktest:latest1 .
 podman push mirror.registry.example.com:8443/webhooktest:latest1
