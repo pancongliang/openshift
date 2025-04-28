@@ -17,14 +17,14 @@
 
 * Create a Secret named "cloud-credentials" in the openshift-adp project to allow access to Minio:
   ```
-  cat << EOF > /root/credentials-velero
+  cat << EOF > credentials-velero
   [default]
   aws_access_key_id=minioadmin
   aws_secret_access_key=minioadmin
   EOF
 
   oc create secret generic cloud-credentials -n openshift-adp --from-file cloud=/root/credentials-velero
-  rm -rf /root/credentials-velero
+  rm -rf credentials-velero
   ```
 
 * Create DataProtectionApplication:
