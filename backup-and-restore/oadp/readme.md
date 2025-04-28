@@ -23,7 +23,7 @@
   aws_secret_access_key=minioadmin
   EOF
 
-  oc create secret generic cloud-credentials -n openshift-adp --from-file cloud=/root/credentials-velero
+  oc create secret generic cloud-credentials -n openshift-adp --from-file cloud=credentials-velero
   rm -rf credentials-velero
   ```
 
