@@ -10,7 +10,7 @@
   ```
   export CHANNEL_NAME="stable-1.4"
   export CATALOG_SOURCE_NAME="redhat-operators"
-  export NAMESPACE="open-cluster-management"
+  export NAMESPACE="openshift-adp"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/backup-and-restore/oadp/01-operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
