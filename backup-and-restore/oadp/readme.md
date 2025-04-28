@@ -94,7 +94,8 @@
 
 * Verify whether there is backup data in "my minio/ocp backup/velo/backups/sample backup":
   ```
-  mc ls my-minio/oadp-bucket/velero/backups/sample-backup
+  oc rsh -n minio deployments/minio mc ls my-minio/oadp-bucket/velero/backups/sample-backu
+  
   [2023-12-14 05:26:15 UTC]    29B STANDARD sample-backup-csi-volumesnapshotclasses.json.gz
   [2023-12-14 05:26:16 UTC]    29B STANDARD sample-backup-csi-volumesnapshotcontents.json.gz
   [2023-12-14 05:26:16 UTC]    29B STANDARD sample-backup-csi-volumesnapshots.json.gz
