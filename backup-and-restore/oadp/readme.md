@@ -113,6 +113,7 @@
   alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
 
   velero backup logs sample-backup
+  velero describe backup sample-backup
   ```
 ###  Restoring applications
 * Delete the namespace to back up the object:
@@ -163,6 +164,7 @@
   alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
 
   velero restore logs sample-restore
+  velero describe restore sample-restore
   ```
   
 ### Scheduling backups using Schedule CR
