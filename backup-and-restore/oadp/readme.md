@@ -144,7 +144,8 @@
   ```
   oc get restore -n openshift-adp sample-restore -o jsonpath='{.status.phase}'
   Completed
-  
+
+  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
   velero get restore -n openshift-adp
   NAME             BACKUP          STATUS      STARTED                         COMPLETED                       ERRORS   WARNINGS   CREATED                         SELECTOR
   sample-restore   sample-backup   Completed   2023-12-14 05:35:15 +0000 UTC   2023-12-14 05:35:53 +0000 UTC   0        11         2023-12-14 05:35:15 +0000 UTC   <none>
@@ -152,37 +153,9 @@
 
 * Verify that the backup resources have been restored by entering the following command:
   ```
-  oc get all -n sample-backup
-  NAME                         READY   STATUS    RESTARTS   AGE
-  pod/nginx-7c5fc86c75-qblm9   1/1     Running   0          75s
-  
-  NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-  service/nginx   ClusterIP   172.30.25.116   <none>        8080/TCP   74s
-  
-  NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
-  deployment.apps/nginx   1/1     1            1           74s
-  
-  NAME                               DESIRED   CURRENT   READY   AGE
-  replicaset.apps/nginx-7c5fc86c75   1         1         1       74s
-  
-  NAME                                   IMAGE REPOSITORY                                                       TAGS   UPDATED
-  imagestream.image.openshift.io/nginx   image-registry.openshift-image-registry.svc:5000/sample-backup/nginx   v1.0   About a minute ago
-  
-  NAME                             HOST/PORT                     PATH   SERVICES   PORT       TERMINATION   WILDCARD
-  route.route.openshift.io/nginx   nginx.apps.ocp4.example.com          nginx      8080-tcp                 None
-  
+  oc get all -n sample-backup  
   oc get pvc -n sample-backup
-  NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS          AGE
-  nginx-storage   Bound    pvc-54fd07f8-f6e0-4e79-b45a-cfb22ff58140   5Gi        RWO            managed-nfs-storage   119s
-  
-  oc -n sample-backup rsh nginx-7c5fc86c75-qblm9 
-  Defaulted container "nginx" out of: nginx, restic-wait (init)
-  sh-4.4$ df -h /data
-  Filesystem                                                                               Size  Used Avail Use% Mounted on
-  10.74.251.171:/nfs/sample-backup-nginx-storage-pvc-54fd07f8-f6e0-4e79-b45a-cfb22ff58140  150G   62G   88G  42% /data
-  sh-4.4$ cat /data/test 
-  hello
-  sh-4.4$ exit
+  oc rsh -n sample-backup $(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx) cat /data/test
   ```
 
 * If a restore error occurs, can view the Log by the following method
