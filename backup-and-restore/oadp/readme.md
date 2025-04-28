@@ -38,71 +38,24 @@
 * View the Resources related to the DataProtectionApplication object:
   ```
   oc get po -n openshift-adp
-  NAME                                               READY   STATUS    RESTARTS   AGE
-  node-agent-ctzm4                                   1/1     Running   0          12s
-  openshift-adp-controller-manager-7f6f5fcf6-ndxcn   1/1     Running   0          87m
-  velero-7bb45ff59b-ntnpg                            1/1     Running   0          12s
-
   oc get dataprotectionapplication -n openshift-adp
-  NAME         AGE
-  dpa-sample   24s
-
   oc get backupStorageLocations -n openshift-adp
-  NAME           PHASE       LAST VALIDATED   AGE   DEFAULT
-  dpa-sample-1   Available   8s               38s   true
 
   alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
   velero get backup-locations -n openshift-adp
-  NAME           PROVIDER   BUCKET/PREFIX        PHASE       LAST VALIDATED                  ACCESS MODE   DEFAULT
-  dpa-sample-1   aws        oadp-bucket/velero   Available   2023-12-14 05:19:40 +0000 UTC   ReadWrite     true
   ```
 
 ### Deploy test application
 * Create a test pod:
   ```
   oc new-project sample-backup
-  oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
-  oc expose svc/nginx --hostname nginx.apps.ocp4.example.com
-  curl -s nginx.apps.ocp4.example.com | grep Hello
-      <h1>Hello, world from nginx!</h1>
-  
-  oc set volumes deployment/nginx \
-    --add --name nginx-storage --type pvc --claim-class managed-nfs-storage \
-    --claim-mode RWO --claim-size 5Gi --mount-path /data \
-    --claim-name nginx-storage
-  
-  oc -n sample-backup rsh nginx-7c5fc86c75-qblm9
-  sh-4.4$ df -h /data
-  Filesystem                                                                               Size  Used Avail Use% Mounted on
-  10.74.251.171:/nfs/sample-backup-nginx-storage-pvc-ed2735be-8c15-41eb-be1e-71ccb0e5db14  192G  127G   65G  67% /data
-  sh-4.4$ cat /data/test
+  oc -n sample-backup new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
+  oc -n sample-backup expose svc/nginx --hostname nginx.apps.ocp4.example.com
+  oc -n sample-backup set volumes deployment/nginx \
+    --add --name nginx-storage --type pvc --claim-mode RWO --claim-size 5Gi --mount-path /data --claim-name nginx-storage
+
+  oc rsh -n sample-backup $(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx) cat /data/test
   hello
-  sh-4.4$ exit
-  
-  oc get all -n sample-backup
-  NAME                         READY   STATUS    RESTARTS   AGE
-  pod/nginx-7c5fc86c75-qblm9   1/1     Running   0          90s
-  
-  NAME            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
-  service/nginx   ClusterIP   172.30.137.187   <none>        8080/TCP   2m11s
-  
-  NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
-  deployment.apps/nginx   1/1     1            1           2m11s
-  
-  NAME                               DESIRED   CURRENT   READY   AGE
-  replicaset.apps/nginx-675f9c6887   0         0         0       2m7s
-  replicaset.apps/nginx-7557ff84     0         0         0       2m11s
-  replicaset.apps/nginx-7c5fc86c75   1         1         1       90s
-  
-  NAME                                   IMAGE REPOSITORY                                                       TAGS     UPDATED
-  imagestream.image.openshift.io/nginx   image-registry.openshift-image-registry.svc:5000/sample-backup/nginx   v1.0   2   minutes ago
-  
-  NAME                             HOST/PORT                     PATH   SERVICES   PORT       TERMINATION   WILDCARD
-  route.route.openshift.io/nginx   nginx.apps.ocp4.example.com          nginx      8080-tcp                 None
-  
-  oc get pvc -n sample-backup
-  NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS          AGE
-  nginx-storage   Bound    pvc-ed2735be-8c15-41eb-be1e-71ccb0e5db14   5Gi        RWO            managed-nfs-storage   24m
   ```
 
 ### Backing up applications
