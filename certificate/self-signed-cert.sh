@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Default variable
-# export DOMAIN_NAME=""
-# export CERTS_PATH="/root/certs"
+export DOMAIN_NAME="test.apps.ocp4.example.com"
+
+export CERTS_PATH="./certs"
 export CA_CN="Test Workspace Signer"
 export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 
