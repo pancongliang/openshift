@@ -11,7 +11,7 @@
   export CHANNEL_NAME="stable-1.4"
   export CATALOG_SOURCE_NAME="redhat-operators"
   export NAMESPACE="openshift-adp"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/backup-and-restore/oadp/01-operator.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/oadp/01-operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
@@ -32,7 +32,7 @@
   export S3URL=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
   export BUCKET_NAME="oadp-bucket"
   
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/backup-and-restore/oadp/02-dpa.yaml | envsubst | oc apply -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/oadp/02-dpa.yaml | envsubst | oc apply -f -
   ```
 
 * View the Resources related to the DataProtectionApplication object:
