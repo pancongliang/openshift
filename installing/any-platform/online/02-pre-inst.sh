@@ -966,7 +966,6 @@ rm -rf "${INSTALL_DIR}/approve-csr.sh"
 cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
 #!/bin/bash
 export PATH="/usr/local/bin:$PATH"
-export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
 for i in {1..720}; do 
   oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' 2>/dev/null | xargs --no-run-if-empty oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm certificate approve >/dev/null 2>&1
   sleep 10
