@@ -55,6 +55,9 @@ rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
 mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
 run_command "[create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
 
+chmod 777 ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
+run_command "[modify ${NFS_DIR}/${IMAGE_REGISTRY_PV} director permissions]"
+
 oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete -f ${IMAGE_REGISTRY_PV} >/dev/null 2>&1 || true
 
 cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
