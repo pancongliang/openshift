@@ -24,6 +24,7 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-dl-script.sh | sh
   ```
 
+
 ### Register Subscription
 
 * Run the following command to register the subscription:
@@ -35,7 +36,7 @@
 
 ### Set Environment Variables
 
-* Edit and source the environment variables script:
+* Edit and apply the environment variables script:
 
   ```
   vim 01-set-params.sh
@@ -45,7 +46,7 @@
 
 ### Install Infrastructure and Generate Scripts
 
-* Run the pre-installation script:
+* Run the pre-installation script to install and configure NFS, HTTPD, Named, HAProxy, OpenShift tools, and more, and generate the Ignition file along with installation scripts for each node:
 
   ```
   bash 02-pre-inst.sh
@@ -125,6 +126,7 @@
   oc get node
   oc get co | grep -v '.True.*False.*False'
   ```
+
 
 ### Configure image registry data persistence and create htpasswd user
 
