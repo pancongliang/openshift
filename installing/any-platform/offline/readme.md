@@ -24,6 +24,7 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/offline/00-dl-script.sh | sh
   ```
 
+
 ### Register Subscription
 
 * Run the following command to register the subscription:
@@ -42,9 +43,10 @@
   source 01-set-params.sh
   ```
 
+
 ### Install Infrastructure and Generate Scripts
 
-* Run the pre-installation script:
+* Run the pre-installation script to install and configure NFS, HTTPD, Named, HAProxy, Registry, OpenShift tools, and more, and generate the Ignition file along with installation scripts for each node
 
   ```
   bash 02-pre-inst.sh
@@ -56,6 +58,7 @@
 
   bs  m1  m2  m3  w1  w2  w3
   ```
+
   
 ### Mirror ocp release image
 
@@ -64,6 +67,7 @@
   ```
   bash 03-mirror-img.sh
   ```
+
 
 ### Install Bootstrap
 
