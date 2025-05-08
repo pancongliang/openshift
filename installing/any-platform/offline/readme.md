@@ -36,7 +36,7 @@
 
 ### Set Environment Variables
 
-* Edit and source the environment variables script:
+* Edit and apply the environment variables script:
 
   ```
   vim 01-set-params.sh
