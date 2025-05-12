@@ -617,11 +617,6 @@ run_command "[forward zone file is valid]"
 named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
 run_command "[reverse zone file is valid]"
 
-# Add dns ip to resolv.conf
-sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
-sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
-run_command "[add dns ip $DNS_SERVER_IP to /etc/resolv.conf]"
-
 # Change ownership
 chown named. /var/named/*.zone
 run_command "[change ownership /var/named/*.zone]"
@@ -632,6 +627,11 @@ run_command "[set the named service to start automatically at boot]"
 
 systemctl restart named >/dev/null 2>&1
 run_command "[restart named service]"
+
+# Add dns ip to resolv.conf
+sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
+sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
+run_command "[add dns ip $DNS_SERVER_IP to /etc/resolv.conf]"
 
 # Append “dns=none” immediately below the “[main]” section in the main NM config
 sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
