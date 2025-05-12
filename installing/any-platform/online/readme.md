@@ -18,7 +18,7 @@
 
 ### Download the Installation Script
 
-* To download the installation script, run the following command:
+* Run the following command on the bastion machine to download the installation script:
 
   ```
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-dl-script.sh | sh
@@ -27,7 +27,7 @@
 
 ### Register Subscription
 
-* Run the following command to register the subscription:
+* On the bastion machine, run the following command to register the subscription:
 
   ```
   bash 00-reg-sub.sh
@@ -36,7 +36,7 @@
 
 ### Set Environment Variables
 
-* Edit and apply the environment variables script:
+* On the bastion machine, edit and apply the environment variable script.
 
   ```
   vim 01-set-params.sh
@@ -46,13 +46,13 @@
 
 ### Install Infrastructure and Generate Scripts
 
-* Run the pre-installation script to install and configure NFS, HTTPD, Named, HAProxy, OpenShift tools, and more, and generate the Ignition file along with installation scripts for each node:
+* On the bastion machine, run the pre-installation script to install and configure NFS, HTTPD, Named, HAProxy, OpenShift tools, and other required components. This script also generates the Ignition file and installation scripts for each node:
 
   ```
   bash 02-pre-inst.sh
   ```
 
-* Check whether the node installation script is generated:
+* On the bastion machine, check whether the node installation script has been generated:
   ```
   (cd "${INSTALL_DIR}" && ls -d bs m[0-9] w[0-9])
 
@@ -62,7 +62,7 @@
 
 ### Install Bootstrap
 
-* After mounting the ISO, start the `bootstrap` node and execute the following command:
+* Mount the ISO on the bootstrap node, then boot the node and run the following command:
 
   ```
   [core@localhost ~]$ sudo -i
@@ -83,7 +83,7 @@
 
 ### Install Control-Plane
 
-* After mounting the ISO, start the `Control-Plane` node and execute the following command:
+* Mount the ISO on the control-plane node, then boot the node and run the following command:
 
   ```
   [core@localhost ~]$ sudo -i
@@ -101,8 +101,8 @@
 
 ### Install Workers
 
-* After mounting the ISO, start the `worker` node and execute the following command:
-
+* Mount the ISO on the worker node, then boot the node and run the following command:
+  
   ```
   [core@localhost ~]$ sudo -i
   [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/w1 | sh
@@ -114,13 +114,13 @@
 
 ### Approval of CSR
 
-* To approve the Certificate Signing Request (CSR), run the following command:
-
+* On the bastion machine, run the following command to approve the Certificate Signing Request (CSR):
+  
   ```
   bash ${INSTALL_DIR}/ocp4cert_approver.sh &
   ```
 
-* Check the node status and operators:
+* On the bastion machine, Check the node status and operators:
 
   ```
   oc get node
@@ -130,7 +130,7 @@
 
 ### Configure image registry data persistence and create htpasswd user
 
-* Configure image registry data persistence and create htpasswd user:
+* On the bastion machine, run the following command to configure image registry data persistence and create the htpasswd user:
 
   ```
   bash 03-post-inst-cfg.sh
@@ -142,7 +142,7 @@
 
 ### Login to OpenShift
 
-* Can login to OpenShift using the following command:
+* On the bastion machine, run the following command to log in to OpenShift:
 
   ```
   unset KUBECONFIG
