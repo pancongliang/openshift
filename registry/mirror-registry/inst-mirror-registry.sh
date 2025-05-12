@@ -63,7 +63,7 @@ PRINT_TASK "TASK [Delete existing duplicate data]"
 # Check if there is an active mirror registry pod
 if sudo podman pod ps | grep -E 'quay-pod.*Running' >/dev/null 2>&1; then
     # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} >/dev/null 2>&1
+    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall -v --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} >/dev/null 2>&1
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [uninstall the mirror registry]"
@@ -75,23 +75,8 @@ else
 fi
 
 # Delete existing duplicate data
-files=(
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem"
-    "${REGISTRY_INSTALL_PATH}"
-)
-
-for file in "${files[@]}"; do
-    if [ -e "$file" ]; then
-        sudo rm -rf "$file" >/dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            echo "ok: [delete existing duplicate data: $file]"
-        else
-            echo "failed: [delete existing duplicate data: $file]"
-        fi
-    else
-        echo "skipping: [no duplicate data: $file]"
-    fi
-done
+rm -rf "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem" >/dev/null 2>&1
+rm -rf v"${REGISTRY_INSTALL_PATH}" >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
