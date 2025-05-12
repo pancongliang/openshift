@@ -18,7 +18,7 @@
 
 ### Download the Installation Script
 
-* Run the following command on the bastion machine to download the installation script:
+* On the bastion machine, run the following command to download the installation script:
 
   ```
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-dl-script.sh | sh
@@ -36,7 +36,7 @@
 
 ### Set Environment Variables
 
-* On the bastion machine, edit and apply the environment variable script.
+* On the bastion machine, edit and apply the environment variable script:
 
   ```
   vim 01-set-params.sh
