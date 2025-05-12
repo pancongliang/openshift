@@ -629,6 +629,13 @@ run_command "[set the named service to start automatically at boot]"
 systemctl restart named  >/dev/null 2>&1
 run_command "[restart named service]"
 
+# Append “dns=none” immediately below the “[main]” section in the main NM config
+sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
+run_command "[prevent network manager from dynamically updating /etc/resolv.conf]"
+
+systemctl restart NetworkManager
+run_command "[restart network manager service]"
+
 # Wait for the service to restart
 sleep 15
 
