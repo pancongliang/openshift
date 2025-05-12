@@ -18,7 +18,7 @@
 
 ### Download the Installation Script
 
-* On the bastion machine, run the following command to download the installation script:
+* In the bastion machine, run the following command to download the installation script:
 
   ```
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-dl-script.sh | sh
@@ -27,7 +27,7 @@
 
 ### Register Subscription
 
-* On the bastion machine, run the following command to register the subscription:
+* In the bastion machine, run the following command to register the subscription:
 
   ```
   bash 00-reg-sub.sh
@@ -36,7 +36,7 @@
 
 ### Set Environment Variables
 
-* On the bastion machine, edit and apply the environment variable script:
+* In the bastion machine, edit and apply the environment variable script:
 
   ```
   vim 01-set-params.sh
@@ -46,13 +46,13 @@
 
 ### Install Infrastructure and Generate Scripts
 
-* On the bastion machine, run the pre-installation script to install and configure NFS, HTTPD, Named, HAProxy, OpenShift tools, and other required components. This script also generates the Ignition file and installation scripts for each node:
+* In the bastion machine, run the pre-installation script to install and configure NFS, HTTPD, Named, HAProxy, OpenShift tools, and other required components. This script also generates the Ignition file and installation scripts for each node:
 
   ```
   bash 02-pre-inst.sh
   ```
 
-* On the bastion machine, check whether the node installation script has been generated:
+* In the bastion machine, check whether the node installation script has been generated:
   ```
   (cd "${INSTALL_DIR}" && ls -d bs m[0-9] w[0-9])
 
@@ -114,13 +114,13 @@
 
 ### Approval of CSR
 
-* On the bastion machine, run the following command to approve the Certificate Signing Request (CSR):
+* In the bastion machine, run the following command to approve the Certificate Signing Request (CSR):
   
   ```
   bash ${INSTALL_DIR}/ocp4cert_approver.sh &
   ```
 
-* On the bastion machine, Check the node status and operators:
+* In the bastion machine, Check the node status and operators:
 
   ```
   export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
@@ -131,7 +131,7 @@
 
 ### Configure image registry data persistence and create htpasswd user
 
-* On the bastion machine, run the following command to configure image registry data persistence and create the htpasswd user:
+* In the bastion machine, run the following command to configure image registry data persistence and create the htpasswd user:
 
   ```
   bash 03-post-inst-cfg.sh
@@ -143,7 +143,7 @@
 
 ### Login to OpenShift
 
-* On the bastion machine, run the following command to log in to OpenShift:
+* In the bastion machine, run the following command to log in to OpenShift:
 
   ```
   unset KUBECONFIG
