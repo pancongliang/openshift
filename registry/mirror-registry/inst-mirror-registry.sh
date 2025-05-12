@@ -112,6 +112,7 @@ sudo wget -O ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz https://mirror.open
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
+cd ${REGISTRY_INSTALL_PATH}
 sudo tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ >/dev/null 2>&1
 run_command "[extract the mirror-registry package]"
 
