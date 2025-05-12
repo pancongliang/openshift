@@ -123,6 +123,7 @@
 * On the bastion machine, Check the node status and operators:
 
   ```
+  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
   oc get node
   oc get co | grep -v '.True.*False.*False'
   ```
