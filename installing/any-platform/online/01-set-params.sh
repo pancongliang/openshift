@@ -18,7 +18,7 @@ export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
 export DNS_FORWARDER_IP="10.184.134.1"                # Resolve DNS addresses on the Internet
 
-# OpenShift Node Hostname/IP variable
+# OpenShift node hostname and IP address information
 export BASTION_HOSTNAME="bastion"
 export BOOTSTRAP_HOSTNAME="bootstrap"
 export MASTER01_HOSTNAME="master01"
