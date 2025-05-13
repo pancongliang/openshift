@@ -773,9 +773,9 @@ echo
 PRINT_TASK "TASK [Install mirror registry]"
 
 # Check if there is an active mirror registry pod
-if sudo podman pod ps | grep -E 'quay-pod.*Running' >/dev/null 2>&1; then
+if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null 2>&1; then
     # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_DIR} >/dev/null 2>&1
+    ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot ${REGISTRY_INSTALL_DIR} >/dev/null 2>&1
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [uninstall the mirror registry]"
@@ -808,7 +808,7 @@ run_command "[extract the mirror-registry package]"
 
 echo "ok: [start installing mirror-registry...]"
 # Install mirror-registry
-sudo ${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
+${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} \
      --quayRoot ${REGISTRY_INSTALL_DIR} \
      --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
