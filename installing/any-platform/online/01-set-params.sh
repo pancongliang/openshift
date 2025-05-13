@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# No need to create any resources, just specify parameters.
 # OpenShift release version
 export OCP_RELEASE_VERSION="4.16.26"
 
@@ -36,6 +35,7 @@ export MASTER03_IP="10.184.134.207"
 export WORKER01_IP="10.184.134.238"
 export WORKER02_IP="10.184.134.246"
 export WORKER03_IP="10.184.134.202"
+
 
 # More options, no changes required
 # OpenShift install-config
