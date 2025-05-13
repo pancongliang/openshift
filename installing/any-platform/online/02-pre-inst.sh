@@ -947,7 +947,7 @@ PRINT_TASK "TASK [Generate approve csr script file]"
 rm -rf "${INSTALL_DIR}/approve-csr.sh"
 
 # Generate approve csr script file]
-cat << EOF > "${INSTALL_DIR}/ocp4cert_approver.sh"
+cat << EOF > "${INSTALL_DIR}/ocp4cert-approver.sh"
 #!/bin/bash
 source 01-set-params.sh >/dev/null 2>&1
 export PATH="/usr/local/bin:$PATH"
@@ -956,7 +956,7 @@ for i in {1..720}; do
   sleep 10
 done 
 EOF
-run_command "[generate approve csr script: ${INSTALL_DIR}/ocp4cert_approver.sh]"
+run_command "[generate approve csr script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
 
 # Add an empty line after the task
 echo
