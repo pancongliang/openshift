@@ -40,7 +40,7 @@
   apiVersion: ingressnodefirewall.openshift.io/v1alpha1
   kind: IngressNodeFirewall
   metadata:
-   name: ingressnodefirewall-zero-trust
+   name: ssh-block-all-worker
   spec:
    interfaces:
    - ens33 
@@ -49,25 +49,93 @@
        node-role.kubernetes.io/worker: ""
    ingress:
    - sourceCIDRs:
-        - 0.0.0.0/0 
+     - 0.0.0.0/0
      rules:
      - order: 10
        protocolConfig:
          protocol: TCP
          tcp:
            ports: 22
-       action: Allow
-     - order: 20
        action: Deny
   EOF
   ```
+* Allow ssh rules only for specific IP addresses
+  ```
+  cat << EOF | oc apply -f -
+  apiVersion: ingressnodefirewall.openshift.io/v1alpha1
+  kind: IngressNodeFirewall
+  metadata:
+    name: ssh-allow-cidr-worker
+  spec:
+    interfaces:
+      - ens33 
+    nodeSelector:
+      matchLabels:
+        node-role.kubernetes.io/worker: ""
+    ingress:
+      - sourceCIDRs:
+          - 10.184.134.243/32
+        rules:
+          - order: 15
+            protocolConfig:
+              protocol: TCP
+              tcp:
+                ports: 22
+            action: Allow
+      - sourceCIDRs:
+          - 0.0.0.0/0
+        rules:
+          - order: 10
+            protocolConfig:
+              protocol: TCP
+              tcp:
+                ports: 22
+            action: Deny
+  EOF
+  ```
+
+* Only allow specific IP addresses to access the specified port rules
+  ```
+  cat << EOF | oc apply -f -
+  apiVersion: ingressnodefirewall.openshift.io/v1alpha1
+  kind: IngressNodeFirewall
+  metadata:
+    name: nodeport-allow-cidr-worker
+  spec:
+    interfaces:
+      - ens33 
+    nodeSelector:
+      matchLabels:
+        node-role.kubernetes.io/worker: ""
+    ingress:
+      - sourceCIDRs:
+          - 10.184.134.243/32
+        rules:
+          - order: 15
+            protocolConfig:
+              protocol: TCP
+              tcp:
+                ports: 30768
+            action: Allow
+      - sourceCIDRs:
+          - 0.0.0.0/0
+        rules:
+          - order: 10
+            protocolConfig:
+              protocol: TCP
+              tcp:
+                ports: 30768
+            action: Deny
+  EOF
+  ```
+    
 * Create a Deny Nodeport Ingress Node Firewall rules
   ```
   cat << EOF | oc apply -f -
   apiVersion: ingressnodefirewall.openshift.io/v1alpha1
   kind: IngressNodeFirewall
   metadata:
-    name: ingressnodefirewall-worker
+    name: nodeport-block-all-worker
   spec:
     interfaces:
     - ens33
