@@ -1,4 +1,4 @@
-## Offlile Installation of OpenShift 4
+## Offline Installation of OpenShift 4
 
 ### Prerequisites
 * The script needs to be run as `root` user  
