@@ -645,6 +645,15 @@ else
     echo "failed: [dns resolve failed for the following domain/ip: ${failed_hostnames[*]}]"
 fi
 
+# Delete old records
+sed -i "/${BOOTSTRAP_HOSTNAME}/d;
+        /${MASTER01_HOSTNAME}/d;
+        /${MASTER02_HOSTNAME}/d;
+        /${MASTER03_HOSTNAME}/d;
+        /${WORKER01_HOSTNAME}/d;
+        /${WORKER02_HOSTNAME}/d;
+        /${WORKER03_HOSTNAME}/d" /etc/hosts
+        
 # OpenShift Node Hostname Resolve
 {
   printf "%-15s %s\n" "${BOOTSTRAP_IP}"    "${BOOTSTRAP_HOSTNAME}"
