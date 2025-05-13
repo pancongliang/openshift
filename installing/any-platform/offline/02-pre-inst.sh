@@ -798,7 +798,6 @@ chmod -R 777 ${REGISTRY_INSTALL_DIR}
 run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
 
 # Download mirror-registry
-# wget -P ${REGISTRY_INSTALL_DIR} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz >/dev/null 2>&1
 wget -O ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz >/dev/null 2>&1
 run_command "[download mirror-registry package]"
 
@@ -849,6 +848,8 @@ run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-tru
 # Trust the rootCA certificate
 update-ca-trust >/dev/null 2>&1
 run_command "[trust the rootCA certificate]"
+
+rm -rf pause.tar quay.tar redis.tar >/dev/null 2>&1 || true
 
 sleep 5
 
