@@ -1,24 +1,24 @@
 #!/bin/bash
 
-# OpenShift release version
+# Specify the OpenShift release version
 export OCP_RELEASE_VERSION="4.16.26"
 
-# OpenShift install-config
+# Specify required parameters for install-config.yaml
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   #  Download https://cloud.redhat.com/openshift/install/metal/installer-provisioned and copy it to the specified path
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"
 
-# OpenShift Coreos install Dev/Net ifname
+# Specify the OpenShift node’s installation disk and NetworkManager connection name
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
-# OpenShift infrastructure network
+# Specify the infrastructure network configuration
 export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
 export DNS_FORWARDER_IP="10.184.134.1"                # Resolve DNS addresses on the Internet
 
-# OpenShift node hostname and IP address information
+# Specify OpenShift node’s hostname and IP address
 export BASTION_HOSTNAME="bastion"
 export BOOTSTRAP_HOSTNAME="bootstrap"
 export MASTER01_HOSTNAME="master01"
@@ -37,20 +37,23 @@ export WORKER02_IP="10.184.134.246"
 export WORKER03_IP="10.184.134.202"
 
 
-# More options, no changes required
-# OpenShift install-config
+# More options — no changes required!
+# Specify required parameters for install-config.yaml
 export SSH_KEY_PATH="$HOME/.ssh"
 export POD_CIDR="10.128.0.0/14"
 export HOST_PREFIX="23"
 export SERVICE_CIDR="172.30.0.0/16"
 
-# NFS directory is used to create image-registry pod pv
+# Specify the NFS directory to use for the image-registry pod PV
 export NFS_DIR="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
 
-# Httpd and ocp ignition dir
+# Specify the HTTPD path to serve the Ignition file for download
 export HTTPD_DIR="/var/www/html/materials"
 export INSTALL_DIR="${HTTPD_DIR}/pre"
+
+# Specify a publicly resolvable domain name for testing
+export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 
 # Do not change the following parameters
 export NFS_SERVER_IP="$BASTION_IP"
@@ -59,9 +62,6 @@ export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
 export LB_IP="$BASTION_IP"
-
-# Nslookup public network
-export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
