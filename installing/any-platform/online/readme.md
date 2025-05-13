@@ -1,4 +1,4 @@
-## Online Installation OpenShift4
+## Online Installation of OpenShift 4
 
 ### Prerequisites
 * The script needs to be run as `root` user  
@@ -46,7 +46,8 @@
 
 ### Install Infrastructure and Generate Scripts
 
-* In the bastion machine, run the pre-installation script to install and configure NFS, HTTPD, Named, HAProxy, OpenShift tools, and other required components. This script also generates the Ignition file and installation scripts for each node:
+* In the bastion host, run the pre-installation script to set up the required infrastructure components, including NFS, HTTPD, BIND, HAProxy, and OpenShift CLI tools.
+This script also generates the Ignition configuration and per-node installation scripts automatically:
 
   ```
   bash 02-pre-inst.sh
@@ -60,7 +61,7 @@
   ```
 
 
-### Install Bootstrap
+### Install the Bootstrap Node
 
 * Mount the ISO on the bootstrap node, then boot the node and run the following command:
 
@@ -81,7 +82,7 @@
   ```
 
 
-### Install Control-Plane
+### Install the Control Plane Nodes
 
 * Mount the ISO on the control-plane node, then boot the node and run the following command:
 
@@ -99,7 +100,7 @@
   ```
 
 
-### Install Workers
+### Install the Worker Nodes
 
 * Mount the ISO on the worker node, then boot the node and run the following command:
   
@@ -112,7 +113,7 @@
 * Repeat the process for all worker nodes.
 
 
-### Approval of CSR
+### Approve Pending CSRs
 
 * In the bastion machine, run the following command to approve the Certificate Signing Request (CSR):
   
@@ -129,8 +130,7 @@
   ```
 
 
-### Configure image registry data persistence and create htpasswd user
-
+### Configure Image Registry Storage and Create htpasswd User
 * In the bastion machine, run the following command to configure image registry data persistence and create the htpasswd user:
 
   ```
@@ -141,7 +141,7 @@
   ```
 
 
-### Login to OpenShift
+### Log in to OpenShift
 
 * In the bastion machine, run the following command to log in to OpenShift:
 
