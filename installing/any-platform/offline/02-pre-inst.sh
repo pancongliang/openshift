@@ -63,26 +63,6 @@ run_command "[firewalld service stopped and disabled]"
 # Add an empty line after the task
 echo
 
-# firewall-cmd --permanent --add-port=6443/tcp         # kube-api-server on control plane
-# firewall-cmd --permanent --add-port=22623/tcp        # machine-config server
-# firewall-cmd --permanent- -add-service=http          # ingress 80
-# firewall-cmd --permanent- -add-service=https         # ingress 443
-# firewall-cmd --permanent --add-port=9000/tcp         # haproxy stats
-# firewall-cmd --permanent --add-port=8443/tcp         # mirror registry
-# firewall-cmd --permanent --add-port=8080/tcp         # httpd ignition
-# firewall-cmd --permanent --add-port=53/tcp           # dns
-# firewall-cmd --permanent --add-port=53/udp           # dns
-# firewall-cmd --permanent --add-port=2049/tcp         # nfs
-# firewall-cmd --permanent --add-port=111/tcp          # nfs
-# firewall-cmd --permanent --add-port=111/udp          # nfs
-# firewall-cmd --permanent --add-port=20048/tcp        # nfs
-# firewall-cmd --permanent --add-port=20048/udp        # nfs
-# firewall-cmd --permanent --add-port=32768-65535/tcp  # nfs
-# firewall-cmd --permanent --add-port=32768-65535/udp  # nfs
-# firewall-cmd --reload
-# firewall-cmd --list-ports
-# setsebool -P haproxy_connect_any 1                   # SELinux policy that allows HAProxy to connect to any network
-
 # Step 4:
 PRINT_TASK "TASK [Change SELinux security policy]"
 
@@ -147,10 +127,10 @@ rm -f /usr/local/bin/oc* >/dev/null 2>&1
 rm -f /usr/local/bin/kube* >/dev/null 2>&1
 rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
 rm -f /usr/local/bin/README.md >/dev/null 2>&1
-rm -f openshift-install-linux.tar.gz >/dev/null 2>&1
-rm -f openshift-client-linux-amd64-rhel8.tar.gz >/dev/null 2>&1
-rm -f openshift-client-linux.tar.gz >/dev/null 2>&1
-rm -f oc-mirror.tar.gz >/dev/null 2>&1
+rm -f openshift-install-linux.tar.gz* >/dev/null 2>&1
+rm -f openshift-client-linux-amd64-rhel8.tar.gz* >/dev/null 2>&1
+rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
+rm -f oc-mirror.tar.gz* >/dev/null 2>&1
 
 # Download the openshift-install
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
@@ -397,14 +377,6 @@ PRINT_TASK "TASK [Setup named services]"
 FORWARD_ZONE_NAME="${BASE_DOMAIN}"
 FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
 
-# Check if the forward DNS zone name and zone file name are generated successfully
-#if [ -n "$FORWARD_ZONE_NAME" ] && [ -n "$FORWARD_ZONE_FILE" ]; then
-#    echo "ok: [generate forward DNS zone name $FORWARD_ZONE_NAME]"
-#    echo "ok: [generate forward zone file name $FORWARD_ZONE_FILE]"
-#else
-#    echo "failed: [generate forward DNS zone name or forward zone file name]"
-#fi
-
 # Generate reverse DNS zone name and reverse zone file name 
 # Extract the last two octets from the IP address
 IFS='.' read -ra octets <<< "$DNS_SERVER_IP"
@@ -414,14 +386,6 @@ OCTET1="${octets[1]}"
 # Construct reverse DNS zone name and zone file name
 REVERSE_ZONE_NAME="${OCTET1}.${OCTET0}.in-addr.arpa"
 REVERSE_ZONE_FILE="${OCTET1}.${OCTET0}.zone"
-
-# Check if the reverse DNS zone name and zone file name are generated successfully
-#if [ -n "$REVERSE_ZONE_NAME" ] && [ -n "$REVERSE_ZONE_FILE" ]; then
-#    echo "ok: [generate reverse DNS zone name $REVERSE_ZONE_NAME]"
-#    echo "ok: [generate reverse zone file name $REVERSE_ZONE_FILE]"
-#else
-#    echo "failed: [generate reverse DNS zone name or reverse zone file name]"
-#fi
 
 # Generate named service configuration file
 cat << EOF > /etc/named.conf
