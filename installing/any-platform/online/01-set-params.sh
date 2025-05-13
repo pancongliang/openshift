@@ -13,7 +13,7 @@ export NETWORK_TYPE="OVNKubernetes"
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
-# Specify the infrastructure network configuration
+# Specify the OpenShift node infrastructure network configuration
 export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
 export DNS_FORWARDER_IP="10.184.134.1"                # Resolve DNS addresses on the Internet
