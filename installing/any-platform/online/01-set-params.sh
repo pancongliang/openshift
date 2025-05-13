@@ -8,11 +8,7 @@ export OCP_RELEASE_VERSION="4.16.26"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   #  Download https://cloud.redhat.com/openshift/install/metal/installer-provisioned and copy it to the specified path
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
-export SSH_KEY_PATH="$HOME/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
-export POD_CIDR="10.128.0.0/14"
-export HOST_PREFIX="23"
-export SERVICE_CIDR="172.30.0.0/16"
 
 # OpenShift Coreos install Dev/Net ifname
 export COREOS_INSTALL_DEV="/dev/sda"
@@ -21,7 +17,7 @@ export NET_IF_NAME="'Wired connection 1'"
 # OpenShift infrastructure network
 export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
-export DNS_FORWARDER_IP="10.184.134.1"       # Resolve DNS addresses on the Internet
+export DNS_FORWARDER_IP="10.184.134.1"                # Resolve DNS addresses on the Internet
 
 # OpenShift Node Hostname/IP variable
 export BASTION_HOSTNAME="bastion"
@@ -42,6 +38,12 @@ export WORKER02_IP="10.184.134.246"
 export WORKER03_IP="10.184.134.202"
 
 # More options, no changes required
+# OpenShift install-config
+export SSH_KEY_PATH="$HOME/.ssh"
+export POD_CIDR="10.128.0.0/14"
+export HOST_PREFIX="23"
+export SERVICE_CIDR="172.30.0.0/16"
+
 # NFS directory is used to create image-registry pod pv
 export NFS_DIR="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
