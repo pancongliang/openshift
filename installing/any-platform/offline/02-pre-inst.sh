@@ -601,6 +601,7 @@ run_command "[add dns ip $DNS_SERVER_IP to /etc/resolv.conf]"
 sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
 run_command "[prevent network manager from dynamically updating /etc/resolv.conf]"
 
+# Restart service
 systemctl restart NetworkManager >/dev/null 2>&1
 run_command "[restart network manager service]"
 
