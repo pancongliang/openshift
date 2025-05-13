@@ -76,7 +76,7 @@ fi
 
 # Delete existing duplicate data
 rm -rf "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem" >/dev/null 2>&1
-rm -rf v"${REGISTRY_INSTALL_PATH}" >/dev/null 2>&1
+rm -rf "${REGISTRY_INSTALL_PATH}" >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
