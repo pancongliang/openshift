@@ -598,8 +598,12 @@ sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
 run_command "[add dns ip $DNS_SERVER_IP to /etc/resolv.conf]"
 
 # Append “dns=none” immediately below the “[main]” section in the main NM config
-sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
-run_command "[prevent network manager from dynamically updating /etc/resolv.conf]"
+if ! sed -n '/^\[main\]/,/^\[/{/dns=none/p}' /etc/NetworkManager/NetworkManager.conf | grep -q 'dns=none'; then
+    sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
+    echo "ok: [prevent network manager from dynamically updating /etc/resolv.conf]"
+else
+    echo "skipped: [prevent network manager from dynamically updating /etc/resolv.conf]"
+fi
 
 # Restart service
 systemctl restart NetworkManager >/dev/null 2>&1
