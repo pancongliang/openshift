@@ -787,23 +787,8 @@ else
 fi
 
 # Delete existing duplicate data
-files=(
-    "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem"
-    "${REGISTRY_INSTALL_DIR}"
-)
-
-for file in "${files[@]}"; do
-    if [ -e "$file" ]; then
-        sudo rm -rf "$file" >/dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            echo "ok: [delete existing duplicate data: $file]"
-        else
-            echo "failed: [delete existing duplicate data: $file]"
-        fi
-    else
-        echo "skipping: [no duplicate data: $file]"
-    fi
-done
+rm -rf "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem" >/dev/null 2>&1
+rm -rf "${REGISTRY_INSTALL_PATH}" >/dev/null 2>&1
 
 # Create installation directory
 mkdir -p ${REGISTRY_INSTALL_DIR}
