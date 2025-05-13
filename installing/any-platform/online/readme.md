@@ -34,7 +34,7 @@
   ```
 
 
-### Set Environment Variables
+### Set the necessary installation parameters
 
 * In the bastion machine, edit and apply the environment variable script:
 
@@ -61,7 +61,7 @@ This script also generates the Ignition configuration and per-node installation 
   ```
 
 
-### Install the Bootstrap Node
+### Install the Bootstrap Nodes
 
 * Mount the ISO on the bootstrap node, then boot the node and run the following command:
 
