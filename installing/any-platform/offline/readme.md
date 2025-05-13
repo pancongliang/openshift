@@ -1,4 +1,4 @@
-## Online Installation OpenShift4
+## Offlile Installation of OpenShift 4
 
 ### Prerequisites
 * The script needs to be run as `root` user  
@@ -34,7 +34,7 @@
   ```
 
 
-### Set Environment Variables
+### Set the necessary installation parameters
 
 * In the bastion machine, edit and apply the environment variable script:
 
@@ -60,7 +60,7 @@
   ```
 
   
-### Mirror ocp release image
+### Mirror the OpenShift Release Image
 
 * In the bastion machine, run the following command to mirror the OCP release image:
   
@@ -69,7 +69,7 @@
   ```
 
 
-### Install Bootstrap
+### Install the Bootstrap Nodes
 
 * Mount the ISO on the bootstrap node, then boot the node and run the following command:
 
@@ -90,7 +90,7 @@
   ```
 
 
-### Install Control-Plane
+### Install the Control Plane Nodes
 
 * Mount the ISO on the control-plane node, then boot the node and run the following command:
 
@@ -108,7 +108,7 @@
   ```
 
 
-### Install Workers
+### Install the Worker Nodes
 
 * Mount the ISO on the worker node, then boot the node and run the following command:
 
@@ -121,7 +121,7 @@
 * Repeat the process for all worker nodes.
 
 
-### Approval of CSR
+### Approve Pending CSRs
 
 * In the bastion machine, run the following command to approve the Certificate Signing Request (CSR):
   
@@ -137,7 +137,7 @@
   oc get co | grep -v '.True.*False.*False'
   ```
 
-### Configure image registry data persistence and create htpasswd user
+### Configure Image Registry Storage and Create htpasswd User
 
 * In the bastion machine, run the following command to configure image registry data persistence and create the htpasswd user:
 
@@ -149,7 +149,7 @@
   ```
 
 
-### Login to OpenShift
+### Log in to OpenShift
 
 * In the bastion machine, run the following command to log in to OpenShift:
 
