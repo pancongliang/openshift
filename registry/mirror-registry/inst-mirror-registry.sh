@@ -9,7 +9,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
-export REGISTRY_INSTALL_PATH="/opt/quay-install"
+export REGISTRY_INSTALL_DIR="/opt/quay-install"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -63,7 +63,7 @@ PRINT_TASK "TASK [Delete existing duplicate data]"
 # Check if there is an active mirror registry pod
 if sudo podman pod ps | grep -E 'quay-pod.*Running' >/dev/null 2>&1; then
     # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall -v --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} >/dev/null 2>&1
+    ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot ${REGISTRY_INSTALL_DIR} >/dev/null 2>&1
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
         echo "ok: [uninstall the mirror registry]"
@@ -76,7 +76,7 @@ fi
 
 # Delete existing duplicate data
 rm -rf "/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem" >/dev/null 2>&1
-rm -rf "${REGISTRY_INSTALL_PATH}" >/dev/null 2>&1
+rm -rf "${REGISTRY_INSTALL_DIR}" >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
@@ -85,31 +85,31 @@ echo
 PRINT_TASK "TASK [Install mirror registry]"
 
 # Create installation directory
-sudo mkdir -p ${REGISTRY_INSTALL_PATH}
-sudo mkdir -p ${REGISTRY_INSTALL_PATH}/quay-storage
-sudo mkdir -p ${REGISTRY_INSTALL_PATH}/sqlite-storage
-sudo chmod -R 777 ${REGISTRY_INSTALL_PATH}
-run_command "[create ${REGISTRY_INSTALL_PATH} directory]"
+sudo mkdir -p ${REGISTRY_INSTALL_DIR}
+sudo mkdir -p ${REGISTRY_INSTALL_DIR}/quay-storage
+sudo mkdir -p ${REGISTRY_INSTALL_DIR}/sqlite-storage
+sudo chmod -R 777 ${REGISTRY_INSTALL_DIR}
+run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
 
 # Download mirror-registry
-# wget -P ${REGISTRY_INSTALL_PATH} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz >/dev/null 2>&1
-sudo wget -O ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz >/dev/null 2>&1
+# wget -P ${REGISTRY_INSTALL_DIR} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz >/dev/null 2>&1
+sudo wget -O ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz >/dev/null 2>&1
 run_command "[download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
-cd ${REGISTRY_INSTALL_PATH}
-sudo tar xvf ${REGISTRY_INSTALL_PATH}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_PATH}/ >/dev/null 2>&1
+cd ${REGISTRY_INSTALL_DIR}
+sudo tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR}/ >/dev/null 2>&1
 run_command "[extract the mirror-registry package]"
 
 echo "ok: [start installing mirror-registry...]"
-# echo "ok: [generate mirror-registry log: ${REGISTRY_INSTALL_PATH}/mirror-registry.log]"
+# echo "ok: [generate mirror-registry log: ${REGISTRY_INSTALL_DIR}/mirror-registry.log]"
 
 # Install mirror-registry
-sudo ${REGISTRY_INSTALL_PATH}/mirror-registry install -v \
+sudo ${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
      --quayHostname ${REGISTRY_DOMAIN_NAME} \
-     --quayRoot ${REGISTRY_INSTALL_PATH} \
-     --quayStorage ${REGISTRY_INSTALL_PATH}/quay-storage \
-     --sqliteStorage ${REGISTRY_INSTALL_PATH}/sqlite-storage \
+     --quayRoot ${REGISTRY_INSTALL_DIR} \
+     --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
+     --sqliteStorage ${REGISTRY_INSTALL_DIR}/sqlite-storage \
      --initUser ${REGISTRY_ID} \
      --initPassword ${REGISTRY_PW}
 run_command "[installation of mirror registry completed]"
@@ -140,7 +140,7 @@ while true; do
 done
 
 # Copy the rootCA certificate to the trusted source
-sudo cp ${REGISTRY_INSTALL_PATH}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem
+sudo cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem
 run_command "[copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem]"
 
 # Trust the rootCA certificate
