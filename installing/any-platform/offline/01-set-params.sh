@@ -1,24 +1,24 @@
 #!/bin/bash
-# No need to create any resources, just specify parameters.
-# OpenShift release version
-export OCP_RELEASE_VERSION="4.12.30"
 
-# OpenShift install-config
+# Specify the OpenShift release version
+export OCP_RELEASE_VERSION="4.16.30"
+
+# Specify required parameters for install-config.yaml
+export PULL_SECRET_FILE="$HOME/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
-export PULL_SECRET_FILE="$HOME/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-export SSH_KEY_PATH="$HOME/.ssh"
 export NETWORK_TYPE="OVNKubernetes"
-export POD_CIDR="10.128.0.0/14"
-export HOST_PREFIX="23"
-export SERVICE_CIDR="172.30.0.0/16"
 
-# OpenShift infrastructure network
+# Specify the OpenShift node’s installation disk and NetworkManager connection name
+export COREOS_INSTALL_DEV="/dev/sda"
+export NET_IF_NAME="'Wired connection 1'" 
+
+# Specify the infrastructure network configuration
 export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
-export DNS_FORWARDER_IP="10.184.134.1"
+export DNS_FORWARDER_IP="10.184.134.1"                # Resolve DNS addresses on the Internet
 
-# OpenShift Node Hostname/IP variable
+# Specify OpenShift node’s hostname and IP address
 export BASTION_HOSTNAME="bastion"
 export BOOTSTRAP_HOSTNAME="bootstrap"
 export MASTER01_HOSTNAME="master01"
@@ -36,27 +36,34 @@ export WORKER01_IP="10.184.134.132"
 export WORKER02_IP="10.184.134.133"
 export WORKER03_IP="10.184.134.134"
 
-# OpenShift Coreos install Dev/Net ifname
-export COREOS_INSTALL_DEV="/dev/sda"
-export NET_IF_NAME="'Wired connection 1'" 
-
-# Mirror-Registry is used to mirror ocp image
+# Specify the parameters required by Mirror-Registry
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"                         # 8 characters or more
 export REGISTRY_INSTALL_DIR="/opt/quay-install"
 
-# oc-mirror plug-in for mirror image
-export IMAGE_SET_CONF_PATH="/$HOME/oc-mirror"
-export OCP_RELEASE_CHANNEL="$(echo $OCP_RELEASE_VERSION | cut -d. -f1,2)"
 
-# NFS directory is used to create image-registry pod pv
+# More options — no changes required!
+# Specify required parameters for install-config.yaml
+export SSH_KEY_PATH="$HOME/.ssh"
+export POD_CIDR="10.128.0.0/14"
+export HOST_PREFIX="23"
+export SERVICE_CIDR="172.30.0.0/16"
+
+# Specify the NFS directory to use for the image-registry pod PV
 export NFS_DIR="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
 
-# Httpd and ocp ignition dir
+# Specify the HTTPD path to serve the Ignition file for download
 export HTTPD_DIR="/var/www/html/materials"
 export INSTALL_DIR="${HTTPD_DIR}/pre"
+
+# Specify the ImageSetConfiguration file path
+export IMAGE_SET_CONF_PATH="/$HOME/oc-mirror"
+export OCP_RELEASE_CHANNEL="$(echo $OCP_RELEASE_VERSION | cut -d. -f1,2)"
+
+# Nslookup public network
+export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
  
 # Do not change the following parameters
 export NFS_SERVER_IP="$BASTION_IP"
@@ -66,9 +73,6 @@ export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
 export LB_IP="$BASTION_IP"
-
-# Nslookup public network
-export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
