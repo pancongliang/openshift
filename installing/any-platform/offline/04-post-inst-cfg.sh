@@ -38,7 +38,7 @@ PRINT_TASK "TASK [Kubeconfig login and oc completion]"
 # kubeconfig login:
 rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
 cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
-echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
+grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
 run_command "[add kubeconfig to ~/.bash_profile]"
 
 # completion command:
