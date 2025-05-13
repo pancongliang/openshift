@@ -13,7 +13,7 @@ export NETWORK_TYPE="OVNKubernetes"
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
-# Specify the infrastructure network configuration
+# Specify the OpenShift node infrastructure network configuration
 export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
 export DNS_FORWARDER_IP="10.184.134.1"                # Resolve DNS addresses on the Internet
@@ -36,7 +36,7 @@ export WORKER01_IP="10.184.134.238"
 export WORKER02_IP="10.184.134.246"
 export WORKER03_IP="10.184.134.202"
 
-# Specify the parameters required by Mirror-Registry
+# Specify required parameters for the Mirror Registry
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"                         # 8 characters or more
