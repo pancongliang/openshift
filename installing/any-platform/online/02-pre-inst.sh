@@ -43,7 +43,7 @@ timedatectl set-timezone UTC
 run_command "[change time zone to UTC]"
 
 # Write LANG=en_US.UTF-8 to the ./bash_profile file]
-echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
+grep -q "^export LANG=en_US.UTF-8" ~/.bash_profile || echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
 run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
 
 # Reload ~/.bash_profile
