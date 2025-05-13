@@ -118,7 +118,7 @@ This script also generates the Ignition configuration and per-node installation 
 * In the bastion machine, run the following command to approve the Certificate Signing Request (CSR):
   
   ```
-  bash ${INSTALL_DIR}/ocp4cert_approver.sh &
+  bash ${INSTALL_DIR}/ocp4cert-approver.sh &
   ```
 
 * In the bastion machine, Check the node status and operators:
