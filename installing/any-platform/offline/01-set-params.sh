@@ -4,7 +4,7 @@
 export OCP_RELEASE_VERSION="4.16.30"
 
 # Specify required parameters for install-config.yaml
-export PULL_SECRET_FILE="$HOME/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"  # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"
