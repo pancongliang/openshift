@@ -120,7 +120,7 @@
       - sourceCIDRs:
           - 0.0.0.0/0
         rules:
-          - order: 10
+          - order: 20
             protocolConfig:
               protocol: TCP
               tcp:
