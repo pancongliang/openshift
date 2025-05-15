@@ -53,20 +53,23 @@ sudo rm -rf /etc/pki/ca-trust/source/anchors/vcenter.crt >/dev/null 2>&1 || true
 sudo rm -rf download.zip
 sudo rm -rf vc_certs
 
-wget --no-check-certificate https://vcenter.cee.ibmc.devcluster.openshift.com/certs/download.zip
+wget --no-check-certificate https://vcenter.cee.ibmc.devcluster.openshift.com/certs/download.zip >/dev/null 2>&1
 run_command "[download vCenter certificate]"
 
-unzip download.zip -d vc_certs
+unzip download.zip -d vc_certs >/dev/null 2>&1
 run_command "[unzip the certificate]"
 
 for f in vc_certs/certs/lin/*.0; do mv -i "$f" "${f%.0}.crt"; done
 run_command "[changing the certificate format]"
 
-cp vc_certs/certs/lin/*.crt /etc/pki/ca-trust/source/anchors/vcenter.crt
+sudo cp vc_certs/certs/lin/*.crt /etc/pki/ca-trust/source/anchors/vcenter.crt >/dev/null 2>&1
 run_command "[copy the certificate to /etc/pki/ca-trust/source/anchors/vcenter.crt]"
 
-update-ca-trust extract
+sudo update-ca-trust extract >/dev/null 2>&1
 run_command "[trust vCenter certificate]"
+
+sudo rm -rf download.zip
+sudo rm -rf vc_certs
 
 # Add an empty line after the task
 echo
