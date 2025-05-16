@@ -259,25 +259,6 @@
    oc get -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-kubeadmin-password --template='{{ .data.password }}' | base64 -d
    ```
 
-#### Quickly switch kubeconfig between OCP Hub and Hypershift
-
-- Quickly switch kubeconfig through alias
-  ```
-  echo "alias ctx1='export KUBECONFIG=$HOME/.kube/hub-kubeconfig'" >> ~/.bashrc
-  echo "alias ctx2='export KUBECONFIG=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig'" >> ~/.bashrc
-  source ~/.bashrc
-  ```
-   
-- Quickly switch environments through context   
-  ```
-  export KUBECONFIG=$HOME/hub-kubeconfig:$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
-  oc config view --merge --flatten > $HOME/kubeconfig
-  export KUBECONFIG=$HOME/kubeconfig
-   
-  oc config get-contexts
-  oc config use-context <name>
-  ```
-
 #### Configuring HTPasswd-based user authentication
 
 - Create a file with the username and password
