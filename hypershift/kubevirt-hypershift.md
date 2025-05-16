@@ -239,7 +239,7 @@
   # or
   oc extract -n $HOSTED_CLUSTER_NAMESPACE secret/${HOSTED_CLUSTER_NAME}-admin-kubeconfig --to=- > $HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
    
-  export KUBECONFIG=$HONME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
+  export KUBECONFIG=$HOME/.kube/${HOSTED_CLUSTER_NAME}-kubeconfig
   ```
   
 - Log in to the Guest Cluster using the Kubeadmin account
