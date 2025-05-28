@@ -104,6 +104,7 @@ packages=("podman" "bind-utils" "bind" "haproxy" "nfs-utils" "httpd" "httpd-tool
 package_list="${packages[*]}"
 
 # Install all packages at once
+echo "info: [installing required rpm packages]"
 dnf install -y $package_list >/dev/null
 
 # Check if each package was installed successfully
@@ -132,6 +133,8 @@ rm -f openshift-client-linux-amd64-rhel8.tar.gz* >/dev/null 2>&1
 rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
 
 # Download the openshift-install
+echo "info: [downloading openshift-install tool]"
+
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
 run_command "[download openshift-install tool]"
 
@@ -157,6 +160,8 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the OpenShift client
+echo "info: [downloading openshift-client tool]"
+
 wget -q "$download_url" -O "$openshift_client"
 run_command "[download openshift-client tool]"
 
