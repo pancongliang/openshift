@@ -14,6 +14,7 @@ export USERNAME=""
 export PASSWORD=""
 export API_VIPS="10.184.134.117"
 export INGRESS_VIPS="10.184.134.118"
+export MACHINE_NETWORK_CIDR="10.184.134.1/24"
 
 export OCP_INSTALL_DIR="$HOME/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
@@ -233,7 +234,7 @@ networking:
   - cidr: 10.128.0.0/14
     hostPrefix: 23
   machineNetwork:
-  - cidr: 10.0.0.0/16
+  - cidr: "$MACHINE_NETWORK_CIDR"
   networkType: OVNKubernetes
   serviceNetwork:
   - 172.30.0.0/16
