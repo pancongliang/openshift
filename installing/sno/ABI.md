@@ -3,15 +3,18 @@
 export CLUSTER_NAME="pan"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"
+export MACHINE_NETWORK_CID="10.184.134.160/27"
+export SSH_KEY_PATH="$HOME/.ssh"
+export POD_CIDR="10.128.0.0/14"
+export HOST_PREFIX="23"
+export SERVICE_CIDR="172.30.0.0/16"
 
 # Specify the OpenShift node infrastructure network configuration and  installation disk
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="ens33" 
-
 export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
 export DNS_IP="10.184.134.1"  
-export MACHINE_NETWORK_CID="10.184.134.1/24"
 
 # Specify OpenShift node’s hostname and IP address
 export BASTION_HOSTNAME="bastion"
@@ -20,25 +23,26 @@ export MASTER02_HOSTNAME="master02"
 export MASTER03_HOSTNAME="master03"
 export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
-export WORKER03_HOSTNAME="worker03"
-export RENDEZVOUS_IP="10.184.134.128"
-export BASTION_IP="10.184.134.128"
-export MASTER01_IP="10.184.134.243"
-export MASTER02_IP="10.184.134.241"
-export MASTER03_IP="10.184.134.207"
-export WORKER01_IP="10.184.134.238"
-export WORKER02_IP="10.184.134.246"
-export WORKER03_IP="10.184.134.202"
+
+export RENDEZVOUS_IP="10.184.134.164"
+
+export MASTER01_IP="10.184.134.176"
+export MASTER02_IP="10.184.134.177"
+export MASTER03_IP="10.184.134.187"
+export WORKER01_IP="10.184.134.189"
+export WORKER02_IP="10.184.134.190"
+
 export MASTER01_MAC_ADDR=""
 export MASTER02_MAC_ADDR=""
 export MASTER03_MAC_ADDR=""
 export WORKER01_MAC_ADDR=""
 export WORKER02_MAC_ADDR=""
-export WORKER03_MAC_ADDR=""
 ~~~
 
 ~~~
-cat << EOF > agent-config.yaml
+mkdir ocp-inst
+
+cat << EOF > ocp-inst/agent-config.yaml
 apiVersion: v1beta1
 kind: AgentConfig
 metadata:
@@ -190,48 +194,19 @@ hosts:
             next-hop-address: "${GATEWAY_IP}"
             next-hop-interface: "${NET_IF_NAME}"
             table-id: 254
-  - hostname: "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    role: worker
-    rootDeviceHints:
-      deviceName: "${COREOS_INSTALL_DEV}"
-    interfaces:
-      - name: "${NET_IF_NAME}"
-        macAddress: "{WORKER03_MAC_ADDR}"
-    networkConfig:
-      interfaces:
-        - name: "${NET_IF_NAME}"
-          type: ethernet
-          state: up
-          mac-address: "WORKER03_MAC_ADDR"
-          ipv4:
-            enabled: true
-            address:
-              - ip: "${WORKER03_IP}"
-                prefix-length: "${NETMASK}"
-            dhcp: false
-      dns-resolver:
-        config:
-          server:
-            - "${DNS_IP}"
-      routes:
-        config:
-          - destination: 0.0.0.0/0
-            next-hop-address: "${GATEWAY_IP}"
-            next-hop-interface: "${NET_IF_NAME}"
-            table-id: 254
 EOF
 
-cat << EOF > install-config.yaml
+cat << EOF > ocp-inst/install-config.yaml
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
 compute: 
 - hyperthreading: Enabled 
   name: worker
-  replicas: 3 
-controlPlane: 
+  replicas: 2
+controlPlane:
   hyperthreading: Enabled 
   name: master
-  replicas: 3 
+  replicas: 3
 metadata:
   name: ${CLUSTER_NAME}
 networking:
@@ -249,4 +224,11 @@ fips: false
 pullSecret: '$(cat $PULL_SECRET_FILE)'
 sshKey: '${SSH_PUB_STR}'
 EOF
+~~~
+
+~~~
+openshift-install --dir ocp-inst agent create image
+
+openshift-install --dir ocp-inst agent wait-for bootstrap-complete --log-level=info
+openshift-install --dir ocp-inst agent agent wait-for install-complete
 ~~~
