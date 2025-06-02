@@ -48,8 +48,11 @@ run_command() {
 # Step 0:
 PRINT_TASK "TASK [Add API entry to /etc/hosts file]"
 
-echo "$API_VIPS api.$CLUSTER_NAME.$BASE_DOMAIN" | sudo tee -a /etc/hosts
+echo "$API_VIPS api.$CLUSTER_NAME.$BASE_DOMAIN" | sudo tee -a /etc/hosts > /dev/null
 run_command "[add api entry to /etc/hosts file]"
+
+# Add an empty line after the task
+echo
 
 # Step 1:
 PRINT_TASK "TASK [Trust the vCenter certificate]"
