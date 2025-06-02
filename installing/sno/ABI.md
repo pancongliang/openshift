@@ -3,7 +3,7 @@
 export CLUSTER_NAME="pan"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"
-export MACHINE_NETWORK_CID="10.184.134.160/27"
+export MACHINE_NETWORK_CIDR="10.184.134.160/27"
 export SSH_KEY_PATH="$HOME/.ssh"
 export POD_CIDR="10.128.0.0/14"
 export HOST_PREFIX="23"
@@ -217,7 +217,7 @@ networking:
   serviceNetwork: 
   - ${SERVICE_CIDR}
   machineNetwork:
-  - cidr: ${MACHINE_NETWORK_CID}
+  - cidr: ${MACHINE_NETWORK_CIDR}
 platform:
   none: {} 
 fips: false
