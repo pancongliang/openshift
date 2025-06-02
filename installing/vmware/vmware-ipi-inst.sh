@@ -45,10 +45,16 @@ run_command() {
     fi
 }
 
+# Step 0:
+PRINT_TASK "TASK [Add API entry to /etc/hosts file]"
+
+echo "$API_VIPS api.$CLUSTER_NAME.$BASE_DOMAIN" | sudo tee -a /etc/hosts
+run_command "[add api entry to /etc/hosts file]"
+
 # Step 1:
 PRINT_TASK "TASK [Trust the vCenter certificate]"
 
-# Create AWS credentials
+# delete credentials
 sudo rm -rf /etc/pki/ca-trust/source/anchors/vcenter.crt >/dev/null 2>&1 || true
 sudo rm -rf download.zip
 sudo rm -rf vc_certs
@@ -76,7 +82,7 @@ echo
 
 
 # Step 2:
-PRINT_TASK "TASK [Install openshift-install adn oc-cli]"
+PRINT_TASK "TASK [Install openshift-install and oc-cli]"
 
 # Determine the operating system
 OS_TYPE=$(uname -s)
