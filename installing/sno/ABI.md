@@ -227,8 +227,10 @@ EOF
 ~~~
 
 ~~~
+sudo dnf install /usr/bin/nmstatectl -y
 openshift-install --dir ocp-inst agent create image
 
 openshift-install --dir ocp-inst agent wait-for bootstrap-complete --log-level=info
+
 openshift-install --dir ocp-inst agent agent wait-for install-complete
 ~~~
