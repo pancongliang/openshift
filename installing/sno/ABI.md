@@ -1,6 +1,6 @@
 ~~~
 # Specify required parameters for install-config.yaml
-export CLUSTER_NAME="pan"
+export CLUSTER_NAME="abi-ocp"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"
 export MACHINE_NETWORK_CIDR="10.184.134.160/27"
