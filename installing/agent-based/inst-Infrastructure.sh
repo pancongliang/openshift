@@ -136,8 +136,6 @@ $(format_dns_entry "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WOR
 $(format_dns_entry "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
 $(format_dns_entry "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
 ;
-; Create an entry for the bootstrap host.
-$(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
 EOF
 run_command "[generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 
@@ -177,9 +175,6 @@ ${MASTER03_IP}           IN      PTR     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${
 ${WORKER01_IP}           IN      PTR     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ${WORKER02_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 ${WORKER03_IP}           IN      PTR     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-;
-; Create an entry for the bootstrap host.
-${BOOTSTRAP_IP}          IN      PTR     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
 EOF
 
 # Function to generate IP address conversion to reverse format
@@ -275,7 +270,6 @@ hostnames=(
     "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${BASTION_IP}"
     "${MASTER01_IP}"
     "${MASTER02_IP}"
@@ -283,7 +277,6 @@ hostnames=(
     "${WORKER01_IP}"
     "${WORKER02_IP}"
     "${WORKER03_IP}"
-    "${BOOTSTRAP_IP}"
     "${NSLOOKUP_TEST_PUBLIC_DOMAIN}"
 )
 
@@ -299,33 +292,6 @@ for hostname in "${hostnames[@]}"; do
     fi
 done
 
-# Display results
-if [ "$all_successful" = true ]; then
-    echo "ok: [nslookup all domain names/ip addresses]"
-else
-    echo "failed: [dns resolve failed for the following domain/ip: ${failed_hostnames[*]}]"
-fi
-
-# Delete old records
-sed -i "/${BOOTSTRAP_HOSTNAME}/d;
-        /${MASTER01_HOSTNAME}/d;
-        /${MASTER02_HOSTNAME}/d;
-        /${MASTER03_HOSTNAME}/d;
-        /${WORKER01_HOSTNAME}/d;
-        /${WORKER02_HOSTNAME}/d;
-        /${WORKER03_HOSTNAME}/d" /etc/hosts
-
-# OpenShift Node Hostname Resolve
-{
-  printf "%-15s %s\n" "${BOOTSTRAP_IP}"    "${BOOTSTRAP_HOSTNAME}"
-  printf "%-15s %s\n" "${MASTER01_IP}"     "${MASTER01_HOSTNAME}"
-  printf "%-15s %s\n" "${MASTER02_IP}"     "${MASTER02_HOSTNAME}"
-  printf "%-15s %s\n" "${MASTER03_IP}"     "${MASTER03_HOSTNAME}"
-  printf "%-15s %s\n" "${WORKER01_IP}"     "${WORKER01_HOSTNAME}"
-  printf "%-15s %s\n" "${WORKER02_IP}"     "${WORKER02_HOSTNAME}"
-  printf "%-15s %s\n" "${WORKER03_IP}"     "${WORKER03_HOSTNAME}"
-} | tee -a /etc/hosts >/dev/null
-run_command "[add hostname and ip to /etc/hosts]"
 
 # Add an empty line after the task
 echo
@@ -373,7 +339,6 @@ frontend stats
 listen api-server-6443 
   bind ${LB_IP}:6443
   mode tcp
-  server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 check inter 1s backup
   server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 check inter 1s
   server     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:6443 check inter 1s
   server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 check inter 1s
@@ -381,7 +346,6 @@ listen api-server-6443
 listen machine-config-server-22623 
   bind ${LB_IP}:22623
   mode tcp
-  server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:22623 check inter 1s backup
   server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:22623 check inter 1s
   server     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:22623 check inter 1s
   server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:22623 check inter 1s
@@ -392,7 +356,6 @@ listen default-ingress-router-80
   balance source
   server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:80 check inter 1s
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check inter 1s
-  server     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:80 check inter 1s
   
 listen default-ingress-router-443
   bind ${LB_IP}:443
@@ -400,7 +363,6 @@ listen default-ingress-router-443
   balance source
   server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check inter 1s
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
-  server     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
 EOF
 run_command "[generate haproxy configuration file]"
 
