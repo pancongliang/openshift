@@ -6,13 +6,7 @@
 export CLUSTER_NAME="abi-ocp"
 export BASE_DOMAIN="example.com"
 export PULL_SECRET_FILE="$HOME/pull-secret"
-export NETWORK_TYPE="OVNKubernetes"
-export MACHINE_NETWORK_CIDR="10.184.134.160/27"
-export POD_CIDR="10.128.0.0/14"
-export HOST_PREFIX="23"
-export SERVICE_CIDR="172.30.0.0/16"
 export SSH_KEY_PATH="$(cat $HOME/.ssh/id_rsa.pub)"
-export NTP_SERVER="0.rhel.pool.ntp.org"
 
 # Specify the OpenShift node infrastructure network configuration and  installation disk
 # export COREOS_INSTALL_DEV="/dev/sda"
@@ -20,9 +14,9 @@ export COREOS_INSTALL_DEV="/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:0:0"
 export NET_IF_NAME="ens33" 
 export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
-export DNS_IP="10.184.134.128"  
 
 # Specify OpenShift node’s hostname and IP address
+export BASTION_IP="10.184.134.128"  
 export MASTER01_HOSTNAME="master01"
 export MASTER02_HOSTNAME="master02"
 export MASTER03_HOSTNAME="master03"
@@ -34,18 +28,28 @@ export MASTER02_IP="10.184.134.177"
 export MASTER03_IP="10.184.134.187"
 export WORKER01_IP="10.184.134.189"
 export WORKER02_IP="10.184.134.190"
-export RENDEZVOUS_IP="$MASTER01_IP"
 
 export MASTER01_MAC_ADDR="00:50:56:b0:26:c4"
 export MASTER02_MAC_ADDR="00:50:56:b0:38:c2"
 export MASTER03_MAC_ADDR="00:50:56:b0:b6:16"
 export WORKER01_MAC_ADDR="00:50:56:b0:0c:d1"
 export WORKER02_MAC_ADDR="00:50:56:b0:72:a5"
+
+export RENDEZVOUS_IP="$MASTER01_IP"
+export NTP_SERVER="0.rhel.pool.ntp.org"
+export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
+export DNS_SERVER_IP="$BASTION_IP"
+export API_IP="$BASTION_IP"
+export API_INT_IP="$BASTION_IP"
+export APPS_IP="$BASTION_IP"
+export LB_IP="$BASTION_IP"
 ~~~
 
-### Install named and haproxy
+### Installing the Infrastructure
 ~~~
-
+sudo dnf install -y bind-utils bind haproxy
+sudo dnf install /usr/bin/nmstatectl -y
+bash inst-Infrastructure.sh
 ~~~
 
 ### Create Agent Config
@@ -83,7 +87,7 @@ hosts:
       dns-resolver:
         config:
           server:
-            - "${DNS_IP}"
+            - "${DNS_SERVER_IP}"
       routes:
         config:
           - destination: 0.0.0.0/0
@@ -112,7 +116,7 @@ hosts:
       dns-resolver:
         config:
           server:
-            - "${DNS_IP}"
+            - "${DNS_SERVER_IP}"
       routes:
         config:
           - destination: 0.0.0.0/0
@@ -141,7 +145,7 @@ hosts:
       dns-resolver:
         config:
           server:
-            - "${DNS_IP}"
+            - "${DNS_SERVER_IP}"
       routes:
         config:
           - destination: 0.0.0.0/0
@@ -170,7 +174,7 @@ hosts:
       dns-resolver:
         config:
           server:
-            - "${DNS_IP}"
+            - "${DNS_SERVER_IP}"
       routes:
         config:
           - destination: 0.0.0.0/0
@@ -199,7 +203,7 @@ hosts:
       dns-resolver:
         config:
           server:
-            - "${DNS_IP}"
+            - "${DNS_SERVER_IP}"
       routes:
         config:
           - destination: 0.0.0.0/0
@@ -226,13 +230,13 @@ metadata:
   name: ${CLUSTER_NAME}
 networking:
   clusterNetwork:
-  - cidr: ${POD_CIDR}
-    hostPrefix: ${HOST_PREFIX}
-  networkType: ${NETWORK_TYPE}
+  - cidr: "10.128.0.0/14"
+    hostPrefix: "23"
+  networkType: "OVNKubernetes"
   serviceNetwork: 
-  - ${SERVICE_CIDR}
+  - "172.30.0.0/16"
   machineNetwork:
-  - cidr: ${MACHINE_NETWORK_CIDR}
+  - cidr: "10.184.134.1/24"
 platform:
   none: {} 
 fips: false
@@ -245,7 +249,6 @@ EOF
 
 - If it is a vmware environment, enable [disk.EnableUUID](https://access.redhat.com/solutions/4606201) for all nodes)
 ~~~
-sudo dnf install /usr/bin/nmstatectl -y
 openshift-install --dir ocp-inst agent create image
 ~~~
 
