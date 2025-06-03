@@ -256,5 +256,5 @@ openshift-install --dir ocp-inst agent create image
 ### Tracking and verifying installation progress 
 ~~~
 openshift-install --dir ocp-inst agent wait-for bootstrap-complete --log-level=info
-openshift-install --dir ocp-inst agent agent wait-for install-complete
+openshift-install --dir ocp-inst agent wait-for install-complete
 ~~~
