@@ -18,20 +18,19 @@ export NETMASK="24"
 export DNS_IP="10.184.134.1"  
 
 # Specify OpenShift node’s hostname and IP address
-export BASTION_HOSTNAME="bastion"
 export MASTER01_HOSTNAME="master01"
 export MASTER02_HOSTNAME="master02"
 export MASTER03_HOSTNAME="master03"
 export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
 
-export RENDEZVOUS_IP="10.184.134.164"
-
 export MASTER01_IP="10.184.134.176"
 export MASTER02_IP="10.184.134.177"
 export MASTER03_IP="10.184.134.187"
 export WORKER01_IP="10.184.134.189"
 export WORKER02_IP="10.184.134.190"
+export RENDEZVOUS_IP="$MASTER01_IP"
+
 
 export MASTER01_MAC_ADDR="00:50:56:b0:26:c4"
 export MASTER02_MAC_ADDR="00:50:56:b0:38:c2"
