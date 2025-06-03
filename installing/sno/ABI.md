@@ -2,6 +2,7 @@
 # Specify required parameters for install-config.yaml
 export CLUSTER_NAME="abi-ocp"
 export BASE_DOMAIN="example.com"
+export PULL_SECRET_FILE="$HOME/pull-secret"
 export NETWORK_TYPE="OVNKubernetes"
 export MACHINE_NETWORK_CIDR="10.184.134.160/27"
 export SSH_KEY_PATH="$HOME/.ssh"
