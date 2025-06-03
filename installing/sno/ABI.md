@@ -5,10 +5,10 @@ export BASE_DOMAIN="example.com"
 export PULL_SECRET_FILE="$HOME/pull-secret"
 export NETWORK_TYPE="OVNKubernetes"
 export MACHINE_NETWORK_CIDR="10.184.134.160/27"
-export SSH_KEY_PATH="$HOME/.ssh"
 export POD_CIDR="10.128.0.0/14"
 export HOST_PREFIX="23"
 export SERVICE_CIDR="172.30.0.0/16"
+export SSH_KEY_PATH="$(cat $HOME/.ssh/id_rsa.pub)"
 
 # Specify the OpenShift node infrastructure network configuration and  installation disk
 export COREOS_INSTALL_DEV="/dev/sda"
@@ -223,7 +223,7 @@ platform:
   none: {} 
 fips: false
 pullSecret: '$(cat $PULL_SECRET_FILE)'
-sshKey: '${SSH_PUB_STR}'
+sshKey: '${SSH_KEY_PATH}'
 EOF
 ~~~
 
