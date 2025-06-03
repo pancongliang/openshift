@@ -1,3 +1,6 @@
+## Agent-based Installer
+
+### Defining environment variables
 ~~~
 # Specify required parameters for install-config.yaml
 export CLUSTER_NAME="abi-ocp"
@@ -9,13 +12,15 @@ export POD_CIDR="10.128.0.0/14"
 export HOST_PREFIX="23"
 export SERVICE_CIDR="172.30.0.0/16"
 export SSH_KEY_PATH="$(cat $HOME/.ssh/id_rsa.pub)"
+export NTP_SERVER="0.rhel.pool.ntp.org"
 
 # Specify the OpenShift node infrastructure network configuration and  installation disk
-export COREOS_INSTALL_DEV="/dev/sda"
+# export COREOS_INSTALL_DEV="/dev/sda"
+export COREOS_INSTALL_DEV="/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:0:0"
 export NET_IF_NAME="ens33" 
 export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
-export DNS_IP="10.184.134.1"  
+export DNS_IP="10.184.134.128"  
 
 # Specify OpenShift node’s hostname and IP address
 export MASTER01_HOSTNAME="master01"
@@ -31,7 +36,6 @@ export WORKER01_IP="10.184.134.189"
 export WORKER02_IP="10.184.134.190"
 export RENDEZVOUS_IP="$MASTER01_IP"
 
-
 export MASTER01_MAC_ADDR="00:50:56:b0:26:c4"
 export MASTER02_MAC_ADDR="00:50:56:b0:38:c2"
 export MASTER03_MAC_ADDR="00:50:56:b0:b6:16"
@@ -39,6 +43,8 @@ export WORKER01_MAC_ADDR="00:50:56:b0:0c:d1"
 export WORKER02_MAC_ADDR="00:50:56:b0:72:a5"
 ~~~
 
+
+### Create Agent Config
 ~~~
 mkdir ocp-inst
 
@@ -47,6 +53,8 @@ apiVersion: v1beta1
 kind: AgentConfig
 metadata:
   name: my-cluster
+additionalNTPSources:
+- "${NTP_SERVER}"
 rendezvousIP: "${RENDEZVOUS_IP}"
 hosts:
   - hostname: "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
@@ -195,7 +203,10 @@ hosts:
             next-hop-interface: "${NET_IF_NAME}"
             table-id: 254
 EOF
+~~~
 
+### Create install-config
+~~~
 cat << EOF > ocp-inst/install-config.yaml
 apiVersion: v1
 baseDomain: ${BASE_DOMAIN}
@@ -226,11 +237,17 @@ sshKey: '${SSH_KEY_PATH}'
 EOF
 ~~~
 
+### Creating and booting the agent image
+
+- If it is a vmware environment, enable [disk.EnableUUID](https://access.redhat.com/solutions/4606201) for all nodes)
 ~~~
 sudo dnf install /usr/bin/nmstatectl -y
 openshift-install --dir ocp-inst agent create image
+~~~
 
+
+### Tracking and verifying installation progress 
+~~~
 openshift-install --dir ocp-inst agent wait-for bootstrap-complete --log-level=info
-
 openshift-install --dir ocp-inst agent agent wait-for install-complete
 ~~~
