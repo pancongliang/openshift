@@ -382,3 +382,202 @@ sleep 15
 
 # Add an empty line after the task
 echo
+
+
+# Step 11:
+PRINT_TASK "TASK [Generate a defined agent-config file]"
+
+# Generate a defined install-config file
+rm -rf ocp-inst >/dev/null 2>&1
+mkdir ocp-inst  >/dev/null 2>&1
+run_command "[create an installation directory: ocp-inst]"
+
+cat << EOF > ocp-inst/agent-config.yaml
+apiVersion: v1beta1
+kind: AgentConfig
+metadata:
+  name: my-cluster
+additionalNTPSources:
+- "${NTP_SERVER}"
+rendezvousIP: "${RENDEZVOUS_IP}"
+hosts:
+  - hostname: "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    role: master
+    rootDeviceHints:
+      deviceName: "${COREOS_INSTALL_DEV}"
+    interfaces:
+      - name: "${NET_IF_NAME}"
+        macAddress: "${MASTER01_MAC_ADDR}"
+    networkConfig:
+      interfaces:
+        - name: "${NET_IF_NAME}"
+          type: ethernet
+          state: up
+          mac-address: "${MASTER01_MAC_ADDR}"
+          ipv4:
+            enabled: true
+            address:
+              - ip: "${MASTER01_IP}"
+                prefix-length: "${NETMASK}"
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - "${DNS_SERVER_IP}"
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: "${GATEWAY_IP}"
+            next-hop-interface: "${NET_IF_NAME}"
+            table-id: 254
+  - hostname: "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    role: master
+    rootDeviceHints:
+      deviceName: "${COREOS_INSTALL_DEV}"
+    interfaces:
+      - name: "${NET_IF_NAME}"
+        macAddress: "${MASTER02_MAC_ADDR}"
+    networkConfig:
+      interfaces:
+        - name: "${NET_IF_NAME}"
+          type: ethernet
+          state: up
+          mac-address: "${MASTER02_MAC_ADDR}"
+          ipv4:
+            enabled: true
+            address:
+              - ip: "${MASTER02_IP}"
+                prefix-length: "${NETMASK}"
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - "${DNS_SERVER_IP}"
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: "${GATEWAY_IP}"
+            next-hop-interface: "${NET_IF_NAME}"
+            table-id: 254
+  - hostname: "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    role: master
+    rootDeviceHints:
+      deviceName: "${COREOS_INSTALL_DEV}"
+    interfaces:
+      - name: "${NET_IF_NAME}"
+        macAddress: "${MASTER03_MAC_ADDR}"
+    networkConfig:
+      interfaces:
+        - name: "${NET_IF_NAME}"
+          type: ethernet
+          state: up
+          mac-address: "${MASTER03_MAC_ADDR}"
+          ipv4:
+            enabled: true
+            address:
+              - ip: "${MASTER03_IP}"
+                prefix-length: "${NETMASK}"
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - "${DNS_SERVER_IP}"
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: "${GATEWAY_IP}"
+            next-hop-interface: "${NET_IF_NAME}"
+            table-id: 254
+  - hostname: "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    role: worker
+    rootDeviceHints:
+      deviceName: "${COREOS_INSTALL_DEV}"
+    interfaces:
+      - name: "${NET_IF_NAME}"
+        macAddress: "${WORKER01_MAC_ADDR}"
+    networkConfig:
+      interfaces:
+        - name: "${NET_IF_NAME}"
+          type: ethernet
+          state: up
+          mac-address: "${WORKER01_MAC_ADDR}"
+          ipv4:
+            enabled: true
+            address:
+              - ip: "${WORKER01_IP}"
+                prefix-length: "${NETMASK}"
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - "${DNS_SERVER_IP}"
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: "${GATEWAY_IP}"
+            next-hop-interface: "${NET_IF_NAME}"
+            table-id: 254
+  - hostname: "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    role: worker
+    rootDeviceHints:
+      deviceName: "${COREOS_INSTALL_DEV}"
+    interfaces:
+      - name: "${NET_IF_NAME}"
+        macAddress: "${WORKER02_MAC_ADDR}"
+    networkConfig:
+      interfaces:
+        - name: "${NET_IF_NAME}"
+          type: ethernet
+          state: up
+          mac-address: "${WORKER02_MAC_ADDR}"
+          ipv4:
+            enabled: true
+            address:
+              - ip: "${WORKER02_IP}"
+                prefix-length: "${NETMASK}"
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+            - "${DNS_SERVER_IP}"
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: "${GATEWAY_IP}"
+            next-hop-interface: "${NET_IF_NAME}"
+            table-id: 254
+EOF
+run_command "[create ocp-inst/agent-config.yaml file]"
+
+# Step 11:
+PRINT_TASK "TASK [Generate a defined install-config file]"
+
+cat << EOF > ocp-inst/install-config.yaml
+apiVersion: v1
+baseDomain: ${BASE_DOMAIN}
+compute: 
+- hyperthreading: Enabled 
+  name: worker
+  replicas: 2
+controlPlane:
+  hyperthreading: Enabled 
+  name: master
+  replicas: 3
+metadata:
+  name: ${CLUSTER_NAME}
+networking:
+  clusterNetwork:
+  - cidr: "10.128.0.0/14"
+    hostPrefix: "23"
+  networkType: "OVNKubernetes"
+  serviceNetwork: 
+  - "172.30.0.0/16"
+  machineNetwork:
+  - cidr: "10.184.134.1/24"
+platform:
+  none: {} 
+fips: false
+pullSecret: '$(cat $PULL_SECRET_FILE)'
+sshKey: '${SSH_KEY_PATH}'
+EOF
+run_command "[create ocp-inst/install-config.yaml file]"
