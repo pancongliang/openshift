@@ -1,0 +1,422 @@
+#!/bin/bash
+# Enable strict mode for robust error handling and log failures with line number.
+set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+
+# Function to print a task with uniform length
+PRINT_TASK() {
+    max_length=110  # Adjust this to your desired maximum length
+    task_title="$1"
+    title_length=${#task_title}
+    stars=$((max_length - title_length))
+
+    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+}
+
+# Function to check command success and display appropriate message
+run_command() {
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
+        echo "ok: $1"
+    else
+        echo "failed: $1"
+        exit 1
+    fi
+}
+
+# Step 9:
+PRINT_TASK "TASK [Setup named services]"
+
+# Construct forward DNS zone name and zone file name
+FORWARD_ZONE_NAME="${BASE_DOMAIN}"
+FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
+
+# Generate reverse DNS zone name and reverse zone file name 
+# Extract the last two octets from the IP address
+IFS='.' read -ra octets <<< "$DNS_SERVER_IP"
+OCTET0="${octets[0]}"
+OCTET1="${octets[1]}"
+
+# Construct reverse DNS zone name and zone file name
+REVERSE_ZONE_NAME="${OCTET1}.${OCTET0}.in-addr.arpa"
+REVERSE_ZONE_FILE="${OCTET1}.${OCTET0}.zone"
+
+# Generate named service configuration file
+cat << EOF > /etc/named.conf
+options {
+    listen-on port 53 { any; };
+    listen-on-v6 port 53 { ::1; };
+    directory       "/var/named";
+    dump-file       "/var/named/data/cache_dump.db";
+    statistics-file "/var/named/data/named_stats.txt";
+    memstatistics-file "/var/named/data/named_mem_stats.txt";
+    secroots-file   "/var/named/data/named.secroots";
+    recursing-file  "/var/named/data/named.recursing";
+    allow-query     { any; };
+    forwarders      { ${DNS_FORWARDER_IP}; };
+
+    recursion yes;
+    dnssec-validation yes;
+    managed-keys-directory "/var/named/dynamic";
+    pid-file "/run/named/named.pid";
+    session-keyfile "/run/named/session.key";
+};
+
+zone "${FORWARD_ZONE_NAME}" IN {
+    type master;
+    file "${FORWARD_ZONE_FILE}";
+    allow-query { any; };
+};
+
+zone "${REVERSE_ZONE_NAME}" IN {
+    type master;
+    file "${REVERSE_ZONE_FILE}";
+    allow-query { any; };
+};
+
+logging {
+    channel default_debug {
+        file "data/named.run";
+        severity dynamic;
+    };
+};
+
+zone "." IN {
+    type hint;
+    file "named.ca";
+};
+
+include "/etc/named.rfc1912.zones";
+EOF
+run_command "[generate named configuration file]"
+
+# Clean up: Delete duplicate file
+rm -f /var/named/${FORWARD_ZONE_FILE}
+
+# Create forward zone file
+# Function to format and align DNS entries
+format_dns_entry() {
+    domain="$1"
+    ip="$2"
+    printf "%-40s IN  A      %s\n" "$domain" "$ip"
+}
+
+cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
+\$TTL 1W
+@       IN      SOA     ns1.${BASE_DOMAIN}.        root (
+                        201907070      ; serial
+                        3H              ; refresh (3 hours)
+                        30M             ; retry (30 minutes)
+                        2W              ; expiry (2 weeks)
+                        1W )            ; minimum (1 week)
+        IN      NS      ns1.${BASE_DOMAIN}.
+;
+;
+ns1     IN      A       ${DNS_SERVER_IP}
+;
+helper  IN      A       ${DNS_SERVER_IP}
+helper.ocp4     IN      A       ${DNS_SERVER_IP}
+;
+; The api identifies the IP of load balancer.
+$(format_dns_entry "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
+$(format_dns_entry "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
+;
+; The wildcard also identifies the load balancer.
+$(format_dns_entry "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
+;
+; Create entries for the master hosts.
+$(format_dns_entry "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
+$(format_dns_entry "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
+$(format_dns_entry "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
+;
+; Create entries for the worker hosts.
+$(format_dns_entry "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
+$(format_dns_entry "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
+$(format_dns_entry "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
+;
+; Create an entry for the bootstrap host.
+$(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
+EOF
+run_command "[generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
+
+# Clean up: Delete duplicate file
+rm -f /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
+
+# Input file containing the original reverse DNS zone configuration
+reverse_zone_input_file="/var/named/reverse_zone_input_file"
+
+# Output file for the formatted reverse DNS zone configuration
+reverse_zone_output_file="/var/named/${REVERSE_ZONE_FILE}"
+
+# Create the input file with initial content
+cat << EOF > "$reverse_zone_input_file"
+\$TTL 1W
+@       IN      SOA     ns1.${BASE_DOMAIN}.        root (
+                        2019070700      ; serial
+                        3H              ; refresh (3 hours)
+                        30M             ; retry (30 minutes)
+                        2W              ; expiry (2 weeks)
+                        1W )            ; minimum (1 week)
+        IN      NS      ns1.${BASE_DOMAIN}.
+;
+; The syntax is "last octet" and the host must have an FQDN
+; with a trailing dot.
+;
+; The api identifies the IP of load balancer.
+${API_IP}                IN      PTR     api.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${API_INT_IP}            IN      PTR     api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.
+;
+; Create entries for the master hosts.
+${MASTER01_IP}           IN      PTR     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${MASTER02_IP}           IN      PTR     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${MASTER03_IP}           IN      PTR     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+;
+; Create entries for the worker hosts.
+${WORKER01_IP}           IN      PTR     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${WORKER02_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+${WORKER03_IP}           IN      PTR     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+;
+; Create an entry for the bootstrap host.
+${BOOTSTRAP_IP}          IN      PTR     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+EOF
+
+# Function to generate IP address conversion to reverse format
+convert_to_reverse_ip() {
+    local ip="$1"
+    IFS='.' read -ra octets <<< "$ip"
+    reverse_ip="${octets[3]}.${octets[2]}"
+    echo "$reverse_ip"
+}
+
+# Clear output file
+> "$reverse_zone_output_file" 
+
+# Use the function "convert_to_reverse_ip" to convert IP addresses, and format the output
+while IFS= read -r line; do
+    if [[ $line == *PTR* ]]; then
+        # Extract IP and PTR from the line
+        ip=$(echo "$line" | awk '{print $1}')
+        ptr=$(echo "$line" | awk '{print $4}')
+
+        # Convert IP to reverse format
+        reversed_ip=$(convert_to_reverse_ip "$ip")
+
+        # Format the output with appropriate spacing
+        formatted_line=$(printf "%-19s IN  PTR      %-40s\n" "$reversed_ip" "$ptr")
+        echo "$formatted_line" >> "$reverse_zone_output_file"
+    else
+        # If not a PTR line, keep the line unchanged
+        echo "$line" >> "$reverse_zone_output_file"
+    fi
+done < "$reverse_zone_input_file"
+
+# Clean up: Delete input file
+rm -f "$reverse_zone_input_file"
+
+# Verify if the reverse DNS zone file was generated successfully
+if [ -f "$reverse_zone_output_file" ]; then
+    echo "ok: [generate reverse DNS zone file: $reverse_zone_output_file]"
+else
+    echo "failed: [generate reverse DNS zone file]"
+fi
+
+# Check named configuration file
+named-checkconf >/dev/null 2>&1
+run_command "[named configuration is valid]"
+
+# Check forward zone file
+named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} >/dev/null 2>&1
+run_command "[forward zone file is valid]"
+
+# Check reverse zone file
+named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
+run_command "[reverse zone file is valid]"
+
+# Change ownership
+chown named. /var/named/*.zone
+run_command "[change ownership /var/named/*.zone]"
+
+# Enable and start service
+systemctl enable named >/dev/null 2>&1
+run_command "[set the named service to start automatically at boot]"
+
+systemctl restart named >/dev/null 2>&1
+run_command "[restart named service]"
+
+# Add dns ip to resolv.conf
+sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
+sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
+run_command "[add dns ip $DNS_SERVER_IP to /etc/resolv.conf]"
+
+# Append “dns=none” immediately below the “[main]” section in the main NM config
+if ! sed -n '/^\[main\]/,/^\[/{/dns=none/p}' /etc/NetworkManager/NetworkManager.conf | grep -q 'dns=none'; then
+    sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
+    echo "ok: [prevent network manager from dynamically updating /etc/resolv.conf]"
+else
+    echo "skipped: [prevent network manager from dynamically updating /etc/resolv.conf]"
+fi
+
+# Restart service
+systemctl restart NetworkManager >/dev/null 2>&1
+run_command "[restart network manager service]"
+
+# Wait for the service to restart
+sleep 15
+
+# List of hostnames and IP addresses to check
+hostnames=(
+    "api.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${BASTION_IP}"
+    "${MASTER01_IP}"
+    "${MASTER02_IP}"
+    "${MASTER03_IP}"
+    "${WORKER01_IP}"
+    "${WORKER02_IP}"
+    "${WORKER03_IP}"
+    "${BOOTSTRAP_IP}"
+    "${NSLOOKUP_TEST_PUBLIC_DOMAIN}"
+)
+
+# Loop through hostnames and perform nslookup
+all_successful=true
+failed_hostnames=()
+
+for hostname in "${hostnames[@]}"; do
+    nslookup_result=$(nslookup "$hostname" 2>&1)
+    if [ $? -ne 0 ]; then
+        all_successful=false
+        failed_hostnames+=("$hostname")
+    fi
+done
+
+# Display results
+if [ "$all_successful" = true ]; then
+    echo "ok: [nslookup all domain names/ip addresses]"
+else
+    echo "failed: [dns resolve failed for the following domain/ip: ${failed_hostnames[*]}]"
+fi
+
+# Delete old records
+sed -i "/${BOOTSTRAP_HOSTNAME}/d;
+        /${MASTER01_HOSTNAME}/d;
+        /${MASTER02_HOSTNAME}/d;
+        /${MASTER03_HOSTNAME}/d;
+        /${WORKER01_HOSTNAME}/d;
+        /${WORKER02_HOSTNAME}/d;
+        /${WORKER03_HOSTNAME}/d" /etc/hosts
+
+# OpenShift Node Hostname Resolve
+{
+  printf "%-15s %s\n" "${BOOTSTRAP_IP}"    "${BOOTSTRAP_HOSTNAME}"
+  printf "%-15s %s\n" "${MASTER01_IP}"     "${MASTER01_HOSTNAME}"
+  printf "%-15s %s\n" "${MASTER02_IP}"     "${MASTER02_HOSTNAME}"
+  printf "%-15s %s\n" "${MASTER03_IP}"     "${MASTER03_HOSTNAME}"
+  printf "%-15s %s\n" "${WORKER01_IP}"     "${WORKER01_HOSTNAME}"
+  printf "%-15s %s\n" "${WORKER02_IP}"     "${WORKER02_HOSTNAME}"
+  printf "%-15s %s\n" "${WORKER03_IP}"     "${WORKER03_HOSTNAME}"
+} | tee -a /etc/hosts >/dev/null
+run_command "[add hostname and ip to /etc/hosts]"
+
+# Add an empty line after the task
+echo
+
+# Step 10:
+PRINT_TASK "TASK [Setup HAproxy services]"
+
+# Setup haproxy services configuration
+cat << EOF > /etc/haproxy/haproxy.cfg 
+global
+  log         127.0.0.1 local2
+  pidfile     /var/run/haproxy.pid
+  maxconn     4000
+  daemon
+
+defaults
+  mode                    http
+  log                     global
+  option                  dontlognull
+  option http-server-close
+  option                  redispatch
+  retries                 3
+  timeout http-request    10s
+  timeout queue           1m
+  timeout connect         10s
+  timeout client          1m
+  timeout server          1m
+  timeout http-keep-alive 10s
+  timeout check           10s
+  maxconn                 3000
+
+frontend stats
+  bind *:1936
+  mode            http
+  log             global
+  maxconn 10
+  stats enable
+  stats hide-version
+  stats refresh 30s
+  stats show-node
+  stats show-desc Stats for ocp4 cluster 
+  stats auth admin:passwd
+  stats uri /stats
+
+listen api-server-6443 
+  bind ${LB_IP}:6443
+  mode tcp
+  server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 check inter 1s backup
+  server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 check inter 1s
+  server     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:6443 check inter 1s
+  server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 check inter 1s
+
+listen machine-config-server-22623 
+  bind ${LB_IP}:22623
+  mode tcp
+  server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:22623 check inter 1s backup
+  server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:22623 check inter 1s
+  server     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:22623 check inter 1s
+  server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:22623 check inter 1s
+
+listen default-ingress-router-80
+  bind ${LB_IP}:80
+  mode tcp
+  balance source
+  server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:80 check inter 1s
+  server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check inter 1s
+  server     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:80 check inter 1s
+  
+listen default-ingress-router-443
+  bind ${LB_IP}:443
+  mode tcp
+  balance source
+  server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check inter 1s
+  server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
+  server     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
+EOF
+run_command "[generate haproxy configuration file]"
+
+# Path to HAProxy configuration file
+haproxy -c -f /etc/haproxy/haproxy.cfg >/dev/null 2>&1
+run_command "[haproxy configuration is valid]"
+
+# Enable and start service
+systemctl enable --now haproxy >/dev/null 2>&1
+run_command "[set the haproxy service to start automatically at boot]"
+
+systemctl restart haproxy >/dev/null 2>&1
+run_command "[restart haproxy service]"
+
+# Wait for the service to restart
+sleep 15
+
+# Add an empty line after the task
+echo
