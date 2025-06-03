@@ -43,6 +43,10 @@ export WORKER01_MAC_ADDR="00:50:56:b0:0c:d1"
 export WORKER02_MAC_ADDR="00:50:56:b0:72:a5"
 ~~~
 
+### Install named and haproxy
+~~~
+
+~~~
 
 ### Create Agent Config
 ~~~
