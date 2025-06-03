@@ -55,13 +55,13 @@ hosts:
       deviceName: "${COREOS_INSTALL_DEV}"
     interfaces:
       - name: "${NET_IF_NAME}"
-        macAddress: "{MASTER01_MAC_ADDR}"
+        macAddress: "${MASTER01_MAC_ADDR}"
     networkConfig:
       interfaces:
         - name: "${NET_IF_NAME}"
           type: ethernet
           state: up
-          mac-address: "{MASTER01_MAC_ADDR}"
+          mac-address: "${MASTER01_MAC_ADDR}"
           ipv4:
             enabled: true
             address:
@@ -84,13 +84,13 @@ hosts:
       deviceName: "${COREOS_INSTALL_DEV}"
     interfaces:
       - name: "${NET_IF_NAME}"
-        macAddress: "{MASTER02_MAC_ADDR}"
+        macAddress: "${MASTER02_MAC_ADDR}"
     networkConfig:
       interfaces:
         - name: "${NET_IF_NAME}"
           type: ethernet
           state: up
-          mac-address: "MASTER02_MAC_ADDR"
+          mac-address: "${MASTER02_MAC_ADDR}"
           ipv4:
             enabled: true
             address:
@@ -113,13 +113,13 @@ hosts:
       deviceName: "${COREOS_INSTALL_DEV}"
     interfaces:
       - name: "${NET_IF_NAME}"
-        macAddress: "{MASTER03_MAC_ADDR}"
+        macAddress: "${MASTER03_MAC_ADDR}"
     networkConfig:
       interfaces:
         - name: "${NET_IF_NAME}"
           type: ethernet
           state: up
-          mac-address: "MASTER03_MAC_ADDR"
+          mac-address: "${MASTER03_MAC_ADDR}"
           ipv4:
             enabled: true
             address:
@@ -142,13 +142,13 @@ hosts:
       deviceName: "${COREOS_INSTALL_DEV}"
     interfaces:
       - name: "${NET_IF_NAME}"
-        macAddress: "{WORKER01_MAC_ADDR}"
+        macAddress: "${WORKER01_MAC_ADDR}"
     networkConfig:
       interfaces:
         - name: "${NET_IF_NAME}"
           type: ethernet
           state: up
-          mac-address: "WORKER01_MAC_ADDR"
+          mac-address: "${WORKER01_MAC_ADDR}"
           ipv4:
             enabled: true
             address:
@@ -171,13 +171,13 @@ hosts:
       deviceName: "${COREOS_INSTALL_DEV}"
     interfaces:
       - name: "${NET_IF_NAME}"
-        macAddress: "{WORKER02_MAC_ADDR}"
+        macAddress: "${WORKER02_MAC_ADDR}"
     networkConfig:
       interfaces:
         - name: "${NET_IF_NAME}"
           type: ethernet
           state: up
-          mac-address: "WORKER02_MAC_ADDR"
+          mac-address: "${WORKER02_MAC_ADDR}"
           ipv4:
             enabled: true
             address:
