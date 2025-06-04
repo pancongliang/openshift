@@ -2,7 +2,7 @@
 
 ### Defining environment variables
 ~~~
-
+wget https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/agent-based/pre-inst.sh
 vim pre-inst.sh
 ~~~
 
@@ -20,7 +20,6 @@ bash pre-inst.sh
 ~~~
 openshift-install --dir ocp-inst agent create image
 ~~~
-
 
 ### Tracking and verifying installation progress 
 ~~~
