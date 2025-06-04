@@ -5,7 +5,6 @@ export CLUSTER_NAME="abi-ocp"
 export BASE_DOMAIN="example.com"
 export MACHINE_NETWORK_CIDR="10.184.134.1/24"
 export PULL_SECRET_FILE="$HOME/pull-secret"
-export SSH_KEY_PATH="$(cat $HOME/.ssh/id_rsa.pub)"
 
 # Specify the OpenShift node infrastructure network configuration and installation disk
 export COREOS_INSTALL_DEV="/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:0:0"   # or /dev/sdX
@@ -33,6 +32,7 @@ export MASTER03_MAC_ADDR="00:50:56:b0:b6:16"
 export WORKER01_MAC_ADDR="00:50:56:b0:0c:d1"
 export WORKER02_MAC_ADDR="00:50:56:b0:72:a5"
 
+export SSH_KEY_PATH="$HOME/.ssh"
 export RENDEZVOUS_IP="$MASTER01_IP"
 export NTP_SERVER="0.rhel.pool.ntp.org"
 export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
@@ -69,6 +69,19 @@ run_command() {
         exit 1
     fi
 }
+
+
+# Step 3:
+PRINT_TASK "TASK [Create openshift cluster]"
+
+# Check if the SSH key exists
+if [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
+    rm -rf ${SSH_KEY_PATH}
+    ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
+    run_command "[generate ssh keys]"
+else
+    echo "info: [ssh key already exists, skip generation]"
+fi
 
 # Step 9:
 PRINT_TASK "TASK [Setup named services]"
@@ -622,6 +635,7 @@ platform:
   none: {} 
 fips: false
 pullSecret: '$(cat $PULL_SECRET_FILE)'
-sshKey: '${SSH_KEY_PATH}'
+sshKey: |
+  $(cat $SSH_KEY_PATH/id_rsa.pub)
 EOF
 run_command "[create ocp-inst/install-config.yaml file]"
