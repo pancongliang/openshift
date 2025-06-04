@@ -3,6 +3,7 @@
 # Specify required parameters for install-config.yaml
 export CLUSTER_NAME="abi-ocp"
 export BASE_DOMAIN="example.com"
+export MACHINE_NETWORK_CIDR="10.184.134.1/24"
 export PULL_SECRET_FILE="$HOME/pull-secret"
 export SSH_KEY_PATH="$(cat $HOME/.ssh/id_rsa.pub)"
 
@@ -616,7 +617,7 @@ networking:
   serviceNetwork: 
   - "172.30.0.0/16"
   machineNetwork:
-  - cidr: "10.184.134.1/24"
+  - cidr: "${MACHINE_NETWORK_CIDR}"
 platform:
   none: {} 
 fips: false
