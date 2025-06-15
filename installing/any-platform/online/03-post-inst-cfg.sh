@@ -137,6 +137,7 @@ retry_count=0
 
 while true; do
     # Get the status of all pods
+    export PATH="/usr/local/bin:$PATH"
     output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
@@ -182,6 +183,7 @@ retry_count=0
 
 while true; do
     # Get the status of all cluster operators
+    export PATH="/usr/local/bin:$PATH"
     output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check cluster operators status
@@ -221,6 +223,7 @@ retry_count=0
 
 while true; do
     # Get the status of all mcp
+    export PATH="/usr/local/bin:$PATH"
     output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check mcp status
