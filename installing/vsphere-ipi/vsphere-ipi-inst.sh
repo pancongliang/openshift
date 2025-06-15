@@ -338,24 +338,87 @@ run_command "[setting up htpasswd authentication]"
 oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1
 run_command "[grant cluster-admin permissions to the admin user]"
 
-echo "info: [restarting oauth pod, waiting...]"
-sleep 100
+sleep 15
 
-# Check cluster operator status
+# Step 5:
+PRINT_TASK "TASK [Checking the cluster status]"
+
+# Wait for OpenShift authentication pods to be in 'Running' state
+export AUTH_NAMESPACE="openshift-authentication"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+
 while true; do
-    operator_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    # Get the status of all pods
+    export PATH="/usr/local/bin:$PATH"
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}')
     
-    if echo "$operator_status" | grep -q -v "True False False"; then
+    # Check if any pod is not in the "1/1 Running" state
+    if echo "$output" | grep -vq "1/1 Running"; then
+        # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all cluster operators to reach the expected state"
-            progress_started=true  
+            echo -n "info: [waiting for pods to be in 'running' state"
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 60
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, oauth pods may still be initializing]"
+            exit 1
+        fi
     else
-        # Close progress indicator only if progress_started is true
+        # Close the progress indicator and print the success message
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [all oauth pods are in 'running' state]"
+        break
+    fi
+done
+
+# Add an empty line after the task
+echo
+
+# Check cluster operator status
+MAX_RETRIES=60
+SLEEP_INTERVAL=15
+progress_started=false
+retry_count=0
+
+while true; do
+    # Get the status of all cluster operators
+    export PATH="/usr/local/bin:$PATH"
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+    
+    # Check cluster operators status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, cluster operator may still be initializing]"
+            exit 1
+        fi
+    else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
@@ -365,20 +428,37 @@ while true; do
 done
 
 # Check MCP status
+MAX_RETRIES=60
+SLEEP_INTERVAL=15
 progress_started=false
+retry_count=0
 
 while true; do
-    mcp_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
-
-    if echo "$mcp_status" | grep -q -v "True False False"; then
+    # Get the status of all mcp
+    export PATH="/usr/local/bin:$PATH"
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+    
+    # Check mcp status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [waiting for all mcps to reach the expected state"
-            progress_started=true  
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 60
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, mcp may still be initializing]"
+            exit 1
+        fi
     else
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
@@ -386,15 +466,6 @@ while true; do
         break
     fi
 done
-
-# Add an empty line after the task
-echo
-
-# Step 5:
-# PRINT_TASK "TASK [Login OCP Cluster]"
-
-#oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443 --insecure-skip-tls-verify >/dev/null 2>&1
-#run_command "[log in to the cluster using the htpasswd user]"
 
 # Add an empty line after the task
 echo
