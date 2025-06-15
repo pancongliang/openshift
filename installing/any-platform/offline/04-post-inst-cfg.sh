@@ -98,6 +98,7 @@ echo
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Create a configmap containing the CA certificate
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
 oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
      --from-file=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem \
      -n openshift-config >/dev/null 2>&1
@@ -127,6 +128,7 @@ rm -rf $INSTALL_DIR/users.htpasswd
 htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat >/dev/null 2>&1
 run_command "[create a user using the htpasswd tool]"
 
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete secret htpasswd-secret -n openshift-config >/dev/null 2>&1 || true
 oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
 run_command "[create a secret using the users.htpasswd file]"
 
@@ -164,6 +166,7 @@ retry_count=0
 
 while true; do
     # Get the status of all pods
+    export PATH="/usr/local/bin:$PATH"
     output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
@@ -209,6 +212,7 @@ retry_count=0
 
 while true; do
     # Get the status of all cluster operators
+    export PATH="/usr/local/bin:$PATH"
     output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check cluster operators status
@@ -248,6 +252,7 @@ retry_count=0
 
 while true; do
     # Get the status of all mcp
+    export PATH="/usr/local/bin:$PATH"
     output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check mcp status
