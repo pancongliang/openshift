@@ -278,20 +278,37 @@ openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
 run_command "[install OpenShift VMware IPI completed]"
 
 # Check cluster operator status
+MAX_RETRIES=60
+SLEEP_INTERVAL=15
 progress_started=false
+retry_count=0
+
 while true; do
-    operator_status=$(oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    # Get the status of all cluster operators
+    export PATH="/usr/local/bin:$PATH"
+    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
-    if echo "$operator_status" | grep -q -v "True False False"; then
+    # Check cluster operators status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [waiting for all cluster operators to reach the expected state"
-            progress_started=true  
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 60
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [reached max retries, cluster operator may still be initializing]"
+            exit 1
+        fi
     else
-        # Close progress indicator only if progress_started is true
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo "]"
         fi
