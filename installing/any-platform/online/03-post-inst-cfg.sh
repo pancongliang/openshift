@@ -100,6 +100,7 @@ rm -rf $INSTALL_DIR/users.htpasswd
 htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat >/dev/null 2>&1
 run_command "[create a user using the htpasswd tool]"
 
+oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete secret htpasswd-secret -n openshift-config >/dev/null 2>&1 || true
 oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
 run_command "[create a secret using the users.htpasswd file]"
 
