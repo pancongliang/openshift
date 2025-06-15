@@ -29,7 +29,7 @@ run_command() {
 # Step 1:
 # Applying environment variables
 source 01-set-params.sh
-export PATH="/usr/local/bin:$PATH"
+export PATH="/usr/local/bin:$PATH"o
 
 # Step 2:
 PRINT_TASK "TASK [Kubeconfig login and oc completion]"
