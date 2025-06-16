@@ -62,6 +62,7 @@
   ```
 
 ### Configure DNS IP
+* Configure DNS IP
   ```
   cat << EOF | oc apply -f -
   apiVersion: nmstate.io/v1
