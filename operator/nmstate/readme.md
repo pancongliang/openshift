@@ -67,7 +67,7 @@
   apiVersion: nmstate.io/v1
   kind: NodeNetworkConfigurationPolicy
   metadata:
-    name: worker01-dns
+    name: worker01-modify-dns
   spec:
     nodeSelector: 
       kubernetes.io/hostname: worker01.ocp4.example.com
