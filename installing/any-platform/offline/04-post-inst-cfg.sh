@@ -42,7 +42,7 @@ grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || e
 run_command "[add kubeconfig to ~/.bash_profile]"
 
 # completion command:
-oc completion bash >> /etc/bash_completion.d/oc_completion >/dev/null 2>&1 || true
+bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' || true
 run_command "[add oc_completion]"
 
 # Add an empty line after the task
