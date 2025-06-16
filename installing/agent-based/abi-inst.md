@@ -8,9 +8,6 @@ vim pre-inst.sh
 
 ### Installing the Infrastructure and Creating the agent-config and install-config Files
 ~~~
-dnf install -y bind-utils bind haproxy
-dnf install /usr/bin/nmstatectl -y
-
 # Need to be run as root user
 bash pre-inst.sh
 ~~~
