@@ -70,6 +70,155 @@ run_command() {
     fi
 }
 
+# Step 2:
+PRINT_TASK "TASK [Changing the hostname and time zone]"
+
+# Change hostname
+hostnamectl set-hostname ${BASTION_HOSTNAME}
+run_command "[change hostname to ${BASTION_HOSTNAME}]"
+
+# Change time zone to UTC
+timedatectl set-timezone UTC
+run_command "[change time zone to UTC]"
+
+# Write LANG=en_US.UTF-8 to the ./bash_profile file]
+grep -q "^export LANG=en_US.UTF-8" ~/.bash_profile || echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
+run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
+
+# Reload ~/.bash_profile
+# source ~/.bash_profile >/dev/null 2>&1 || true
+# run_command "[reload ~/.bash_profile]"
+
+# Add an empty line after the task
+echo
+
+# Step 3:
+PRINT_TASK "TASK [Disable and stop firewalld service]"
+
+# Stop and disable firewalld services
+systemctl disable --now firewalld >/dev/null 2>&1
+run_command "[firewalld service stopped and disabled]"
+
+# Add an empty line after the task
+echo
+
+# Step 4:
+PRINT_TASK "TASK [Change SELinux security policy]"
+
+# Read the SELinux configuration
+permanent_status=$(grep "^SELINUX=" /etc/selinux/config | cut -d= -f2)
+# Check if the permanent status is Enforcing
+if [[ $permanent_status == "enforcing" ]]; then
+    # Change SELinux to permissive
+    sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
+    permanent_status="permissive"
+    echo "ok: [selinux permanent security policy changed to $permanent_status]"
+elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permissive" ]]; then
+    echo "ok: [selinux permanent security policy is $permanent_status]"
+else
+    echo "failed: [selinux permanent security policy is $permanent_status (expected permissive or disabled)]"
+fi
+
+# Temporarily set SELinux security policy to permissive
+setenforce 0 >/dev/null 2>&1 || true
+# Check temporary SELinux security policy
+temporary_status=$(getenforce)
+# Check if temporary SELinux security policy is permissive or disabled
+if [[ $temporary_status == "Permissive" || $temporary_status == "Disabled" ]]; then
+    echo "ok: [selinux temporary security policy is disabled]"
+else
+    echo "failed: [selinux temporary security policy is $temporary_status (expected permissive or disabled)]"
+fi
+
+# Add an empty line after the task
+echo
+
+# Step 5:
+PRINT_TASK "TASK [Install the necessary rpm packages]"
+
+# List of RPM packages to install
+packages=("bind-utils" "bind" "haproxy")
+
+# Convert the array to a space-separated string
+package_list="${packages[*]}"
+
+# Install all packages at once
+echo "info: [installing required rpm packages]"
+dnf install -y $package_list >/dev/null
+
+# Check if each package was installed successfully
+for package in "${packages[@]}"; do
+    rpm -q $package >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo "ok: [installed $package package]"
+    else
+        echo "failed: [installed $package package]"
+    fi
+done
+
+dnf -y install /usr/bin/nmstatectl
+run_command "[installed nmstatectl package]"
+
+# Add an empty line after the task
+echo
+
+# Step 6:
+PRINT_TASK "TASK [Install openshift-install and openshift client tools]"
+
+# Delete the old version of oc cli
+rm -f /usr/local/bin/oc* >/dev/null 2>&1
+rm -f /usr/local/bin/kube* >/dev/null 2>&1
+rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
+rm -f /usr/local/bin/README.md >/dev/null 2>&1
+rm -f openshift-install-linux.tar.gz* >/dev/null 2>&1
+rm -f openshift-client-linux-amd64-rhel8.tar.gz* >/dev/null 2>&1
+rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
+
+# Download the openshift-install
+echo "info: [downloading openshift-install tool]"
+
+wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
+run_command "[download openshift-install tool]"
+
+tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
+run_command "[install openshift-install tool]"
+
+chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
+run_command "[modify /usr/local/bin/openshift-install permissions]"
+
+rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
+
+# Get the RHEL version number
+rhel_version=$(rpm -E %{rhel})
+run_command "[check RHEL version]"
+
+# Determine the download URL based on the RHEL version
+if [ "$rhel_version" -eq 8 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux-amd64-rhel8.tar.gz"
+    openshift_client="openshift-client-linux-amd64-rhel8.tar.gz"
+elif [ "$rhel_version" -eq 9 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz"
+    openshift_client="openshift-client-linux.tar.gz"
+fi
+
+# Download the OpenShift client
+echo "info: [downloading openshift-client tool]"
+
+wget -q "$download_url" -O "$openshift_client"
+run_command "[download openshift-client tool]"
+
+# Extract the downloaded tarball to /usr/local/bin/
+tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
+run_command "[install openshift-client tool]"
+
+chmod +x /usr/local/bin/oc >/dev/null 2>&1
+run_command "[modify /usr/local/bin/oc permissions]"
+
+chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
+run_command "[modify /usr/local/bin/kubectl permissions]"
+
+rm -f /usr/local/bin/README.md >/dev/null 2>&1
+rm -rf $openshift_client >/dev/null 2>&1
 
 # Step 3:
 PRINT_TASK "TASK [Create openshift cluster]"
