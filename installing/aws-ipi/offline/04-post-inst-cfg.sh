@@ -40,7 +40,7 @@ run_command "[add kubeconfig to $HOME/bash_profile]"
 source $HOME/bash_profile
 
 # completion command:
-sudo bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' || true
+bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' || true
 run_command "[add oc_completion]"
 
 # Effective immediately
