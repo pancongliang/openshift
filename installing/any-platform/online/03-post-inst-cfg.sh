@@ -57,7 +57,7 @@ run_command "[create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
 chmod 777 ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
 run_command "[modify ${NFS_DIR}/${IMAGE_REGISTRY_PV} director permissions]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete -f ${IMAGE_REGISTRY_PV} >/dev/null 2>&1 || true
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete -f ${IMAGE_REGISTRY_PV} >/dev/null 2>&1 || true
 
 cat << EOF > /tmp/${IMAGE_REGISTRY_PV}.yaml
 apiVersion: v1
@@ -76,18 +76,18 @@ spec:
 EOF
 run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml >/dev/null 2>&1
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml >/dev/null 2>&1
 run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
 
 rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
 run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' >/dev/null 2>&1
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' >/dev/null 2>&1
 run_command "[change the Image registry operator configuration’s managementState from Removed to Managed]"
 
 # Leave the claim field blank to allow the automatic creation of an image-registry-storage PVC.
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' >/dev/null 2>&1
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' >/dev/null 2>&1
 run_command "[leave the claim field blank to allow the automatic creation of an image-registry-storage PVC]"
 
 # Add an empty line after the task
@@ -100,8 +100,8 @@ rm -rf $INSTALL_DIR/users.htpasswd
 htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat >/dev/null 2>&1
 run_command "[create a user using the htpasswd tool]"
 
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete secret htpasswd-secret -n openshift-config >/dev/null 2>&1 || true
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete secret htpasswd-secret -n openshift-config >/dev/null 2>&1 || true
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
 run_command "[create a secret using the users.htpasswd file]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
@@ -124,7 +124,7 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1 || true
+/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1 || true
 run_command "[grant cluster-admin permissions to the admin user]"
 
 sleep 15
@@ -138,8 +138,7 @@ retry_count=0
 
 while true; do
     # Get the status of all pods
-    export PATH="/usr/local/bin:$PATH"
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}')
+    output=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -184,8 +183,7 @@ retry_count=0
 
 while true; do
     # Get the status of all cluster operators
-    export PATH="/usr/local/bin:$PATH"
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+    output=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check cluster operators status
     if echo "$output" | grep -q -v "True False False"; then
@@ -224,8 +222,7 @@ retry_count=0
 
 while true; do
     # Get the status of all mcp
-    export PATH="/usr/local/bin:$PATH"
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+    output=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check mcp status
     if echo "$output" | grep -q -v "True False False"; then
