@@ -274,7 +274,7 @@ echo "ok: [installing the OpenShift cluster]"
 
 export PATH="/usr/local/bin:$PATH"
 
-openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
+/usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
 run_command "[install OpenShift VMware IPI completed]"
 
 # Check cluster operator status
@@ -285,8 +285,7 @@ retry_count=0
 
 while true; do
     # Get the status of all cluster operators
-    export PATH="/usr/local/bin:$PATH"
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+    output=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check cluster operators status
     if echo "$output" | grep -q -v "True False False"; then
@@ -329,13 +328,14 @@ run_command "[create a user using the htpasswd tool]"
 
 sleep 10
 
-oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
+/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig delete secret htpasswd-secret -n openshift-config >/dev/null 2>&1 || true
+/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
 run_command "[create a secret using the users.htpasswd file]"
 
 rm -rf $OCP_INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-cat  <<EOF | oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
+cat  <<EOF | /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -352,7 +352,7 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1
+/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1 || true
 run_command "[grant cluster-admin permissions to the admin user]"
 
 sleep 15
@@ -369,8 +369,7 @@ retry_count=0
 
 while true; do
     # Get the status of all pods
-    export PATH="/usr/local/bin:$PATH"
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}')
+    output=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get po -n "$AUTH_NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}')
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -412,8 +411,7 @@ retry_count=0
 
 while true; do
     # Get the status of all cluster operators
-    export PATH="/usr/local/bin:$PATH"
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+    output=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check cluster operators status
     if echo "$output" | grep -q -v "True False False"; then
@@ -452,8 +450,7 @@ retry_count=0
 
 while true; do
     # Get the status of all mcp
-    export PATH="/usr/local/bin:$PATH"
-    output=$(oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+    output=$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     
     # Check mcp status
     if echo "$output" | grep -q -v "True False False"; then
