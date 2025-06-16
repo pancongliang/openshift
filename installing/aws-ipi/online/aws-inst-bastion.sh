@@ -180,7 +180,7 @@ run_command "[modify permissions for the $INSTANCE_NAME file]"
 
 # Dowload ocp login script
 cat << EOF > "./ocp-login.sh"
-oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true
+/usr/local/bin/oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true
 EOF
 run_command "[create access $INSTANCE_NAME file in current directory]"
 
@@ -289,7 +289,7 @@ sudo echo -e "\nClientAliveInterval 120\nClientAliveCountMax 720" | sudo tee -a 
 sudo systemctl restart sshd >/dev/null 2>&1
 
 # completion command:
-oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true >/dev/null 2>&1
+/usr/local/bin/oc login -u admin -p redhat https://$CLUSTER_API:6443 --insecure-skip-tls-verify=true >/dev/null 2>&1
 sudo bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' >/dev/null 2>&1
 source /etc/bash_completion.d/oc_completio >/dev/null 2>&1
 
