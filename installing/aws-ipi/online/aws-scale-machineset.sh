@@ -34,22 +34,22 @@ PRINT_TASK "TASK [Scaling machineset]"
 # Specifying machinesets 
 #export MACHINESET='xxxxx-xxxxx-worker-ap-northeast-1d'   # oc get machinesets -n openshift-machine-api    
 
-MACHINESET=$(oc get machineset -n openshift-machine-api -o custom-columns=":metadata.name" | tail -n 1)
+MACHINESET=$(/usr/local/bin/oc get machineset -n openshift-machine-api -o custom-columns=":metadata.name" | tail -n 1)
 run_command "[specify the machine set to scale: $MACHINESET]"
 MACHINE=$(echo "$MACHINESET" | cut -d'-' -f3-)
 
 # Scale the machineset to 1 replica
 replicas=$1
-oc scale --replicas=$replicas machineset $MACHINESET -n openshift-machine-api > /dev/null
+/usr/local/bin/oc scale --replicas=$replicas machineset $MACHINESET -n openshift-machine-api > /dev/null
 run_command "[scaling machineset $MACHINESET to $replicas replicas]"
 
 # Wait for the machineset to be in the desired state
 while true; do
     # Extract DESIRED, CURRENT, READY, AVAILABLE fields
-    DESIRED=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.replicas}')
-    CURRENT=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.fullyLabeledReplicas}')
-    READY=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}')
-    AVAILABLE=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.availableReplicas}')
+    DESIRED=$(/usr/local/bin/oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.replicas}')
+    CURRENT=$(/usr/local/bin/oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.fullyLabeledReplicas}')
+    READY=$(/usr/local/bin/oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}')
+    AVAILABLE=$(/usr/local/bin/oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.availableReplicas}')
 
     # Check if these fields are all 1
     if [[ "$DESIRED" -eq $replicas && "$CURRENT" -eq $replicas && "$READY" -eq $replicas && "$AVAILABLE" -eq $replicas ]]; then
