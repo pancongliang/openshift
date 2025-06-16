@@ -43,7 +43,7 @@ source 01-set-params.sh
 PRINT_TASK "TASK [Install infrastructure rpm]"
 
 # List of RPM packages to install
-packages=("wget" "vim-enhanced" "podman" "butane" "git" "bash-completion" "jq" "skopeo")
+packages=("wget" "vim-enhanced" "podman" "git" "bash-completion" "jq" "skopeo")
 
 # Convert the array to a space-separated string
 package_list="${packages[*]}"
@@ -288,7 +288,7 @@ run_command "[Create ${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
 echo "ok: [Generate oc-mirror mirror log: ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log]"
-oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls > ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log
+/usr/local/bin/oc-mirror --config=${IMAGE_SET_CONFIGURATION_PATH}/imageset-config.yaml docker://${HOSTNAME}:8443 --dest-skip-tls > ${IMAGE_SET_CONFIGURATION_PATH}/mirror.log
 run_command "[Mirroring OCP ${OCP_RELEASE_VERSION} release image]"
 
 # Remove the temporary file
