@@ -33,5 +33,5 @@ run_command() {
 PRINT_TASK "TASK [Uninstalling a cluster]"
 
 echo "info: [uninstalling the cluster, waiting...]"
-openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
+/usr/local/bin/openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
 run_command "[uninstalled cluster]"
