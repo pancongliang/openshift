@@ -60,3 +60,23 @@
   12: ens8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
       inet 10.74.253.220/21 brd 10.74.255.255 scope global noprefixroute ens8
   ```
+
+### Configure DNS IP
+  ```
+  cat << EOF | oc apply -f -
+  apiVersion: nmstate.io/v1
+  kind: NodeNetworkConfigurationPolicy
+  metadata:
+    name: worker01-dns
+  spec:
+    nodeSelector: 
+      kubernetes.io/hostname: worker01.ocp4.example.com
+    desiredState:
+      dns-resolver:
+        config:
+          search:
+          - ocp4.example.com
+          server:
+          - 10.184.134.94
+  EOF
+  ```
