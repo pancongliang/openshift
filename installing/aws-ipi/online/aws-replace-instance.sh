@@ -35,14 +35,14 @@ run_command() {
 PRINT_TASK "TASK [Replace the instance type of the machine]"
 
 # Scale the machineset to 0 replicas
-oc scale --replicas=0 machineset $MACHINESET -n openshift-machine-api > /dev/null
+/usr/local/bin/oc scale --replicas=0 machineset $MACHINESET -n openshift-machine-api > /dev/null
 run_command "[scaling machineset $MACHINESET to 0 replicas]"
 
 MACHINE=$(echo "$MACHINESET" | cut -d'-' -f3-)
 
 # Wait for the machine to be deleted
 while true; do
-    if oc get machines.machine.openshift.io -n openshift-machine-api | grep -q "$MACHINE"; then
+    if /usr/local/bin/oc get machines.machine.openshift.io -n openshift-machine-api | grep -q "$MACHINE"; then
         echo "info: [delete the '$MACHINE' machine...]"
         sleep 30 
     else
@@ -54,20 +54,20 @@ done
 sleep 10 
 
 # Patch the machineset to replace instance type
-oc -n openshift-machine-api patch machineset $MACHINESET --type=json -p="[{"op": "replace", "path": "/spec/template/spec/providerSpec/value/instanceType", "value": "$WORKER_INSTANCE_TYPE"}]" > /dev/null
+/usr/local/bin/oc -n openshift-machine-api patch machineset $MACHINESET --type=json -p="[{"op": "replace", "path": "/spec/template/spec/providerSpec/value/instanceType", "value": "$WORKER_INSTANCE_TYPE"}]" > /dev/null
 run_command "[replace $MACHINESET with the instance of your machine $WORKER_INSTANCE_TYPE]"
 
 # Scale the machineset to 1 replica
-oc scale --replicas=1 machineset $MACHINESET -n openshift-machine-api > /dev/null
+/usr/local/bin/oc scale --replicas=1 machineset $MACHINESET -n openshift-machine-api > /dev/null
 run_command "[$MACHINE' machine copy count changed to 1]"
 
 # Wait for the machineset to be in the desired state
 while true; do
     # Extract DESIRED, CURRENT, READY, AVAILABLE fields
-    DESIRED=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.replicas}')
-    CURRENT=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.fullyLabeledReplicas}')
-    READY=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}')
-    AVAILABLE=$(oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.availableReplicas}')
+    DESIRED=$(/usr/local/bin/oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.replicas}')
+    CURRENT=$(/usr/local/bin/oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.fullyLabeledReplicas}')
+    READY=$(/usr/local/bin/oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.readyReplicas}')
+    AVAILABLE=$(/usr/local/bin/oc get machineset "$MACHINESET" -n "openshift-machine-api" -o jsonpath='{.status.availableReplicas}')
 
     # Check if these fields are all 1
     if [[ "$DESIRED" -eq 1 && "$CURRENT" -eq 1 && "$READY" -eq 1 && "$AVAILABLE" -eq 1 ]]; then
