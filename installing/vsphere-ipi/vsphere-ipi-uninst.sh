@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set environment variables
-export OCP_INSTALL_DIR="$HOME/ocp"
+export INSTALL_DIR="$HOME/ocp"
 
 # Enable strict mode for robust error handling and log failures with line number.
 set -u
@@ -33,5 +33,5 @@ run_command() {
 PRINT_TASK "TASK [Uninstalling a cluster]"
 
 echo "info: [uninstalling the cluster, waiting...]"
-/usr/local/bin/openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
+/usr/local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
 run_command "[uninstalled cluster]"
