@@ -12,9 +12,9 @@ export CLUSTER_NAME="copan"
 export BASE_DOMAIN="example.com"
 export USERNAME=""
 export PASSWORD=""
-export API_VIPS="10.184.134.117"
-export INGRESS_VIPS="10.184.134.118"
-export MACHINE_NETWORK_CIDR="10.184.134.1/24"
+export API_VIPS="10.184.134.15"
+export INGRESS_VIPS="10.184.134.16"
+export MACHINE_NETWORK_CIDR="10.184.134.0/24"
 
 export INSTALL_DIR="$HOME/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
@@ -56,7 +56,7 @@ sudo sed -i "/api.$CLUSTER_NAME.$BASE_DOMAIN/d;
 # OpenShift Node Hostname Resolve
 {
   printf "%-15s %s\n" "$API_VIPS"         "api.$CLUSTER_NAME.$BASE_DOMAIN"
-  printf "%-15s %s\n" "$INGRESS_VIPS"     "oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN/"
+  printf "%-15s %s\n" "$INGRESS_VIPS"     "oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN"
 } | sudo tee -a /etc/hosts >/dev/null
 run_command "[add api entry to /etc/hosts file]"
 
