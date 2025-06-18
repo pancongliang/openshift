@@ -224,10 +224,11 @@ rm -rf $openshift_client >/dev/null 2>&1
 PRINT_TASK "TASK [Create openshift cluster]"
 
 # Check if the SSH key exists
-if [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
-    rm -rf ${SSH_KEY_PATH}
-    ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    run_command "[generate ssh keys]"
+if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
+    rm -rf ${SSH_KEY_PATH} 
+    mkdir -p ${SSH_KEY_PATH}
+    ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
+    echo "ok: [create ssh-key for accessing coreos]"
 else
     echo "info: [ssh key already exists, skip generation]"
 fi
