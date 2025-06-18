@@ -37,7 +37,7 @@ PRINT_TASK "TASK [Install NFS storage class]"
 export NAMESPACE="nfs-client-provisioner"
 
 # Create namespace
-sudo cat << EOF > namespace.yaml
+cat << EOF > namespace.yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -47,10 +47,10 @@ oc delete -f namespace.yaml > /dev/null 2>&1 || true
 oc create -f namespace.yaml > /dev/null 2>&1
 run_command "[create new namespace: ${NAMESPACE}]"
 
-sudo rm -rf namespace.yaml > /dev/null 2>&1 || true
+rm -rf namespace.yaml > /dev/null 2>&1 || true
 
 # Create sa and rbac
-sudo cat << EOF > sa_and_rbac.yaml
+cat << EOF > sa_and_rbac.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -122,14 +122,14 @@ oc delete -f sa_and_rbac.yaml > /dev/null 2>&1 || true
 oc create -f sa_and_rbac.yaml > /dev/null 2>&1
 run_command "[create rbac configuration]"
 
-sudo rm -rf sa_and_rbac.yaml > /dev/null 2>&1 || true
+rm -rf sa_and_rbac.yaml > /dev/null 2>&1 || true
 
 # Add scc
 oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner >/dev/null
 run_command "[add scc hostmount-anyuid to nfs-client-provisioner user]"
 
 # deployment
-sudo cat << EOF > deployment.yaml
+cat << EOF > deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -175,7 +175,7 @@ oc delete -f deployment.yaml > /dev/null 2>&1 || true
 oc create -f deployment.yaml > /dev/null 2>&1
 run_command "[deploy nfs-client-provisioner]"
 
-sudo rm -rf deployment.yaml > /dev/null 2>&1 || true
+rm -rf deployment.yaml > /dev/null 2>&1 || true
 
 # Wait for nfs-client-provisioner pods to be in 'Running' state
 progress_started=false
@@ -203,7 +203,7 @@ while true; do
 done
 
 # storage class
-sudo cat << EOF > storageclass.yaml
+cat << EOF > storageclass.yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -220,4 +220,4 @@ oc delete -f storageclass.yaml > /dev/null 2>&1 || true
 oc create -f storageclass.yaml > /dev/null 2>&1
 run_command "[create nfs storage class]"
 
-sudo rm -rf storageclass.yaml > /dev/null 2>&1 || true
+rm -rf storageclass.yaml > /dev/null 2>&1 || true
