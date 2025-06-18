@@ -467,7 +467,7 @@ HOSTNAMES=( $(
 for name in "${HOSTNAMES[@]}"; do
   sudo sed -i "/[[:space:]]${name}$/d" "/etc/hosts"
 done
-run_command "[remove any existing entries for these hostnames in /etc/hosts]"
+run_command "[delete the entry with the same host name as the node in /etc/hosts]"
 
 # Generate the latest IP→hostname mappings and append them to /etc/hosts
 {
