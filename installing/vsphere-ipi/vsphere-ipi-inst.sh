@@ -467,6 +467,7 @@ HOSTNAMES=( $(
 for name in "${HOSTNAMES[@]}"; do
   sudo sed -i "/[[:space:]]${name}$/d" "/etc/hosts"
 done
+run_command "[remove any existing entries for these hostnames in /etc/hosts]"
 
 # Generate the latest IP→hostname mappings and append them to /etc/hosts
 {
@@ -476,6 +477,7 @@ done
         printf "%-15s %s\n" "$IP" "$NAME"
       done
 } | sudo tee -a "/etc/hosts" >/dev/null
+run_command "[generate the latest IP and hostname mappings and append them to /etc/hosts]"
 
 # Add an empty line after the task
 echo
