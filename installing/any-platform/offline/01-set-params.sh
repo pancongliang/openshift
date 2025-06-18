@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Specify the OpenShift release version
-export OCP_RELEASE_VERSION="4.16.30"
+export OCP_VERSION="4.16.30"
 
 # Specify required parameters for install-config.yaml
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"  # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
@@ -60,7 +60,7 @@ export INSTALL_DIR="${HTTPD_DIR}/pre"
 
 # Specify the ImageSetConfiguration file path
 export IMAGE_SET_CONF_PATH="/$HOME/oc-mirror"
-export OCP_RELEASE_CHANNEL="$(echo $OCP_RELEASE_VERSION | cut -d. -f1,2)"
+export OCP_RELEASE_CHANNEL="$(echo $OCP_VERSION | cut -d. -f1,2)"
 
 # Nslookup public network
 export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
@@ -112,7 +112,7 @@ check_variable() {
 
 # Check all variables that need validation
 check_all_variables() {
-    check_variable "OCP_RELEASE_VERSION"
+    check_variable "OCP_VERSION"
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
