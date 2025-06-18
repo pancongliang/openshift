@@ -884,10 +884,14 @@ sed -i 's/^/  /' "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
 run_command "[format registry ca certificate]"
 
 # Create ssh-key for accessing CoreOS
-rm -rf ${SSH_KEY_PATH} >/dev/null 2>&1
-sleep 1
-ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-run_command "[create ssh-key for accessing coreos]"
+if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
+    rm -rf ${SSH_KEY_PATH} 
+    mkdir -p ${SSH_KEY_PATH}
+    ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
+    echo "ok: [create ssh-key for accessing coreos]"
+else
+    echo "info: [ssh key already exists, skip generation]"
+fi
 
 # Define variables
 export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak)"
