@@ -326,6 +326,9 @@ run_command "[setting up htpasswd authentication]"
 /usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1 || true
 run_command "[grant cluster-admin permissions to the admin user]"
 
+# Add an empty line after the task
+echo
+
 sleep 15
 
 # Step 6:
