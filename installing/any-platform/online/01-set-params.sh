@@ -6,7 +6,7 @@ export OCP_VERSION="4.16.26"
 # Specify required parameters for install-config.yaml
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp4"
-export BASE_DOMAIN="example.com"
+export BASE_DOMAIN="yhuang.com"
 export NETWORK_TYPE="OVNKubernetes"
 
 # Specify the OpenShift node’s installation disk and NetworkManager connection name
