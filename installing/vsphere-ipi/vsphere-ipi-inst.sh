@@ -49,8 +49,19 @@ run_command() {
 # Step 0:
 PRINT_TASK "TASK [Add API entry to /etc/hosts file]"
 
-echo "$API_VIPS api.$CLUSTER_NAME.$BASE_DOMAIN" | sudo tee -a /etc/hosts > /dev/null
+# Delete old records
+sudo sed -i "/api.$CLUSTER_NAME.$BASE_DOMAIN/d;
+        /oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN/d" /etc/hosts
+
+# OpenShift Node Hostname Resolve
+{
+  printf "%-15s %s\n" "$API_VIPS"         "api.$CLUSTER_NAME.$BASE_DOMAIN"
+  printf "%-15s %s\n" "$INGRESS_VIPS"     "oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN/"
+} | sudo tee -a /etc/hosts >/dev/null
 run_command "[add api entry to /etc/hosts file]"
+
+# Add an empty line after the task
+echo
 
 # Add an empty line after the task
 echo
