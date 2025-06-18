@@ -18,7 +18,7 @@ export SNO_DISK="/dev/sda"
 export SNO_INTERFACE="ens192"
 
 # Define client-specific variables
-export SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"
+export SSH_KEY_PATH="$HOME/.ssh"
 export PULL_SECRET_PATH="$HOME/pull-secret"
 export CLIENT_OS_ARCH=mac-arm64              #mac/mac-arm64/linux
 
@@ -92,6 +92,19 @@ ISO_URL=$(./openshift-install coreos print-stream-json | grep location | grep $A
 curl -s -L $ISO_URL -o rhcos-live.iso >/dev/null 2>&1
 run_command "[download rhcos-live.iso]"
 
+# Create ssh-key for accessing CoreOS
+if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
+    rm -rf ${SSH_KEY_PATH} 
+    mkdir -p ${SSH_KEY_PATH}
+    ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
+    echo "ok: [create ssh-key for accessing coreos]"
+else
+    echo "info: [ssh key already exists, skip generation]"
+fi
+
+# Define variables
+export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
+
 # Create the installation directory
 mkdir ocp
 run_command "[create installation directory: ocp]"
@@ -122,8 +135,7 @@ platform:
 bootstrapInPlace:
   installationDisk: $SNO_DISK
 pullSecret: '$(cat $PULL_SECRET_PATH)' 
-sshKey: |
-  $(cat $SSH_KEY_PATH)
+sshKey: '${SSH_PUB_STR}'
 EOF
 run_command "[create ocp/install-config.yaml file]"
 
