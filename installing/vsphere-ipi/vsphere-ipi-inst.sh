@@ -319,8 +319,18 @@ done
 # Add an empty line after the task
 echo
 
+
 # Step 4:
 PRINT_TASK "TASK [Create htpasswd User]"
+# kubeconfig login:
+rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
+cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
+grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
+run_command "[add kubeconfig to ~/.bash_profile]"
+
+# completion command:
+sudo bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' || true
+run_command "[add oc_completion]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
 echo 'admin:$2y$05$.9uG3eMC1vrnhLIj8.v.POcGpFEN/STrpOw7yGQ5dnMmLbrKVVCmu' > $INSTALL_DIR/users.htpasswd
