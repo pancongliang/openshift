@@ -46,7 +46,7 @@ run_command() {
     fi
 }
 
-# Step 0:
+# Step 1:
 PRINT_TASK "TASK [Add API entry to /etc/hosts file]"
 
 # Delete old records
@@ -63,7 +63,7 @@ run_command "[add api entry to /etc/hosts file]"
 # Add an empty line after the task
 echo
 
-# Step 1:
+# Step 2:
 PRINT_TASK "TASK [Trust the vCenter certificate]"
 
 # delete credentials
@@ -93,116 +93,68 @@ sudo rm -rf vc_certs
 echo
 
 
-# Step 2:
-PRINT_TASK "TASK [Install openshift-install and oc-cli]"
+# Step 3:
+PRINT_TASK "TASK [Install openshift-install and openshift client tools]"
 
-# Determine the operating system
-OS_TYPE=$(uname -s)
-echo "info: [client operating system: $OS_TYPE]"
+# Delete the old version of oc cli
+sudo rm -f /usr/local/bin/oc* >/dev/null 2>&1
+sudo rm -f /usr/local/bin/kube* >/dev/null 2>&1
+sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
+sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
+sudo rm -f openshift-install-linux.tar.gz* >/dev/null 2>&1
+sudo rm -f openshift-client-linux-amd64-rhel8.tar.gz* >/dev/null 2>&1
+sudo rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
 
-ARCH=$(uname -m)
-echo "info: [client architecture: $ARCH]"
+# Download the openshift-install
+echo "info: [downloading openshift-install tool]"
 
-# Handle macOS
-if [ "$OS_TYPE" = "Darwin" ]; then
-    # Determine the download URL based on the architecture
-    if [ "$ARCH" = "x86_64" ]; then
-        download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-mac.tar.gz"
-        openshift_install="openshift-install-mac.tar.gz"
-    elif [ "$ARCH" = "arm64" ]; then
-        download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-mac-arm64.tar.gz"
-        openshift_install="openshift-install-mac-arm64.tar.gz"
-    fi
+wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
+run_command "[download openshift-install tool]"
 
-    # Download, install, and clean up OpenShift Installer
-    curl -sL "$download_url" -o "$openshift_install"
-    run_command "[download openshift-install]"
+sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
+run_command "[install openshift-install tool]"
 
-    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1 || true
-    sudo tar -xzf "$openshift_install" -C "/usr/local/bin/" >/dev/null 2>&1
-    run_command "[install openshift-install]"
+sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
+run_command "[modify /usr/local/bin/openshift-install permissions]"
 
-    sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
-    rm -rf "$openshift_install" >/dev/null 2>&1
+sudo rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
-    # Determine the download URL for OpenShift Client
-    if [ "$ARCH" = "x86_64" ]; then
-        download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-mac.tar.gz"
-        openshift_client="openshift-client-mac.tar.gz"
-    elif [ "$ARCH" = "arm64" ]; then
-        download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-mac-arm64.tar.gz"
-        openshift_client="openshift-client-mac-arm64.tar.gz"
-    fi
+# Get the RHEL version number
+rhel_version=$(rpm -E %{rhel})
+run_command "[check RHEL version]"
 
-    # Download, install, and clean up OpenShift Client
-    curl -sL "$download_url" -o "$openshift_client"
-    run_command "[download openshift-client]"
-
-    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1 || true
-    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1 || true
-    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
-
-    sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
-    run_command "[install openshift-client]"
-
-    sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
-    sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
-    rm -rf "$openshift_client" >/dev/null 2>&1
-
-# Handle Linux
-elif [ "$OS_TYPE" = "Linux" ]; then
-    # Download the OpenShift Installer
-    curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
-    run_command "[download openshift-install tool]"
-
-    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1 || true
-    sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
-    run_command "[install openshift-install tool]"
-
-    sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
-    run_command "[modify /usr/local/bin/openshift-install permissions]"
-    rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
-
-    # Delete the old version of oc cli
-    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1 || true
-    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1 || true
-    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
-
-    # Get the RHEL version number
-    rhel_version=$(rpm -E %{rhel})
-    run_command "[check rhel version]"
-
-    # Determine the download URL based on the RHEL version
-    if [ "$rhel_version" -eq 8 ]; then
-        download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux-amd64-rhel8.tar.gz"
-        openshift_client="openshift-client-linux-amd64-rhel8.tar.gz"
-    elif [ "$rhel_version" -eq 9 ]; then
-        download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz"
-        openshift_client="openshift-client-linux.tar.gz"
-    fi
-
-    # Download the OpenShift client
-    curl -sL "$download_url" -o "$openshift_client"
-    run_command "[download openshift client tool]"
-
-    # Extract the downloaded tarball to /usr/local/bin/
-    sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
-    run_command "[install openshift client tool]"
-
-    sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
-    run_command "[modify /usr/local/bin/oc permissions]"
-    
-    sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
-    run_command "[modify /usr/local/bin/kubectl permissions]"
-
-    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
-    sudo rm -rf $openshift_client >/dev/null 2>&1 || true
+# Determine the download URL based on the RHEL version
+if [ "$rhel_version" -eq 8 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux-amd64-rhel8.tar.gz"
+    openshift_client="openshift-client-linux-amd64-rhel8.tar.gz"
+elif [ "$rhel_version" -eq 9 ]; then
+    download_url="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz"
+    openshift_client="openshift-client-linux.tar.gz"
 fi
+
+# Download the OpenShift client
+echo "info: [downloading openshift-client tool]"
+
+wget -q "$download_url" -O "$openshift_client"
+run_command "[download openshift-client tool]"
+
+# Extract the downloaded tarball to /usr/local/bin/
+sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
+run_command "[install openshift-client tool]"
+
+sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
+run_command "[modify /usr/local/bin/oc permissions]"
+
+sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
+run_command "[modify /usr/local/bin/kubectl permissions]"
+
+sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
+sudo rm -rf $openshift_client >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
 
-# Step 3:
+# Step 4:
 PRINT_TASK "TASK [Create openshift cluster]"
 
 # Check if the SSH key exists
@@ -328,7 +280,7 @@ done
 echo
 
 
-# Step 4:
+# Step 5:
 PRINT_TASK "TASK [Create htpasswd User]"
 # kubeconfig login:
 rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
@@ -375,7 +327,7 @@ run_command "[grant cluster-admin permissions to the admin user]"
 
 sleep 15
 
-# Step 5:
+# Step 6:
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Wait for OpenShift authentication pods to be in 'Running' state
@@ -502,7 +454,33 @@ done
 # Add an empty line after the task
 echo
 
-# Step 6:
+# Step 7:
+PRINT_TASK "TASK [Add node entry to /etc/hosts file]"
+
+# Collect the list of node hostnames to sync
+HOSTNAMES=( $(
+  oc get node -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{" "}{.metadata.name}{"\n"}{end}' \
+    | awk '{print $2}'
+) )
+
+# Remove any existing entries for these hostnames in /etc/hosts
+for name in "${HOSTNAMES[@]}"; do
+  sudo sed -i "/[[:space:]]${name}$/d" "/etc/hosts"
+done
+
+# Generate the latest IP→hostname mappings and append them to /etc/hosts
+{
+  oc get node -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{" "}{.metadata.name}{"\n"}{end}' \
+    | while read -r IP NAME; do
+        [[ -z "$IP" ]] && continue
+        printf "%-15s %s\n" "$IP" "$NAME"
+      done
+} | sudo tee -a "/etc/hosts" >/dev/null
+
+# Add an empty line after the task
+echo
+
+# Step 8:
 PRINT_TASK "TASK [Login cluster information]"
 
 echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
