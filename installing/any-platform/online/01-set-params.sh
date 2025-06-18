@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Specify the OpenShift release version
-export OCP_RELEASE_VERSION="4.16.26"
+export OCP_VERSION="4.16.26"
 
 # Specify required parameters for install-config.yaml
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
@@ -101,7 +101,7 @@ check_variable() {
 
 # Check all variables that need validation
 check_all_variables() {
-    check_variable "OCP_RELEASE_VERSION"
+    check_variable "OCP_VERSION"
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
