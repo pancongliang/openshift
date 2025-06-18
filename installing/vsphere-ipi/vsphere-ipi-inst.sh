@@ -108,7 +108,7 @@ sudo rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
 # Download the openshift-install
 echo "info: [downloading openshift-install tool]"
 
-wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
+wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
 run_command "[download openshift-install tool]"
 
 sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
