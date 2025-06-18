@@ -6,7 +6,7 @@ set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
+export INSTALL_DIR="$HOME/aws-ipi/ocp"
 export AWS_ACCESS_KEY_ID="xxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxx"
 
@@ -53,5 +53,5 @@ echo
 PRINT_TASK "TASK [Uninstalling a cluster]"
 
 echo "info: [uninstalling the cluster, waiting...]"
-/usr/local/bin/openshift-install destroy cluster --dir $OCP_INSTALL_DIR --log-level info
+/usr/local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
 run_command "[uninstalled cluster]"
