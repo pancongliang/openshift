@@ -63,9 +63,6 @@ run_command "[add api entry to /etc/hosts file]"
 # Add an empty line after the task
 echo
 
-# Add an empty line after the task
-echo
-
 # Step 1:
 PRINT_TASK "TASK [Trust the vCenter certificate]"
 
