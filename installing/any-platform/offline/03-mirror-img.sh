@@ -63,15 +63,15 @@ mirror:
   platform:
     channels:
       - name: stable-${OCP_RELEASE_CHANNEL}
-        minVersion: ${OCP_RELEASE_VERSION}
-        maxVersion: ${OCP_RELEASE_VERSION}
+        minVersion: ${OCP]_VERSION}
+        maxVersion: ${OCP]_VERSION}
         shortestPath: true
 EOF
 run_command "[create ${IMAGE_SET_CONF_PATH}/imageset-config.yaml file]"
 
 # Mirroring ocp release image
 /usr/local/bin/oc-mirror --config=${IMAGE_SET_CONF_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
-run_command "[mirroring ocp ${OCP_RELEASE_VERSION} release image]"
+run_command "[mirroring ocp ${OCP]_VERSION} release image]"
 
 # Remove the temporary file
 # rm -f "${PULL_SECRET_FILE}"
