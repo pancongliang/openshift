@@ -7,7 +7,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export OCP_VERSION=4.16.20
-export OCP_INSTALL_DIR="$HOME/aws-ipi/ocp"
+export INSTALL_DIR="$HOME/aws-ipi/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
 export PULL_SECRET_PATH="$HOME/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp4"
@@ -170,19 +170,20 @@ echo
 PRINT_TASK "TASK [Create openshift cluster]"
 
 # Check if the SSH key exists
-if [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
-    rm -rf ${SSH_KEY_PATH}
-    ssh-keygen -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    run_command "[generate ssh keys]"
+if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
+    rm -rf ${SSH_KEY_PATH} 
+    mkdir -p ${SSH_KEY_PATH}
+    ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
+    echo "ok: [create ssh-key for accessing coreos]"
 else
     echo "info: [ssh key already exists, skip generation]"
 fi
 
-sudo rm -rf $OCP_INSTALL_DIR >/dev/null 2>&1 || true
-mkdir -p $OCP_INSTALL_DIR >/dev/null 2>&1
-run_command "[create install dir: $OCP_INSTALL_DIR]"
+sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
+mkdir -p $INSTALL_DIR >/dev/null 2>&1
+run_command "[create install dir: $INSTALL_DIR]"
 
-cat << EOF > $OCP_INSTALL_DIR/install-config.yaml 
+cat << EOF > $INSTALL_DIR/install-config.yaml 
 additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
@@ -226,13 +227,13 @@ echo "ok: [installing the OpenShift cluster]"
 
 export PATH="/usr/local/bin:$PATH"
 
-/usr/local/bin/openshift-install create cluster --dir "$OCP_INSTALL_DIR" --log-level=info
+/usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "[install OpenShift AWS IPI completed]"
 
 # Check cluster operator status
 progress_started=false
 while true; do
-    operator_status=$(/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(/usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
@@ -258,19 +259,19 @@ echo
 # Step 4:
 PRINT_TASK "TASK [Create htpasswd User]"
 
-rm -rf $OCP_INSTALL_DIR/users.htpasswd
-echo 'admin:$2y$05$.9uG3eMC1vrnhLIj8.v.POcGpFEN/STrpOw7yGQ5dnMmLbrKVVCmu' > $OCP_INSTALL_DIR/users.htpasswd
+rm -rf $INSTALL_DIR/users.htpasswd
+echo 'admin:$2y$05$.9uG3eMC1vrnhLIj8.v.POcGpFEN/STrpOw7yGQ5dnMmLbrKVVCmu' > $INSTALL_DIR/users.htpasswd
 run_command "[create a user using the htpasswd tool]"
 
 sleep 10
 
-/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$OCP_INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
+/usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
 run_command "[create a secret using the users.htpasswd file]"
 
-rm -rf $OCP_INSTALL_DIR/users.htpasswd
+rm -rf $INSTALL_DIR/users.htpasswd
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
-cat  <<EOF | /usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
+cat  <<EOF | /usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig apply -f - > /dev/null 2>&1
 apiVersion: config.openshift.io/v1
 kind: OAuth
 metadata:
@@ -287,7 +288,7 @@ EOF
 run_command "[setting up htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
-/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1
+/usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1
 run_command "[grant cluster-admin permissions to the admin user]"
 
 echo "info: [restarting oauth pod, waiting...]"
@@ -296,7 +297,7 @@ sleep 100
 # Check cluster operator status
 progress_started=false
 while true; do
-    operator_status=$(/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
+    operator_status=$(/usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig get co --no-headers | awk '{print $3, $4, $5}')
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
@@ -320,7 +321,7 @@ done
 progress_started=false
 
 while true; do
-    mcp_status=$(/usr/local/bin/oc --kubeconfig=$OCP_INSTALL_DIR/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
+    mcp_status=$(/usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig get mcp --no-headers | awk '{print $3, $4, $5}')
 
     if echo "$mcp_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
@@ -355,7 +356,7 @@ echo
 PRINT_TASK "TASK [Login cluster information]"
 
 echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
-echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=$OCP_INSTALL_DIR/auth/kubeconfig]"
+echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig]"
 
 # Add an empty line after the task
 echo
