@@ -15,6 +15,7 @@ export PASSWORD=""
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
 export MACHINE_NETWORK_CIDR="10.184.134.0/24"
+export WORKER_REPLICAS="3"
 
 export INSTALL_DIR="$HOME/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
@@ -180,7 +181,7 @@ compute:
   hyperthreading: Enabled
   name: worker
   platform: {}
-  replicas: 2
+  replicas: $WORKER_REPLICAS
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
