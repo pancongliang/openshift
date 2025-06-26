@@ -20,6 +20,8 @@
 * Create an IngressNodeFirewallConfig custom resource:
 
   ```
+  oc get nodes -o name | xargs -I {} oc label {} ingressnodefirewall.openshift.io/openshift-ingress-node-firewall=''
+  
   cat << EOF | oc apply -f -
   apiVersion: ingressnodefirewall.openshift.io/v1alpha1
   kind: IngressNodeFirewallConfig
@@ -28,7 +30,7 @@
     namespace: openshift-ingress-node-firewall
   spec:
     nodeSelector:
-      node-role.kubernetes.io/worker: ""
+      ingressnodefirewall.openshift.io/openshift-ingress-node-firewall: ""
   EOF
   ```
 
@@ -46,7 +48,7 @@
    - ens33 
    nodeSelector:
      matchLabels:
-       node-role.kubernetes.io/worker: ""
+       ingressnodefirewall.openshift.io/openshift-ingress-node-firewall: ""
    ingress:
    - sourceCIDRs:
      - 0.0.0.0/0
@@ -71,7 +73,7 @@
       - ens33 
     nodeSelector:
       matchLabels:
-        node-role.kubernetes.io/worker: ""
+        ingressnodefirewall.openshift.io/openshift-ingress-node-firewall: ""
     ingress:
       - sourceCIDRs:
           - 10.184.134.243/32
@@ -106,7 +108,7 @@
       - ens33 
     nodeSelector:
       matchLabels:
-        node-role.kubernetes.io/worker: ""
+        ingressnodefirewall.openshift.io/openshift-ingress-node-firewall: ""
     ingress:
       - sourceCIDRs:
           - 10.184.134.243/32
@@ -141,7 +143,7 @@
     - ens33
     nodeSelector:
       matchLabels:
-        node-role.kubernetes.io/worker: ""
+        ingressnodefirewall.openshift.io/openshift-ingress-node-firewall: ""
     ingress:
     - sourceCIDRs:
       - 0.0.0.0/0
