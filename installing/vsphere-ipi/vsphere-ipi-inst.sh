@@ -9,7 +9,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 export OCP_VERSION=4.18.10
 export PULL_SECRET_PATH="$HOME/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="copan"
-export BASE_DOMAIN="example.com"
+export BASE_DOMAIN="ocp.test"
 export USERNAME=""
 export PASSWORD=""
 export API_VIPS="10.184.134.15"
