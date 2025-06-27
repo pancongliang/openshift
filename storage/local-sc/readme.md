@@ -23,9 +23,9 @@
 
 - Run the script on the bastion machine to find the disk device path
   ```
-  curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/discover-block-device.sh
+  curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/discover-unused-disk.sh
 
-  sh discover-block-device.sh sd*
+  sh discover-unused-disk.sh sd*
   ```
 
 - Set the device path variables to ensure that each path is unique. If the variables are the same, apply only one
