@@ -6,12 +6,12 @@ set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export OCP_VERSION=4.18.10
+export OCP_VERSION=4.15.35
 export PULL_SECRET_PATH="$HOME/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
-export USERNAME=""
-export PASSWORD=""
+export VCENTER_USERNAME="xxx"
+export VCENTER_PASSWORD="xxx"
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
 export MACHINE_NETWORK_CIDR="10.184.134.0/24"
@@ -48,23 +48,6 @@ run_command() {
 }
 
 # Step 1:
-PRINT_TASK "TASK [Add API entry to /etc/hosts file]"
-
-# Delete old records
-sudo sed -i "/api.$CLUSTER_NAME.$BASE_DOMAIN/d;
-        /oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN/d" /etc/hosts
-
-# OpenShift Node Hostname Resolve
-{
-  printf "%-15s %s\n" "$API_VIPS"         "api.$CLUSTER_NAME.$BASE_DOMAIN"
-  printf "%-15s %s\n" "$INGRESS_VIPS"     "oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN"
-} | sudo tee -a /etc/hosts >/dev/null
-run_command "[add api entry to /etc/hosts file]"
-
-# Add an empty line after the task
-echo
-
-# Step 2:
 PRINT_TASK "TASK [Trust the vCenter certificate]"
 
 # delete credentials
@@ -94,8 +77,8 @@ sudo rm -rf vc_certs
 echo
 
 
-# Step 3:
-PRINT_TASK "TASK [Install openshift-install and openshift client tools]"
+# Step 2:
+PRINT_TASK "TASK [Install openshift-install and openshift-client tools]"
 
 # Delete the old version of oc cli
 sudo rm -f /usr/local/bin/oc* >/dev/null 2>&1
@@ -155,8 +138,19 @@ sudo rm -rf $openshift_client >/dev/null 2>&1
 # Add an empty line after the task
 echo
 
-# Step 4:
+# Step 3:
 PRINT_TASK "TASK [Create openshift cluster]"
+
+# Delete old records
+sudo sed -i "/api.$CLUSTER_NAME.$BASE_DOMAIN/d;
+        /oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN/d" /etc/hosts
+
+# OpenShift Node Hostname Resolve
+{
+  printf "%-15s %s\n" "$API_VIPS"         "api.$CLUSTER_NAME.$BASE_DOMAIN"
+  printf "%-15s %s\n" "$INGRESS_VIPS"     "oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN"
+} | sudo tee -a /etc/hosts >/dev/null
+run_command "[add api and oauth entry to /etc/hosts file]"
 
 # Check if the SSH key exists
 if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
@@ -221,10 +215,10 @@ platform:
     vcenters:
     - datacenters:
       - ceedatacenter
-      password: $PASSWORD
+      password: $VCENTER_PASSWORD
       port: 443
       server: $VCENTER
-      user: $USERNAME
+      user: $VCENTER_USERNAME
 publish: External
 pullSecret: '$(cat $PULL_SECRET_PATH)'
 sshKey: |
@@ -281,9 +275,9 @@ done
 # Add an empty line after the task
 echo
 
+# Step 4:
+PRINT_TASK "TASK [Set up kubeconfig for automatic login and create an htpasswd user]"
 
-# Step 5:
-PRINT_TASK "TASK [Create htpasswd User]"
 # kubeconfig login:
 rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
 cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
@@ -323,17 +317,7 @@ spec:
 EOF
 run_command "[setting up htpasswd authentication]"
 
-# Grant the 'cluster-admin' cluster role to the user 'admin'
-/usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1 || true
-run_command "[grant cluster-admin permissions to the admin user]"
-
-# Add an empty line after the task
-echo
-
 sleep 15
-
-# Step 6:
-PRINT_TASK "TASK [Checking the cluster status]"
 
 # Wait for OpenShift authentication pods to be in 'Running' state
 export AUTH_NAMESPACE="openshift-authentication"
@@ -375,8 +359,15 @@ while true; do
     fi
 done
 
+# Grant the 'cluster-admin' cluster role to the user 'admin'
+/usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1 || true
+run_command "[grant cluster-admin permissions to the admin user]"
+
 # Add an empty line after the task
 echo
+
+# Step 5:
+PRINT_TASK "TASK [Checking the openshift cluster status]"
 
 # Check cluster operator status
 MAX_RETRIES=60
@@ -459,7 +450,7 @@ done
 # Add an empty line after the task
 echo
 
-# Step 7:
+# Step 6:
 PRINT_TASK "TASK [Add node entry to /etc/hosts file]"
 
 # Delete all master and worker node entries matching the cluster name from /etc/hosts
@@ -479,8 +470,8 @@ run_command "[generate the latest IP and hostname mappings and append them to /e
 # Add an empty line after the task
 echo
 
-# Step 8:
-PRINT_TASK "TASK [Login cluster information]"
+# Step 7:
+PRINT_TASK "TASK [Login openshift cluster information]"
 
 echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig]"
