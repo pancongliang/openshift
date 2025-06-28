@@ -462,16 +462,8 @@ echo
 # Step 7:
 PRINT_TASK "TASK [Add node entry to /etc/hosts file]"
 
-# Collect the list of node hostnames to sync
-HOSTNAMES=( $(
-  oc get node -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{" "}{.metadata.name}{"\n"}{end}' \
-    | awk '{print $2}'
-) )
-
-# Remove any existing entries for these hostnames in /etc/hosts
-for name in "${HOSTNAMES[@]}"; do
-  sudo sed -i "/[[:space:]]${name}$/d" "/etc/hosts"
-done
+# Delete all master and worker node entries matching the cluster name from /etc/hosts
+sudo sed -i "/${CLUSTER_NAME}-.*-master-.*$/d; /${CLUSTER_NAME}-.*-worker-.*$/d" /etc/hosts
 run_command "[delete the entry with the same host name as the node in /etc/hosts]"
 
 # Generate the latest IP→hostname mappings and append them to /etc/hosts
