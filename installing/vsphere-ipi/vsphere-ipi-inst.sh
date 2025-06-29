@@ -455,7 +455,7 @@ echo
 PRINT_TASK "TASK [Add node entry to /etc/hosts file]"
 
 # Delete all master and worker node entries matching the cluster name from /etc/hosts
-export NODE_ANNOTATION="Openshift vSphere-IPI URL Resolve"
+export NODE_ANNOTATION="Openshift vSphere-IPI Node Resolve"
 sudo sed -i "/# ${NODE_ANNOTATION}/d; /${CLUSTER_NAME}-.*-master-.*$/d; /${CLUSTER_NAME}-.*-worker-.*$/d" /etc/hosts
 run_command "[delete the entry with the same host name as the node in /etc/hosts]"
 
