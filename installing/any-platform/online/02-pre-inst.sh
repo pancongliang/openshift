@@ -655,7 +655,10 @@ else
 fi
 
 # Delete old records
-sed -i "/${BOOTSTRAP_HOSTNAME}/d;
+COMMENT_TAG="Openshift UPI Node Resolve"
+
+sed -i "/# ${COMMENT_TAG}/d;
+        /${BOOTSTRAP_HOSTNAME}/d;
         /${MASTER01_HOSTNAME}/d;
         /${MASTER02_HOSTNAME}/d;
         /${MASTER03_HOSTNAME}/d;
@@ -665,6 +668,8 @@ sed -i "/${BOOTSTRAP_HOSTNAME}/d;
 
 # OpenShift Node Hostname Resolve
 {
+  echo ""
+  echo "# ${COMMENT_TAG}"
   printf "%-15s %s\n" "${BOOTSTRAP_IP}"    "${BOOTSTRAP_HOSTNAME}"
   printf "%-15s %s\n" "${MASTER01_IP}"     "${MASTER01_HOSTNAME}"
   printf "%-15s %s\n" "${MASTER02_IP}"     "${MASTER02_HOSTNAME}"
@@ -672,6 +677,7 @@ sed -i "/${BOOTSTRAP_HOSTNAME}/d;
   printf "%-15s %s\n" "${WORKER01_IP}"     "${WORKER01_HOSTNAME}"
   printf "%-15s %s\n" "${WORKER02_IP}"     "${WORKER02_HOSTNAME}"
   printf "%-15s %s\n" "${WORKER03_IP}"     "${WORKER03_HOSTNAME}"
+  echo ""
 } | tee -a /etc/hosts >/dev/null
 run_command "[add hostname and ip to /etc/hosts]"
 
