@@ -661,7 +661,10 @@ else
 fi
 
 # Delete old records
-sed -i "/${BOOTSTRAP_HOSTNAME}/d;
+COMMENT_TAG="Openshift UPI Node Resolve"
+
+sed -i "/# ${COMMENT_TAG}/d;
+        /${BOOTSTRAP_HOSTNAME}/d;
         /${MASTER01_HOSTNAME}/d;
         /${MASTER02_HOSTNAME}/d;
         /${MASTER03_HOSTNAME}/d;
@@ -671,6 +674,7 @@ sed -i "/${BOOTSTRAP_HOSTNAME}/d;
 
 # OpenShift Node Hostname Resolve
 {
+  echo "# ${COMMENT_TAG}"
   printf "%-15s %s\n" "${BOOTSTRAP_IP}"    "${BOOTSTRAP_HOSTNAME}"
   printf "%-15s %s\n" "${MASTER01_IP}"     "${MASTER01_HOSTNAME}"
   printf "%-15s %s\n" "${MASTER02_IP}"     "${MASTER02_HOSTNAME}"
