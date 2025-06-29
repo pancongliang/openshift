@@ -655,9 +655,9 @@ else
 fi
 
 # Delete old records
-COMMENT_TAG="Openshift UPI Node Resolve"
+export NODE_ANNOTATION="Openshift UPI Node Resolve"
 
-sed -i "/# ${COMMENT_TAG}/d;
+sed -i "/# ${NODE_ANNOTATION}/d;
         /${BOOTSTRAP_HOSTNAME}/d;
         /${MASTER01_HOSTNAME}/d;
         /${MASTER02_HOSTNAME}/d;
@@ -668,7 +668,7 @@ sed -i "/# ${COMMENT_TAG}/d;
 
 # OpenShift Node Hostname Resolve
 {
-  echo "# ${COMMENT_TAG}"
+  echo "# ${NODE_ANNOTATION}"
   printf "%-15s %s\n" "${BOOTSTRAP_IP}"    "${BOOTSTRAP_HOSTNAME}"
   printf "%-15s %s\n" "${MASTER01_IP}"     "${MASTER01_HOSTNAME}"
   printf "%-15s %s\n" "${MASTER02_IP}"     "${MASTER02_HOSTNAME}"
