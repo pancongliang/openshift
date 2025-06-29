@@ -142,11 +142,12 @@ echo
 PRINT_TASK "TASK [Create openshift cluster]"
 
 # Delete old records
-sudo sed -i "/api.$CLUSTER_NAME.$BASE_DOMAIN/d;
-        /oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN/d" /etc/hosts
+export API_OAUTH_ANNOTATION="Openshift vSphere-IPI API and OAUTH URL Resolve"
+sudo sed -i "/# ${API_OAUTH_ANNOTATION}/d; /api.$CLUSTER_NAME.$BASE_DOMAIN/d; /oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN/d" /etc/hosts
 
 # OpenShift Node Hostname Resolve
 {
+  echo "# ${API_OAUTH_ANNOTATION}"
   printf "%-15s %s\n" "$API_VIPS"         "api.$CLUSTER_NAME.$BASE_DOMAIN"
   printf "%-15s %s\n" "$INGRESS_VIPS"     "oauth-openshift.apps.$CLUSTER_NAME.$BASE_DOMAIN"
 } | sudo tee -a /etc/hosts >/dev/null
@@ -454,17 +455,19 @@ echo
 PRINT_TASK "TASK [Add node entry to /etc/hosts file]"
 
 # Delete all master and worker node entries matching the cluster name from /etc/hosts
-sudo sed -i "/${CLUSTER_NAME}-.*-master-.*$/d; /${CLUSTER_NAME}-.*-worker-.*$/d" /etc/hosts
+export NODE_ANNOTATION="Openshift vSphere-IPI URL Resolve"
+sudo sed -i "/# ${NODE_ANNOTATION}/d; /${CLUSTER_NAME}-.*-master-.*$/d; /${CLUSTER_NAME}-.*-worker-.*$/d" /etc/hosts
 run_command "[delete the entry with the same host name as the node in /etc/hosts]"
 
 # Generate the latest IP→hostname mappings and append them to /etc/hosts
 {
-  oc get node -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{" "}{.metadata.name}{"\n"}{end}' \
+  echo "# ${NODE_ANNOTATION}"
+  /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get node -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{" "}{.metadata.name}{"\n"}{end}' \
     | while read -r IP NAME; do
         [[ -z "$IP" ]] && continue
         printf "%-15s %s\n" "$IP" "$NAME"
       done
-} | sudo tee -a "/etc/hosts" >/dev/null
+} | sudo tee -a /etc/hosts >/dev/null
 run_command "[generate the latest IP and hostname mappings and append them to /etc/hosts]"
 
 # Add an empty line after the task
