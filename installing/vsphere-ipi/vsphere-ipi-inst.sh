@@ -16,6 +16,7 @@ export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
 export MACHINE_NETWORK_CIDR="10.184.134.0/24"
 export WORKER_REPLICAS="3"
+export NETWORK_TYPE="OVNKubernetes"
 
 export INSTALL_DIR="$HOME/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
@@ -192,7 +193,7 @@ networking:
     hostPrefix: 23
   machineNetwork:
   - cidr: "$MACHINE_NETWORK_CIDR"
-  networkType: OVNKubernetes
+  networkType: $NETWORK_TYPE
   serviceNetwork:
   - 172.30.0.0/16
 platform:
