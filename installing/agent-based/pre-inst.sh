@@ -3,7 +3,7 @@
 # Specify required parameters for install-config.yaml
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.lan"
-export MACHINE_NETWORK_CIDR="10.184.134.1/24"
+export MACHINE_NETWORK_CIDR="10.184.134.0/24"
 export PULL_SECRET_FILE="$HOME/pull-secret"
 
 # Specify the OpenShift node infrastructure network configuration and installation disk
@@ -775,7 +775,7 @@ metadata:
 networking:
   clusterNetwork:
   - cidr: "10.128.0.0/14"
-    hostPrefix: "23"
+    hostPrefix: 23
   networkType: "OVNKubernetes"
   serviceNetwork: 
   - "172.30.0.0/16"
