@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Specify required parameters for install-config.yaml
-export CLUSTER_NAME="abi-ocp"
-export BASE_DOMAIN="example.com"
+export CLUSTER_NAME="copan"
+export BASE_DOMAIN="ocp.lan"
 export MACHINE_NETWORK_CIDR="10.184.134.1/24"
 export PULL_SECRET_FILE="$HOME/pull-secret"
 
@@ -20,15 +20,15 @@ export MASTER03_HOSTNAME="master03"
 export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
 
-export MASTER01_IP="10.184.134.176"
-export MASTER02_IP="10.184.134.177"
-export MASTER03_IP="10.184.134.187"
-export WORKER01_IP="10.184.134.189"
-export WORKER02_IP="10.184.134.190"
+export MASTER01_IP="10.184.134.15"
+export MASTER02_IP="10.184.134.16"
+export MASTER03_IP="10.184.134.17"
+export WORKER01_IP="10.184.134.18"
+export WORKER02_IP="10.184.134.19"
 
-export MASTER01_MAC_ADDR="00:50:56:b0:26:c4"
-export MASTER02_MAC_ADDR="00:50:56:b0:38:c2"
-export MASTER03_MAC_ADDR="00:50:56:b0:b6:16"
+export MASTER01_MAC_ADDR="00:50:56:b0:e7:77"
+export MASTER02_MAC_ADDR="00:50:56:b0:3d:26"
+export MASTER03_MAC_ADDR="00:50:56:b0:f5:9f"
 export WORKER01_MAC_ADDR="00:50:56:b0:0c:d1"
 export WORKER02_MAC_ADDR="00:50:56:b0:72:a5"
 
