@@ -218,10 +218,10 @@ platform:
     vcenters:
     - datacenters:
       - $DATACENTERS
-      password: $VCENTER_PASSWORD
+      password: "$VCENTER_PASSWORD"
       port: 443
       server: $VCENTER
-      user: $VCENTER_USERNAME
+      user: "$VCENTER_USERNAME"
 publish: External
 pullSecret: '$(cat $PULL_SECRET_PATH)'
 sshKey: |
@@ -264,8 +264,8 @@ platform:
     defaultDatastore: ${DATASTORE##*/}
     ingressVIP: $INGRESS_VIPS
     network: $VM_NETWORKS
-    password: $VCENTER_PASSWORD
-    username: $VCENTER_USERNAME
+    password: "$VCENTER_PASSWORD"
+    username: "$VCENTER_USERNAME"
     vCenter: $VCENTER
 publish: External
 pullSecret: '$(cat $PULL_SECRET_PATH)'
