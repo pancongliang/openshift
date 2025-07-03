@@ -184,7 +184,7 @@ mkdir -p $INSTALL_DIR >/dev/null 2>&1
 run_command "[create install dir: $INSTALL_DIR]"
 
 cat << EOF > $INSTALL_DIR/install-config.yaml 
-additionalTrustBundlePolicy: Proxyonly
+#additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
 compute:
