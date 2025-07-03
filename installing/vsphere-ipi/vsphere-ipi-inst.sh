@@ -7,7 +7,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export OCP_VERSION=4.11.36                            # Only supports installation of version 4.10+
-export PULL_SECRET_PATH="$HOME/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxx"
