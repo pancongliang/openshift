@@ -10,8 +10,8 @@ export OCP_VERSION=4.14.50                              # Only supports installa
 export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"    # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
-export VCENTER_USERNAME="xxx"
-export VCENTER_PASSWORD="xxx"
+export VCENTER_USERNAME="xxxxx"
+export VCENTER_PASSWORD="xxxxx"
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
 export MACHINE_NETWORK_CIDR="10.184.134.0/24"
@@ -173,7 +173,18 @@ sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
 mkdir -p $INSTALL_DIR >/dev/null 2>&1
 run_command "[create install dir: $INSTALL_DIR]"
 
+# Extract the major and minor version numbers
+MAIN_MINOR_VERSION=$(echo "$OCP_VERSION" | awk -F. '{print $1"."$2}')
+
+# Determine whether featureSet needs to be added
+if [[ "$MAIN_MINOR_VERSION" == "4.14" || "$MAIN_MINOR_VERSION" == "4.15" ]]; then
+  FEATURE_SET_LINE="featureSet: TechPreviewNoUpgrade"
+else
+  FEATURE_SET_LINE=""
+fi
+
 cat << EOF > $INSTALL_DIR/install-config.yaml
+$FEATURE_SET_LINE
 additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
@@ -262,10 +273,10 @@ cat << EOF >> $INSTALL_DIR/install-config.yaml
     vcenters:
     - datacenters:
       - ceedatacenter
-      password: $VCENTER_PASSWORD
+      password: "$VCENTER_PASSWORD"
       port: 443
       server: $VCENTER
-      user: $VCENTER_USERNAME
+      user: "$VCENTER_USERNAME"
 publish: External
 pullSecret: '$(cat $PULL_SECRET_PATH)'
 sshKey: |
@@ -277,7 +288,7 @@ echo "ok: [installing the OpenShift cluster]"
 
 export PATH="/usr/local/bin:$PATH"
 
-/usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
+# /usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "[install OpenShift VMware IPI completed]"
 
 # Check cluster operator status
