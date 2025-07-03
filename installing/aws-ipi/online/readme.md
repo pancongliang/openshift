@@ -53,17 +53,6 @@ bash aws-ipi-uninst.sh
 
 ### Optional
 
-#### Replace instance type
-```
-# Instance Type # https://aws.amazon.com/cn/ec2/instance-types/   # Bare Metal: m5.metal
-export WORKER_INSTANCE_TYPE='m6i.xlarge'
-
-# oc get machinesets -n openshift-machine-api command confirms the machine of the instance to be replaced.
-export MACHINESET='xxxxx-xxxxx-worker-ap-northeast-1d'
-
-# Replace instance              
-sh <(curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-replace-instance.sh)
-```
 #### SSH OCP node
 ```
 curl https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-ssh-deploy.sh | bash
@@ -83,26 +72,4 @@ ssh ocp-bastion.sh
 # Run one by one 
 ls
 inst-ocp-tool.sh ocp-login.sh inst-registry.sh
-```
-
-#### Scheduled installation and uninstallation of OpenShift IPI
-```
-timedatectl set-timezone Asia/Shanghai
-hwclock --systohc
-mkdir -p /root/aws-ipi/logs && cd /root/aws-ipi/
-
-curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-inst.sh
-curl -sLO https://raw.githubusercontent.com/pancongliang/openshift/main/installing/aws-ipi/online/aws-ipi-uninst.sh
-
-#  Setting Environment Variables
-chmod 777 /root/aws-ipi/aws-ipi-inst.sh aws-ipi-uninst.sh
-vim /root/aws-ipi/aws-ipi-inst.sh
-vim /root/aws-ipi/aws-ipi-uninst.sh
-
-crontab -e
-# Scheduled installation and uninstallation of OpenShift IPI
-30 7 * * 1 /bin/bash /root/aws-ipi/aws-ipi-inst.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
-00 21 * * 3 /bin/bash /root/aws-ipi/aws-ipi-uninst.sh >> /root/aws-ipi/logs/uninst_`date '+\%m-\%d-\%Y'`.log 2>&1
-30 7 * * 4 /bin/bash /root/aws-ipi/aws-ipi-inst.sh >> /root/aws-ipi/logs/inst_`date '+\%m-\%d-\%Y'`.log 2>&1
-00 21 * * 5 /bin/bash /root/aws-ipi/aws-ipi-uninst.sh >> /root/aws-ipi/logs/uninst_`date '+\%m-\%d-\%Y'`.log 2>&1
 ```
