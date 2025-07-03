@@ -6,8 +6,8 @@ set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export OCP_VERSION=4.15.35                            # Only supports installation of version 4.13+
-export PULL_SECRET_PATH="$HOME/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export OCP_VERSION=4.14.50                              # Only supports installation of version 4.14+
+export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"    # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxx"
@@ -15,10 +15,15 @@ export VCENTER_PASSWORD="xxx"
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
 export MACHINE_NETWORK_CIDR="10.184.134.0/24"
-export WORKER_REPLICAS="3"
-export NETWORK_TYPE="OVNKubernetes"
+export CONTROL_PLANE_IPS=("10.184.134.202" "10.184.134.203" "10.184.134.204")
+export COMPUTE_IPS=("10.184.134.132" "10.184.134.134" "10.184.134.135")
+export BOOTSTRAP_IP="10.184.134.97"
+export GATEWAY="10.184.134.1"
+export NAMESERVER="10.184.134.128"
+export NETMASK="24"
 
-export INSTALL_DIR="$HOME/ocp"
+export NETWORK_TYPE="OVNKubernetes"
+export INSTALL_DIR="$HOME/ocp-inst/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
 export VCENTER="vcenter.cee.ibmc.devcluster.openshift.com"
 export DATACENTERS="ceedatacenter"
@@ -168,7 +173,7 @@ sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
 mkdir -p $INSTALL_DIR >/dev/null 2>&1
 run_command "[create install dir: $INSTALL_DIR]"
 
-cat << EOF > $INSTALL_DIR/install-config.yaml 
+cat << EOF > $INSTALL_DIR/install-config.yaml
 additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
@@ -177,13 +182,13 @@ compute:
   hyperthreading: Enabled
   name: worker
   platform: {}
-  replicas: $WORKER_REPLICAS
+  replicas: ${#COMPUTE_IPS[@]}
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
   platform: {}
-  replicas: 3
+  replicas: ${#CONTROL_PLANE_IPS[@]}
 metadata:
   creationTimestamp: null
   name: $CLUSTER_NAME
@@ -200,6 +205,48 @@ platform:
   vsphere:
     apiVIPs:
     - $API_VIPS
+    ingressVIPs:
+    - $INGRESS_VIPS
+    hosts:
+    - role: bootstrap
+      networkDevice:
+        ipAddrs:
+        - ${BOOTSTRAP_IP}/${NETMASK}
+        gateway: ${GATEWAY}
+        nameservers:
+        - ${NAMESERVER}
+EOF
+run_command "[create initial $INSTALL_DIR/install-config.yaml]"
+
+# Append control-plane nodes
+for ip in "${CONTROL_PLANE_IPS[@]}"; do
+cat << EOF >> $INSTALL_DIR/install-config.yaml
+    - role: control-plane
+      networkDevice:
+        ipAddrs:
+        - ${ip}/${NETMASK}
+        gateway: ${GATEWAY}
+        nameservers:
+        - ${NAMESERVER}
+EOF
+done
+run_command "[append control-plane nodes $INSTALL_DIR/install-config.yaml]"
+# Append compute nodes
+for ip in "${COMPUTE_IPS[@]}"; do
+cat << EOF >> $INSTALL_DIR/install-config.yaml
+    - role: compute
+      networkDevice:
+        ipAddrs:
+        - ${ip}/${NETMASK}
+        gateway: ${GATEWAY}
+        nameservers:
+        - ${NAMESERVER}
+EOF
+done
+run_command "[append compute nodes $INSTALL_DIR/install-config.yaml]"
+
+# Append compute nodes
+cat << EOF >> $INSTALL_DIR/install-config.yaml
     failureDomains:
     - name: generated-failure-domain
       region: generated-region
@@ -212,8 +259,6 @@ platform:
         - $VM_NETWORKS
         resourcePool: $RESOURCE_POOL
       zone: generated-zone
-    ingressVIPs:
-    - $INGRESS_VIPS
     vcenters:
     - datacenters:
       - ceedatacenter
@@ -226,7 +271,7 @@ pullSecret: '$(cat $PULL_SECRET_PATH)'
 sshKey: |
   $(cat $SSH_KEY_PATH/id_rsa.pub)
 EOF
-run_command "[create the install-config.yaml file]"
+run_command "[append remaining configuration $INSTALL_DIR/install-config.yaml]"
 
 echo "ok: [installing the OpenShift cluster]"
 
