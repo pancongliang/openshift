@@ -19,6 +19,13 @@ export MACHINE_NETWORK_CIDR="10.184.134.0/24"
 export WORKER_REPLICAS="3"
 export NETWORK_TYPE="OVNKubernetes"
 
+export WORKER_CPU_COUNT="10"
+export WORKER_MEMORY_MB="32768"
+export WORKER_DISK_SIZE="100"
+export MASTER_CPU_COUNT="4"
+export MASTER_MEMORY_MB="16384"
+export MASTER_DISK_SIZEE="100"
+
 export SSH_KEY_PATH="$HOME/.ssh"
 export VCENTER="vcenter.cee.ibmc.devcluster.openshift.com"
 export DATACENTERS="ceedatacenter"
