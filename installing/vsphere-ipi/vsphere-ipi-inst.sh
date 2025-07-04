@@ -6,7 +6,7 @@ set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export OCP_VERSION=4.11.36                            # Only supports installation of version 4.10+
+export OCP_VERSION=4.11.36                                     # Only supports installation of version 4.10+
 export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/ocp"
 export CLUSTER_NAME="copan"
@@ -19,12 +19,15 @@ export MACHINE_NETWORK_CIDR="10.184.134.0/24"
 export NETWORK_TYPE="OVNKubernetes"
 
 export WORKER_REPLICAS="3"
-export WORKER_CPU_COUNT="10"
+export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $CORES_PER_SOCKET
 export WORKER_MEMORY_MB="32768"
 export WORKER_DISK_SIZE="100"
-export CONTROL_PLANE_CPU_COUNT="4"
+export CONTROL_PLANE_CPU_COUNT="4"             # cpus must be a multiple of $CORES_PER_SOCKET
 export CONTROL_PLANE_MEMORY_MB="16384"
 export CONTROL_PLANE_DISK_SIZE="100"
+
+export WORKER_CORES_PER_SOCKET="4"
+export CONTROL_PLANE_CORES_PER_SOCKET="4"
 
 export SSH_KEY_PATH="$HOME/.ssh"
 export VCENTER="vcenter.cee.ibmc.devcluster.openshift.com"
@@ -187,7 +190,7 @@ compute:
   platform:
     vsphere:
       cpus: $WORKER_CPU_COUNT
-      corePerSocket: 1
+      coresPerSocket: $WORKER_CORES_PER_SOCKET
       memoryMB: $WORKER_MEMORY_MB
       osDisk:
         diskSizeGB: $WORKER_DISK_SIZE
@@ -199,7 +202,7 @@ controlPlane:
   platform:
     vsphere:
       cpus: $CONTROL_PLANE_CPU_COUNT
-      corePerSocket: 1
+      coresPerSocket: $CONTROL_PLANE_CORES_PER_SOCKET
       memoryMB: $CONTROL_PLANE_MEMORY_MB
       osDisk:
         diskSizeGB: $CONTROL_PLANE_DISK_SIZE
@@ -258,7 +261,7 @@ compute:
   platform:
     vsphere:
       cpus: $WORKER_CPU_COUNT
-      corePerSocket: 1
+      coresPerSocket: $WORKER_CORES_PER_SOCKET
       memoryMB: $WORKER_MEMORY_MB
       osDisk:
         diskSizeGB: $WORKER_DISK_SIZE
@@ -270,7 +273,7 @@ controlPlane:
   platform:
     vsphere:
       cpus: $CONTROL_PLANE_CPU_COUNT
-      corePerSocket: 1
+      coresPerSocket: $CONTROL_PLANE_CORES_PER_SOCKET
       memoryMB: $CONTROL_PLANE_MEMORY_MB
       osDisk:
         diskSizeGB: $CONTROL_PLANE_DISK_SIZE
