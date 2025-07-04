@@ -8,6 +8,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 # Set environment variables
 export OCP_VERSION=4.11.36                            # Only supports installation of version 4.10+
 export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export INSTALL_DIR="$HOME/ocp-inst/ocp"
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxx"
@@ -18,7 +19,6 @@ export MACHINE_NETWORK_CIDR="10.184.134.0/24"
 export WORKER_REPLICAS="3"
 export NETWORK_TYPE="OVNKubernetes"
 
-export INSTALL_DIR="$HOME/ocp-inst/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
 export VCENTER="vcenter.cee.ibmc.devcluster.openshift.com"
 export DATACENTERS="ceedatacenter"
@@ -177,13 +177,25 @@ compute:
 - architecture: amd64
   hyperthreading: Enabled
   name: worker
-  platform: {}
+  platform:
+    vsphere:
+      cpus: $WORKER_CPU_COUNT
+      corePerSocket: 1
+      memoryMB: $WORKER_MEMORY_MB
+      osDisk:
+        diskSizeGB: $WORKER_DISK_SIZE
   replicas: $WORKER_REPLICAS
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
-  platform: {}
+  platform:
+    vsphere:
+      cpus: $MASTER_CPU_COUNT
+      corePerSocket: 1
+      memoryMB: $MASTER_MEMORY_MB
+      osDisk:
+        diskSizeGB: $MASTER_DISK_SIZE
   replicas: 3
 metadata:
   creationTimestamp: null
@@ -236,13 +248,25 @@ compute:
 - architecture: amd64
   hyperthreading: Enabled
   name: worker
-  platform: {}
+  platform:
+    vsphere:
+      cpus: $WORKER_CPU_COUNT
+      corePerSocket: 1
+      memoryMB: $WORKER_MEMORY_MB
+      osDisk:
+        diskSizeGB: $WORKER_DISK_SIZE
   replicas: $WORKER_REPLICAS
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
-  platform: {}
+  platform:
+    vsphere:
+      cpus: $MASTER_CPU_COUNT
+      corePerSocket: 1
+      memoryMB: $MASTER_MEMORY_MB
+      osDisk:
+        diskSizeGB: $MASTER_DISK_SIZE
   replicas: 3
 metadata:
   creationTimestamp: null
