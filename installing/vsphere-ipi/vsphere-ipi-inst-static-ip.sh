@@ -23,10 +23,10 @@ export GATEWAY="10.184.134.1"
 export NAMESERVER="10.184.134.128"
 export NETMASK="24"
 
-export WORKER_CPU_COUNT="10"
+export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $CORES_PER_SOCKET
 export WORKER_MEMORY_MB="32768"
 export WORKER_DISK_SIZE="100"
-export CONTROL_PLANE_CPU_COUNT="4"
+export CONTROL_PLANE_CPU_COUNT="4"             # cpus must be a multiple of $CORES_PER_SOCKET
 export CONTROL_PLANE_MEMORY_MB="16384"
 export CONTROL_PLANE_DISK_SIZE="100"
 
@@ -205,7 +205,7 @@ compute:
   platform:
     vsphere:
       cpus: $WORKER_CPU_COUNT
-      corePerSocket: 1
+      corePerSocket: $WORKER_CORES_PER_SOCKET
       memoryMB: $WORKER_MEMORY_MB
       osDisk:
         diskSizeGB: $WORKER_DISK_SIZE
@@ -217,7 +217,7 @@ controlPlane:
   platform:
     vsphere:
       cpus: $CONTROL_PLANE_CPU_COUNT
-      corePerSocket: 1
+      corePerSocket: $CONTROL_PLANE_CORES_PER_SOCKET
       memoryMB: $CONTROL_PLANE_MEMORY_MB
       osDisk:
         diskSizeGB: $CONTROL_PLANE_DISK_SIZE
