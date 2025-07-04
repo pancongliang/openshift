@@ -17,7 +17,7 @@ export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
 export MACHINE_NETWORK_CIDR="10.184.134.0/24"
 export CONTROL_PLANE_IPS=("10.184.134.202" "10.184.134.203" "10.184.134.204")
-export COMPUTE_IPS=("10.184.134.132" "10.184.134.134" "10.184.134.135")     # Enter the IP according to the number of working nodes
+export WORKER_IPS=("10.184.134.132" "10.184.134.134" "10.184.134.135")     # Enter the IP according to the number of worker nodes
 export BOOTSTRAP_IP="10.184.134.97"
 export GATEWAY="10.184.134.1"
 export NAMESERVER="10.184.134.128"
@@ -26,9 +26,9 @@ export NETMASK="24"
 export WORKER_CPU_COUNT="10"
 export WORKER_MEMORY_MB="32768"
 export WORKER_DISK_SIZE="100"
-export MASTER_CPU_COUNT="4"
-export MASTER_MEMORY_MB="16384"
-export MASTER_DISK_SIZEE="100"
+export CONTROL_PLANE_CPU_COUNT="4"
+export CONTROL_PLANE_MEMORY_MB="16384"
+export CONTROL_PLANE_DISK_SIZE="100"
 
 export NETWORK_TYPE="OVNKubernetes"
 export SSH_KEY_PATH="$HOME/.ssh"
@@ -206,18 +206,18 @@ compute:
       memoryMB: $WORKER_MEMORY_MB
       osDisk:
         diskSizeGB: $WORKER_DISK_SIZE
-  replicas: ${#COMPUTE_IPS[@]}
+  replicas: ${#WORKER_IPS[@]}
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
   platform:
     vsphere:
-      cpus: $MASTER_CPU_COUNT
+      cpus: $CONTROL_PLANE_CPU_COUNT
       corePerSocket: 1
-      memoryMB: $MASTER_MEMORY_MB
+      memoryMB: $CONTROL_PLANE_MEMORY_MB
       osDisk:
-        diskSizeGB: $MASTER_DISK_SIZE
+        diskSizeGB: $CONTROL_PLANE_DISK_SIZE
   replicas: ${#CONTROL_PLANE_IPS[@]}
 metadata:
   creationTimestamp: null
@@ -262,7 +262,7 @@ EOF
 done
 run_command "[append control-plane nodes $INSTALL_DIR/install-config.yaml]"
 # Append compute nodes
-for ip in "${COMPUTE_IPS[@]}"; do
+for ip in "${WORKER_IPS[@]}"; do
 cat << EOF >> $INSTALL_DIR/install-config.yaml
     - role: compute
       networkDevice:
