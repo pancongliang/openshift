@@ -22,9 +22,9 @@ export WORKER_REPLICAS="3"
 export WORKER_CPU_COUNT="10"
 export WORKER_MEMORY_MB="32768"
 export WORKER_DISK_SIZE="100"
-export MASTER_CPU_COUNT="4"
-export MASTER_MEMORY_MB="16384"
-export MASTER_DISK_SIZEE="100"
+export CONTROL_PLANE_CPU_COUNT="4"
+export CONTROL_PLANE_MEMORY_MB="16384"
+export CONTROL_PLANE_DISK_SIZE="100"
 
 export SSH_KEY_PATH="$HOME/.ssh"
 export VCENTER="vcenter.cee.ibmc.devcluster.openshift.com"
@@ -198,11 +198,11 @@ controlPlane:
   name: master
   platform:
     vsphere:
-      cpus: $MASTER_CPU_COUNT
+      cpus: $CONTROL_PLANE_CPU_COUNT
       corePerSocket: 1
-      memoryMB: $MASTER_MEMORY_MB
+      memoryMB: $CONTROL_PLANE_MEMORY_MB
       osDisk:
-        diskSizeGB: $MASTER_DISK_SIZE
+        diskSizeGB: $CONTROL_PLANE_DISK_SIZE
   replicas: 3
 metadata:
   creationTimestamp: null
@@ -269,11 +269,11 @@ controlPlane:
   name: master
   platform:
     vsphere:
-      cpus: $MASTER_CPU_COUNT
+      cpus: $CONTROL_PLANE_CPU_COUNT
       corePerSocket: 1
-      memoryMB: $MASTER_MEMORY_MB
+      memoryMB: $CONTROL_PLANE_MEMORY_MB
       osDisk:
-        diskSizeGB: $MASTER_DISK_SIZE
+        diskSizeGB: $CONTROL_PLANE_DISK_SIZE
   replicas: 3
 metadata:
   creationTimestamp: null
