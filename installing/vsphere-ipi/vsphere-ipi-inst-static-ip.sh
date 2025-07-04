@@ -8,6 +8,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 # Set environment variables
 export OCP_VERSION=4.14.50                              # Only supports installation of version 4.14+
 export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"    # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export INSTALL_DIR="$HOME/ocp-inst/ocp"
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxxxx"
@@ -22,8 +23,14 @@ export GATEWAY="10.184.134.1"
 export NAMESERVER="10.184.134.128"
 export NETMASK="24"
 
+export WORKER_CPU_COUNT="10"
+export WORKER_MEMORY_MB="32768"
+export WORKER_DISK_SIZE="100"
+export MASTER_CPU_COUNT="4"
+export MASTER_MEMORY_MB="16384"
+export MASTER_DISK_SIZEE="100"
+
 export NETWORK_TYPE="OVNKubernetes"
-export INSTALL_DIR="$HOME/ocp-inst/ocp"
 export SSH_KEY_PATH="$HOME/.ssh"
 export VCENTER="vcenter.cee.ibmc.devcluster.openshift.com"
 export DATACENTERS="ceedatacenter"
@@ -192,13 +199,25 @@ compute:
 - architecture: amd64
   hyperthreading: Enabled
   name: worker
-  platform: {}
+  platform:
+    vsphere:
+      cpus: $WORKER_CPU_COUNT
+      corePerSocket: 1
+      memoryMB: $WORKER_MEMORY_MB
+      osDisk:
+        diskSizeGB: $WORKER_DISK_SIZE
   replicas: ${#COMPUTE_IPS[@]}
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
-  platform: {}
+  platform:
+    vsphere:
+      cpus: $MASTER_CPU_COUNT
+      corePerSocket: 1
+      memoryMB: $MASTER_MEMORY_MB
+      osDisk:
+        diskSizeGB: $MASTER_DISK_SIZE
   replicas: ${#CONTROL_PLANE_IPS[@]}
 metadata:
   creationTimestamp: null
