@@ -66,7 +66,7 @@ Member 980ff555e921eb74 removed from cluster f7fc9660ff37d964
 
 #### 6. View the member list again and verify that the member was removed:
 ~~~
-$ oc -n openshift-etcd rsh -Tc etcdctl etcd-$HEALTHY_CONTROL_PLANE_NODE etcdctl member list -w table
+$ oc -n openshift-etcd rsh -c etcdctl etcd-$HEALTHY_CONTROL_PLANE_NODE etcdctl member list -w table
 +------------------+---------+---------------------------+----------------------------+----------------------------+------------+
 |        ID        | STATUS  |            NAME           |         PEER ADDRS         |        CLIENT ADDRS        | IS LEARNER |
 +------------------+---------+---------------------------+----------------------------+----------------------------+------------+
