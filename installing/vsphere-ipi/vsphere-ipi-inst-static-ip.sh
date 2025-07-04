@@ -30,6 +30,9 @@ export CONTROL_PLANE_CPU_COUNT="4"
 export CONTROL_PLANE_MEMORY_MB="16384"
 export CONTROL_PLANE_DISK_SIZE="100"
 
+export WORKER_CORES_PER_SOCKET="4"
+export CONTROL_PLANE_CORES_PER_SOCKET="4"
+
 export NETWORK_TYPE="OVNKubernetes"
 export SSH_KEY_PATH="$HOME/.ssh"
 export VCENTER="vcenter.cee.ibmc.devcluster.openshift.com"
