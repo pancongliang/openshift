@@ -16,6 +16,10 @@ version   4.18.10   True        False         120m    Cluster version is 4.18.10
 $ oc get infrastructures.config.openshift.io cluster -o yaml |grep platformSpec -A1
   platformSpec:
     type: None
+
+$ oc get cm -n openshift-config openshift-install-manifests -o yaml | grep 'invoker\|version'
+  invoker: agent-installer
+  version: v4.18.0
 ~~~
 
 #### 3. Export the Master Ignition Configuration from the Current OCP Cluster:
@@ -35,14 +39,11 @@ $ oc get nodes -l node-role.kubernetes.io/master | grep "NotReady"
 master01.copan.ocp.lan   NotReady   control-plane,master   84m   v1.31.7
 ~~~
 
-#### 5. Identifying an unhealthy etcd member:
+#### 5. Determining the state of the unhealthy etcd member:
 ~~~
 $ oc get etcd -o=jsonpath='{range .items[0].status.conditions[?(@.type=="EtcdMembersAvailable")]}{.message}{"\n"}'
 2 of 3 members are available, master01.copan.ocp.lan is unhealthy
-~~~
 
-#### 6. Determining the state of the unhealthy etcd member:
-~~~
 $ oc -n openshift-etcd get pods -l k8s-app=etcd
 $ export HEALTHY_MASTER_NODE=master02.copan.ocp.lan
 
@@ -63,13 +64,13 @@ $ oc -n openshift-etcd rsh -c etcdctl etcd-$HEALTHY_MASTER_NODE etcdctl member l
 | e1d09fe35ed2e1b8 | started | master03.copan.ocp.lan | https://10.184.134.17:2380 | https://10.184.134.17:2379 |      false |
 ~~~
 
-#### 7. Remove the unhealthy etcd member by providing the ID to the etcdctl member remove command:
+#### 6. Remove the unhealthy etcd member by providing the ID to the etcdctl member remove command:
 ~~~
 $ oc -n openshift-etcd rsh -c etcdctl etcd-$HEALTHY_MASTER_NODE etcdctl member remove 980ff555e921eb74
 Member 980ff555e921eb74 removed from cluster f7fc9660ff37d964
 ~~~
 
-#### 8. View the member list again and verify that the member was removed:
+#### 7. View the member list again and verify that the member was removed:
 ~~~
 $ oc -n openshift-etcd rsh -Tc etcdctl etcd-$HEALTHY_MASTER_NODE etcdctl member list -w table
 +------------------+---------+------------------------+----------------------------+----------------------------+------------+
@@ -84,13 +85,13 @@ https://10.184.134.16:2379 is healthy: successfully committed proposal: took = 4
 https://10.184.134.17:2379 is healthy: successfully committed proposal: took = 7.078678ms
 ~~~
 
-#### 9. Turn off the quorum guard by entering the following command:
+#### 8. Turn off the quorum guard by entering the following command:
 ~~~
 $ oc patch etcd/cluster --type=merge -p '{"spec": {"unsupportedConfigOverrides": {"useUnsupportedUnsafeNonHANonProductionUnstableEtcd": true}}}'
 etcd.operator.openshift.io/cluster patched
 ~~~
 
-#### 10. Delete the affected node by running the following command:
+#### 9. Delete the affected node by running the following command:
 ~~~
 $ oc delete node $REPLACE_MASTER_NODE
 node "master01.copan.ocp.lan" deleted
@@ -101,7 +102,7 @@ master02.copan.ocp.lan   Ready    control-plane,master   113m   v1.31.7
 master03.copan.ocp.lan   Ready    control-plane,master   113m   v1.31.7
 ~~~
 
-#### 11. Remove the old secrets for the unhealthy etcd member that was removed:
+#### 10. Remove the old secrets for the unhealthy etcd member that was removed:
 ~~~
 $ oc get secrets -n openshift-etcd | grep $REPLACE_MASTER_NODE
 etcd-peer-master01.copan.ocp.lan              kubernetes.io/tls         2      114m
@@ -114,7 +115,7 @@ secret "etcd-serving-master01.copan.ocp.lan" deleted
 secret "etcd-serving-metrics-master01.copan.ocp.lan" deleted
 ~~~
 
-#### 12. Download and mount the RHCOS ISO, then boot the target machine and perform the installation using the master ignition configuration:
+#### 11. Download and mount the RHCOS ISO, then boot the target machine and perform the installation using the master ignition configuration:
 ~~~
 # Configure network settings
 [core@localhost ~]$ sudo -i
@@ -129,7 +130,7 @@ Install complete.
 [root@localhost ~]# reboot
 ~~~
 
-#### 13. Waiting for and approving the CSR related to master01:
+#### 12. Waiting for and approving the CSR related to master01:
 ~~~
 $ oc get csr
 NAME        AGE     SIGNERNAME                                    REQUESTOR                                                                   REQUESTEDDURATION   CONDITION
@@ -148,7 +149,7 @@ certificatesigningrequest.certificates.k8s.io/csr-ltslg approved
 certificatesigningrequest.certificates.k8s.io/csr-zpvhm approved
 ~~~
 
-#### 14. Check OCP Cluster:
+#### 13. Check OCP Cluster:
 ~~~
 $ oc get node
 NAME                     STATUS   ROLES                  AGE     VERSION
@@ -168,18 +169,18 @@ $ oc get co | grep -v '.True.*False.*False'
 NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 ~~~
 
-#### 15. Turn the quorum guard back on by entering the following command:
+#### 14. Turn the quorum guard back on by entering the following command:
 ~~~
 $ oc patch etcd/cluster --type=merge -p '{"spec": {"unsupportedConfigOverrides": null}}'
 etcd.operator.openshift.io/cluster patched
 ~~~
 
-#### 16. Verify that the unsupportedConfigOverrides section is removed from the object by entering this command:
+#### 15. Verify that the unsupportedConfigOverrides section is removed from the object by entering this command:
 ~~~
 $ oc get etcd/cluster -oyaml |grep unsupportedConfigOverrides
 ~~~
 
-#### 17. Verify that all etcd pods are running properly:
+#### 16. Verify that all etcd pods are running properly:
 ~~~
 $ oc -n openshift-etcd get pods -l k8s-app=etcd
 NAME                          READY   STATUS    RESTARTS   AGE
@@ -199,7 +200,7 @@ AllNodesAtLatestRevision
 3 nodes are at revision 17
 ~~~
 
-#### 18. Verify that there are exactly three etcd members:
+#### 17. Verify that there are exactly three etcd members:
 ~~~
 $ oc -n openshift-etcd rsh -c etcdctl etcd-$HEALTHY_MASTER_NODE etcdctl member list -w table
 +------------------+---------+------------------------+----------------------------+----------------------------+------------+
@@ -211,7 +212,7 @@ $ oc -n openshift-etcd rsh -c etcdctl etcd-$HEALTHY_MASTER_NODE etcdctl member l
 +------------------+---------+------------------------+----------------------------+----------------------------+------------+
 ~~~
 
-#### 19. Verify that all etcd members are healthy by running the following command:
+#### 18. Verify that all etcd members are healthy by running the following command:
 ~~~
 $ oc -n openshift-etcd rsh -c etcdctl etcd-${HEALTHY_MASTER_NODE} etcdctl endpoint health --cluster
 https://10.184.134.16:2379 is healthy: successfully committed proposal: took = 5.648136ms
