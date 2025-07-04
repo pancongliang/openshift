@@ -19,10 +19,10 @@ export MACHINE_NETWORK_CIDR="10.184.134.0/24"
 export NETWORK_TYPE="OVNKubernetes"
 
 export WORKER_REPLICAS="3"
-export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $CORES_PER_SOCKET
+export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $WORKER_CORES_PER_SOCKET
 export WORKER_MEMORY_MB="32768"
 export WORKER_DISK_SIZE="100"
-export CONTROL_PLANE_CPU_COUNT="4"             # cpus must be a multiple of $CORES_PER_SOCKET
+export CONTROL_PLANE_CPU_COUNT="4"             # cpus must be a multiple of $CONTROL_PLANE_CORES_PER_SOCKET
 export CONTROL_PLANE_MEMORY_MB="16384"
 export CONTROL_PLANE_DISK_SIZE="100"
 
