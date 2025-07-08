@@ -53,6 +53,9 @@
     -p git-url=https://github.com/openshift/pipelines-vote-ui.git \
     -p IMAGE='image-registry.openshift-image-registry.svc:5000/pipelines-tutorial/pipelines-vote-ui' \
     --use-param-defaults
+
+  # or
+  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/pipeline/pipelinerun.yaml
   ```
 
 * View  running status
