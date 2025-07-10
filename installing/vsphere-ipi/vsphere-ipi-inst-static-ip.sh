@@ -310,7 +310,7 @@ echo "ok: [installing the OpenShift cluster]"
 
 export PATH="/usr/local/bin:$PATH"
 
-# /usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
+/usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "[install OpenShift VMware IPI completed]"
 
 # Check cluster operator status
