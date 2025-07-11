@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Specify the OpenShift release version
-export OCP_VERSION="4.16.26"
+export OCP_VERSION="4.18.10"
 
 # Specify required parameters for install-config.yaml
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
@@ -28,13 +28,13 @@ export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
 export WORKER03_HOSTNAME="worker03"
 export BASTION_IP="10.184.134.128"
-export BOOTSTRAP_IP="10.184.134.111"
-export MASTER01_IP="10.184.134.112"
-export MASTER02_IP="10.184.134.122"
-export MASTER03_IP="10.184.134.102"
-export WORKER01_IP="10.184.134.236"
-export WORKER02_IP="10.184.134.136"
-export WORKER03_IP="10.184.134.239"
+export BOOTSTRAP_IP="10.184.134.216"
+export MASTER01_IP="10.184.134.177"
+export MASTER02_IP="10.184.134.97"
+export MASTER03_IP="10.184.134.217"
+export WORKER01_IP="10.184.134.65"
+export WORKER02_IP="10.184.134.62"
+export WORKER03_IP="10.184.134.145"
 
 
 # More options — no changes required!
