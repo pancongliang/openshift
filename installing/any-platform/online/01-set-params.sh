@@ -136,7 +136,7 @@ check_all_variables() {
     check_variable "NFS_DIR"
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "DNS_SERVER_IP"
-    check_variable "LB_IP"
+    #check_variable "LB_IP"
     check_variable "API_IP"
     check_variable "API_INT_IP"
     check_variable "APPS_IP"
