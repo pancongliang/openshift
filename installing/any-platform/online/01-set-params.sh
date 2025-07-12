@@ -59,9 +59,11 @@ export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 export NFS_SERVER_IP="$BASTION_IP"
 export DNS_SERVER_IP="$BASTION_IP"
 export API_IP="$BASTION_IP"
-export API_INT_IP="$BASTION_IP"
+export API_INT_IP="$API_IP"
 export APPS_IP="$BASTION_IP"
-export LB_IP="$BASTION_IP"
+export API_LB_IP="$API_IP"
+export MACHINE_CONFIG_LB_IP="$API_IP"
+export APPS_LB_IP="$APPS_IP"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
