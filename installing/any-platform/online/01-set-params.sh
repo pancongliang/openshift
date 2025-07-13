@@ -64,7 +64,6 @@ export API_IP="$API_VIPS"
 export API_INT_IP="$API_VIPS"
 export APPS_IP="$INGRESS_VIPS"
 
-
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -140,9 +139,9 @@ check_all_variables() {
     check_variable "API_IP"
     check_variable "API_INT_IP"
     check_variable "APPS_IP"
-    check_variable "API_LB_IP"
-    check_variable "MACHINE_CONFIG_LB_IP"
-    check_variable "APPS_LB_IP"
+    check_variable "API_VIPS"
+    check_variable "MCS_VIP"
+    check_variable "INGRESS_VIPS"
     check_variable "NFS_SERVER_IP"
     check_variable "NSLOOKUP_TEST_PUBLIC_DOMAIN"
     check_variable "HTTPD_DIR"
