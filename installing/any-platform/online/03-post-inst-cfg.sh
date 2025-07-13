@@ -256,6 +256,16 @@ done
 # Add an empty line after the task
 echo
 
+# Change the root password to 'redhat' using 'chpasswd'
+nodes=$(oc get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{end}')
+for node in $nodes; do
+  ssh core@"$node" "echo 'root:redhat' | sudo chpasswd || true"
+done
+echo "ok: [change the root password to 'redhat' using 'chpasswd']"
+
+# Add an empty line after the task
+echo
+
 # Step 6:
 PRINT_TASK "TASK [Login cluster information]"
 
