@@ -35,9 +35,7 @@ export MASTER03_IP="10.184.134.207"
 export WORKER01_IP="10.184.134.238"
 export WORKER02_IP="10.184.134.246"
 export WORKER03_IP="10.184.134.202"
-export LOCAL_DNS_IP="$BASTION_IP"
-export API_VIPS="$BASTION_IP"
-export INGRESS_VIPS="$BASTION_IP"
+
 
 # Specify required parameters for the Mirror Registry
 export REGISTRY_HOSTNAME="mirror.registry"
@@ -70,6 +68,9 @@ export OCP_RELEASE_CHANNEL="$(echo $OCP_VERSION | cut -d. -f1,2)"
 export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
  
 # Do not change the following parameters
+export LOCAL_DNS_IP="$BASTION_IP"
+export API_VIPS="$BASTION_IP"
+export INGRESS_VIPS="$BASTION_IP"
 export MCS_VIPS="$API_VIPS"
 export API_IP="$API_VIPS"
 export API_INT_IP="$API_VIPS"
