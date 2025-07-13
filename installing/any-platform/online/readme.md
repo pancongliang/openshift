@@ -135,8 +135,7 @@ This script also generates the Ignition configuration and per-node installation 
   ```
   bash 03-post-inst-cfg.sh
   oc completion bash >> /etc/bash_completion.d/oc_completion
-  source /etc/bash_completion.d/oc_completion
-  source $HOME/.bash_profile
+  source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile
   ```
 
 
