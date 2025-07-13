@@ -113,13 +113,7 @@ This script also generates the Ignition configuration and per-node installation 
 * Repeat the process for all worker nodes.
 
 
-### Approve Pending CSRs
-
-* In the bastion machine, run the following command to approve the Certificate Signing Request (CSR):
-  
-  ```
-  bash ${INSTALL_DIR}/ocp4cert-approver.sh &
-  ```
+### View cluster installation status
 
 * In the bastion machine, Check the node status and operators:
 
@@ -129,6 +123,11 @@ This script also generates the Ignition configuration and per-node installation 
   oc get co | grep -v '.True.*False.*False'
   ```
 
+* If the script runs over 10 hours without installing the worker, manual CSR approval is required to continue the installation.:
+  
+  ```
+  bash ${INSTALL_DIR}/ocp4cert-approver.sh &
+  ```
 
 ### Configure Image Registry Storage and Create htpasswd User
 * In the bastion machine, run the following command to configure image registry data persistence and create the htpasswd user:
