@@ -117,7 +117,7 @@ This script also generates the Ignition configuration and per-node installation 
   ```
   export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig
   oc get node
-  oc get co | grep -v '.True.*False.*False'
+  oc get co | grep -v "True\s*False\s*False"
   ```
 
 * If the script runs over 10 hours without installing the worker, manual CSR approval is required to continue the installation.:
