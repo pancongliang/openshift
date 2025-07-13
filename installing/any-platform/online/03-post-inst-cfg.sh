@@ -256,18 +256,16 @@ done
 # Add an empty line after the task
 echo
 
+# Step 6:
+PRINT_TASK "TASK [Login cluster information]"
+
+# Change the root password to 'redhat' on each node
 nodes=$(oc get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{end}')
 for node in $nodes; do
   ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@"$node" \
     "echo 'root:redhat' | sudo chpasswd || true" >/dev/null 2>&1
 done
-echo "ok: [changed the root password to 'redhat']"
-
-# Add an empty line after the task
-echo
-
-# Step 6:
-PRINT_TASK "TASK [Login cluster information]"
+echo "ok: [change the root password to 'redhat' on each node]"
 
 echo "info: [default setting is to use kubeconfig to login]"
 echo "info: [log in to the cluster using the htpasswd user: uset KUBECONFIG && oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
