@@ -7,7 +7,7 @@ export OCP_VERSION="4.18.10"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
-export NETWORK_TYPE="OVNKubernetes"
+export NETWORK_TYPE="OVNKubernetes"                    # OVNKubernetes or OpenShiftSDN(≤ 4.14)
 
 # Specify the OpenShift node’s installation disk and NetworkManager connection name
 export COREOS_INSTALL_DEV="/dev/sda"
@@ -16,7 +16,7 @@ export NET_IF_NAME="'Wired connection 1'"
 # Specify the OpenShift node infrastructure network configuration
 export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
-export DNS_FORWARDER_IP="10.184.134.1"                # Resolve DNS addresses on the Internet
+export DNS_FORWARDER_IP="10.184.134.1"                 # Resolve DNS addresses on the Internet
 
 # Specify OpenShift node’s hostname and IP address
 export BASTION_HOSTNAME="bastion"
