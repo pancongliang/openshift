@@ -35,7 +35,9 @@ export MASTER03_IP="10.184.134.217"
 export WORKER01_IP="10.184.134.65"
 export WORKER02_IP="10.184.134.62"
 export WORKER03_IP="10.184.134.145"
-
+export DNS_SERVER_IP="$BASTION_IP"
+export API_VIPS="$BASTION_IP"
+export INGRESS_VIPS="$BASTION_IP"
 
 # More options — no changes required!
 # Specify required parameters for install-config.yaml
@@ -57,13 +59,11 @@ export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 
 # Do not change the following parameters
 export NFS_SERVER_IP="$BASTION_IP"
-export DNS_SERVER_IP="$BASTION_IP"
-export API_IP="$BASTION_IP"
-export API_INT_IP="$API_IP"
-export APPS_IP="$BASTION_IP"
-export API_LB_IP="$API_IP"
-export MACHINE_CONFIG_LB_IP="$API_IP"
-export APPS_LB_IP="$APPS_IP"
+export MCS_VIP="$API_VIPS"
+export API_IP="$API_VIPS"
+export API_INT_IP="$API_VIPS"
+export APPS_IP="$INGRESS_VIPS"
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
