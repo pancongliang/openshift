@@ -59,7 +59,7 @@ export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 
 # Do not change the following parameters
 export NFS_SERVER_IP="$BASTION_IP"
-export MCS_VIP="$API_VIPS"
+export MCS_VIPS="$API_VIPS"
 export API_IP="$API_VIPS"
 export API_INT_IP="$API_VIPS"
 export APPS_IP="$INGRESS_VIPS"
@@ -140,7 +140,7 @@ check_all_variables() {
     check_variable "API_INT_IP"
     check_variable "APPS_IP"
     check_variable "API_VIPS"
-    check_variable "MCS_VIP"
+    check_variable "MCS_VIPS"
     check_variable "INGRESS_VIPS"
     check_variable "NFS_SERVER_IP"
     check_variable "NSLOOKUP_TEST_PUBLIC_DOMAIN"
