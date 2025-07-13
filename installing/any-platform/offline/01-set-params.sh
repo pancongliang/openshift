@@ -35,13 +35,16 @@ export MASTER03_IP="10.184.134.207"
 export WORKER01_IP="10.184.134.238"
 export WORKER02_IP="10.184.134.246"
 export WORKER03_IP="10.184.134.202"
+export LOCAL_DNS_IP="$BASTION_IP"
+export API_VIPS="$BASTION_IP"
+export INGRESS_VIPS="$BASTION_IP"
 
 # Specify required parameters for the Mirror Registry
 export REGISTRY_HOSTNAME="mirror.registry"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"                         # 8 characters or more
 export REGISTRY_INSTALL_DIR="/opt/quay-install"
-
+export REGISTRY_IP="$BASTION_IP"
 
 # More options — no changes required!
 # Specify required parameters for install-config.yaml
@@ -51,6 +54,7 @@ export HOST_PREFIX="23"
 export SERVICE_CIDR="172.30.0.0/16"
 
 # Specify the NFS directory to use for the image-registry pod PV
+export NFS_SERVER_IP="$BASTION_IP"
 export NFS_DIR="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
 
@@ -66,13 +70,10 @@ export OCP_RELEASE_CHANNEL="$(echo $OCP_VERSION | cut -d. -f1,2)"
 export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
  
 # Do not change the following parameters
-export NFS_SERVER_IP="$BASTION_IP"
-export DNS_SERVER_IP="$BASTION_IP"
-export REGISTRY_IP="$BASTION_IP"
-export API_IP="$BASTION_IP"
-export API_INT_IP="$BASTION_IP"
-export APPS_IP="$BASTION_IP"
-export LB_IP="$BASTION_IP"
+export MCS_VIPS="$API_VIPS"
+export API_IP="$API_VIPS"
+export API_INT_IP="$API_VIPS"
+export APPS_IP="$INGRESS_VIPS"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -150,12 +151,14 @@ check_all_variables() {
     check_variable "OCP_RELEASE_CHANNEL"
     check_variable "NFS_DIR"
     check_variable "IMAGE_REGISTRY_PV"
-    check_variable "DNS_SERVER_IP"
-    check_variable "LB_IP"
+    check_variable "LOCAL_DNS_IP"
     check_variable "REGISTRY_IP"
     check_variable "API_IP"
     check_variable "API_INT_IP"
     check_variable "APPS_IP"
+    check_variable "API_VIPS"
+    check_variable "MCS_VIPS"
+    check_variable "INGRESS_VIPS"
     check_variable "NFS_SERVER_IP"
     check_variable "NSLOOKUP_TEST_PUBLIC_DOMAIN"
     check_variable "HTTPD_DIR"
