@@ -35,9 +35,7 @@ export MASTER03_IP="10.184.134.217"
 export WORKER01_IP="10.184.134.65"
 export WORKER02_IP="10.184.134.62"
 export WORKER03_IP="10.184.134.145"
-export LOCAL_DNS_IP="$BASTION_IP"
-export API_VIPS="$BASTION_IP"
-export INGRESS_VIPS="$BASTION_IP"
+
 
 # More options — no changes required!
 # Specify required parameters for install-config.yaml
@@ -47,6 +45,7 @@ export HOST_PREFIX="23"
 export SERVICE_CIDR="172.30.0.0/16"
 
 # Specify the NFS directory to use for the image-registry pod PV
+export NFS_SERVER_IP="$BASTION_IP"
 export NFS_DIR="/nfs"
 export IMAGE_REGISTRY_PV="image-registry"
 
@@ -58,7 +57,9 @@ export INSTALL_DIR="${HTTPD_DIR}/pre"
 export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 
 # Do not change the following parameters
-export NFS_SERVER_IP="$BASTION_IP"
+export LOCAL_DNS_IP="$BASTION_IP"
+export API_VIPS="$BASTION_IP"
+export INGRESS_VIPS="$BASTION_IP"
 export MCS_VIPS="$API_VIPS"
 export API_IP="$API_VIPS"
 export API_INT_IP="$API_VIPS"
