@@ -67,7 +67,7 @@ This script also generates the Ignition configuration and per-node installation 
 
   ```
   [core@localhost ~]$ curl -s http://BASTION_IP:8080/pre/bs |sh
-  [core@localhost ~]$ sudo reboot
+  [core@localhost ~]$ reboot
   ```
 
 * After the reboot, check for error messages:
@@ -87,7 +87,7 @@ This script also generates the Ignition configuration and per-node installation 
 
   ```
   [core@localhost ~]$ curl -s http://BASTION_IP:8080/pre/m1 |sh
-  [core@localhost ~]$ sudo reboot
+  [core@localhost ~]$ reboot
   ```
 * Repeat the process for all Control-Plane nodes.
   
@@ -104,7 +104,7 @@ This script also generates the Ignition configuration and per-node installation 
   
   ```
   [core@localhost ~]$ curl -s http://BASTION_IP:8080/pre/w1 |sh
-  [core@localhost ~]$ sudo reboot
+  [core@localhost ~]$ reboot
   ```
 
 * Repeat the process for all worker nodes.
