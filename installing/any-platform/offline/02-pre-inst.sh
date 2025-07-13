@@ -386,7 +386,7 @@ FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
 
 # Generate reverse DNS zone name and reverse zone file name 
 # Extract the last two octets from the IP address
-IFS='.' read -ra octets <<< "$DNS_SERVER_IP"
+IFS='.' read -ra octets <<< "$LOCAL_DNS_IP"
 OCTET0="${octets[0]}"
 OCTET1="${octets[1]}"
 
@@ -465,10 +465,10 @@ cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
         IN      NS      ns1.${BASE_DOMAIN}.
 ;
 ;
-ns1     IN      A       ${DNS_SERVER_IP}
+ns1     IN      A       ${LOCAL_DNS_IP}
 ;
-helper  IN      A       ${DNS_SERVER_IP}
-helper.ocp4     IN      A       ${DNS_SERVER_IP}
+helper  IN      A       ${LOCAL_DNS_IP}
+helper.ocp4     IN      A       ${LOCAL_DNS_IP}
 ;
 ; The api identifies the IP of load balancer.
 $(format_dns_entry "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
@@ -600,9 +600,9 @@ systemctl restart named >/dev/null 2>&1
 run_command "[restart named service]"
 
 # Add dns ip to resolv.conf
-sed -i "/${DNS_SERVER_IP}/d" /etc/resolv.conf
-sed -i "1s/^/nameserver ${DNS_SERVER_IP}\n/" /etc/resolv.conf
-run_command "[add dns ip $DNS_SERVER_IP to /etc/resolv.conf]"
+sed -i "/${LOCAL_DNS_IP}/d" /etc/resolv.conf
+sed -i "1s/^/nameserver ${LOCAL_DNS_IP}\n/" /etc/resolv.conf
+run_command "[add dns ip $LOCAL_DNS_IP to /etc/resolv.conf]"
 
 # Append “dns=none” immediately below the “[main]” section in the main NM config
 if ! sed -n '/^\[main\]/,/^\[/{/dns=none/p}' /etc/NetworkManager/NetworkManager.conf | grep -q 'dns=none'; then
@@ -623,6 +623,7 @@ sleep 15
 hostnames=(
     "api.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "test.apps.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
@@ -630,7 +631,7 @@ hostnames=(
     "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${BASTION_IP}"
+    "${API_IP}"
     "${MASTER01_IP}"
     "${MASTER02_IP}"
     "${MASTER03_IP}"
@@ -729,7 +730,7 @@ frontend stats
   stats uri /stats
 
 listen api-server-6443 
-  bind ${LB_IP}:6443
+  bind ${API_VIPS}:6443
   mode tcp
   server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 check inter 1s backup
   server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 check inter 1s
@@ -737,7 +738,7 @@ listen api-server-6443
   server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 check inter 1s
 
 listen machine-config-server-22623 
-  bind ${LB_IP}:22623
+  bind ${MCS_VIPS}:22623
   mode tcp
   server     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:22623 check inter 1s backup
   server     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:22623 check inter 1s
@@ -745,7 +746,7 @@ listen machine-config-server-22623
   server     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:22623 check inter 1s
 
 listen default-ingress-router-80
-  bind ${LB_IP}:80
+  bind ${INGRESS_VIPS}:80
   mode tcp
   balance source
   server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:80 check inter 1s
@@ -753,7 +754,7 @@ listen default-ingress-router-80
   server     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:80 check inter 1s
   
 listen default-ingress-router-443
-  bind ${LB_IP}:443
+  bind ${INGRESS_VIPS}:443
   mode tcp
   balance source
   server     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check inter 1s
@@ -896,6 +897,9 @@ if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; t
 else
     echo "info: [ssh key already exists, skip generation]"
 fi
+
+# If known_hosts exists, clear it without error
+[ -f "${SSH_KEY_PATH}/known_hosts" ] && > "${SSH_KEY_PATH}/known_hosts" || true
 
 # Define variables
 export REGISTRY_CA_CERT_FORMAT="$(cat ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak)"
@@ -1045,7 +1049,7 @@ generate_setup_script() {
 cat << EOF > "${INSTALL_DIR}/${HOSTNAME}"
 #!/bin/bash
 # Configure network settings
-sudo nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${DNS_SERVER_IP} ipv4.method manual connection.autoconnect yes
+sudo nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${LOCAL_DNS_IP} ipv4.method manual connection.autoconnect yes
 sudo nmcli con down ${NET_IF_NAME}
 sudo nmcli con up ${NET_IF_NAME}
 
