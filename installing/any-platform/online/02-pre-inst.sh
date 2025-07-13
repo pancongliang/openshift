@@ -787,6 +787,8 @@ else
     echo "info: [ssh key already exists, skip generation]"
 fi
 
+[ -f "${SSH_KEY_PATH}/known_hosts" ] && > "${SSH_KEY_PATH}/known_hosts" || true
+
 # Define variables
 export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
