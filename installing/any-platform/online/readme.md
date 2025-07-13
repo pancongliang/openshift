@@ -66,9 +66,8 @@ This script also generates the Ignition configuration and per-node installation 
 * Mount the ISO on the bootstrap node, then boot the node and run the following command:
 
   ```
-  [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/bs |sh
-  [root@localhost ~]$ reboot
+  [core@localhost ~]$ curl -s http://BASTION_IP:8080/pre/bs |sh
+  [core@localhost ~]$ sudo reboot
   ```
 
 * After the reboot, check for error messages:
@@ -87,9 +86,8 @@ This script also generates the Ignition configuration and per-node installation 
 * Mount the ISO on the control-plane node, then boot the node and run the following command:
 
   ```
-  [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/m1 |sh
-  [root@localhost ~]$ reboot
+  [core@localhost ~]$ curl -s http://BASTION_IP:8080/pre/m1 |sh
+  [core@localhost ~]$ sudo reboot
   ```
 * Repeat the process for all Control-Plane nodes.
   
@@ -105,9 +103,8 @@ This script also generates the Ignition configuration and per-node installation 
 * Mount the ISO on the worker node, then boot the node and run the following command:
   
   ```
-  [core@localhost ~]$ sudo -i
-  [root@localhost ~]$ curl -s http://BASTION_IP:8080/pre/w1 |sh
-  [root@localhost ~]$ reboot
+  [core@localhost ~]$ curl -s http://BASTION_IP:8080/pre/w1 |sh
+  [core@localhost ~]$ sudo reboot
   ```
 
 * Repeat the process for all worker nodes.
