@@ -8,7 +8,7 @@ export OCP_RELEASE_VERSION="4.14.20"
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="test.copan.com"
 export CREDENTIALS_MODE="Passthrough"
-export NETWORK_TYPE="OVNKubernetes"
+export NETWORK_TYPE="OVNKubernetes"    # OVNKubernetes or OpenShiftSDN(≤ 4.14)
 
 # AWS credentials
 export AWS_ACCESS_KEY_ID="AKIAQ2Fxxxx"
