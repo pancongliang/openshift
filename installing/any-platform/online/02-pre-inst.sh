@@ -787,6 +787,7 @@ else
     echo "info: [ssh key already exists, skip generation]"
 fi
 
+# If known_hosts exists, clear it without error
 [ -f "${SSH_KEY_PATH}/known_hosts" ] && > "${SSH_KEY_PATH}/known_hosts" || true
 
 # Define variables
