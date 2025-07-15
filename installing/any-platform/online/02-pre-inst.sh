@@ -105,7 +105,7 @@ package_list="${packages[*]}"
 
 # Install all packages at once
 echo "info: [installing required rpm packages]"
-dnf install -y $package_list >/dev/null
+dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
