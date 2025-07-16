@@ -464,9 +464,6 @@ cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 ;
 ns1     IN      A       ${LOCAL_DNS_IP}
 ;
-helper  IN      A       ${LOCAL_DNS_IP}
-helper.ocp4     IN      A       ${LOCAL_DNS_IP}
-;
 ; The api identifies the IP of load balancer.
 $(format_dns_entry "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
 $(format_dns_entry "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
