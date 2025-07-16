@@ -20,7 +20,7 @@ export CONTROL_PLANE_IPS=("10.184.134.202" "10.184.134.203" "10.184.134.204")
 export WORKER_IPS=("10.184.134.132" "10.184.134.133" "10.184.134.134")          # Enter the IP according to the number of worker nodes
 export BOOTSTRAP_IP="10.184.134.135"
 export GATEWAY="10.184.134.1"
-export NAMESERVER="10.184.134.128"
+export NAMESERVER="10.184.134.128"                      # The nameserver needs to be able to resolve the vCenter URL
 export NETMASK="24"
 
 export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $WORKER_CORES_PER_SOCKET
