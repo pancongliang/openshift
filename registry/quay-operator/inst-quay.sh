@@ -482,6 +482,6 @@ echo
 # Step 6:
 PRINT_TASK "TASK [Manually create a user]"
 
-echo "note: [***you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>***]"
-echo "note: [***you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>***]"
+export URL="https://$(oc get route -n quay-enterprise example-registry-quay -o jsonpath='{.spec.host}')
+echo "note: [***quay console: $URL***]"
 echo "note: [***you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>***]"
