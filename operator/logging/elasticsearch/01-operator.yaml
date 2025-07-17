@@ -29,7 +29,7 @@ metadata:
   name: "elasticsearch-operator"
   namespace: "openshift-operators-redhat" 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${ES_CHANNEL_NAME}
   installPlanApproval: "Manual"
   source: ${CATALOG_SOURCE_NAME}
   sourceNamespace: "openshift-marketplace"
@@ -50,7 +50,7 @@ metadata:
   name: cluster-logging
   namespace: openshift-logging 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${LOGGING_CHANNEL_NAME}
   installPlanApproval: "Manual"
   name: cluster-logging
   source: ${CATALOG_SOURCE_NAME}
