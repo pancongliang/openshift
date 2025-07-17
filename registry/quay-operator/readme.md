@@ -91,3 +91,19 @@
   QUAY_APP_POD=$(oc -n ${NAMESPACE} get pods -l app=quay -o jsonpath='{.items[0].metadata.name}')
   oc -n ${NAMESPACE} rsh $QUAY_APP_POD cat /conf/stack/config.yaml
   ```
+
+### Option: Collect repository log
+* Creating an OAuth 2 [access token ](https://docs.redhat.com/en/documentation/red_hat_quay/3.15/html/red_hat_quay_api_guide/oauth2-access-tokens#creating-oauth-access-token)
+
+* Collect repository log
+  ```
+  export TOKEN='dN4JWmQOrUeY4o16o0PIbBmKLrxma0NVjd82RRXK'
+  export REGISTRY_URL='example-registry-quay-quay-enterprise.apps.ocp4.example.com'
+  export ORGNAME=mirror
+  export REPOSITORY=mirror-test
+  
+  curl -X GET \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Accept: application/json" \
+    "https://${REGISTRY_URL}/api/v1/repository/${ORGNAME}/${REPOSITORY}/logs" |jq
+  ```
