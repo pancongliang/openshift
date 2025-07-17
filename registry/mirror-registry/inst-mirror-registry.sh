@@ -7,6 +7,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
+export REGISTRY_IP="10.184.134.128"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
 export REGISTRY_INSTALL_DIR="/opt/quay-install"
@@ -60,18 +61,15 @@ echo
 # Step 2:
 PRINT_TASK "TASK [Delete existing duplicate data]"
 
-# Check if there is an active mirror registry pod
-if sudo podman pod ps | grep -E 'quay-pod.*Running' >/dev/null 2>&1; then
-    # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot ${REGISTRY_INSTALL_DIR} >/dev/null 2>&1
-    # Check the exit status of the uninstall command
-    if [ $? -eq 0 ]; then
+# Check if there is an quay-app.service
+if systemctl list-unit-files | grep -q '^quay-app.service'; then
+    if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
         echo "ok: [uninstall the mirror registry]"
     else
         echo "failed: [uninstall the mirror registry]"
     fi
 else
-    echo "skipping: [no active mirror registry pod found]"
+    echo "skipping: [uninstall the mirror registry]"
 fi
 
 # Delete existing duplicate data
@@ -100,6 +98,16 @@ run_command "[download mirror-registry package]"
 cd ${REGISTRY_INSTALL_DIR}
 sudo tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR}/ >/dev/null 2>&1
 run_command "[extract the mirror-registry package]"
+
+
+# Add registry entry to /etc/hosts
+if ! grep -q "$REGISTRY_DOMAIN_NAME" /etc/hosts; then
+  echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts
+  echo "$REGISTRY_IP $REGISTRY_DOMAIN_NAME" | sudo tee -a /etc/hosts
+  echo "Add registry entry to /etc/hosts"
+else
+  echo "Registry entry already exists in /etc/hosts"
+fi
 
 echo "ok: [start installing mirror-registry...]"
 # echo "ok: [generate mirror-registry log: ${REGISTRY_INSTALL_DIR}/mirror-registry.log]"
