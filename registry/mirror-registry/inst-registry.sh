@@ -6,7 +6,7 @@ set -o pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
+export REGISTRY_DOMAIN_NAME="quay.registry.example.com"
 export REGISTRY_IP="10.184.134.128"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
@@ -62,7 +62,8 @@ echo
 PRINT_TASK "TASK [Delete existing duplicate data]"
 
 # Check if there is an quay-app.service
-if systemctl list-unit-files | grep -q '^quay-app.service'; then
+ if [ -f /etc/systemd/system/quay-pod.service ]; then
+    echo "info: [mirror registry detected, starting uninstall]"
     if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
         echo "ok: [uninstall the mirror registry]"
     else
@@ -102,11 +103,11 @@ run_command "[extract the mirror-registry package]"
 
 # Add registry entry to /etc/hosts
 if ! grep -q "$REGISTRY_DOMAIN_NAME" /etc/hosts; then
-  echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts
-  echo "$REGISTRY_IP $REGISTRY_DOMAIN_NAME" | sudo tee -a /etc/hosts
-  echo "Add registry entry to /etc/hosts"
+  echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts > /dev/null
+  echo "$REGISTRY_IP $REGISTRY_DOMAIN_NAME" | sudo tee -a /etc/hosts > /dev/null
+  echo "ok: [Add registry entry to /etc/hosts]"
 else
-  echo "Registry entry already exists in /etc/hosts"
+  echo "skipping: [Registry entry already exists in /etc/hosts]"
 fi
 
 echo "ok: [start installing mirror-registry...]"
