@@ -128,6 +128,8 @@ spec:
             - "3600"
 EOF
 ~~~
+
+### Todo list and mariadb pvc(Input data from web page to mariadb)
 ~~~
 cat <<'EOF' | oc apply -f -
 apiVersion: v1
