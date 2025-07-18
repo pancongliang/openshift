@@ -127,30 +127,30 @@ spec:
             - sleep
             - "3600"
 EOF
-
 ~~~
-cat << EOF | oc apply -f -
+~~~
+cat <<'EOF' | oc apply -f -
 apiVersion: v1
 kind: List
 items:
   - kind: Namespace
     apiVersion: v1
     metadata:
-      name: todo-list
+      name: todo
       labels:
         app: mysql
   - apiVersion: v1
     kind: ServiceAccount
     metadata:
-      name: todo-list-sa
-      namespace: todo-list
+      name: todo-sa
+      namespace: todo
       labels:
-        component: todo-list
+        component: todo
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
       name: mysql
-      namespace: todo-list
+      namespace: todo
       labels:
         app: mysql
     spec:
@@ -162,7 +162,7 @@ items:
   - kind: SecurityContextConstraints
     apiVersion: security.openshift.io/v1
     metadata:
-      name: todo-list-scc
+      name: todo-scc
     allowPrivilegeEscalation: true
     allowPrivilegedContainer: true
     runAsUser:
@@ -177,14 +177,14 @@ items:
     - '*'
     users:
     - system:admin
-    - system:serviceaccount:todo-list:todo-list-sa
+    - system:serviceaccount:todo:todo-sa
   - apiVersion: v1
     kind: Service
     metadata:
       annotations:
         template.openshift.io/expose-uri: mariadb://{.spec.clusterIP}:{.spec.ports[?(.name=="mysql")].port}
       name: mysql
-      namespace: todo-list
+      namespace: todo
       labels:
         app: mysql
         service: mysql
@@ -201,7 +201,7 @@ items:
       annotations:
         template.alpha.openshift.io/wait-for-ready: 'true'
       name: mysql
-      namespace: todo-list
+      namespace: todo
       labels:
         e2e-app: "true"
     spec:
@@ -218,7 +218,7 @@ items:
         spec:
           securityContext:
             runAsNonRoot: true
-          serviceAccountName: todo-list-sa
+          serviceAccountName: todo-sa
           containers:
           - image: registry.redhat.io/rhel8/mariadb-105:latest
             name: mysql
@@ -279,7 +279,7 @@ items:
     kind: Service
     metadata:
       name: todolist
-      namespace: todo-list
+      namespace: todo
       labels:
         app: todolist
         service: todolist
@@ -292,11 +292,11 @@ items:
       selector:
         app: todolist
         service: todolist
-  - apiVersion: apps.openshift.io/v1
-    kind: DeploymentConfig
+  - apiVersion: apps/v1
+    kind: Deployment
     metadata:
       name: todolist
-      namespace: todo-list
+      namespace: todo
       labels:
         app: todolist
         service: todolist
@@ -304,8 +304,9 @@ items:
     spec:
       replicas: 1
       selector:
-        app: todolist
-        service: todolist
+        matchLabels:
+          app: todolist
+          service: todolist
       strategy:
         type: Recreate
       template:
@@ -332,7 +333,7 @@ items:
     kind: Route
     metadata:
       name: todolist
-      namespace: todo-list
+      namespace: todo
     spec:
       path: "/"
       to:
