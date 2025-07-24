@@ -9,13 +9,13 @@ $ oc create route edge todo-https --service=todo-https --hostname=todo-https.app
 
 
 - Using a custom certificate
-$ oc create route edge --service=minio-tenant-1-console \
-     --cert=/crts/minio-tenant-1-console-minio-tenant-1.apps.ocp4.example.com.crt \
-     --key=/crts/minio-tenant-1-console-minio-tenant-1.apps.ocp4.example.com.key \
-     --ca-cert=/crts/minio-tenant-1-console-minio-tenant-1.apps.ocp4.example.com.ca.crt \
-     --hostname=minio-tenant-1-console-minio-tenant-1.apps.ocp4.example.com
+$ oc create route edge --service=todo-https \
+     --cert=todo-https.apps.ocp4.example.com.crt \
+     --key=todo-https.apps.ocp4.example.com.key \
+     --ca-cert=todo-https.apps.ocp4.example.com.ca.crt \
+     --hostname=todo-https.apps.ocp4.example.com
 
-$ curl -I -vv --cacert test.ssl.apps.ocp4.example.net.ca.crt https://test.ssl.apps.ocp4.example.net
+$ curl -I -vv --cacert todo-https.apps.ocp4.example.com.ca.crt https://todo-https.apps.ocp4.example.com
 ···
 *  SSL certificate verify ok.
 ···
