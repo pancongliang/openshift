@@ -76,7 +76,7 @@ openssl x509 \
     -CA ${CERTS_PATH}/ca.crt \
     -CAkey ${CERTS_PATH}/ca.key \
     -CAcreateserial -out ${CERTS_PATH}/domain.crt  > /dev/null 2>&1
-check_command_result "[generate domain certificate:]"
+check_command_result "[generate domain certificate]"
 
 # self-signed-certificates 
 # https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw
