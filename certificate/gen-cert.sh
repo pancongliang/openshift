@@ -54,7 +54,7 @@ check_command_result "[generate root CA certificate]"
 
 # Generate the domain key
 openssl genrsa -out ${CERTS_PATH}/domain.key 2048 > /dev/null 2>&1
-check_command_result "[generate domain private key]"
+check_command_result "[generate private key for domain]"
 
 # Generate a certificate signing request (CSR) for the domain
 openssl req -new -sha256 \
@@ -64,7 +64,7 @@ openssl req -new -sha256 \
     -config <(cat ${OPENSSL_CNF} \
         <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
     -out ${CERTS_PATH}/domain.csr > /dev/null 2>&1
-check_command_result "[generate domain CSR]"
+check_command_result "[generate domain certificate signing request]"
 
 # Generate the domain certificate (CRT)
 openssl x509 \
