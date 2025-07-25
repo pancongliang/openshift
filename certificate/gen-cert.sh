@@ -32,7 +32,7 @@ check_command_result() {
 # Generate a directory for creating certificates
 rm -rf ${CERTS_PATH} > /dev/null 2>&1
 mkdir -p ${CERTS_PATH} > /dev/null 2>&1
-check_command_result "[create certificate directory: ${CERTS_PATH}]"
+check_command_result "[create cert directory: ${CERTS_PATH}]"
 
 # Generate the root Certificate Authority (CA) key
 openssl genrsa -out ${CERTS_PATH}/ca.key 4096 > /dev/null 2>&1
