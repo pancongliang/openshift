@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Default variable
-export DOMAIN="test.apps.ocp4.example.com"
+export DOMAIN="hello-openshift.apps.ocp4.example.com"
 
 export CERTS_PATH="certs"
 export CA_CN="Test Workspace Signer"
