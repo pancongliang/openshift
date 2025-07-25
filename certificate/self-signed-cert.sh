@@ -63,7 +63,7 @@ openssl req -new -sha256 \
     -config <(cat ${OPENSSL_CNF} \
         <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN_NAME}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
     -out ${CERTS_PATH}/${DOMAIN_NAME}.csr > /dev/null 2>&1
-check_command_result "[generate domain CSR]"
+check_command_result "[generate domain certificate signing request]"
 
 # Generate the domain certificate (CRT)
 openssl x509 \
