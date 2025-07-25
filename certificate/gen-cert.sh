@@ -30,6 +30,7 @@ check_command_result() {
 }
 
 # Generate a directory for creating certificates
+rm -rf ${CERTS_PATH} > /dev/null 2>&1
 mkdir -p ${CERTS_PATH} > /dev/null 2>&1
 check_command_result "[create certificate directory: ${CERTS_PATH}]"
 
