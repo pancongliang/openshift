@@ -35,7 +35,7 @@ check_command_result "[create certificate directory: ${CERTS_PATH}]"
 
 # Generate the root Certificate Authority (CA) key
 openssl genrsa -out ${CERTS_PATH}/${DOMAIN_NAME}.ca.key 4096 > /dev/null 2>&1
-check_command_result "[generated root certificate authority key]"
+check_command_result "[generate root CA key]"
 
 # Generate the root CA certificate
 openssl req -x509 \
@@ -49,11 +49,11 @@ openssl req -x509 \
     -extensions SAN \
     -config <(cat ${OPENSSL_CNF} \
         <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature')) > /dev/null 2>&1
-check_command_result "[generate the root CA certificate]"
+check_command_result "[generate root CA certificate]"
 
 # Generate the domain key
 openssl genrsa -out ${CERTS_PATH}/${DOMAIN_NAME}.key 2048 > /dev/null 2>&1
-check_command_result "[generate the domain key]"
+check_command_result "[generate domain private key]"
 
 # Generate a certificate signing request (CSR) for the domain
 openssl req -new -sha256 \
@@ -63,7 +63,7 @@ openssl req -new -sha256 \
     -config <(cat ${OPENSSL_CNF} \
         <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN_NAME}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
     -out ${CERTS_PATH}/${DOMAIN_NAME}.csr > /dev/null 2>&1
-check_command_result "[generate the certificate signing request for the domain(CSR)]"
+check_command_result "[generate domain CSR]"
 
 # Generate the domain certificate (CRT)
 openssl x509 \
@@ -75,7 +75,7 @@ openssl x509 \
     -CA ${CERTS_PATH}/${DOMAIN_NAME}.ca.crt \
     -CAkey ${CERTS_PATH}/${DOMAIN_NAME}.ca.key \
     -CAcreateserial -out ${CERTS_PATH}/${DOMAIN_NAME}.crt > /dev/null 2>&1
-check_command_result "[generate the domain certificate(CRT)]"
+check_command_result "[generate domain certificate]"
 
 # self-signed-certificates 
 # https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw
