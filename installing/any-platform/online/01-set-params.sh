@@ -9,7 +9,7 @@ export CLUSTER_NAME="ocp4"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"                    # OVNKubernetes or OpenShiftSDN(≤ 4.14)
 
-# Specify the OpenShift node’s installation disk and NetworkManager connection name
+# Specify the OpenShift node’s installation disk and network manager connection name
 export COREOS_INSTALL_DEV="/dev/sda"
 export NET_IF_NAME="'Wired connection 1'" 
 
@@ -18,7 +18,7 @@ export GATEWAY_IP="10.184.134.1"
 export NETMASK="24"
 export DNS_FORWARDER_IP="10.184.134.1"                 # Resolve DNS addresses on the Internet
 
-# Specify OpenShift node’s hostname and IP address
+# Specify OpenShift node’s hostname and ip address
 export BASTION_HOSTNAME="bastion"
 export BOOTSTRAP_HOSTNAME="bootstrap"
 export MASTER01_HOSTNAME="master01"
