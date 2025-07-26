@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Specify the OpenShift release version
-export OCP_VERSION="4.19.2"
+export OCP_VERSION="4.16.21"
 
 # Specify required parameters for install-config.yaml
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
