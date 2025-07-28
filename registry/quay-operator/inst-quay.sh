@@ -204,6 +204,7 @@ export NAMESPACE="quay-enterprise"
 oc new-project $NAMESPACE >/dev/null 2>&1
 run_command "[create a $NAMESPACE namespace]"
 
+CLEAN_HOST=${BUCKET_HOST#http://}
 # Create a quay config
 cat << EOF > config.yaml
 DISTRIBUTED_STORAGE_CONFIG:
@@ -212,7 +213,7 @@ DISTRIBUTED_STORAGE_CONFIG:
     - access_key: ${ACCESS_KEY_ID}
       secret_key: ${ACCESS_KEY_SECRET}
       bucket_name: ${BUCKET_NAME}
-      hostname: ${BUCKET_HOST}
+      hostname: ${CLEAN_HOST}
       is_secure: false
       port: 80
       storage_path: /
@@ -267,12 +268,11 @@ run_command "[create a quay registry]"
 sleep 10
 
 # Wait for quay pods to be in 'Running' state
-NAMESPACE="openshift-operators"
+NAMESPACE="quay-enterprise"
 MAX_RETRIES=60
 SLEEP_INTERVAL=2
 progress_started=false
 retry_count=0
-pod_name=quay=
 
 while true; do
     # Get the status of all pods
@@ -282,7 +282,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $pod_name namespace pods to be in 'running' state"
+            echo -n "info: [waiting for quay-enterprise namespace pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -294,7 +294,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $pod_name namespace pods may still be initializing]"
+            echo "failed: [reached max retries, quay-enterprise namespace pods may still be initializing]"
             exit 1 
         fi
     else
@@ -302,7 +302,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all $pod_name namespace pods are in 'running' state]"
+        echo "ok: [all quay-enterprise namespace pods are in 'running' state]"
         break
     fi
 done
@@ -482,6 +482,6 @@ echo
 # Step 6:
 PRINT_TASK "TASK [Manually create a user]"
 
-export URL="https://$(oc get route -n quay-enterprise example-registry-quay -o jsonpath='{.spec.host}')
-echo "note: [***quay console: $URL***]"
-echo "note: [***you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>***]"
+export URL="https://$(oc get route -n quay-enterprise example-registry-quay -o jsonpath='{.spec.host}')"
+echo "note: [***  quay console: $URL  ***]"
+echo "note: [***  you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>  ***]"
