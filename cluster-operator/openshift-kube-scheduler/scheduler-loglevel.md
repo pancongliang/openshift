@@ -1,4 +1,4 @@
-#### 1. Change the default kubescheduler logLevel so that scheduling scoring logs can be collected
+#### 1. Modify the default kube-scheduler log level to collect scheduling scoring logs
 ~~~
 $ oc patch kubescheduler cluster  --type=json -p='[{"op": "replace", "path": "/spec/logLevel", "value":"TraceAll"}]'
 ~~~
