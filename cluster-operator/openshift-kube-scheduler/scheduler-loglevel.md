@@ -16,7 +16,7 @@ openshift-kube-scheduler-master-3
 $ oc -n openshift-kube-scheduler logs openshift-kube-scheduler-master01.ocp4.example.com | grep nginx
 ~~~
 
-#### 4..Restore kubescheduler logLevel
+#### 4. Reset the kube-scheduler log level to its default value
 ~~~
 $ oc patch kubescheduler cluster  --type=json -p='[{"op": "replace", "path": "/spec/logLevel", "value":"Normal"}]'
 ~~~
