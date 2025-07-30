@@ -95,13 +95,13 @@ Target storage class: nfs-storage
 
 ### Start migration plans
 - Start migration -> Migration plans -> test ( ┇ ) -> Cutover, wait for the migration to complete:
-> Migration Type:
-> 
-> stage：   The PV is temporarily stored (copied) to the target cluster, and the actual service will not be migrated
-> 
-> cutover： Migrate all resources (project resources + data) to the target cluster.
-> 
-> rollback：After the migration is completed using cutover, you can use rollback to roll back to the source cluster. During rollback, the modified/incremented resources and data will not be rolled back. Rollback means returning to the initial state of the source cluster resources.
+  > Migration Type:
+  > 
+  > stage：   The PV is temporarily stored (copied) to the target cluster, and the actual service will not be migrated
+  > 
+  > cutover： Migrate all resources (project resources + data) to the target cluster.
+  > 
+  > rollback：After the migration is completed using cutover, you can use rollback to roll back to the source cluster. During rollback, the modified/incremented resources and data will not be rolled back. Rollback means returning to the initial state of the source cluster resources.
 ~~~
 $ oc get all -n test
 NAME                         READY   STATUS    RESTARTS   AGE
