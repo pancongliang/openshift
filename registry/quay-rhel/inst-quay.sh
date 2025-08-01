@@ -102,7 +102,7 @@ echo
 PRINT_TASK "TASK [Install quay registry]"
 
 # Add registry entry to /etc/hosts
-if ! grep -q "$REGISTRY_DOMAIN_NAME" /etc/hosts; then
+if ! grep -q "$QUAY_DOMAIN" /etc/hosts; then
   echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts > /dev/null
   echo "$QUAY_HOST_IP $QUAY_DOMAIN" | sudo tee -a /etc/hosts > /dev/null
   echo "ok: [Add registry entry to /etc/hosts]"
