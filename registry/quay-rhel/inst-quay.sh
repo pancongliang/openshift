@@ -3,13 +3,13 @@
 set -u
 set -e
 set -o pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export QUAY_DOMAIN='quay-server.example.com'
 export QUAY_HOST_IP="10.184.134.128"
 export REGISTRY_REDHAT_IO_ID="rhn-support-xxx"
-export REGISTRY_REDHAT_IO_PW="xxxx"
+export REGISTRY_REDHAT_IO_PW="xxxxxx"
 
 export QUAY_SUPER_USERS="quayadmin"
 export QUAY_INST_DIR="/opt/quay-inst"
@@ -278,20 +278,49 @@ for c in "${containers[@]}"; do
   fi
 done
 
+# Generate systemd service file for PostgreSQL
+sudo podman generate systemd --name postgresql-quay --files --restart-policy=always >/dev/null 2>&1
+run_command "[Generate systemd service file for PostgreSQL]"
+
+# Generate systemd service file for Redis
+sudo podman generate systemd --name redis --files --restart-policy=always >/dev/null 2>&1
+run_command "[Generate systemd service file for Redis]"
+
+# Generate systemd service file for Quay
+sudo podman generate systemd --name quay --files --restart-policy=always >/dev/null 2>&1
+run_command "[Generate systemd service file for Quay]"
+
+# Move generated files to systemd directory
+sudo mv container-*.service /etc/systemd/system/ >/dev/null 2>&1
+run_command "[Move generated files to systemd directory]"
+
+# Reload systemd to pick up new services
+sudo systemctl daemon-reload >/dev/null 2>&1
+run_command "[Reload systemd to pick up new services]"
+
+# Enable and start each service
+sudo systemctl enable --now container-postgresql-quay.service >/dev/null 2>&1
+run_command "[Enable and start postgresql service]"
+
+sudo systemctl enable --now container-redis.service >/dev/null 2>&1
+run_command "[Enable and start redis service]"
+
+sudo systemctl enable --now container-quay.service >/dev/null 2>&1
+run_command "[Enable and start quay service]"
 # Add an empty line after the task
 echo
 
-# Step 3:
+# Step 5:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Copy the rootCA certificate to the trusted source
 sudo rm -rf /etc/pki/ca-trust/source/anchors/$QUAY_DOMAIN.ca.pem
 sudo cp ${QUAY_INST_DIR}/config/rootCA.pem /etc/pki/ca-trust/source/anchors/$QUAY_DOMAIN.ca.pem
-run_command "[copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/$QUAY_DOMAIN.ca.pem]"
+run_command "[Copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/$QUAY_DOMAIN.ca.pem]"
 
 # Trust the rootCA certificate
 sudo update-ca-trust
-run_command "[trust the rootCA certificate]"
+run_command "[Trust the rootCA certificate]"
 
 sleep 5
 
@@ -302,31 +331,31 @@ if [[ -n "$REGISTRY_CAS" ]]; then
   # If it exists, execute the following commands
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
   oc create configmap registry-config --from-file=${QUAY_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${QUAY_DOMAIN}.ca.pem -n openshift-config >/dev/null 2>&1
-  run_command  "[create a configmap containing the registry CA certificate: registry-config]"
+  run_command "[Create a configmap containing the registry CA certificate: registry-config]"
   
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
-  run_command  "[trust the registry-config configmap]"
+  run_command "[Trust the registry-config configmap]"
 else
   # If it doesn't exist, execute the following commands
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc create configmap registry-cas --from-file=${QUAY_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${QUAY_DOMAIN}.ca.pem -n openshift-config >/dev/null 2>&1
-  run_command  "[create a configmap containing the registry CA certificate: registry-cas]"
+  run_command "[Create a configmap containing the registry CA certificate: registry-cas]"
 
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge >/dev/null 2>&1
-  run_command  "[trust the registry-cas configmap]"
+  run_command "[Trust the registry-cas configmap]"
 fi
 
 # Add an empty line after the task
 echo
 
 
-# Step 4:
+# Step 6:
 PRINT_TASK "TASK [Update pull-secret]"
 
 # Export pull-secret
 rm -rf pull-secret
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
-run_command "[export pull-secret]"
+run_command "[Export pull-secret]"
 
 sleep 5
 
@@ -353,11 +382,11 @@ cat <<EOF > $AUTHFILE
 }
 EOF
 fi
-echo "ok: [authentication information for quay registry added to $AUTHFILE]"
+echo "ok: [Authentication information for quay registry added to $AUTHFILE]"
 
 # Update pull-secret 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
-run_command "[update pull-secret for the cluster]"
+run_command "[Update pull-secret for the cluster]"
 
 rm -rf tmp-authfile >/dev/null 2>&1
 rm -rf pull-secret >/dev/null 2>&1
@@ -365,7 +394,7 @@ rm -rf pull-secret >/dev/null 2>&1
 # Add an empty line after the task
 echo
 
-# Step 5:
+# Step 7:
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
@@ -382,7 +411,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            echo -n "info: [Waiting for all cluster operators to reach the expected state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -394,7 +423,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, cluster operator may still be initializing]"
+            echo "failed: [Reached max retries, cluster operator may still be initializing]"
             break
         fi
     else
@@ -402,7 +431,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all cluster operators have reached the expected state]"
+        echo "ok: [All cluster operators have reached the expected state]"
         break
     fi
 done
@@ -421,7 +450,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all mcps to reach the expected state"
+            echo -n "info: [Waiting for all mcps to reach the expected state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -433,7 +462,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, mcp may still be initializing]"
+            echo "failed: [Reached max retries, mcp may still be initializing]"
             break
         fi
     else
@@ -441,7 +470,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all mcp have reached the expected state]"
+        echo "ok: [All mcp have reached the expected state]"
         break
     fi
 done
@@ -450,8 +479,8 @@ done
 echo
 
 
-# Step 4:
+# Step 8:
 PRINT_TASK "TASK [Manually create a user]"
 
-echo "note: [***  quay console: https://$QUAY_DOMAIN:8443  ***]"
-echo "note: [***  you need to create a user in the quay console with an id of <$QUAY_SUPER_USERS> and a pw of <password>  ***]"
+echo "note: [***  Quay console: https://$QUAY_DOMAIN:8443  ***]"
+echo "note: [***  You need to create a user in the quay console with an id of <$QUAY_SUPER_USERS> and a pw of <password>  ***]"
