@@ -1,4 +1,9 @@
 #!/bin/bash
+# Enable strict mode for robust error handling and log failures with line number.
+set -u
+set -e
+set -o pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Default variable
 export DOMAIN_NAME="test.apps.ocp4.example.com"
@@ -9,7 +14,7 @@ export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
-    max_length=90  # Adjust this to your desired maximum length
+    max_length=110  # Adjust this to your desired maximum length
     task_title="$1"
     title_length=${#task_title}
     stars=$((max_length - title_length))
@@ -17,25 +22,24 @@ PRINT_TASK() {
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
 
-# Task: Generate a self-signed certificate
-PRINT_TASK "[TASK: Generate a self-signed certificate]"
-
 # Function to check command success and display appropriate message
-check_command_result() {
-    if [ $? -eq 0 ]; then
+run_command() {
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
         echo "ok: $1"
     else
         echo "failed: $1"
+        exit 1
     fi
 }
 
 # Generate a directory for creating certificates
 mkdir -p ${CERTS_PATH} > /dev/null 2>&1
-check_command_result "[create cert directory: ${CERTS_PATH}]"
+run_command "[create cert directory: ${CERTS_PATH}]"
 
 # Generate the root Certificate Authority (CA) key
 openssl genrsa -out ${CERTS_PATH}/${DOMAIN_NAME}.ca.key 4096 > /dev/null 2>&1
-check_command_result "[generate root CA key]"
+run_command "[generate root CA key]"
 
 # Generate the root CA certificate
 openssl req -x509 \
@@ -49,11 +53,11 @@ openssl req -x509 \
     -extensions SAN \
     -config <(cat ${OPENSSL_CNF} \
         <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature')) > /dev/null 2>&1
-check_command_result "[generate root CA certificate]"
+run_command "[generate root CA certificate]"
 
 # Generate the domain key
 openssl genrsa -out ${CERTS_PATH}/${DOMAIN_NAME}.key 2048 > /dev/null 2>&1
-check_command_result "[generate domain private key]"
+run_command "[generate domain private key]"
 
 # Generate a certificate signing request (CSR) for the domain
 openssl req -new -sha256 \
@@ -63,7 +67,7 @@ openssl req -new -sha256 \
     -config <(cat ${OPENSSL_CNF} \
         <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN_NAME}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
     -out ${CERTS_PATH}/${DOMAIN_NAME}.csr > /dev/null 2>&1
-check_command_result "[generate domain certificate signing request]"
+run_command "[generate domain certificate signing request]"
 
 # Generate the domain certificate (CRT)
 openssl x509 \
@@ -75,7 +79,7 @@ openssl x509 \
     -CA ${CERTS_PATH}/${DOMAIN_NAME}.ca.crt \
     -CAkey ${CERTS_PATH}/${DOMAIN_NAME}.ca.key \
     -CAcreateserial -out ${CERTS_PATH}/${DOMAIN_NAME}.crt > /dev/null 2>&1
-check_command_result "[generate domain certificate]"
+run_command "[generate domain certificate]"
 
 # self-signed-certificates 
 # https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw
