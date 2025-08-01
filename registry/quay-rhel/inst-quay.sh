@@ -12,8 +12,8 @@ export QUAY_SUPER_USERS="quayadmin"
 export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_SUPER_USERS="quayadmin"
 export QUAY_INST_DIR="/opt/quay-inst"
-export REGISTRY_REDHAT_IO_ID=rhn-support-copan
-export REGISTRY_REDHAT_IO_PW=pcl102085
+export REGISTRY_REDHAT_IO_ID="rhn-support-xxx"
+export REGISTRY_REDHAT_IO_PW="xxxx"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
