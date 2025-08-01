@@ -325,7 +325,7 @@ cp tls.crt /etc/pki/ca-trust/source/anchors/ingress-ca.crt >/dev/null 2>&1
 run_command "[copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/ingress-ca.crt]"
 
 # Trust the rootCA certificate
-sudo update-ca-trust
+update-ca-trust
 run_command "[trust the rootCA certificate]"
 
 sleep 10
