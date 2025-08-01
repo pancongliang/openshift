@@ -195,13 +195,9 @@ run_command "[Set the appropriate permissions]"
 
 sleep 5
 
-if [ "$PWD" = "$QUAY_INST_DIR" ]; then
-    echo "skipping: [Working directory conflicts with volume mount, switching to $HOME]"
-    cd $HOME
-fi
-
 # Start the Postgres container
-sudo podman run -d --rm --name postgresql-quay \
+sudo podman run -d --name postgresql-quay \
+  --restart=always \
   -e POSTGRESQL_USER=quayuser \
   -e POSTGRESQL_PASSWORD=quaypass \
   -e POSTGRESQL_DATABASE=quay \
@@ -218,7 +214,7 @@ sudo podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT
 run_command "[Ensure that the Postgres pg_trgm module is installed]"
 
 # Start the Redis container
-sudo podman run -d --rm --name redis -p 6379:6379 -e REDIS_PASSWORD=strongpassword registry.redhat.io/rhel8/redis-6:1-110 >/dev/null 2>&1
+sudo podman run -d --name redis --restart=always -p 6379:6379 -e REDIS_PASSWORD=strongpassword registry.redhat.io/rhel8/redis-6:1-110 >/dev/null 2>&1
 run_command "[Start the Redis container]"
 
 # Create a minimal config.yaml file that is used to deploy the Red Hat Quay container
@@ -264,7 +260,8 @@ run_command "[Set the directory to store registry images]"
 sleep 5
 
 # Deploy the Red Hat Quay registry 
-sudo podman run -d --rm -p 8090:8080 -p 8443:8443 --name=quay \
+sudo podman run -d -p 8090:8080 -p 8443:8443 --name=quay \
+   --restart=always \
    -v $QUAY_INST_DIR/config:/conf/stack:Z \
    -v $QUAY_INST_DIR/storage:/datastorage:Z \
    registry.redhat.io/quay/quay-rhel8:v3.15.0 >/dev/null 2>&1
