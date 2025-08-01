@@ -9,7 +9,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 export QUAY_DOMAIN='quay-server.example.com'
 export QUAY_HOST_IP="10.184.134.128"
 export QUAY_SUPER_USERS="quayadmin"
-export QUAY-INST-DIR="/opt/quay-install"
+export QUAY_INST_DIR="/opt/quay-inst"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -111,12 +111,12 @@ else
 fi
 
 # Create a database data directory
-mkdir -p $QUAY-INST-DIR/postgres-quay
+mkdir -p $QUAY_INST_DIR/postgres-quay
 run_command "[Create a database data directory]"
 
 
 # Set the appropriate permissions
-setfacl -mu:26:-wx $QUAY-INST-DIR/postgres-quay
+setfacl -mu:26:-wx $QUAY_INST_DIR/postgres-quay
 run_command "[Set the appropriate permissions]"
 
 Create a database data directory
@@ -127,7 +127,7 @@ sudo podman run -d --rm --name postgresql-quay \
   -e POSTGRESQL_DATABASE=quay \
   -e POSTGRESQL_ADMIN_PASSWORD=adminpass \
   -p 5432:5432 \
-  -v $QUAY-INST-DIR/postgres-quay:/var/lib/pgsql/data:Z \
+  -v $QUAY_INST_DIR/postgres-quay:/var/lib/pgsql/data:Z \
   registry.redhat.io/rhel8/postgresql-13
 run_command "[Create a database data directory]"
 
@@ -141,11 +141,11 @@ sudo podman run -d --rm --name redis -p 6379:6379 -e REDIS_PASSWORD=strongpasswo
 run_command "[Start the Redis container]"
 
 # Create a local directory to store the Quay configuration .yaml
-mkdir $QUAY-INST-DIR/config
+mkdir $QUAY_INST_DIR/config
 run_command "[Create a local directory to store the Quay configuration .yaml]"
 
 # Create a minimal config.yaml file that is used to deploy the Red Hat Quay container
-cat > $QUAY-INST-DIR/config/config.yaml << EOF
+cat > $QUAY_INST_DIR/config/config.yaml << EOF
 BUILDLOGS_REDIS:
     host: $QUAY_DOMAIN
     password: strongpassword
@@ -175,16 +175,16 @@ run_command "[Create a minimal config.yaml file that is used to deploy the Red H
 
 
 # Create a local directory that will store registry images
-mkdir $QUAY-INST-DIR/storage
+mkdir $QUAY_INST_DIR/storage
 run_command "[Create a local directory that will store registry images]"
 
 # Set the directory to store registry images
-setfacl -m u:1001:-wx $QUAY-INST-DIR/storage
+setfacl -m u:1001:-wx $QUAY_INST_DIR/storage
 run_command "[Set the directory to store registry images]"
 
 # Deploy the Red Hat Quay registry 
 sudo podman run -d --rm -p 80:8080 -p 443:8443 --name=quay \
-   -v $QUAY-INST-DIR/config:/conf/stack:Z \
-   -v $QUAY-INST-DIR/storage:/datastorage:Z \
+   -v $QUAY_INST_DIR/config:/conf/stack:Z \
+   -v $QUAY_INST_DIR/storage:/datastorage:Z \
    registry.redhat.io/quay/quay-rhel8:v3.15.0
 run_command "[Deploy the Red Hat Quay registry ]"
