@@ -98,6 +98,33 @@ remove_container "quay"
 remove_container "redis"
 remove_directory "$QUAY_INST_DIR"
 
+# Remove CA certificate if it exists
+CA_CERT="/etc/pki/ca-trust/source/anchors/${QUAY_DOMAIN}.ca.pem"
+if [ -f "$CA_CERT" ]; then
+    if sudo rm -rf "$CA_CERT"; then
+        echo "ok: [CA cert $CA_CERT removed]"
+    else
+        echo "failed: [CA cert $CA_CERT removed]"
+    fi
+else
+    echo "skipping: [CA cert $CA_CERT removed]"
+fi
+
+# Remove systemd service files if they exist
+for service in postgresql-quay redis quay; do
+    SERVICE_FILE="/etc/systemd/system/container-${service}.service"
+
+    if [ -f "$SERVICE_FILE" ]; then
+        if sudo rm -rf "$SERVICE_FILE"; then
+            echo "ok: [Systemd service $SERVICE_FILE removed]"
+        else
+            echo "failed: [Systemd service $SERVICE_FILE removed]"
+        fi
+    else
+        echo "skipping: [Systemd service $SERVICE_FILE removed]"
+    fi
+done
+
 # Add an empty line after the task
 echo
 
@@ -314,7 +341,6 @@ echo
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Copy the rootCA certificate to the trusted source
-sudo rm -rf /etc/pki/ca-trust/source/anchors/$QUAY_DOMAIN.ca.pem
 sudo cp ${QUAY_INST_DIR}/config/rootCA.pem /etc/pki/ca-trust/source/anchors/$QUAY_DOMAIN.ca.pem
 run_command "[Copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/$QUAY_DOMAIN.ca.pem]"
 
