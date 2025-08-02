@@ -298,7 +298,7 @@ sudo podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    registry.redhat.io/quay/quay-rhel8:v3.15.0 >/dev/null 2>&1
 run_command "[Deploy the Red Hat Quay registry ]"
 
-sleep 10
+sleep 15
 
 # Checking container status
 containers=("postgresql-quay" "redis" "quay")
