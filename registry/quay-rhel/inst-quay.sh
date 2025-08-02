@@ -13,6 +13,7 @@ export REGISTRY_REDHAT_IO_PW="xxxxxx"
 
 export QUAY_SUPER_USERS="quayadmin"
 export QUAY_INST_DIR="/opt/quay-inst"
+export QUAY_PORT="8443"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -290,12 +291,14 @@ run_command "[Set the directory to store registry images]"
 sleep 5
 
 # Deploy the Red Hat Quay registry 
-sudo podman run -d -p 8090:8080 -p 8443:8443 --name=quay \
+sudo podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    --restart=always \
    -v $QUAY_INST_DIR/config:/conf/stack:Z \
    -v $QUAY_INST_DIR/storage:/datastorage:Z \
    registry.redhat.io/quay/quay-rhel8:v3.15.0 >/dev/null 2>&1
 run_command "[Deploy the Red Hat Quay registry ]"
+
+sleep 10
 
 # Checking container status
 containers=("postgresql-quay" "redis" "quay")
