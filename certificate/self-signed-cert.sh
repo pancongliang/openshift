@@ -1,16 +1,11 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-set -u
-set -e
-set -o pipefail
+set -euo pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Default variable
 export DOMAIN="quay.ocp4.example.com"
-
 export CERTS_PATH="certs"
-export CA_CN="Test Workspace Signer"
-export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -32,6 +27,9 @@ run_command() {
         exit 1
     fi
 }
+
+export CA_CN="Test Workspace Signer"
+export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 
 # Generate a directory for creating certificates
 rm -rf ${CERTS_PATH} > /dev/null 2>&1
