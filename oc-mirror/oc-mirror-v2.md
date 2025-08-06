@@ -80,6 +80,9 @@
   mkdir ${MIRROR_RESOURCES_DIR}
 
   oc-mirror -c isc.yaml file://${MIRROR_RESOURCES_DIR} --v2
+
+  ls ${MIRROR_RESOURCES_DIR}
+  mirror_000001.tar  working-dir
   ```
 
 * Migrate the `MIRROR_RESOURCES_DIR` and `isc.yaml` file to a fully disconnected environment
@@ -87,14 +90,10 @@
 * Mirroring from disk to regitry(fully disconnected environment)
   ```
   MIRROR_RESOURCES_DIR=./olm
-  
   MIRROR_REGISTRY=mirror.registry.example.com:8443
   MIRROR_REGISTRY_ID='admin'
   MIRROR_REGISTRY_PW='password'
   podman login -u $MIRROR_REGISTRY_ID -p $MIRROR_REGISTRY_PW ${MIRROR_REGISTRY}
-
-  ls ${MIRROR_RESOURCES_DIR}
-  mirror_000001.tar  working-dir
 
   oc-mirror -c isc.yaml --from file://${MIRROR_RESOURCES_DIR} docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
   ```
