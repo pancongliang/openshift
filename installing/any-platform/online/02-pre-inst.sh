@@ -122,8 +122,8 @@ echo
 PRINT_TASK "TASK [Install openshift-install and openshift client tools]"
 
 # Delete the old version of oc cli
-rm -f /usr/local/bin/oc* >/dev/null 2>&1
-rm -f /usr/local/bin/kube* >/dev/null 2>&1
+rm -f /usr/local/bin/oc >/dev/null 2>&1
+rm -f /usr/local/bin/kubectl >/dev/null 2>&1
 rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
 rm -f /usr/local/bin/README.md >/dev/null 2>&1
 rm -f openshift-install-linux.tar.gz* >/dev/null 2>&1
