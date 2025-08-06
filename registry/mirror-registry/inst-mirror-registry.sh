@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export REGISTRY_DOMAIN_NAME="quay.registry.example.com"
+export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
 export REGISTRY_IP="10.184.134.128"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
