@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# The following contents do not need to be changed
+# Enable strict mode for robust error handling and log failures with line number.
+set -euo pipefail
+trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+
 # Specify required parameters for install-config.yaml
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.lan"
@@ -41,13 +46,6 @@ export API_IP="$BASTION_IP"
 export API_INT_IP="$BASTION_IP"
 export APPS_IP="$BASTION_IP"
 export LB_IP="$BASTION_IP"
-
-# The following contents do not need to be changed
-# Enable strict mode for robust error handling and log failures with line number.
-set -u
-set -e
-set -o pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Function to print a task with uniform length
 PRINT_TASK() {
