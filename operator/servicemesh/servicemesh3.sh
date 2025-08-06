@@ -1,8 +1,6 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-set -u
-set -e
-set -o pipefail
+set -euo pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Applying environment variables
