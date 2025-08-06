@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+
 # === Function to print a task with uniform length ===
 # Function to print a task with uniform length
 PRINT_TASK() {
