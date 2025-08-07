@@ -268,7 +268,7 @@ sleep 10
 # Wait for quay pods to be in 'Running' state
 NAMESPACE="quay-enterprise"
 MAX_RETRIES=60
-SLEEP_INTERVAL=2
+SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
 
