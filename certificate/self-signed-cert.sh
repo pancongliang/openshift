@@ -34,7 +34,7 @@ export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 # Generate a directory for creating certificates
 rm -rf ${CERTS_DIR} > /dev/null 2>&1
 mkdir -p ${CERTS_DIR} > /dev/null 2>&1
-run_command "[create cert directory: ${CERTS_DIR}]"
+run_command "[Generate certificate directory: ${CERTS_DIR}]"
 
 # Generate the root Certificate Authority (CA) key
 openssl genrsa -out ${CERTS_DIR}/rootCA.key 4096 > /dev/null 2>&1
@@ -52,11 +52,11 @@ openssl req -x509 \
   -extensions SAN \
   -config <(cat ${OPENSSL_CNF} \
       <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature')) > /dev/null 2>&1
-run_command "[Generate root CA certificate]"
+run_command "[Generate root CA self-signed certificate]"
 
 # Generate the SSL key
 openssl genrsa -out ${CERTS_DIR}/ssl.key 2048 > /dev/null 2>&1
-run_command "[Generate private key for SSL]"
+run_command "[Generate SSL private key]"
 
 # Generate a certificate signing request (CSR) for the SSL
 openssl req -new -sha256 \
@@ -78,7 +78,7 @@ openssl x509 \
     -CA ${CERTS_DIR}/rootCA.pem \
     -CAkey ${CERTS_DIR}/rootCA.key \
     -CAcreateserial -out ${CERTS_DIR}/ssl.cert  > /dev/null 2>&1
-run_command "[Generate SSL certificate]"
+run_command "[Generate SSL certificate signed by root CA]"
 
 # self-signed-certificates 
 # https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-in-tls-mode-with-self-signed-certificates_crw
