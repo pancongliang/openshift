@@ -54,7 +54,9 @@
   oc -n sample-backup set volumes deployment/nginx \
     --add --name nginx-storage --type pvc --claim-mode RWO --claim-size 5Gi --mount-path /data --claim-name nginx-storage
 
-  oc rsh -n sample-backup $(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx) cat /data/test
+  export POD_ANME=$(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx)
+  oc rsh -n sample-backup $POD_ANME sh -c 'echo hello > /data/test'
+  oc rsh -n sample-backup $POD_ANME cat /data/test
   hello
   ```
 
