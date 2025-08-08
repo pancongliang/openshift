@@ -6,12 +6,11 @@ trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 # Set environment variables
 export QUAY_DOMAIN='quay-server.example.com'
 export QUAY_HOST_IP="10.184.134.128"
-export REGISTRY_REDHAT_IO_ID="rhn-support-xxx"
-export REGISTRY_REDHAT_IO_PW="xxxxxx"
+export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"
 
 export QUAY_SUPER_USERS="quayadmin"
 export QUAY_INST_DIR="/opt/quay-inst"
-export QUAY_PORT="8443"
+export QUAY_PORT="9443"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -66,8 +65,8 @@ PRINT_TASK "TASK [Delete existing duplicate data]"
 # Function to remove a container with formatted output
 remove_container() {
     local container_name="$1"
-    if sudo podman container exists "$container_name"; then
-        if sudo podman rm -f "$container_name" >/dev/null 2>&1; then
+    if podman container exists "$container_name"; then
+        if podman rm -f "$container_name" >/dev/null 2>&1; then
             echo "ok: [Container $container_name removed]"
         else
             echo "failed: [Container $container_name removed]"
@@ -205,9 +204,11 @@ else
   echo "skipping: [Registry entry already exists in /etc/hosts]"
 fi
 
-# Login registry.redhat.io
-sudo podman login -u $REGISTRY_REDHAT_IO_ID -p "$REGISTRY_REDHAT_IO_PW" registry.redhat.io >/dev/null 2>&1
-run_command "[Login registry.redhat.io]"
+# Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
+mkdir -p $XDG_RUNTIME_DIR/containers
+sleep 1
+cat ${PULL_SECRET_FILE} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
+run_command "[Save the pull-secret file either as $XDG_RUNTIME_DIR/containers/auth.json]"
 
 # Create a database data directory
 mkdir -p $QUAY_INST_DIR/postgres-quay >/dev/null 2>&1
@@ -222,7 +223,7 @@ run_command "[Set the appropriate permissions]"
 sleep 5
 
 # Start the Postgres container
-sudo podman run -d --name postgresql-quay \
+podman run -d --name postgresql-quay \
   --restart=always \
   -e POSTGRESQL_USER=quayuser \
   -e POSTGRESQL_PASSWORD=quaypass \
@@ -236,11 +237,11 @@ run_command "[Start the Postgres container]"
 sleep 10
 
 # Ensure that the Postgres pg_trgm module is installed
-sudo podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres' >/dev/null 2>&1
+podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres' >/dev/null 2>&1
 run_command "[Ensure that the Postgres pg_trgm module is installed]"
 
 # Start the Redis container
-sudo podman run -d --name redis --restart=always -p 6379:6379 -e REDIS_PASSWORD=strongpassword registry.redhat.io/rhel8/redis-6:1-110 >/dev/null 2>&1
+podman run -d --name redis --restart=always -p 6379:6379 -e REDIS_PASSWORD=strongpassword registry.redhat.io/rhel8/redis-6:1-110 >/dev/null 2>&1
 run_command "[Start the Redis container]"
 
 # Create a minimal config.yaml file that is used to deploy the Red Hat Quay container
@@ -289,7 +290,7 @@ run_command "[Set the directory to store registry images]"
 sleep 5
 
 # Deploy the Red Hat Quay registry 
-sudo podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
+podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    --restart=always \
    -v $QUAY_INST_DIR/config:/conf/stack:Z \
    -v $QUAY_INST_DIR/storage:/datastorage:Z \
@@ -310,15 +311,15 @@ for c in "${containers[@]}"; do
 done
 
 # Generate systemd service file for PostgreSQL
-sudo podman generate systemd --name postgresql-quay --files --restart-policy=always >/dev/null 2>&1
+podman generate systemd --name postgresql-quay --files --restart-policy=always >/dev/null 2>&1
 run_command "[Generate systemd service file for PostgreSQL]"
 
 # Generate systemd service file for Redis
-sudo podman generate systemd --name redis --files --restart-policy=always >/dev/null 2>&1
+podman generate systemd --name redis --files --restart-policy=always >/dev/null 2>&1
 run_command "[Generate systemd service file for Redis]"
 
 # Generate systemd service file for Quay
-sudo podman generate systemd --name quay --files --restart-policy=always >/dev/null 2>&1
+podman generate systemd --name quay --files --restart-policy=always >/dev/null 2>&1
 run_command "[Generate systemd service file for Quay]"
 
 # Move generated files to systemd directory
