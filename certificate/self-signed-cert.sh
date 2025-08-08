@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Default variable
-export DOMAIN="quay.ocp4.example.com"
+export DOMAIN="quay-server.example.com"
 export CERTS_DIR="certs"
 
 # Function to print a task with uniform length
