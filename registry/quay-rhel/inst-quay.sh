@@ -156,11 +156,11 @@ openssl req -x509 \
   -extensions SAN \
   -config <(cat ${OPENSSL_CNF} \
       <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature')) > /dev/null 2>&1
-run_command "[Generate root CA certificate]"
+run_command "[Generate root CA self-signed certificate]"
 
 # Generate the SSL key
 openssl genrsa -out ${CERTS_DIR}/ssl.key 2048 > /dev/null 2>&1
-run_command "[Generate private key for SSL]"
+run_command "[Generate SSL private key]"
 
 # Generate a certificate signing request (CSR) for the SSL
 openssl req -new -sha256 \
@@ -182,7 +182,7 @@ openssl x509 \
     -CA ${CERTS_DIR}/rootCA.pem \
     -CAkey ${CERTS_DIR}/rootCA.key \
     -CAcreateserial -out ${CERTS_DIR}/ssl.cert  > /dev/null 2>&1
-run_command "[Generate SSL certificate]"
+run_command "[Generate SSL certificate signed by root CA]"
 
 sudo chmod 777 -R $QUAY_INST_DIR/config
 run_command "[Change the permissions of $QUAY_INST_DIR/config]"
