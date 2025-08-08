@@ -5,7 +5,6 @@ metadata:
   namespace: openshift-adp
 spec:
   backupLocations:
-    - name: minio
       velero:
         config:
           profile: default
