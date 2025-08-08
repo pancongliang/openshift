@@ -204,7 +204,8 @@ else
 fi
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-mkdir -p $XDG_RUNTIME_DIR/containers
+rm -rf $XDG_RUNTIME_DIR/containers || true
+mkdir -p $XDG_RUNTIME_DIR/containers || true
 sleep 1
 cat ${PULL_SECRET_FILE} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
 run_command "[Save the pull-secret file either as $XDG_RUNTIME_DIR/containers/auth.json]"
@@ -297,7 +298,7 @@ podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    registry.redhat.io/quay/quay-rhel8:v3.15.0 >/dev/null 2>&1
 run_command "[Deploy the Red Hat Quay registry ]"
 
-sleep 15
+sleep 20
 
 # Checking container status
 containers=("postgresql-quay" "redis" "quay")
