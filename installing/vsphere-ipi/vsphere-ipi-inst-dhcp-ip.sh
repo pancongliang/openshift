@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export OCP_VERSION=4.11.36                                     # Only supports installation of version 4.10+
+export OCP_VERSION=4.16.21                                     # Only supports installation of version 4.10+
 export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/ocp"
 export CLUSTER_NAME="copan"
