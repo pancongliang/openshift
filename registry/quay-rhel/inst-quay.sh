@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export QUAY_DOMAIN='quay-server.example.com'
+export QUAY_HOST_NAME='quay-server.example.com'
 export QUAY_HOST_IP="10.184.134.128"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"
 
@@ -97,7 +97,7 @@ remove_container "redis"
 remove_directory "$QUAY_INST_DIR"
 
 # Remove CA certificate if it exists
-CA_CERT="/etc/pki/ca-trust/source/anchors/${QUAY_DOMAIN}.ca.pem"
+CA_CERT="/etc/pki/ca-trust/source/anchors/${QUAY_HOST_NAME}.ca.pem"
 if [ -f "$CA_CERT" ]; then
     if sudo rm -rf "$CA_CERT"; then
         echo "ok: [CA cert $CA_CERT removed]"
@@ -130,61 +130,60 @@ echo
 # Task: Generate a self-signed certificate
 PRINT_TASK "[TASK: Generate a self-signed certificate]"
 
+# Default variable
+export DOMAIN="$QUAY_HOST_NAME"
+export CERTS_DIR="$QUAY_INST_DIR/config"
+export CA_CN="Test Workspace Signer"
+export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
+
 # Create a local directory to store the Quay config.yaml and certificates
-rm -rf ${QUAY_INST_DIR} > /dev/null 2>&1
+rm -rf $QUAY_INST_DIR > /dev/null 2>&1
 mkdir -p $QUAY_INST_DIR/config >/dev/null 2>&1
 run_command "[Create a local directory to store the Quay config.yaml and certificates]"
 
 # Generate the root Certificate Authority (CA) key
-openssl genrsa -out "${QUAY_INST_DIR}/config/rootCA.key" 2048 >/dev/null 2>&1
+openssl genrsa -out ${CERTS_DIR}/rootCA.key 4096 > /dev/null 2>&1
 run_command "[Generate root CA private key]"
 
 # Generate the root CA certificate
-openssl req -x509 -new -nodes \
-  -key "${QUAY_INST_DIR}/config/rootCA.key" \
-  -sha256 -days 36500 \
-  -out "${QUAY_INST_DIR}/config/rootCA.pem" \
-  -subj "/C=IE/ST=GALWAY/L=GALWAY/O=QUAY/OU=DOCS/CN=${QUAY_DOMAIN}" >/dev/null 2>&1
+openssl req -x509 \
+  -new -nodes \
+  -key ${CERTS_DIR}/rootCA.key \
+  -sha256 \
+  -days 1024 \
+  -out ${CERTS_DIR}/rootCA.pem \
+  -subj /CN="${CA_CN}" \
+  -reqexts SAN \
+  -extensions SAN \
+  -config <(cat ${OPENSSL_CNF} \
+      <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature')) > /dev/null 2>&1
 run_command "[Generate root CA certificate]"
 
-# Generate the domain key
-openssl genrsa -out "${QUAY_INST_DIR}/config/ssl.key" 2048 >/dev/null 2>&1
-run_command "[Generate private key for domain]"
+# Generate the SSL key
+openssl genrsa -out ${CERTS_DIR}/ssl.key 2048 > /dev/null 2>&1
+run_command "[Generate private key for SSL]"
 
-# Generate a certificate signing request (CSR) for the domain
-openssl req -new \
-  -key "${QUAY_INST_DIR}/config/ssl.key" \
-  -out "${QUAY_INST_DIR}/config/ssl.csr" \
-  -subj "/C=IE/ST=GALWAY/L=GALWAY/O=QUAY/OU=DOCS/CN=${QUAY_DOMAIN}" >/dev/null 2>&1
-run_command "[Generate domain certificate signing request]"
+# Generate a certificate signing request (CSR) for the SSL
+openssl req -new -sha256 \
+    -key ${CERTS_DIR}/ssl.key \
+    -subj "/O=Local Red Hat CodeReady Workspaces/CN=${DOMAIN}" \
+    -reqexts SAN \
+    -config <(cat ${OPENSSL_CNF} \
+        <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
+    -out ${CERTS_DIR}/ssl.csr > /dev/null 2>&1
+run_command "[Generate SSL certificate signing request]"
 
-# Create an OpenSSL configuration file with Subject Alternative Names (SANs)
-cat > "${QUAY_INST_DIR}/config/openssl.cnf" <<EOF
-[req]
-req_extensions = v3_req
-distinguished_name = req_distinguished_name
-[req_distinguished_name]
-[v3_req]
-basicConstraints = CA:FALSE
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
-subjectAltName = @alt_names
-[alt_names]
-DNS.1 = ${QUAY_DOMAIN}
-IP.1 = ${QUAY_HOST_IP}
-EOF
-run_command "[Create an OpenSSL configuration file with Subject Alternative Names]"
-
-# Generate the domain certificate (CRT)
-openssl x509 -req \
-  -in "${QUAY_INST_DIR}/config/ssl.csr" \
-  -CA "${QUAY_INST_DIR}/config/rootCA.pem" \
-  -CAkey "${QUAY_INST_DIR}/config/rootCA.key" \
-  -CAcreateserial \
-  -out "${QUAY_INST_DIR}/config/ssl.cert" \
-  -days 36500 \
-  -extensions v3_req \
-  -extfile "${QUAY_INST_DIR}/config/openssl.cnf" >/dev/null 2>&1
-run_command "[Generate domain certificate]"
+# Generate the SSL certificate (CRT)
+openssl x509 \
+    -req \
+    -sha256 \
+    -extfile <(printf "subjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
+    -days 365 \
+    -in ${CERTS_DIR}/ssl.csr \
+    -CA ${CERTS_DIR}/rootCA.pem \
+    -CAkey ${CERTS_DIR}/rootCA.key \
+    -CAcreateserial -out ${CERTS_DIR}/ssl.cert  > /dev/null 2>&1
+run_command "[Generate SSL certificate]"
 
 sudo chmod 777 -R $QUAY_INST_DIR/config
 run_command "[Change the permissions of $QUAY_INST_DIR/config]"
@@ -196,9 +195,9 @@ echo
 PRINT_TASK "TASK [Install quay registry]"
 
 # Add registry entry to /etc/hosts
-if ! grep -q "$QUAY_DOMAIN" /etc/hosts; then
+if ! grep -q "$QUAY_HOST_NAME" /etc/hosts; then
   echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts > /dev/null
-  echo "$QUAY_HOST_IP $QUAY_DOMAIN" | sudo tee -a /etc/hosts > /dev/null
+  echo "$QUAY_HOST_IP $QUAY_HOST_NAME" | sudo tee -a /etc/hosts > /dev/null
   echo "ok: [Add registry entry to /etc/hosts]"
 else
   echo "skipping: [Registry entry already exists in /etc/hosts]"
@@ -247,12 +246,12 @@ run_command "[Start the Redis container]"
 # Create a minimal config.yaml file that is used to deploy the Red Hat Quay container
 cat > $QUAY_INST_DIR/config/config.yaml << EOF
 BUILDLOGS_REDIS:
-    host: $QUAY_DOMAIN
+    host: $QUAY_HOST_NAME
     password: strongpassword
     port: 6379
 CREATE_NAMESPACE_ON_PUSH: true
 DATABASE_SECRET_KEY: a8c2744b-7004-4af2-bcee-e417e7bdd235
-DB_URI: postgresql://quayuser:quaypass@$QUAY_DOMAIN:5432/quay
+DB_URI: postgresql://quayuser:quaypass@$QUAY_HOST_NAME:5432/quay
 DISTRIBUTED_STORAGE_CONFIG:
     default:
         - LocalStorage
@@ -265,13 +264,14 @@ SECRET_KEY: e9bd34f4-900c-436a-979e-7530e5d74ac8
 DEFAULT_TAG_EXPIRATION: 1s
 TAG_EXPIRATION_OPTIONS:
     - 1s
-SERVER_HOSTNAME: $QUAY_DOMAIN
+TESTING: false
+SERVER_HOSTNAME: $QUAY_HOST_NAME:$QUAY_PORT
 PREFERRED_URL_SCHEME: https
 SETUP_COMPLETE: true
 SUPER_USERS:
   - $QUAY_SUPER_USERS
 USER_EVENTS_REDIS:
-    host: $QUAY_DOMAIN
+    host: $QUAY_HOST_NAME
     password: strongpassword
     port: 6379
 EOF
@@ -346,8 +346,8 @@ echo
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Copy the rootCA certificate to the trusted source
-sudo cp ${QUAY_INST_DIR}/config/rootCA.pem /etc/pki/ca-trust/source/anchors/$QUAY_DOMAIN.ca.pem
-run_command "[Copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/$QUAY_DOMAIN.ca.pem]"
+sudo cp ${QUAY_INST_DIR}/config/rootCA.pem /etc/pki/ca-trust/source/anchors/$QUAY_HOST_NAME.ca.pem
+run_command "[Copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/$QUAY_HOST_NAME.ca.pem]"
 
 # Trust the rootCA certificate
 sudo update-ca-trust
@@ -362,7 +362,7 @@ if [[ -n "$REGISTRY_CAS" ]]; then
   # If it exists, execute the following commands
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
-  oc create configmap registry-config --from-file=${QUAY_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${QUAY_DOMAIN}.ca.pem -n openshift-config >/dev/null 2>&1
+  oc create configmap registry-config --from-file=${QUAY_HOST_NAME}..8443=/etc/pki/ca-trust/source/anchors/${QUAY_HOST_NAME}.ca.pem -n openshift-config >/dev/null 2>&1
   run_command "[Create a configmap containing the registry CA certificate: registry-config]"
   
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
@@ -371,7 +371,7 @@ else
   # If it doesn't exist, execute the following commands
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
-  oc create configmap registry-cas --from-file=${QUAY_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/${QUAY_DOMAIN}.ca.pem -n openshift-config >/dev/null 2>&1
+  oc create configmap registry-cas --from-file=${QUAY_HOST_NAME}..8443=/etc/pki/ca-trust/source/anchors/${QUAY_HOST_NAME}.ca.pem -n openshift-config >/dev/null 2>&1
   run_command "[Create a configmap containing the registry CA certificate: registry-cas]"
 
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge >/dev/null 2>&1
@@ -397,7 +397,7 @@ export AUTHFILE="pull-secret"
 
 # Base64 encode the username:password
 AUTH=cXVheWFkbWluOnBhc3N3b3Jk
-export REGISTRY=${QUAY_DOMAIN}:8443
+export REGISTRY=${QUAY_HOST_NAME}:$QUAY_PORT
 
 if [ -f "$AUTHFILE" ]; then
   jq --arg registry "$REGISTRY" \
@@ -515,5 +515,6 @@ echo
 # Step 8:
 PRINT_TASK "TASK [Manually create a user]"
 
-echo "note: [***  Quay console: https://$QUAY_DOMAIN:8443  ***]"
+echo "note: [***  Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT  ***]"
 echo "note: [***  You need to create a user in the quay console with an id of <$QUAY_SUPER_USERS> and a pw of <password>  ***]"
+echo "note: [***  podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u $QUAY_SUPER_USERS -p password  ***]"
