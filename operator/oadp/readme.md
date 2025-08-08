@@ -41,7 +41,7 @@
   oc get dataprotectionapplication -n openshift-adp
   oc get backupStorageLocations -n openshift-adp
 
-  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
+  echo "alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'" >> ~/.bashrc && source ~/.bashrc
   velero get backup-locations -n openshift-adp
   ```
 
@@ -92,7 +92,6 @@
   oc get backup -n openshift-adp sample-backup -o jsonpath='{.status.phase}'
   Completed
 
-  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
   velero get backup -n openshift-adp
   NAME            STATUS      ERRORS   WARNINGS   CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
   sample-backup   Completed   0        0          2023-12-14 05:26:05 +0000 UTC   29d       dpa-sample-1       <none>
@@ -117,8 +116,6 @@
 
 * If a backup error occurs, can view the Log by the following method
   ```
-  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
-
   velero backup logs sample-backup
   velero describe backup sample-backup
   ```
@@ -175,8 +172,6 @@
 
 * If a restore error occurs, can view the Log by the following method
   ```
-  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
-
   velero restore logs sample-restore
   velero describe restore sample-restore
   ```
