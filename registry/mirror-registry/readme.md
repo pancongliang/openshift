@@ -7,10 +7,11 @@
   curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/inst-mirror-registry.sh
 
   vim inst-mirror-registry.sh
-  export REGISTRY_DOMAIN_NAME="mirror.registry.example.com"
+  export REGISTRY_HOST_NAME="mirror.registry.example.com"
+  export REGISTRY_HOST_IP="10.184.134.128"
   export REGISTRY_ID="admin"
   export REGISTRY_PW="password"
-  export REGISTRY_INSTALL_PATH="/opt/quay-install"
+  export REGISTRY_INSTALL_DIR="/opt/quay-install"
   
   bash inst-mirror-registry.sh
   ```
