@@ -55,9 +55,11 @@
   --add --name nginx-html --type pvc --claim-mode RWO --claim-size 5Gi --mount-path /usr/share/nginx/html --claim-name nginx-html
   
   export POD_NAME=$(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx | head -n 1)
-  export ROUTE_HOST=$(oc get route nginx -n sample-backup -o jsonpath='{.spec.host}')
   oc rsh -n sample-backup $POD_NAME sh -c 'echo "Hello OpenShift!" > /usr/share/nginx/html/index.html'
-
+  oc rsh -n sample-backup $POD_NAME cat /usr/share/nginx/html/index.html
+  Hello OpenShift!
+  
+  export ROUTE_HOST=$(oc get route nginx -n sample-backup -o jsonpath='{.spec.host}')
   curl http://$ROUTE_HOST
   Hello OpenShift!
   ```
@@ -161,7 +163,14 @@
   ```
   oc get all -n sample-backup  
   oc get pvc -n sample-backup
-  oc rsh -n sample-backup $(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx) cat /data/test
+
+  export POD_NAME=$(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx | head -n 1)
+  oc rsh -n sample-backup $POD_NAME cat /usr/share/nginx/html/index.html
+  Hello OpenShift!
+  
+  export ROUTE_HOST=$(oc get route nginx -n sample-backup -o jsonpath='{.spec.host}')
+  curl http://$ROUTE_HOST
+  Hello OpenShift!
   ```
 
 * If a restore error occurs, can view the Log by the following method
