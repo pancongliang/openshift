@@ -6,7 +6,7 @@ metadata:
 spec:
   backupLocations:
     - name: minio
-    - velero:
+      velero:
         config:
           profile: default
           region: minio
