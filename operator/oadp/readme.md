@@ -50,14 +50,16 @@
   ```
   oc new-project sample-backup
   oc -n sample-backup new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
-  oc -n sample-backup expose svc/nginx --hostname nginx.apps.ocp4.example.com
+  oc -n sample-backup expose svc/nginx
   oc -n sample-backup set volumes deployment/nginx \
-    --add --name nginx-storage --type pvc --claim-mode RWO --claim-size 5Gi --mount-path /data --claim-name nginx-storage
+  --add --name nginx-html --type pvc --claim-mode RWO --claim-size 5Gi --mount-path /usr/share/nginx/html --claim-name nginx-html
+  
+  export POD_NAME=$(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx | head -n 1)
+  export ROUTE_HOST=$(oc get route nginx -n sample-backup -o jsonpath='{.spec.host}')
+  oc rsh -n sample-backup $POD_NAME sh -c 'echo "Hello OpenShift!" > /usr/share/nginx/html/index.html'
 
-  export POD_ANME=$(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx)
-  oc rsh -n sample-backup $POD_ANME sh -c 'echo hello > /data/test'
-  oc rsh -n sample-backup $POD_ANME cat /data/test
-  hello
+  curl http://$ROUTE_HOST
+  Hello OpenShift!
   ```
 
 ### Backing up applications
