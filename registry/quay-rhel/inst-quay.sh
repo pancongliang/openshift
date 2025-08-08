@@ -8,7 +8,6 @@ export QUAY_HOST_NAME='quay-server.example.com'
 export QUAY_HOST_IP="10.184.134.128"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"
 
-export QUAY_SUPER_USERS="quayadmin"
 export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
 
@@ -270,7 +269,7 @@ SERVER_HOSTNAME: $QUAY_HOST_NAME:$QUAY_PORT
 PREFERRED_URL_SCHEME: https
 SETUP_COMPLETE: true
 SUPER_USERS:
-  - $QUAY_SUPER_USERS
+  - quayadmin
 USER_EVENTS_REDIS:
     host: $QUAY_HOST_NAME
     password: strongpassword
@@ -517,5 +516,5 @@ echo
 PRINT_TASK "TASK [Manually create a user]"
 
 echo "note: [***  Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT  ***]"
-echo "note: [***  You need to create a user in the quay console with an id of <$QUAY_SUPER_USERS> and a pw of <password>  ***]"
-echo "note: [***  podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u $QUAY_SUPER_USERS -p password  ***]"
+echo "note: [***  You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>  ***]"
+echo "note: [***  podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u quayadmin -p password  ***]"
