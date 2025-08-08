@@ -173,6 +173,7 @@ REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'regis
 
 if [[ -n "$REGISTRY_CAS" ]]; then
   # If it exists, execute the following commands
+  oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
   oc create configmap registry-config --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem -n openshift-config >/dev/null 2>&1
   run_command  "[create a configmap containing the registry CA certificate: registry-config]"
@@ -181,6 +182,7 @@ if [[ -n "$REGISTRY_CAS" ]]; then
   run_command  "[trust the registry-config configmap]"
 else
   # If it doesn't exist, execute the following commands
+  oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc create configmap registry-cas --from-file=${REGISTRY_DOMAIN_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_DOMAIN_NAME}.ca.pem -n openshift-config >/dev/null 2>&1
   run_command  "[create a configmap containing the registry CA certificate: registry-cas]"
