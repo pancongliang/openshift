@@ -89,7 +89,7 @@ run_command() {
 }
 
 cat $PULL_SECRET_FILE >/dev/null 2>&1
-run_command "[check if the $PULL_SECRET_FILE file exists]"
+run_command "[verify existence of  $PULL_SECRET_FILE file]"
 
 # Define variables
 missing_variables=()
@@ -159,7 +159,7 @@ if [ ${#missing_variables[@]} -gt 0 ]; then
         echo "- $var"
     done
 else
-    echo "ok: [all variables are set]"
+    echo "ok: [confirm all required variables are set]"
 fi
 
 # Add an empty line after the task
