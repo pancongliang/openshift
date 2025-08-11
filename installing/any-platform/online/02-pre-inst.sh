@@ -243,7 +243,7 @@ run_command "[create http: ${HTTPD_DIR} director]"
 
 # Enable and start service
 systemctl enable httpd >/dev/null 2>&1
-run_command "[set the httpd service to start automatically at boot]"
+run_command "[enable the httpd service to start at boot]"
 
 systemctl restart httpd >/dev/null 2>&1
 run_command "[restart the httpd service]"
@@ -301,7 +301,7 @@ fi
 
 # Enable and start service
 systemctl enable nfs-server >/dev/null 2>&1
-run_command "[set the nfs-server service to start automatically at boot]"
+run_command "[enable the nfs-server service to start at boot]"
 
 systemctl restart nfs-server >/dev/null 2>&1
 run_command "[restart the nfs-server service]"
@@ -546,7 +546,7 @@ run_command "[change ownership /var/named/*.zone]"
 
 # Enable and start service
 systemctl enable named >/dev/null 2>&1
-run_command "[set the named service to start automatically at boot]"
+run_command "[enable the named service to start at boot]"
 
 systemctl restart named >/dev/null 2>&1
 run_command "[restart the named service]"
@@ -721,7 +721,7 @@ run_command "[haproxy configuration is valid]"
 
 # Enable and start service
 systemctl enable --now haproxy >/dev/null 2>&1
-run_command "[set the haproxy service to start automatically at boot]"
+run_command "[enable the haproxy service to start at boot]"
 
 systemctl restart haproxy >/dev/null 2>&1
 run_command "[restart the haproxy service]"
