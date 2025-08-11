@@ -47,15 +47,16 @@ packages=("wget" "vim-enhanced" "podman" "git" "bash-completion" "jq" "skopeo")
 package_list="${packages[*]}"
 
 # Install all packages at once
-sudo dnf install -y $package_list >/dev/null
+echo "info: [Preparing install rpm packages]"
+dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
-    sudo rpm -q $package &>/dev/null
+    rpm -q $package >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo "ok: [installed $package package]"
+        echo "ok: [Install $package package]"
     else
-        echo "failed: [installed $package package]"
+        echo "failed: [Install $package package]"
     fi
 done
 
@@ -166,12 +167,12 @@ if podmanpod ps | grep -E 'quay-pod.*Running' >/dev/null; then
     ${REGISTRY_INSTALL_PATH}/mirror-registry uninstall --autoApprove --quayRoot ${REGISTRY_INSTALL_PATH} &>/dev/null
     # Check the exit status of the uninstall command
     if [ $? -eq 0 ]; then
-        echo "ok: [uninstall the mirror registry]"
+        echo "ok: [Uninstall the mirror registry]"
     else
-        echo "failed: [uninstall the mirror registry]"
+        echo "failed: [Uninstall the mirror registry]"
     fi
 else
-    echo "skipping: [no active mirror registry pod found. skipping uninstallation]"
+    echo "skipping: [No active mirror registry pod found. skipping uninstallation]"
 fi
 
 # Delete existing duplicate data
