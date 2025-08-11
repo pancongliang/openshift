@@ -779,30 +779,28 @@ echo
 # Step 11: 
 PRINT_TASK "TASK [Install mirror registry]"
 
-# Check if there is an active mirror registry pod
-if podman pod ps | grep -E 'quay-pod.*Running' >/dev/null 2>&1; then
-    # If the mirror registry pod is running, uninstall it
-    ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot ${REGISTRY_INSTALL_DIR} >/dev/null 2>&1
-    # Check the exit status of the uninstall command
-    if [ $? -eq 0 ]; then
+# Check if there is an quay-app.service
+ if [ -f /etc/systemd/system/quay-pod.service ]; then
+    echo "info: [mirror registry detected, starting uninstall]"
+    if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
         echo "ok: [uninstall the mirror registry]"
     else
         echo "failed: [uninstall the mirror registry]"
     fi
 else
-    echo "skipping: [no active mirror registry pod found]"
+    echo "skipping: [uninstall the mirror registry]"
 fi
 
 # Delete existing duplicate data
 rm -rf /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem >/dev/null 2>&1
-rm -rf ${REGISTRY_INSTALL_DIR} >/dev/null 2>&1
+rm -rf "${REGISTRY_INSTALL_DIR}" >/dev/null 2>&1
 
 # Create installation directory
 mkdir -p ${REGISTRY_INSTALL_DIR}
 mkdir -p ${REGISTRY_INSTALL_DIR}/quay-storage
 mkdir -p ${REGISTRY_INSTALL_DIR}/sqlite-storage
 chmod -R 777 ${REGISTRY_INSTALL_DIR}
-run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
+run_command "[create the ${REGISTRY_INSTALL_DIR} directory and modify its permissions]"
 
 # Download mirror-registry
 echo "info: [downloading mirror-registry package]"
