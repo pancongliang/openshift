@@ -301,12 +301,9 @@ FORWARD_ZONE_NAME="${BASE_DOMAIN}"
 FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
 
 # Generate reverse DNS zone name and reverse zone file name 
-# Extract the last two octets from the IP address
 IFS='.' read -ra octets <<< "$LOCAL_DNS_IP"
 OCTET0="${octets[0]}"
 OCTET1="${octets[1]}"
-
-# Construct reverse DNS zone name and zone file name
 REVERSE_ZONE_NAME="${OCTET1}.${OCTET0}.in-addr.arpa"
 REVERSE_ZONE_FILE="${OCTET1}.${OCTET0}.zone"
 
@@ -405,17 +402,16 @@ $(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BO
 EOF
 run_command "[Generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 
-# Clean up: Delete duplicate file
+# Create reverse zone file
+get_reverse_ip() {
+  local ip=$1
+  IFS='.' read -r a b c d <<< "$ip"
+  echo "${d}.${c}"
+}
+
 rm -f /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
 
-# Input file containing the original reverse DNS zone configuration
-reverse_zone_input_file="/var/named/reverse_zone_input_file"
-
-# Output file for the formatted reverse DNS zone configuration
-reverse_zone_output_file="/var/named/${REVERSE_ZONE_FILE}"
-
-# Create the input file with initial content
-cat << EOF > "$reverse_zone_input_file"
+cat << EOF > "/var/named/${REVERSE_ZONE_FILE}"
 \$TTL 1W
 @       IN      SOA     ns1.${BASE_DOMAIN}.        root (
                         2019070700      ; serial
@@ -425,66 +421,27 @@ cat << EOF > "$reverse_zone_input_file"
                         1W )            ; minimum (1 week)
         IN      NS      ns1.${BASE_DOMAIN}.
 ;
-; The syntax is "last octet" and the host must have an FQDN
+; The syntax is "last two octets" and the host must have an FQDN
 ; with a trailing dot.
 ;
 ; The api identifies the IP of load balancer.
-${API_IP}                IN      PTR     api.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${API_INT_IP}            IN      PTR     api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$API_IP")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_IP")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the master hosts.
-${MASTER01_IP}           IN      PTR     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${MASTER02_IP}           IN      PTR     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${MASTER03_IP}           IN      PTR     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER01_IP")" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER02_IP")" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER03_IP")" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the worker hosts.
-${WORKER01_IP}           IN      PTR     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${WORKER02_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${WORKER03_IP}           IN      PTR     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER01_IP")" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER02_IP")" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER03_IP")" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create an entry for the bootstrap host.
-${BOOTSTRAP_IP}          IN      PTR     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$BOOTSTRAP_IP")" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 EOF
-
-# Function to generate IP address conversion to reverse format
-convert_to_reverse_ip() {
-    local ip="$1"
-    IFS='.' read -ra octets <<< "$ip"
-    reverse_ip="${octets[3]}.${octets[2]}"
-    echo "$reverse_ip"
-}
-
-# Clear output file
-> "$reverse_zone_output_file" 
-
-# Use the function "convert_to_reverse_ip" to convert IP addresses, and format the output
-while IFS= read -r line; do
-    if [[ $line == *PTR* ]]; then
-        # Extract IP and PTR from the line
-        ip=$(echo "$line" | awk '{print $1}')
-        ptr=$(echo "$line" | awk '{print $4}')
-
-        # Convert IP to reverse format
-        reversed_ip=$(convert_to_reverse_ip "$ip")
-
-        # Format the output with appropriate spacing
-        formatted_line=$(printf "%-19s IN  PTR      %-40s\n" "$reversed_ip" "$ptr")
-        echo "$formatted_line" >> "$reverse_zone_output_file"
-    else
-        # If not a PTR line, keep the line unchanged
-        echo "$line" >> "$reverse_zone_output_file"
-    fi
-done < "$reverse_zone_input_file"
-
-# Clean up: Delete input file
-rm -f "$reverse_zone_input_file"
-
-# Verify if the reverse DNS zone file was generated successfully
-if [ -f "$reverse_zone_output_file" ]; then
-    echo "ok: [Generate reverse DNS zone file: $reverse_zone_output_file]"
-else
-    echo "failed: [Generate reverse DNS zone file: $reverse_zone_output_file]"
-fi
+run_command "[Generate reverse DNS zone file: /var/named/${REVERSE_ZONE_FILE}]"
 
 # Check named configuration file
 named-checkconf >/dev/null 2>&1
