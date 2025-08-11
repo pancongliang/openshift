@@ -86,7 +86,7 @@ packages=("podman" "bind-utils" "bind" "httpd" "httpd-tools" "haproxy" "nfs-util
 package_list="${packages[*]}"
 
 # Install all packages at once
-echo "info: [Installing rpm packages]"
+echo "info: [Preparing install rpm packages]"
 dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
