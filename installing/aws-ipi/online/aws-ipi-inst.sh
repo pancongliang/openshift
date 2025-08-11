@@ -50,7 +50,7 @@ cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
-run_command "[set up aws credentials]"
+run_command "[Set up aws credentials]"
 
 # Add an empty line after the task
 echo
@@ -60,10 +60,10 @@ PRINT_TASK "TASK [Install openshift-install adn oc-cli]"
 
 # Determine the operating system
 OS_TYPE=$(uname -s)
-echo "info: [client operating system: $OS_TYPE]"
+echo "info: [Client operating system: $OS_TYPE]"
 
 ARCH=$(uname -m)
-echo "info: [client architecture: $ARCH]"
+echo "info: [Client architecture: $ARCH]"
 
 # Handle macOS
 if [ "$OS_TYPE" = "Darwin" ]; then
@@ -77,14 +77,17 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Installer
+    echo "info: [Preparing download of openshift-install tool]"
     curl -sL "$download_url" -o "$openshift_install"
-    run_command "[download openshift-install]"
+    run_command "[Download openshift-install]"
 
     sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1 || true
     sudo tar -xzf "$openshift_install" -C "/usr/local/bin/" >/dev/null 2>&1
-    run_command "[install openshift-install]"
+    run_command "[Install openshift-install]"
 
-    sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
+    chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
+    run_command "[Set permissions for /usr/local/bin/openshift-install]"
+    
     rm -rf "$openshift_install" >/dev/null 2>&1
 
     # Determine the download URL for OpenShift Client
@@ -97,8 +100,9 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Client
+    echo "info: [Preparing download of openshift-client tool]"
     curl -sL "$download_url" -o "$openshift_client"
-    run_command "[download openshift-client]"
+    run_command "[Download openshift-client]"
 
     sudo rm -f /usr/local/bin/oc >/dev/null 2>&1 || true
     sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1 || true
@@ -108,21 +112,26 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     run_command "[install openshift-client]"
 
     sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
+    run_command "[Set permissions for /usr/local/bin/oc]"
+
     sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
+    run_command "[Set permissions for /usr/local/bin/kubectl]"
+   
     rm -rf "$openshift_client" >/dev/null 2>&1
 
 # Handle Linux
 elif [ "$OS_TYPE" = "Linux" ]; then
     # Download the OpenShift Installer
+    echo "info: [Preparing download of openshift-install tool]"
     curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
-    run_command "[download openshift-install tool]"
+    run_command "[Download openshift-install tool]"
 
     sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1 || true
     sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
-    run_command "[install openshift-install tool]"
+    run_command "[Install openshift-install tool]"
 
     sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
-    run_command "[modify /usr/local/bin/openshift-install permissions]"
+    run_command "[Set permissions for /usr/local/bin/openshift-install]"
     rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
     # Delete the old version of oc cli
@@ -132,7 +141,7 @@ elif [ "$OS_TYPE" = "Linux" ]; then
 
     # Get the RHEL version number
     rhel_version=$(rpm -E %{rhel})
-    run_command "[check rhel version]"
+    run_command "[Check RHEL version]"
 
     # Determine the download URL based on the RHEL version
     if [ "$rhel_version" -eq 8 ]; then
@@ -144,18 +153,19 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     fi
 
     # Download the OpenShift client
+    echo "info: [Preparing download of openshift-client tool]"
     curl -sL "$download_url" -o "$openshift_client"
-    run_command "[download openshift client tool]"
+    run_command "[Download openshift client tool]"
 
     # Extract the downloaded tarball to /usr/local/bin/
     sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
-    run_command "[install openshift client tool]"
+    run_command "[Install openshift client tool]"
 
     sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
-    run_command "[modify /usr/local/bin/oc permissions]"
-    
+    run_command "[Set permissions for /usr/local/bin/oc]"
+
     sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
-    run_command "[modify /usr/local/bin/kubectl permissions]"
+    run_command "[Set permissions for /usr/local/bin/kubectl]"
 
     sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
     sudo rm -rf $openshift_client >/dev/null 2>&1 || true
@@ -172,14 +182,14 @@ if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; t
     rm -rf ${SSH_KEY_PATH} 
     mkdir -p ${SSH_KEY_PATH}
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    echo "ok: [create ssh-key for accessing coreos]"
+    echo "ok: [Create ssh-key for accessing node]"
 else
-    echo "info: [ssh key already exists, skip generation]"
+    echo "info: [Create ssh-key for accessing node]"
 fi
 
 sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
 mkdir -p $INSTALL_DIR >/dev/null 2>&1
-run_command "[create install dir: $INSTALL_DIR]"
+run_command "[Create install dir: $INSTALL_DIR]"
 
 cat << EOF > $INSTALL_DIR/install-config.yaml 
 #additionalTrustBundlePolicy: Proxyonly
@@ -219,14 +229,14 @@ pullSecret: '$(cat $PULL_SECRET_PATH)'
 sshKey: |
   $(cat $SSH_KEY_PATH/id_rsa.pub)
 EOF
-run_command "[create the install-config.yaml file]"
+run_command "[Create install-config.yaml file]"
 
 echo "ok: [installing the OpenShift cluster]"
 
 export PATH="/usr/local/bin:$PATH"
 
 /usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
-run_command "[install OpenShift AWS IPI completed]"
+run_command "[Install OpenShift AWS IPI completed]"
 
 # Check cluster operator status
 progress_started=false
@@ -235,7 +245,7 @@ while true; do
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
-            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            echo -n "info: [Waiting for all cluster operators to reach the expected state"
             progress_started=true  
         fi
         
@@ -246,7 +256,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all cluster operators have reached the expected state]"
+        echo "ok: [All cluster operators have reached the expected state]"
         break
     fi
 done
@@ -259,12 +269,12 @@ PRINT_TASK "TASK [Create htpasswd User]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
 echo 'admin:$2y$05$.9uG3eMC1vrnhLIj8.v.POcGpFEN/STrpOw7yGQ5dnMmLbrKVVCmu' > $INSTALL_DIR/users.htpasswd
-run_command "[create a user using the htpasswd tool]"
+run_command "[Create user with htpasswd tool]"
 
 sleep 10
 
 /usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
-run_command "[create a secret using the users.htpasswd file]"
+run_command "[Create secret from users.htpasswd file]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
 
@@ -283,9 +293,13 @@ spec:
     name: htpasswd-user
     type: HTPasswd
 EOF
-run_command "[setting up htpasswd authentication]"
+run_command "[Configure htpasswd authentication]"
 
 sleep 15
+
+# Grant the 'cluster-admin' cluster role to the user 'admin'
+/usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1
+run_command "[Grant cluster-admin role to admin user]"
 
 # Wait for OpenShift authentication pods to be in 'Running' state
 export AUTH_NAMESPACE="openshift-authentication"
@@ -302,7 +316,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [Waiting for pods to reach 'Running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -314,7 +328,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, oauth pods may still be initializing]"
+            echo "failed: [Max retries reached; oauth pods may still be initializing]"
             exit 1
         fi
     else
@@ -322,19 +336,17 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all oauth pods are in 'running' state]"
+        echo "ok: [All oauth pods are in 'Running' state]"
         break
     fi
 done
 
-# Grant the 'cluster-admin' cluster role to the user 'admin'
-/usr/local/bin/oc --kubeconfig=$INSTALL_DIR/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1
-run_command "[grant cluster-admin permissions to the admin user]"
+# Add an empty line after the task
+echo
 
-echo "info: [restarting oauth pod, waiting...]"
-sleep 100
+# Step 5:
+PRINT_TASK "TASK [Check cluster status]"
 
-# Check cluster operator status
 # Check cluster operator status
 MAX_RETRIES=60
 SLEEP_INTERVAL=15
@@ -349,7 +361,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            echo -n "info: [Waiting for all cluster operators to reach desired state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -361,7 +373,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, cluster operator may still be initializing]"
+            echo "failed: [Max retries reached; cluster operators may still be initializing]"
             exit 1
         fi
     else
@@ -369,7 +381,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all cluster operators have reached the expected state]"
+        echo "ok: [All cluster operators have reached desired state]"
         break
     fi
 done
@@ -388,7 +400,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all mcps to reach the expected state"
+            echo -n "info: [Waiting for all MCPs to reach desired state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -400,7 +412,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, mcp may still be initializing]"
+            echo "failed: [Max retries reached; MCPs may still be initializing]"
             exit 1
         fi
     else
@@ -408,7 +420,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all mcp have reached the expected state]"
+        echo "ok: [All MCPs have reached desired state]"
         break
     fi
 done
@@ -416,20 +428,11 @@ done
 # Add an empty line after the task
 echo
 
-# Step 5:
-# PRINT_TASK "TASK [Login OCP Cluster]"
-
-#/usr/local/bin/oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443 --insecure-skip-tls-verify >/dev/null 2>&1
-#run_command "[log in to the cluster using the htpasswd user]"
-
-# Add an empty line after the task
-echo
-
 # Step 6:
 PRINT_TASK "TASK [Login cluster information]"
 
-echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
-echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig]"
+echo "info: [Login using htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
+echo "info: [Login using kubeconfig:  export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig]"
 
 # Add an empty line after the task
 echo
