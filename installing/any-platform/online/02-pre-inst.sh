@@ -356,9 +356,6 @@ include "/etc/named.rfc1912.zones";
 EOF
 run_command "[Generate named configuration file]"
 
-# Clean up: Delete duplicate file
-rm -f /var/named/${FORWARD_ZONE_FILE}
-
 # Create forward zone file
 # Function to format and align DNS entries
 format_dns_entry() {
@@ -366,6 +363,8 @@ format_dns_entry() {
     ip="$2"
     printf "%-40s IN  A      %s\n" "$domain" "$ip"
 }
+
+rm -f /var/named/${FORWARD_ZONE_FILE}
 
 cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 \$TTL 1W
