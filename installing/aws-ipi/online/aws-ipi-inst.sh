@@ -231,7 +231,7 @@ sshKey: |
 EOF
 run_command "[Create install-config.yaml file]"
 
-echo "ok: [installing the OpenShift cluster]"
+echo "info: [Preparing install the OpenShift cluster]"
 
 export PATH="/usr/local/bin:$PATH"
 
