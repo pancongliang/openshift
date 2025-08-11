@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -33,13 +33,13 @@ PRINT_TASK "TASK [Kubeconfig login]"
 
 # kubeconfig login:
 echo "export KUBECONFIG=${INSTALL}/auth/kubeconfig" >> $HOME/bash_profile
-run_command "[add kubeconfig to $HOME/bash_profile]"
+run_command "[Add kubeconfig to $HOME/bash_profile]"
 
 source $HOME/bash_profile
 
 # completion command:
 sudo bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' || true
-run_command "[add oc_completion]"
+run_command "[Enable oc bash completion]"
 
 # Effective immediately
 source /etc/bash_completion.d/oc_completion || true
@@ -76,7 +76,7 @@ change_batch='{
 }'
 
 aws --region $REGION route53 change-resource-record-sets --hosted-zone-id $HOSTED_ZONE_ID --change-batch "$change_batch" > /dev/null
-run_command "[ Create *.apps.$CLUSTER_NAME.$BASE_DOMAIN record]"
+run_command "[Create *.apps.$CLUSTER_NAME.$BASE_DOMAIN record]"
 
 # Add an empty line after the task
 echo
@@ -85,7 +85,7 @@ echo
 PRINT_TASK "TASK [Disable the default OperatorHub sources]"
 
 /usr/local/bin/oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]' > /dev/null
-run_command "[ Disable the default OperatorHub sources]"
+run_command "[Disable the default OperatorHub sources]"
 
 # Add an empty line after the task
 echo
@@ -98,11 +98,11 @@ PRINT_TASK "TASK [Configuring additional trust stores for image registry access]
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create configmap registry-config \
      --from-file=${REGISTRY_HOSTNAME}.${BASE_DOMAIN}..8443=/etc/pki/ca-trust/source/anchors/quay.ca.pem \
      -n openshift-config &> /dev/null
-run_command "[create a configmap containing the CA certificate]"
+run_command "[Create a configmap containing the CA certificate]"
 
 # Additional trusted CA
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge &> /dev/null
-run_command "[additional trusted CA]"
+run_command "[Additional trusted CA]"
 
 # Add an empty line after the task
 echo
@@ -112,11 +112,11 @@ PRINT_TASK "TASK [Create htpasswd User]"
 
 sudo rm -rf $INSTALL_DIR/users.htpasswd
 sudo htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat &> /dev/null
-run_command "[create a user using the htpasswd tool]"
+run_command "[Create user with htpasswd tool]"
 
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete secret htpasswd-secret -n openshift-config >/dev/null 2>&1 || true
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config &> /dev/null
-run_command "[create a secret using the users.htpasswd file]"
+run_command "[Create secret from users.htpasswd file]"
 
 sudo rm -rf $INSTALL_DIR/users.htpasswd
 
@@ -135,11 +135,11 @@ spec:
     name: htpasswd-user
     type: HTPasswd
 EOF
-run_command "[setting up htpasswd authentication]"
+run_command "[Configure htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin &> /dev/null || true
-run_command "[grant cluster-admin permissions to the admin user]"
+run_command "[Grant cluster-admin role to admin user]"
 
 sleep 15
 
@@ -158,7 +158,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [Waiting for pods to reach 'Running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -170,7 +170,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, oauth pods may still be initializing]"
+            echo "failed: [Max retries reached; oauth pods may still be initializing]"
             exit 1
         fi
     else
@@ -178,7 +178,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all oauth pods are in 'running' state]"
+        echo "ok: [All oauth pods are in 'Running' state]"
         break
     fi
 done
@@ -187,7 +187,7 @@ done
 echo
 
 # Step 5:
-PRINT_TASK "TASK [Checking the cluster status]"
+PRINT_TASK "TASK [Check cluster status]"
 
 # Check cluster operator status
 MAX_RETRIES=60
@@ -203,7 +203,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            echo -n "info: [Waiting for all cluster operators to reach desired state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -215,7 +215,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, cluster operator may still be initializing]"
+            echo "failed: [Max retries reached; cluster operators may still be initializing]"
             exit 1
         fi
     else
@@ -223,7 +223,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all cluster operators have reached the expected state]"
+        echo "ok: [All cluster operators have reached desired state]"
         break
     fi
 done
@@ -242,7 +242,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all mcps to reach the expected state"
+            echo -n "info: [Waiting for all MCPs to reach desired state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -254,7 +254,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, mcp may still be initializing]"
+            echo "failed: [Max retries reached; MCPs may still be initializing]"
             exit 1
         fi
     else
@@ -262,7 +262,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all mcp have reached the expected state]"
+        echo "ok: [All MCPs have reached desired state]"
         break
     fi
 done
@@ -274,6 +274,6 @@ echo
 # Step 8:
 PRINT_TASK "TASK [Login cluster information]"
 
-echo "info: [log in to the cluster using the htpasswd user:  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
-echo "info: [log in to the cluster using kubeconfig:  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig]"
+echo "info: [Login using htpasswd user::  oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
+echo "info: [Login using kubeconfig:  export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig]"
 echo
