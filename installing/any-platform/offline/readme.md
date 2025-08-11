@@ -21,7 +21,7 @@
 * In the bastion machine, run the following command to download the installation script:
 
   ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/online/00-dl-script.sh |sh
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/installing/any-platform/offline/00-dl-script.sh |sh
   ```
 
 
