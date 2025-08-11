@@ -60,44 +60,47 @@ echo
 PRINT_TASK "TASK [Generating the installation ISO with coreos-installer]"
 
 # Download OpenShift client tool
+echo "info: [Preparing download of openshift-client tool]"
 curl -s -k https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_VERSION/openshift-client-$CLIENT_OS_ARCH.tar.gz -o oc.tar.gz
-run_command "[download openshift client tool]"
+run_command "[Download openshift client tool]"
 
 # Extract and install OpenShift client tool
 tar zxf oc.tar.gz >/dev/null 2>&1
-run_command "[install openshift client tool]"
+run_command "[Install openshift client tool]"
 
 # Modify permissions for the OpenShift client
 chmod +x oc >/dev/null 2>&1
-run_command "[modify oc client permissions]"
+run_command "[Set permissions for oc client]"
 
 # Download OpenShift install tool
+echo "info: [Preparing download of openshift-install tool]"
 curl -s -k https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$OCP_VERSION/openshift-install-$CLIENT_OS_ARCH.tar.gz -o openshift-install-$CLIENT_OS_ARCH.tar.gz
-run_command "[download openshift install tool]"
+run_command "[Download openshift install tool]"
 
 # Extract and install OpenShift installer
 tar -xzf openshift-install-$CLIENT_OS_ARCH.tar.gz >/dev/null 2>&1
-run_command "[install openshift install tool]"
+run_command "[Install openshift install tool]"
 
 # Modify permissions for the OpenShift installer
 chmod +x openshift-install >/dev/null 2>&1
-run_command "[modify openshift install permissions]"
+run_command "[Set permissions for openshift install]"
 
 # Fetch the CoreOS live ISO download link from OpenShift installer
 ISO_URL=$(./openshift-install coreos print-stream-json | grep location | grep $ARCH | grep iso | cut -d\" -f4)
 
 # Download the CoreOS live ISO
+echo "info: [Preparing download of rhcos-live.iso]"
 curl -s -L $ISO_URL -o rhcos-live.iso >/dev/null 2>&1
-run_command "[download rhcos-live.iso]"
+run_command "[Download rhcos-live.iso]"
 
 # Create ssh-key for accessing CoreOS
 if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
     rm -rf ${SSH_KEY_PATH} 
     mkdir -p ${SSH_KEY_PATH}
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    echo "ok: [create ssh-key for accessing coreos]"
+    echo "ok: [Create ssh-key for accessing coreos]"
 else
-    echo "info: [ssh key already exists, skip generation]"
+    echo "skipped: [Create ssh-key for accessing coreos]"
 fi
 
 # Define variables
@@ -105,7 +108,7 @@ export SSH_PUB_STR="$(cat ${SSH_KEY_PATH}/id_rsa.pub)"
 
 # Create the installation directory
 mkdir ocp
-run_command "[create installation directory: ocp]"
+run_command "[Create installation directory: ocp]"
 
 # Generate the OpenShift installation configuration file
 cat << EOF > ocp/install-config.yaml 2>/dev/null
@@ -135,23 +138,23 @@ bootstrapInPlace:
 pullSecret: '$(cat $PULL_SECRET_PATH)' 
 sshKey: '${SSH_PUB_STR}'
 EOF
-run_command "[create ocp/install-config.yaml file]"
+run_command "[Create ocp/install-config.yaml file]"
 
 # Generate ignition configuration for single-node OpenShift
 ./openshift-install --dir=ocp create single-node-ignition-config >/dev/null 2>&1
-run_command "[create single-node-ignition-config]"
+run_command "[Create single-node-ignition-config]"
 
 # Define an alias for the CoreOS installer
 #alias coreos-installer='podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release'
-#run_command "[define an alias for the coreos installer]"
+#run_command "[Define an alias for the coreos installer]"
 
 # Embed ignition configuration into the CoreOS live ISO
 podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release iso ignition embed -fi ocp/bootstrap-in-place-for-live-iso.ign rhcos-live.iso >/dev/null 2>&1
-run_command "[embed ignition configuration into the coreos live iso]"
+run_command "[Embed ignition configuration into the coreos live iso]"
 
 # Modify kernel arguments for network configuration
 podman run --privileged --pull always --rm -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data -w /data quay.io/coreos/coreos-installer:release iso kargs modify -a "ip=$SNO_IP::$SNO_GW:$SNO_NETMASK:$CLUSTER_NAME.$BASE_DOMAIN:$SNO_INTERFACE:off:$SNO_DNS" rhcos-live.iso >/dev/null 2>&1
-run_command "[modify kernel arguments for network configuration]"
+run_command "[Modify kernel arguments for network configuration]"
 
 # Clean up downloaded archives
 rm -rf oc.tar.gz >/dev/null 2>&1 || true
