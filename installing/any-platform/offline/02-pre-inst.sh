@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -20,7 +20,7 @@ run_command() {
         echo "ok: $1"
     else
         echo "failed: $1"
-        #exit 1
+        exit 1
     fi
 }
 
@@ -30,39 +30,29 @@ source 01-set-params.sh
 export PATH="/usr/local/bin:$PATH"
 
 # Step 2:
-PRINT_TASK "TASK [Changing the hostname and time zone]"
+PRINT_TASK "TASK [Change hostname and time zone]"
 
 # Change hostname
 hostnamectl set-hostname ${BASTION_HOSTNAME}
-run_command "[change hostname to ${BASTION_HOSTNAME}]"
+run_command "[Set hostname to ${BASTION_HOSTNAME}]"
 
 # Change time zone to UTC
 timedatectl set-timezone UTC
-run_command "[change time zone to UTC]"
+run_command "[Set time zone to UTC]"
 
 # Write LANG=en_US.UTF-8 to the ./bash_profile file]
 grep -q "^export LANG=en_US.UTF-8" ~/.bash_profile || echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
-run_command "[write LANG=en_US.UTF-8 to the ./bash_profile file]"
-
-# Reload ~/.bash_profile
-# source ~/.bash_profile >/dev/null 2>&1 || true
-# run_command "[reload ~/.bash_profile]"
+run_command "[Write LANG=en_US.UTF-8 to ./bash_profile]"
 
 # Add an empty line after the task
 echo
 
 # Step 3:
-PRINT_TASK "TASK [Disable and stop firewalld service]"
+PRINT_TASK "TASK [Disable firewalld service and update SELinux policy]"
 
 # Stop and disable firewalld services
 systemctl disable --now firewalld >/dev/null 2>&1
-run_command "[firewalld service stopped and disabled]"
-
-# Add an empty line after the task
-echo
-
-# Step 4:
-PRINT_TASK "TASK [Change SELinux security policy]"
+run_command "[Stop and disable firewalld service]"
 
 # Read the SELinux configuration
 permanent_status=$(grep "^SELINUX=" /etc/selinux/config | cut -d= -f2)
@@ -71,55 +61,49 @@ if [[ $permanent_status == "enforcing" ]]; then
     # Change SELinux to permissive
     sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
     permanent_status="permissive"
-    echo "ok: [selinux permanent security policy changed to $permanent_status]"
+    echo "ok: [Set permanent SELinux policy to $permanent_status]"
 elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permissive" ]]; then
-    echo "ok: [selinux permanent security policy is $permanent_status]"
+    echo "ok: [Permanent SELinux policy is already $permanent_status]"
+
 else
-    echo "failed: [selinux permanent security policy is $permanent_status (expected permissive or disabled)]"
+    echo "failed: [SELinux permanent policy is $permanent_status, expected permissive or disabled]"
 fi
 
 # Temporarily set SELinux security policy to permissive
 setenforce 0 >/dev/null 2>&1 || true
-# Check temporary SELinux security policy
-temporary_status=$(getenforce)
-# Check if temporary SELinux security policy is permissive or disabled
-if [[ $temporary_status == "Permissive" || $temporary_status == "Disabled" ]]; then
-    echo "ok: [selinux temporary security policy is disabled]"
-else
-    echo "failed: [selinux temporary security policy is $temporary_status (expected permissive or disabled)]"
-fi
+run_command "[Disable temporary SELinux enforcement]"
 
 # Add an empty line after the task
 echo
 
-# Step 5:
-PRINT_TASK "TASK [Install the necessary rpm packages]"
+# Step 4:
+PRINT_TASK "TASK [Install required RPM packages]"
 
 # List of RPM packages to install
-packages=("podman" "bind-utils" "bind" "haproxy" "nfs-utils" "httpd" "httpd-tools" "wget" "vim-enhanced" "git" "skopeo" "bash-completion" "jq")
+packages=("podman" "bind-utils" "bind" "httpd" "httpd-tools" "haproxy" "nfs-utils" "wget" "skopeo" "jq" "bash-completion" "vim-enhanced")
 
 # Convert the array to a space-separated string
 package_list="${packages[*]}"
 
 # Install all packages at once
-echo "info: [installing required rpm packages]"
-dnf install -y $package_list >/dev/null
+echo "info: [Installing rpm packages]"
+dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
     rpm -q $package >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo "ok: [installed $package package]"
+        echo "ok: [Install $package package]"
     else
-        echo "failed: [installed $package package]"
+        echo "failed: [Install $package package]"
     fi
 done
 
 # Add an empty line after the task
 echo
 
-# Step 6:
-PRINT_TASK "TASK [Install openshift-install and openshift client tools]"
+# Step 5:
+PRINT_TASK "TASK [Install OpenShift installer, client tools and oc-mirror]"
 
 # Delete the old version of oc cli
 rm -f /usr/local/bin/oc* >/dev/null 2>&1
@@ -132,22 +116,22 @@ rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
 rm -f oc-mirror.tar.gz* >/dev/null 2>&1
 
 # Download the openshift-install
-echo "info: [downloading openshift-install tool]"
+echo "info: [Preparing download of openshift-install tool]"
 
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
-run_command "[download openshift-install tool]"
+run_command "[Download openshift-install tool]"
 
 tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
-run_command "[install openshift-install tool]"
+run_command "[Install openshift-install tool]"
 
 chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
-run_command "[modify /usr/local/bin/openshift-install permissions]"
+run_command "[Set permissions for /usr/local/bin/openshift-install]"
 
 rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
-run_command "[check RHEL version]"
+run_command "[Check RHEL version]"
 
 # Determine the download URL based on the RHEL version
 if [ "$rhel_version" -eq 8 ]; then
@@ -159,20 +143,20 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the OpenShift client
-echo "info: [downloading openshift-client tool]"
+echo "info: [Preparing download of openshift-client tool]"
 
 wget -q "$download_url" -O "$openshift_client"
-run_command "[download openshift-client tool]"
+run_command "[Download openshift-client tool]"
 
 # Extract the downloaded tarball to /usr/local/bin/
 tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
-run_command "[install openshift-client tool]"
+run_command "[Install openshift-client tool]"
 
 chmod +x /usr/local/bin/oc >/dev/null 2>&1
-run_command "[modify /usr/local/bin/oc permissions]"
+run_command "[Set permissions for /usr/local/bin/oc]"
 
 chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
-run_command "[modify /usr/local/bin/kubectl permissions]"
+run_command "[Set permissions for /usr/local/bin/kubectl]"
 
 rm -f /usr/local/bin/README.md >/dev/null 2>&1
 rm -rf $openshift_client >/dev/null 2>&1
@@ -188,39 +172,39 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the oc-mirror tool
-echo "info: [downloading oc-mirror tool]"
+echo "info: [Preparing download of oc-mirror tool]"
 
 wget -q "$download_url" -O "$oc_mirror"
-run_command "[download oc-mirror tool]"
+run_command "[Download oc-mirror tool]"
 
 # Install oc-mirror  tool
 tar -xzf "$oc_mirror" -C "/usr/local/bin/" >/dev/null 2>&1
-run_command "[install oc-mirror tool]"
+run_command "[Install oc-mirror tool]"
 
 chmod a+x /usr/local/bin/oc-mirror >/dev/null 2>&1
-run_command "[modify /usr/local/bin/oc-mirror permissions]"
+run_command "[Set permissions for /usr/local/bin/oc-mirror]"
 
 rm -rf $oc_mirror >/dev/null 2>&1
 
 # Download the kubectx tool
 #curl -sLo /usr/local/bin/kubectx https://raw.githubusercontent.com/ahmetb/kubectx/master/kubectx >/dev/null 2>&1
-#run_command "[install kubectx tool]"
+#run_command "[Install kubectx tool]"
 
 #chmod +x /usr/local/bin/kubectx >/dev/null 2>&1
-#run_command "[modify /usr/local/bin/kubectx permissions]"
+#run_command "[Set permissions for /usr/local/bin/kubectx]"
 
 # Download the kubens tool
 #curl -sLo /usr/local/bin/kubens https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens >/dev/null 2>&1
-#run_command "[install kubens tool]"
+#run_command "[Install kubens tool]"
 
 #chmod +x /usr/local/bin/kubens >/dev/null 2>&1
-#run_command "[modify /usr/local/bin/kubens permissions]"
+#run_command "[Set permissions for /usr/local/bin/kubens]"
 
 # Add an empty line after the task
 echo
 
-# Step 7:
-PRINT_TASK "TASK [Setup and check httpd services]"
+# Step 6:
+PRINT_TASK "TASK [Configure and verify httpd service]"
 
 # Update httpd listen port
 update_httpd_listen_port() {
@@ -231,17 +215,15 @@ update_httpd_listen_port() {
     if [ "$listen_port" != "8080" ]; then
         # Change listen port to 8080
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
-        echo "ok: [change http listening port to 8080]"
+        echo "ok: [Set the HTTP listening port to 8080]"
     else
-        echo "skipped: [http listen port is already 8080]"
+        echo "skipped: [HTTP listening port is already 8080]"
     fi
 }
-
 # Call the function to update listen port
 update_httpd_listen_port
 
-# Create virtual host configuration
-create_virtual_host_config() {
+rm -rf /etc/httpd/conf.d/base.conf  >/dev/null 2>&1
 # Create a virtual host configuration file
 cat << EOF > /etc/httpd/conf.d/base.conf
 <VirtualHost *:8080>
@@ -249,44 +231,20 @@ cat << EOF > /etc/httpd/conf.d/base.conf
    DocumentRoot ${HTTPD_DIR}
 </VirtualHost>
 EOF
-}
+run_command "[Create virtual host configuration]"
 
-# Create virtual host configuration
-create_virtual_host_config
-
-# Check if virtual host configuration is valid
-check_virtual_host_configuration() {
-    # Define expected values for server name and document root
-    expected_server_name="${BASTION_HOSTNAME}"
-    expected_document_root="${HTTPD_DIR}"
-    
-    # Path to virtual host configuration file
-    virtual_host_config="/etc/httpd/conf.d/base.conf"
-    
-    # Check if expected values are present in the config
-    if grep -q "ServerName $expected_server_name" "$virtual_host_config" && \
-       grep -q "DocumentRoot $expected_document_root" "$virtual_host_config"; then
-        echo "ok: [create virtual host configuration]"
-    else
-        echo "failed: [create virtual host configuration]"
-    fi
-}
-
-# Check virtual host configuration
-check_virtual_host_configuration
-
-# Create http dir
+# Create http directory
 rm -rf ${HTTPD_DIR} >/dev/null 2>&1
 sleep 1
 mkdir -p ${HTTPD_DIR} >/dev/null 2>&1
-run_command "[create http: ${HTTPD_DIR} director]"
+run_command "[Create ${HTTPD_DIR} directory]"
 
 # Enable and start service
 systemctl enable httpd >/dev/null 2>&1
-run_command "[enable the httpd service to start at boot]"
+run_command "[Enable httpd service at boot]"
 
 systemctl restart httpd >/dev/null 2>&1
-run_command "[restart the httpd service]"
+run_command "[Restart httpd service]"
 
 # Wait for the service to restart
 sleep 15
@@ -295,56 +253,56 @@ sleep 15
 rm -rf ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 sleep 1
 touch ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
-run_command "[create a test file to verify httpd download functionality]"
+run_command "[Create a test file to verify httpd download functionality]"
 
 wget -q http://${BASTION_IP}:8080/httpd-test
-run_command "[verify httpd download functionality]"
+run_command "[Verify httpd download functionality]"
 
 rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
-run_command "[remove the httpd test file]"
+run_command "[Remove the httpd test file]"
 
 # Add an empty line after the task
 echo
 
-# Step 8:
-PRINT_TASK "TASK [Setup nfs services]"
+# Step 7:
+PRINT_TASK "TASK [Configure and verify nfs service]"
 
 # Create NFS directories
 rm -rf ${NFS_DIR} >/dev/null 2>&1
 sleep 1
 mkdir -p ${NFS_DIR} >/dev/null 2>&1
-run_command "[create nfs director: ${NFS_DIR}]"
+run_command "[Create ${NFS_DIR} directory]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" >/dev/null 2>&1; then
-    echo "skipped: [nfsnobody user exists]"
+    echo "skipped: [User nfsnobody exists]"
 else
     useradd nfsnobody
-    echo "ok: [add nfsnobody user]"
+    echo "ok: [Create the nfsnobody user]"
 fi
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_DIR} >/dev/null 2>&1
-run_command "[changing ownership of an NFS directory]"
+run_command "[Set ownership of ${NFS_DIR} directory]"
 
 chmod -R 777 ${NFS_DIR} >/dev/null 2>&1
-run_command "[change NFS directory permissions]"
+run_command "[Set permissions of ${NFS_DIR} directory]"
 
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "skipped: [nfs export configuration already exists]"
+    echo "skipped: [NFS export configuration already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo "ok: [add nfs export configuration]"
+    echo "ok: [Setting up NFS export configuration]"
 fi
 
 # Enable and start service
 systemctl enable nfs-server >/dev/null 2>&1
-run_command "[enable the nfs-server service to start at boot]"
+run_command "[Enable nfs-server service at boot]"
 
 systemctl restart nfs-server >/dev/null 2>&1
-run_command "[restart the nfs-server service]"
+run_command "[Restart nfs-server service]"
 
 # Wait for the service to restart
 sleep 15
@@ -354,11 +312,11 @@ umount /tmp/nfs-test >/dev/null 2>&1 || true
 rm -rf /tmp/nfs-test >/dev/null 2>&1
 sleep 1
 mkdir -p /tmp/nfs-test >/dev/null 2>&1
-run_command "[create an nfs mount directory for testing: /tmp/nfs-test]"
+run_command "[Create test mount directory: /tmp/nfs-test]"
 
 # Attempt to mount the NFS share
 mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test >/dev/null 2>&1
-run_command "[test mounts the nfs shared directory: /tmp/nfs-test]"
+run_command "[Mount NFS shared directory for testing: /tmp/nfs-test]"
 
 # Wait mount the NFS share
 sleep 10
@@ -366,29 +324,26 @@ sleep 10
 # Unmount the NFS share
 fuser -km /tmp/nfs-test >/dev/null 2>&1 || true
 umount /tmp/nfs-test >/dev/null 2>&1 || true
-run_command "[unmount the nfs shared directory: /tmp/nfs-test]"
+run_command "[Unmount NFS shared directory: /tmp/nfs-test]"
 
 # Delete /tmp/nfs-test
 rm -rf /tmp/nfs-test >/dev/null 2>&1
-run_command "[delete the test mounted nfs directory: /tmp/nfs-test]"
+run_command "[Remove test mount directory: /tmp/nfs-test]"
 
 # Add an empty line after the task
 echo
 
-# Step 9:
-PRINT_TASK "TASK [Setup named services]"
+# Step 8:
+PRINT_TASK "TASK [Configure and verify named service]"
 
 # Construct forward DNS zone name and zone file name
 FORWARD_ZONE_NAME="${BASE_DOMAIN}"
 FORWARD_ZONE_FILE="${BASE_DOMAIN}.zone"
 
 # Generate reverse DNS zone name and reverse zone file name 
-# Extract the last two octets from the IP address
 IFS='.' read -ra octets <<< "$LOCAL_DNS_IP"
 OCTET0="${octets[0]}"
 OCTET1="${octets[1]}"
-
-# Construct reverse DNS zone name and zone file name
 REVERSE_ZONE_NAME="${OCTET1}.${OCTET0}.in-addr.arpa"
 REVERSE_ZONE_FILE="${OCTET1}.${OCTET0}.zone"
 
@@ -439,10 +394,7 @@ zone "." IN {
 
 include "/etc/named.rfc1912.zones";
 EOF
-run_command "[generate named configuration file]"
-
-# Clean up: Delete duplicate file
-rm -f /var/named/${FORWARD_ZONE_FILE}
+run_command "[Generate named configuration file]"
 
 # Create forward zone file
 # Function to format and align DNS entries
@@ -451,6 +403,8 @@ format_dns_entry() {
     ip="$2"
     printf "%-40s IN  A      %s\n" "$domain" "$ip"
 }
+
+rm -f /var/named/${FORWARD_ZONE_FILE} >/dev/null 2>&1
 
 cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 \$TTL 1W
@@ -488,19 +442,18 @@ $(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BO
 ; Create entries for the mirror registry hosts.
 $(format_dns_entry "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}." "${REGISTRY_IP}")
 EOF
-run_command "[generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
+run_command "[Generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 
-# Clean up: Delete duplicate file
+# Create reverse zone file
+get_reverse_ip() {
+  local ip=$1
+  IFS='.' read -r a b c d <<< "$ip"
+  echo "${d}.${c}"
+}
+
 rm -f /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
 
-# Input file containing the original reverse DNS zone configuration
-reverse_zone_input_file="/var/named/reverse_zone_input_file"
-
-# Output file for the formatted reverse DNS zone configuration
-reverse_zone_output_file="/var/named/${REVERSE_ZONE_FILE}"
-
-# Create the input file with initial content
-cat << EOF > "$reverse_zone_input_file"
+cat << EOF > "/var/named/${REVERSE_ZONE_FILE}"
 \$TTL 1W
 @       IN      SOA     ns1.${BASE_DOMAIN}.        root (
                         2019070700      ; serial
@@ -510,106 +463,67 @@ cat << EOF > "$reverse_zone_input_file"
                         1W )            ; minimum (1 week)
         IN      NS      ns1.${BASE_DOMAIN}.
 ;
-; The syntax is "last octet" and the host must have an FQDN
+; The syntax is "last two octets" and the host must have an FQDN
 ; with a trailing dot.
 ;
 ; The api identifies the IP of load balancer.
-${API_IP}                IN      PTR     api.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${API_INT_IP}            IN      PTR     api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$API_IP")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_IP")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the master hosts.
-${MASTER01_IP}           IN      PTR     ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${MASTER02_IP}           IN      PTR     ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${MASTER03_IP}           IN      PTR     ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER01_IP")" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER02_IP")" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER03_IP")" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the worker hosts.
-${WORKER01_IP}           IN      PTR     ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${WORKER02_IP}           IN      PTR     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
-${WORKER03_IP}           IN      PTR     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER01_IP")" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER02_IP")" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER03_IP")" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create an entry for the bootstrap host.
-${BOOTSTRAP_IP}          IN      PTR     ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.
+$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$BOOTSTRAP_IP")" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 EOF
-
-# Function to generate IP address conversion to reverse format
-convert_to_reverse_ip() {
-    local ip="$1"
-    IFS='.' read -ra octets <<< "$ip"
-    reverse_ip="${octets[3]}.${octets[2]}"
-    echo "$reverse_ip"
-}
-
-# Clear output file
-> "$reverse_zone_output_file" 
-
-# Use the function "convert_to_reverse_ip" to convert IP addresses, and format the output
-while IFS= read -r line; do
-    if [[ $line == *PTR* ]]; then
-        # Extract IP and PTR from the line
-        ip=$(echo "$line" | awk '{print $1}')
-        ptr=$(echo "$line" | awk '{print $4}')
-
-        # Convert IP to reverse format
-        reversed_ip=$(convert_to_reverse_ip "$ip")
-
-        # Format the output with appropriate spacing
-        formatted_line=$(printf "%-19s IN  PTR      %-40s\n" "$reversed_ip" "$ptr")
-        echo "$formatted_line" >> "$reverse_zone_output_file"
-    else
-        # If not a PTR line, keep the line unchanged
-        echo "$line" >> "$reverse_zone_output_file"
-    fi
-done < "$reverse_zone_input_file"
-
-# Clean up: Delete input file
-rm -f "$reverse_zone_input_file"
-
-# Verify if the reverse DNS zone file was generated successfully
-if [ -f "$reverse_zone_output_file" ]; then
-    echo "ok: [generate reverse DNS zone file: $reverse_zone_output_file]"
-else
-    echo "failed: [generate reverse DNS zone file]"
-fi
+run_command "[Generate reverse DNS zone file: /var/named/${REVERSE_ZONE_FILE}]"
 
 # Check named configuration file
 named-checkconf >/dev/null 2>&1
-run_command "[named configuration is valid]"
+run_command "[Validate named configuration]"
 
 # Check forward zone file
 named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} >/dev/null 2>&1
-run_command "[forward zone file is valid]"
+run_command "[Validate forward zone file]"
 
 # Check reverse zone file
 named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
-run_command "[reverse zone file is valid]"
+run_command "[Validate reverse zone file]"
 
 # Change ownership
 chown named. /var/named/*.zone
-run_command "[change ownership /var/named/*.zone]"
+run_command "[Set ownership of /var/named zone files]"
 
 # Enable and start service
 systemctl enable named >/dev/null 2>&1
-run_command "[enable the named service to start at boot]"
+run_command "[Enable named service at boot]"
 
 systemctl restart named >/dev/null 2>&1
-run_command "[restart the named service]"
+run_command "[Restart named service]"
 
 # Add dns ip to resolv.conf
 sed -i "/${LOCAL_DNS_IP}/d" /etc/resolv.conf
 sed -i "1s/^/nameserver ${LOCAL_DNS_IP}\n/" /etc/resolv.conf
-run_command "[add dns ip $LOCAL_DNS_IP to /etc/resolv.conf]"
+run_command "[Add DNS IP $LOCAL_DNS_IP to /etc/resolv.conf]"
 
 # Append “dns=none” immediately below the “[main]” section in the main NM config
 if ! sed -n '/^\[main\]/,/^\[/{/dns=none/p}' /etc/NetworkManager/NetworkManager.conf | grep -q 'dns=none'; then
     sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
-    echo "ok: [prevent network manager from dynamically updating /etc/resolv.conf]"
+    echo "ok: [Prevent NetworkManager from modifying /etc/resolv.conf]"
 else
-    echo "skipped: [prevent network manager from dynamically updating /etc/resolv.conf]"
+    echo "skipped: [Prevent NetworkManager from modifying /etc/resolv.conf]"
 fi
 
 # Restart service
 systemctl restart NetworkManager >/dev/null 2>&1
-run_command "[restart the network manager service]"
+run_command "[Restart the network manager service]"
 
 # Wait for the service to restart
 sleep 15
@@ -626,6 +540,7 @@ hostnames=(
     "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}"
     "${API_IP}"
     "${MASTER01_IP}"
     "${MASTER02_IP}"
@@ -634,6 +549,7 @@ hostnames=(
     "${WORKER02_IP}"
     "${WORKER03_IP}"
     "${BOOTSTRAP_IP}"
+    "${REGISTRY_IP}"
     "${NSLOOKUP_TEST_PUBLIC_DOMAIN}"
 )
 
@@ -651,9 +567,9 @@ done
 
 # Display results
 if [ "$all_successful" = true ]; then
-    echo "ok: [nslookup all domain names/ip addresses]"
+    echo "ok: [Verify DNS resolution with nslookup]"
 else
-    echo "failed: [dns resolve failed for the following domain/ip: ${failed_hostnames[*]}]"
+    echo "failed: [DNS resolve failed for the following domain/ip: ${failed_hostnames[*]}]"
 fi
 
 # Delete old records
@@ -679,13 +595,13 @@ sed -i "/# ${NODE_ANNOTATION}/d;
   printf "%-15s %s\n" "${WORKER02_IP}"     "${WORKER02_HOSTNAME}"
   printf "%-15s %s\n" "${WORKER03_IP}"     "${WORKER03_HOSTNAME}"
 } | tee -a /etc/hosts >/dev/null
-run_command "[add hostname and ip to /etc/hosts]"
+run_command "[Update /etc/hosts with hostname and IP]"
 
 # Add an empty line after the task
 echo
 
-# Step 10:
-PRINT_TASK "TASK [Setup HAproxy services]"
+# Step 9:
+PRINT_TASK "TASK [Configure and verify HAproxy service]"
 
 # Setup haproxy services configuration
 cat << EOF > /etc/haproxy/haproxy.cfg 
@@ -756,18 +672,18 @@ listen default-ingress-router-443
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
   server     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
 EOF
-run_command "[generate haproxy configuration file]"
+run_command "[Generate HAProxy configuration file]"
 
 # Path to HAProxy configuration file
 haproxy -c -f /etc/haproxy/haproxy.cfg >/dev/null 2>&1
-run_command "[haproxy configuration is valid]"
+run_command "[Validate HAProxy configuration]"
 
 # Enable and start service
 systemctl enable --now haproxy >/dev/null 2>&1
-run_command "[enable the haproxy service to start at boot]"
+run_command "[Enable HAProxy service at boot]"
 
 systemctl restart haproxy >/dev/null 2>&1
-run_command "[restart the haproxy service]"
+run_command "[Restart haproxy service]"
 
 # Wait for the service to restart
 sleep 15
@@ -776,19 +692,19 @@ sleep 15
 echo
 
 # Offline settings
-# Step 11: 
+# Step 10: 
 PRINT_TASK "TASK [Install mirror registry]"
 
 # Check if there is an quay-app.service
  if [ -f /etc/systemd/system/quay-pod.service ]; then
-    echo "info: [mirror registry detected, starting uninstall]"
+    echo "info: [Mirror registry detected, starting uninstall]"
     if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
-        echo "ok: [uninstall the mirror registry]"
+        echo "ok: [Uninstall the mirror registry]"
     else
-        echo "failed: [uninstall the mirror registry]"
+        echo "failed: [Uninstall the mirror registry]"
     fi
 else
-    echo "skipping: [uninstall the mirror registry]"
+    echo "skipping: [Uninstall the mirror registry]"
 fi
 
 # Delete existing duplicate data
@@ -799,20 +715,22 @@ rm -rf "${REGISTRY_INSTALL_DIR}" >/dev/null 2>&1
 mkdir -p ${REGISTRY_INSTALL_DIR}
 mkdir -p ${REGISTRY_INSTALL_DIR}/quay-storage
 mkdir -p ${REGISTRY_INSTALL_DIR}/sqlite-storage
+run_command "[Create registry installation directory: ${INSTALL_DIR}]"
+
 chmod -R 777 ${REGISTRY_INSTALL_DIR}
-run_command "[create the ${REGISTRY_INSTALL_DIR} directory and modify its permissions]"
+run_command "[Set permissions of ${REGISTRY_INSTALL_DIR} directory]"
 
 # Download mirror-registry
-echo "info: [downloading mirror-registry package]"
+echo "info: [Preparing download of mirror-registry package]"
 
 wget -O ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz >/dev/null 2>&1
-run_command "[download mirror-registry package]"
+run_command "[Download mirror-registry package]"
 
 # Extract the downloaded mirror-registry package
 tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR}/ >/dev/null 2>&1
-run_command "[extract the mirror-registry package]"
+run_command "[Extract the mirror-registry package]"
 
-echo "ok: [start installing mirror-registry...]"
+echo "info: [Preparing to install the mirror-registry]"
 # Install mirror-registry
 ${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} \
@@ -821,7 +739,7 @@ ${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
      --sqliteStorage ${REGISTRY_INSTALL_DIR}/sqlite-storage \
      --initUser ${REGISTRY_ID} \
      --initPassword ${REGISTRY_PW}
-run_command "[Install mirror registry]"
+run_command "[Installing the mirror-registry]"
 
 progress_started=false
 while true; do
@@ -832,7 +750,7 @@ while true; do
     if [ -z "$output" ]; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for quay pod to be in 'running' state"
+            echo -n "info: [Waiting for quay pod to be in 'Running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -843,18 +761,18 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [quay pod is in 'running' state]"
+        echo "ok: [Quay pod is in 'Running' state]"
         break
     fi
 done
 
 # Copy the rootCA certificate to the trusted source
 cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem
-run_command "[copy the rootCA certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.${BASE_DOMAIN}.ca.pem]"
+run_command "[Copy rootCA certificate to trusted anchors]"
 
 # Trust the rootCA certificate
 update-ca-trust >/dev/null 2>&1
-run_command "[trust the rootCA certificate]"
+run_command "[Trust the rootCA certificate]"
 
 rm -rf pause.tar quay.tar redis.tar >/dev/null 2>&1 || true
 
@@ -864,31 +782,31 @@ sleep 5
 rm -rf $XDG_RUNTIME_DIR/containers >/dev/null 2>&1 || true
 mkdir -p $XDG_RUNTIME_DIR/containers >/dev/null 2>&1 || true
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" >/dev/null 2>&1
-run_command "[login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
+run_command "[Login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443]"
 
 # Add an empty line after the task
 echo
 
 # Offline settings
-# Step 12:
-PRINT_TASK "TASK [Creating the installation configuration file]"
+# Step 11:
+PRINT_TASK "TASK [Create installation configuration file]"
 
 # Backup and format the registry CA certificate
 rm -rf "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
 cp "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem" "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
-run_command "[backup registry CA certificate]"
+run_command "[Backup registry rootCA certificate]"
 
 sed -i 's/^/  /' "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
-run_command "[format registry ca certificate]"
+run_command "[Format registry rootCA certificate]"
 
 # Create ssh-key for accessing CoreOS
 if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
     rm -rf ${SSH_KEY_PATH} 
     mkdir -p ${SSH_KEY_PATH}
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    echo "ok: [create ssh-key for accessing coreos]"
+    echo "ok: [Create an ssh-key for accessing the node]"
 else
-    echo "info: [ssh key already exists, skip generation]"
+    echo "skipped: [Create an ssh-key for accessing the node]"
 fi
 
 # If known_hosts exists, clear it without error
@@ -937,46 +855,46 @@ imageContentSources:
   - ${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443/openshift/release-images
   source: quay.io/openshift-release-dev/ocp-release
 EOF
-run_command "[create ${HTTPD_DIR}/install-config.yaml file]"
+run_command "[Create ${HTTPD_DIR}/install-config.yaml file]"
 
 # Add an empty line after the task
 echo
 
-# Step 13:
+# Step 12:
 PRINT_TASK "TASK [Generate the kubernetes manifest and ignition config files]"
 
 # Create installation directory
 rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
 sleep 1
 mkdir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[create installation directory: ${INSTALL_DIR}]"
+run_command "[Create installation directory: ${INSTALL_DIR}]"
 
 # Copy install-config.yaml to installation directory
 cp "${HTTPD_DIR}/install-config.yaml" "${INSTALL_DIR}"
-run_command "[copy the install-config.yaml file to the installation directory]"
+run_command "[Copy install-config.yaml to installation directory]"
 
 # Generate manifests
 /usr/local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[generate the kubernetes manifest]"
+run_command "[Generate Kubernetes manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
 if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
   # Replace "mastersSchedulable: true" with "mastersSchedulable: false"
   sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"
-  echo "ok: [disable the master node from scheduling custom pods]"
+  echo "ok: [Disable the master node from scheduling custom pods]"
 else
-  echo "skipped: [scheduling of custom pods on master nodes is already disabled]"
+  echo "skipped: [Scheduling of custom pods on master nodes is already disabled]"
 fi
 
 # Generate and modify ignition configuration files
 /usr/local/bin/openshift-install create ignition-configs --dir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[generate the ignition config files]"
+run_command "[Generate ignition config files]"
 
 # Add an empty line after the task
 echo
 
-# Step 14:
-PRINT_TASK "TASK [Generate an ignition file containing the node hostname]"
+# Step 13:
+PRINT_TASK "TASK [Generate setup script file]"
 
 # Copy ignition files with appropriate hostnames
 BOOTSTRAP_HOSTNAME="bs"
@@ -987,16 +905,16 @@ MASTER_FULL_HOSTNAMES=("${MASTER01_HOSTNAME}" "${MASTER02_HOSTNAME}" "${MASTER03
 WORKER_FULL_HOSTNAMES=("${WORKER01_HOSTNAME}" "${WORKER02_HOSTNAME}" "${WORKER03_HOSTNAME}")
 
 cp "${INSTALL_DIR}/bootstrap.ign" "${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign"
-run_command "[copy bootstrap.ign to ${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign]"
+run_command "[Copy bootstrap.ign to ${INSTALL_DIR}/append-${BOOTSTRAP_HOSTNAME}.ign]"
 
 for ABBREV in "${MASTER_ABBREVS[@]}"; do
     cp "${INSTALL_DIR}/master.ign" "${INSTALL_DIR}/append-${ABBREV}.ign"
-    run_command "[copy master.ign to ${INSTALL_DIR}/append-${ABBREV}.ign]"
+    run_command "[Copy master.ign to ${INSTALL_DIR}/append-${ABBREV}.ign]"
 done
 
 for ABBREV in "${WORKER_ABBREVS[@]}"; do
     cp "${INSTALL_DIR}/worker.ign" "${INSTALL_DIR}/append-${ABBREV}.ign"
-    run_command "[copy worker.ign to ${INSTALL_DIR}/append-${ABBREV}.ign]"
+    run_command "[Copy worker.ign to ${INSTALL_DIR}/append-${ABBREV}.ign]"
 done
 
 # Update master hostname in ignition files
@@ -1005,7 +923,7 @@ for i in "${!MASTER_FULL_HOSTNAMES[@]}"; do
     MASTER_ABBREV_NAME="${MASTER_ABBREVS[$i]}"
     
     sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${MASTER_FULL_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${MASTER_ABBREV_NAME}.ign"
-    run_command "[update hostname in ${INSTALL_DIR}/append-${MASTER_ABBREV_NAME}.ign]"
+    run_command "[Update hostname in ${INSTALL_DIR}/append-${MASTER_ABBREV_NAME}.ign]"
 done
 
 # Update worker hostname in ignition files
@@ -1014,17 +932,17 @@ for i in "${!WORKER_FULL_HOSTNAMES[@]}"; do
     WORKER_ABBREV_NAME="${WORKER_ABBREVS[$i]}"
     
     sed -i 's/}$/,"storage":{"files":[{"path":"\/etc\/hostname","contents":{"source":"data:,'"${WORKER_FULL_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"'"},"mode":420}]}}/' "${INSTALL_DIR}/append-${WORKER_ABBREV_NAME}.ign"
-    run_command "[update hostname in ${INSTALL_DIR}/append-${WORKER_ABBREV_NAME}.ign]"
+    run_command "[Update hostname in ${INSTALL_DIR}/append-${WORKER_ABBREV_NAME}.ign]"
 done
 
 # Set correct permissions
 chmod a+r "${INSTALL_DIR}"/*.ign
-run_command "[change ignition file permissions]"
+run_command "[Set permissions for ${INSTALL_DIR}/*.ign file]"
 
 # Add an empty line after the task
 echo
 
-# Step 15:
+# Step 14:
 PRINT_TASK "TASK [Generate setup script file]"
 
 # Function to generate setup script for a node
@@ -1048,9 +966,9 @@ EOF
 
     # Check if the setup script file was successfully generated
     if [ -f "${INSTALL_DIR}/${HOSTNAME}" ]; then
-        echo "ok: [generate setup script: ${INSTALL_DIR}/${HOSTNAME}]"
+        echo "ok: [Generate setup script: ${INSTALL_DIR}/${HOSTNAME}]"
     else
-        echo "failed: [generate setup script for ${HOSTNAME}]"
+        echo "failed: [Generate setup script for ${HOSTNAME}]"
     fi
 }
 
@@ -1065,13 +983,13 @@ generate_setup_script "w${WORKER03_HOSTNAME: -1}" "${WORKER03_IP}"  # → w3
 
 # Make the script executable
 chmod a+rx "${INSTALL_DIR}"/{bs,m*,w*}
-run_command "[change ocp intall script file permissions]"
+run_command "[Set permissions on OpenShift install scripts]"
 
 # Add an empty line after the task
 echo
 
-# Step 16:
-PRINT_TASK "TASK [Generate approve csr script file]"
+# Step 15:
+PRINT_TASK "TASK [Generate CSR approval script]"
 
 # If the file exists, delete it
 rm -rf "${INSTALL_DIR}/approve-csr.sh"
@@ -1086,11 +1004,11 @@ for i in {1..3600}; do
   sleep 10
 done 
 EOF
-run_command "[generate approve csr script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
+run_command "[Generate CSR approval script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
 
 # Run the CSR auto-approver script
 bash ${INSTALL_DIR}/ocp4cert-approver.sh &
-run_command "[run the csr auto-approver script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
+run_command "[Execute CSR auto-approval script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
 
 # Add an empty line after the task
 echo
