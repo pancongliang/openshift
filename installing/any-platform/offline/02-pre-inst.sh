@@ -945,7 +945,7 @@ run_command "[create ${HTTPD_DIR}/install-config.yaml file]"
 echo
 
 # Step 13:
-PRINT_TASK "TASK [Generate a manifests]"
+PRINT_TASK "TASK [Generate the kubernetes manifest and ignition config files]"
 
 # Create installation directory
 rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
@@ -959,7 +959,7 @@ run_command "[copy the install-config.yaml file to the installation directory]"
 
 # Generate manifests
 /usr/local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[generate manifests]"
+run_command "[generate the kubernetes manifest]"
 
 # Check if the file contains "mastersSchedulable: true"
 if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
@@ -970,20 +970,14 @@ else
   echo "skipped: [scheduling of custom pods on master nodes is already disabled]"
 fi
 
+# Generate and modify ignition configuration files
+/usr/local/bin/openshift-install create ignition-configs --dir "${INSTALL_DIR}" >/dev/null 2>&1
+run_command "[generate the ignition config files]"
+
 # Add an empty line after the task
 echo
 
 # Step 14:
-PRINT_TASK "TASK [Generate default ignition file]"
-
-# Generate and modify ignition configuration files
-/usr/local/bin/openshift-install create ignition-configs --dir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[generate default ignition file]"
-
-# Add an empty line after the task
-echo
-
-# Step 15:
 PRINT_TASK "TASK [Generate an ignition file containing the node hostname]"
 
 # Copy ignition files with appropriate hostnames
@@ -1032,7 +1026,7 @@ run_command "[change ignition file permissions]"
 # Add an empty line after the task
 echo
 
-# Step 16:
+# Step 15:
 PRINT_TASK "TASK [Generate setup script file]"
 
 # Function to generate setup script for a node
@@ -1078,7 +1072,7 @@ run_command "[change ocp intall script file permissions]"
 # Add an empty line after the task
 echo
 
-# Step 17:
+# Step 16:
 PRINT_TASK "TASK [Generate approve csr script file]"
 
 # If the file exists, delete it
