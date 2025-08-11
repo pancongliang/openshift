@@ -52,7 +52,12 @@ This script also generates the Ignition configuration and per-node installation 
   ```
   bash 02-pre-inst.sh
   ```
+* In the bastion machine, check whether the node installation script has been generated:
+  ```
+  (cd "${INSTALL_DIR}" && ls -d bs m[0-9] w[0-9])
 
+  bs  m1  m2  m3  w1  w2  w3
+  ```
 
 ### Install the Bootstrap Nodes
 
