@@ -770,7 +770,7 @@ sleep 15
 echo
 
 # Step 11:
-PRINT_TASK "TASK [Generate a defined install-config file]"
+PRINT_TASK "TASK [Creating the installation configuration file]"
 
 # Create ssh-key for accessing CoreOS
 if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
