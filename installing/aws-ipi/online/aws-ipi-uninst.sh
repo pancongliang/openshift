@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export INSTALL_DIR="$HOME/aws-ipi/ocp"
@@ -50,6 +50,7 @@ echo
 # Step 2:
 PRINT_TASK "TASK [Uninstalling a cluster]"
 
-echo "info: [uninstalling the cluster, waiting...]"
+echo "info: [Preparing uninstall the cluster]"
+
 /usr/local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
-run_command "[uninstalled cluster]"
+run_command "[Uninstalled cluster]"
