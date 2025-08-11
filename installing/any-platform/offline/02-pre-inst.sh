@@ -871,7 +871,7 @@ echo
 
 # Offline settings
 # Step 12:
-PRINT_TASK "TASK [Generate a defined install-config file]"
+PRINT_TASK "TASK [Creating the installation configuration file]"
 
 # Backup and format the registry CA certificate
 rm -rf "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
@@ -1043,7 +1043,7 @@ sudo nmcli con up ${NET_IF_NAME}
 sudo sleep 10
 
 # Install CoreOS using Ignition
-sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/append-${HOSTNAME}.ign --insecure-ignition --firstboot-args 'rd.neednet=1' --copy-network
+sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/append-${HOSTNAME}.ign --firstboot-args 'rd.neednet=1' --copy-network
 EOF
 
     # Check if the setup script file was successfully generated
