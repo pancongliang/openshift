@@ -89,7 +89,7 @@ run_command() {
 }
 
 cat $PULL_SECRET_FILE >/dev/null 2>&1
-run_command "[verify existence of  $PULL_SECRET_FILE file]"
+run_command "[Verify existence of  $PULL_SECRET_FILE file]"
 
 # Define variables
 missing_variables=()
@@ -159,22 +159,8 @@ if [ ${#missing_variables[@]} -gt 0 ]; then
         echo "- $var"
     done
 else
-    echo "ok: [confirm all required variables are set]"
+    echo "ok: [Confirm all required variables are set]"
 fi
 
 # Add an empty line after the task
 echo
-
-# Step 2:
-# PRINT_TASK "TASK [Prepare the pull-secret]"
-
-# Prompt for pull-secret
-# read -p "Please input the pull secret string from https://cloud.redhat.com/openshift/install/pull-secret:" REDHAT_PULL_SECRET
-
-# Create a temporary file to store the pull secret
-# PULL_SECRET_FILE=$(mktemp -p /tmp)
-# echo "${REDHAT_PULL_SECRET}" > "${PULL_SECRET_FILE}"
-# run_command "[create a temporary file to store the pull secret]"
-
-# Add an empty line after the task
-# echo
