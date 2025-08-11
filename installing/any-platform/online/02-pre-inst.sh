@@ -252,7 +252,7 @@ run_command "[restart the httpd service]"
 sleep 15
 
 # Test httpd configuration
-rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
+rm -rf ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 sleep 1
 touch ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 run_command "[create a test file to verify httpd download functionality]"
