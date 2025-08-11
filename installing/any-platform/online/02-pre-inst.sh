@@ -646,7 +646,7 @@ sleep 15
 # Add an empty line after the task
 echo
 
-# Step 11:
+# Step 10:
 PRINT_TASK "TASK [Create installation configuration file]"
 
 # Create ssh-key for accessing node
@@ -699,7 +699,7 @@ run_command "[Create ${HTTPD_DIR}/install-config.yaml file]"
 # Add an empty line after the task
 echo
 
-# Step 12:
+# Step 11:
 PRINT_TASK "TASK [Generate Kubernetes manifests and ignition configs]"
 
 # Create installation directory
@@ -732,7 +732,7 @@ run_command "[Generate ignition config files]"
 # Add an empty line after the task
 echo
 
-# Step 13:
+# Step 12:
 PRINT_TASK "TASK [Generate setup script file]"
 
 # Function to generate setup script for a node
