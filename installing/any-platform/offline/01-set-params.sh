@@ -100,7 +100,7 @@ run_command() {
 }
 
 cat $PULL_SECRET_FILE >/dev/null 2>&1
-run_command "[verify existence of $PULL_SECRET_FILE file]"
+run_command "[Verify existence of $PULL_SECRET_FILE file]"
 
 # Define variables
 missing_variables=()
