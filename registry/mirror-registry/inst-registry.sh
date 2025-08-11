@@ -86,7 +86,7 @@ sudo mkdir -p ${REGISTRY_INSTALL_DIR}
 sudo mkdir -p ${REGISTRY_INSTALL_DIR}/quay-storage
 sudo mkdir -p ${REGISTRY_INSTALL_DIR}/sqlite-storage
 sudo chmod -R 777 ${REGISTRY_INSTALL_DIR}
-run_command "[create ${REGISTRY_INSTALL_DIR} directory]"
+run_command "[create the ${REGISTRY_INSTALL_DIR} directory and modify its permissions]"
 
 # Download mirror-registry
 # wget -P ${REGISTRY_INSTALL_DIR} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz >/dev/null 2>&1
