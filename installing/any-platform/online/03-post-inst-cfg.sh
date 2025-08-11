@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -36,11 +36,11 @@ PRINT_TASK "TASK [Kubeconfig login and oc completion]"
 rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
 cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
-run_command "[add kubeconfig to ~/.bash_profile]"
+run_command "[Add kubeconfig to ~/.bash_profile]"
 
 # completion command:
 bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' || true
-run_command "[add oc_completion]"
+run_command "[Enable oc bash completion]"
 
 # Add an empty line after the task
 echo
@@ -50,10 +50,10 @@ PRINT_TASK "TASK [Configure data persistence for the image-registry operator]"
 
 rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
 mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
-run_command "[create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
+run_command "[Create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
 
 chmod 777 ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
-run_command "[modify ${NFS_DIR}/${IMAGE_REGISTRY_PV} director permissions]"
+run_command "[Set permissions on ${NFS_DIR}/${IMAGE_REGISTRY_PV}]"
 
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete -f ${IMAGE_REGISTRY_PV} >/dev/null 2>&1 || true
 
@@ -72,21 +72,21 @@ spec:
     server: ${NFS_SERVER_IP}
   persistentVolumeReclaimPolicy: Retain
 EOF
-run_command "[create ${IMAGE_REGISTRY_PV}.yaml file]"
+run_command "[Generate ${IMAGE_REGISTRY_PV}.yaml configuration file]"
 
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml >/dev/null 2>&1
-run_command "[apply ${IMAGE_REGISTRY_PV} pv]"
+run_command "[Apply ${IMAGE_REGISTRY_PV} persistent volume]"
 
 rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
-run_command "[remove ${IMAGE_REGISTRY_PV}.yaml file]"
+run_command "[Remove temporary ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' >/dev/null 2>&1
-run_command "[change the Image registry operator configuration’s managementState from Removed to Managed]"
+run_command "[Set Image Registry operator management state to Managed]"
 
 # Leave the claim field blank to allow the automatic creation of an image-registry-storage PVC.
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' >/dev/null 2>&1
-run_command "[leave the claim field blank to allow the automatic creation of an image-registry-storage PVC]"
+run_command "[Clear PVC claim field to enable automatic storage provisioning]"
 
 # Add an empty line after the task
 echo
@@ -96,11 +96,11 @@ PRINT_TASK "TASK [Create htpasswd User]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
 htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat >/dev/null 2>&1
-run_command "[create a user using the htpasswd tool]"
+run_command "[Create user with htpasswd tool]"
 
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig delete secret htpasswd-secret -n openshift-config >/dev/null 2>&1 || true
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
-run_command "[create a secret using the users.htpasswd file]"
+run_command "[Create secret from users.htpasswd file]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
 
@@ -119,11 +119,11 @@ spec:
     name: htpasswd-user
     type: HTPasswd
 EOF
-run_command "[setting up htpasswd authentication]"
+run_command "[Configure htpasswd authentication]"
 
 # Grant the 'cluster-admin' cluster role to the user 'admin'
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm policy add-cluster-role-to-user cluster-admin admin >/dev/null 2>&1 || true
-run_command "[grant cluster-admin permissions to the admin user]"
+run_command "[Grant cluster-admin role to admin user]"
 
 sleep 15
 
@@ -142,7 +142,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [Waiting for pods to reach 'Running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -154,7 +154,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, oauth pods may still be initializing]"
+            echo "failed: [Max retries reached; oauth pods may still be initializing]"
             exit 1
         fi
     else
@@ -162,7 +162,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all oauth pods are in 'running' state]"
+        echo "ok: [All oauth pods are in 'Running' state]"
         break
     fi
 done
@@ -171,7 +171,7 @@ done
 echo
 
 # Step 5:
-PRINT_TASK "TASK [Checking the cluster status]"
+PRINT_TASK "TASK [Check cluster status]"
 
 # Check cluster operator status
 MAX_RETRIES=60
@@ -187,7 +187,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            echo -n "info: [Waiting for all cluster operators to reach desired state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -199,7 +199,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, cluster operator may still be initializing]"
+            echo "failed: [Max retries reached; cluster operators may still be initializing]"
             exit 1
         fi
     else
@@ -207,7 +207,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all cluster operators have reached the expected state]"
+        echo "ok: [All cluster operators have reached desired state]"
         break
     fi
 done
@@ -226,7 +226,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all mcps to reach the expected state"
+            echo -n "info: [Waiting for all MCPs to reach desired state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -238,7 +238,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, mcp may still be initializing]"
+            echo "failed: [Max retries reached; MCPs may still be initializing]"
             exit 1
         fi
     else
@@ -246,7 +246,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all mcp have reached the expected state]"
+        echo "ok: [All MCPs have reached desired state]"
         break
     fi
 done
@@ -263,8 +263,8 @@ for node in $nodes; do
   ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null core@"$node" \
     "echo 'root:redhat' | sudo chpasswd || true" >/dev/null 2>&1
 done
-echo "ok: [change the root password to 'redhat' on each node]"
+echo "ok: [Changed root password to 'redhat' on all nodes]"
 
-echo "info: [default setting is to use kubeconfig to login]"
-echo "info: [log in to the cluster using the htpasswd user: uset KUBECONFIG && oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
+echo "info: [Default login uses kubeconfig]"
+echo "info: [Login using htpasswd user: uset KUBECONFIG && oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443]"
 echo
