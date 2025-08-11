@@ -107,11 +107,11 @@ check_all_variables
 
 # Display missing variables, if any
 if [ ${#missing_variables[@]} -gt 0 ]; then
-    for var in "${missing_variables[@]}"; do
-        echo "failed: [$var]"
-    done
+    IFS=', '
+    echo "failed: [Missing variables: ${missing_variables[*]}]"
+    unset IFS
 else
-    echo "ok: [all variables are set]"
+    echo "ok: [Confirm all required variables are set]"
 fi
 
 # Add an empty line after the task
