@@ -96,7 +96,7 @@ echo
 PRINT_TASK "TASK [Install the necessary rpm packages]"
 
 # List of RPM packages to install
-packages=("podman" "bind-utils" "bind" "haproxy" "nfs-utils" "httpd" "httpd-tools" "wget" "vim-enhanced" "skopeo" "bash-completion" "jq")
+packages=("podman" "bind-utils" "bind" "httpd" "httpd-tools" "haproxy" "nfs-utils" "wget" "skopeo" "jq" "bash-completion" "vim-enhanced")
 
 # Convert the array to a space-separated string
 package_list="${packages[*]}"
