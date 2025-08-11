@@ -96,7 +96,7 @@ echo
 PRINT_TASK "TASK [Install the necessary rpm packages]"
 
 # List of RPM packages to install
-packages=("podman" "bind-utils" "bind" "haproxy" "nfs-utils" "httpd" "httpd-tools" "wget" "vim-enhanced" "git" "skopeo" "bash-completion" "jq")
+packages=("podman" "bind-utils" "bind" "haproxy" "nfs-utils" "httpd" "httpd-tools" "wget" "vim-enhanced" "skopeo" "bash-completion" "jq")
 
 # Convert the array to a space-separated string
 package_list="${packages[*]}"
@@ -175,43 +175,6 @@ run_command "[modify /usr/local/bin/kubectl permissions]"
 
 rm -f /usr/local/bin/README.md >/dev/null 2>&1
 rm -rf $openshift_client >/dev/null 2>&1
-
-# Get the RHEL version number
-#rhel_version=$(rpm -E %{rhel})
-#if [ "$rhel_version" -eq 8 ]; then
-#    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.14.35/oc-mirror.tar.gz"
-#    oc_mirror="oc-mirror.tar.gz"
-#elif [ "$rhel_version" -eq 9 ]; then
-#    download_url="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz"
-#    oc_mirror="oc-mirror.tar.gz"
-#fi
-
-# Download the oc-mirror tool
-#wget -q "$download_url" -O "$oc_mirror"
-#run_command "[download oc-mirror tool]"
-
-# Install oc-mirror  tool
-#tar -xzf "$oc_mirror" -C "/usr/local/bin/" >/dev/null 2>&1
-#run_command "[install oc-mirror tool]"
-
-#chmod a+x /usr/local/bin/oc-mirror >/dev/null 2>&1
-#run_command "[modify /usr/local/bin/oc-mirror permissions]"
-
-#rm -rf $oc_mirror >/dev/null 2>&1
-
-# Download the kubectx tool
-#curl -sLo /usr/local/bin/kubectx https://raw.githubusercontent.com/ahmetb/kubectx/master/kubectx >/dev/null 2>&1
-#run_command "[install kubectx tool]"
-
-#chmod +x /usr/local/bin/kubectx >/dev/null 2>&1
-#run_command "[modify /usr/local/bin/kubectx permissions]"
-
-# Download the kubens tool
-#curl -sLo /usr/local/bin/kubens https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens >/dev/null 2>&1
-#run_command "[install kubens tool]"
-
-#chmod +x /usr/local/bin/kubens >/dev/null 2>&1
-#run_command "[modify /usr/local/bin/kubens permissions]"
 
 # Add an empty line after the task
 echo
@@ -917,7 +880,7 @@ echo
 PRINT_TASK "TASK [Generate approve csr script file]"
 
 # If the file exists, delete it
-rm -rf "${INSTALL_DIR}/approve-csr.sh"
+rm -rf "${INSTALL_DIR}/approve-csr.sh" >/dev/null 2>&1
 
 # Generate approve csr script file]
 cat << EOF > "${INSTALL_DIR}/ocp4cert-approver.sh"
@@ -1006,7 +969,7 @@ echo
 #sudo sleep 10
 #
 ## Install CoreOS using Ignition
-#sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/append-${HOSTNAME}.ign #--insecure-ignition --firstboot-args 'rd.neednet=1' --copy-network
+#sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/append-${HOSTNAME}.ign --firstboot-args 'rd.neednet=1' --copy-network
 #EOF
 #
 #    # Check if the setup script file was successfully generated
