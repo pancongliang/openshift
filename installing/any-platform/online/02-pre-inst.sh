@@ -246,7 +246,7 @@ systemctl enable httpd >/dev/null 2>&1
 run_command "[set the httpd service to start automatically at boot]"
 
 systemctl restart httpd >/dev/null 2>&1
-run_command "[restart httpd service]"
+run_command "[restart the httpd service]"
 
 # Wait for the service to restart
 sleep 15
@@ -255,13 +255,13 @@ sleep 15
 rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 sleep 1
 touch ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
-run_command "[create httpd test file]"
+run_command "[create a test file to verify httpd download functionality]"
 
 wget -q http://${BASTION_IP}:8080/httpd-test
-run_command "[test httpd download function]"
+run_command "[verify httpd download functionality]"
 
 rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
-run_command "[delete the httpd test file]"
+run_command "[remove the httpd test file]"
 
 # Add an empty line after the task
 echo
@@ -304,7 +304,7 @@ systemctl enable nfs-server >/dev/null 2>&1
 run_command "[set the nfs-server service to start automatically at boot]"
 
 systemctl restart nfs-server >/dev/null 2>&1
-run_command "[restart nfs-server service]"
+run_command "[restart the nfs-server service]"
 
 # Wait for the service to restart
 sleep 15
@@ -549,7 +549,7 @@ systemctl enable named >/dev/null 2>&1
 run_command "[set the named service to start automatically at boot]"
 
 systemctl restart named >/dev/null 2>&1
-run_command "[restart named service]"
+run_command "[restart the named service]"
 
 # Add dns ip to resolv.conf
 sed -i "/${LOCAL_DNS_IP}/d" /etc/resolv.conf
@@ -566,7 +566,7 @@ fi
 
 # Restart service
 systemctl restart NetworkManager >/dev/null 2>&1
-run_command "[restart network manager service]"
+run_command "[restart the network manager service]"
 
 # Wait for the service to restart
 sleep 15
@@ -724,7 +724,7 @@ systemctl enable --now haproxy >/dev/null 2>&1
 run_command "[set the haproxy service to start automatically at boot]"
 
 systemctl restart haproxy >/dev/null 2>&1
-run_command "[restart haproxy service]"
+run_command "[restart the haproxy service]"
 
 # Wait for the service to restart
 sleep 15
