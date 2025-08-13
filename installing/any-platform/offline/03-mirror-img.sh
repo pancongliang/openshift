@@ -30,7 +30,7 @@ source 01-set-params.sh
 export PATH="/usr/local/bin:$PATH"
 
 # Step 2:
-PRINT_TASK "TASK [Mirror OCP Images to Mirror Registry]"
+PRINT_TASK "TASK [Mirror OCP Release Images to Mirror Registry]"
 
 # Login to the registry
 rm -rf $XDG_RUNTIME_DIR/containers
