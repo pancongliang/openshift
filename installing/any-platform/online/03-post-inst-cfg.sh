@@ -48,7 +48,7 @@ echo
 # Step 3:
 PRINT_TASK "TASK [Configure Persistent Volumes for the Image Registry Operator]"
 
-rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
+rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV}  >/dev/null 2>&1 || true
 mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
 run_command "[Create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
 
@@ -77,7 +77,7 @@ run_command "[Generate ${IMAGE_REGISTRY_PV}.yaml configuration file]"
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml >/dev/null 2>&1
 run_command "[Apply ${IMAGE_REGISTRY_PV} persistent volumes]"
 
-rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
+rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml >/dev/null 2>&1 || true
 run_command "[Remove temporary ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
@@ -94,7 +94,7 @@ echo
 # Step 4:
 PRINT_TASK "TASK [Create HTPasswd User]"
 
-rm -rf $INSTALL_DIR/users.htpasswd
+rm -rf $INSTALL_DIR/users.htpasswd  >/dev/null 2>&1 || true
 htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat >/dev/null 2>&1
 run_command "[Create user with htpasswd tool]"
 
@@ -102,7 +102,7 @@ run_command "[Create user with htpasswd tool]"
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig create secret generic htpasswd-secret --from-file=htpasswd=$INSTALL_DIR/users.htpasswd -n openshift-config >/dev/null 2>&1
 run_command "[Create secret from users.htpasswd file]"
 
-rm -rf $INSTALL_DIR/users.htpasswd
+rm -rf $INSTALL_DIR/users.htpasswd  >/dev/null 2>&1 || true
 
 # Use a here document to apply OAuth configuration to the OpenShift cluster
 cat  <<EOF | /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f - >/dev/null 2>&1
