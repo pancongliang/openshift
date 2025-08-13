@@ -800,11 +800,11 @@ for i in {1..3600}; do
   sleep 10
 done 
 EOF
-run_command "[Generate CSR approval script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
+run_command "[Generate csr approval script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
 
 # Run the CSR auto-approver script
 bash ${INSTALL_DIR}/ocp4cert-approver.sh &
-run_command "[Execute CSR auto-approval script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
+run_command "[Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
 
 # Add an empty line after the task
 echo
