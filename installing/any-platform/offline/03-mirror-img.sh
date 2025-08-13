@@ -24,6 +24,7 @@ run_command() {
     fi
 }
 
+# Offline settings
 # Step 1:
 # Applying environment variables
 source 01-set-params.sh
