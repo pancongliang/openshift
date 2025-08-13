@@ -30,7 +30,7 @@ source 01-set-params.sh
 export PATH="/usr/local/bin:$PATH"
 
 # Step 2:
-PRINT_TASK "TASK [Change hostname and time zone]"
+PRINT_TASK "TASK [Configure Hostname and Time Zone]"
 
 # Change hostname
 hostnamectl set-hostname ${BASTION_HOSTNAME}
@@ -48,7 +48,7 @@ run_command "[Write LANG=en_US.UTF-8 to ./bash_profile]"
 echo
 
 # Step 3:
-PRINT_TASK "TASK [Disable firewalld service and update SELinux policy]"
+PRINT_TASK "TASK [Disable Firewalld Service and Update SELinux Policy]"
 
 # Stop and disable firewalld services
 systemctl disable --now firewalld >/dev/null 2>&1
@@ -61,9 +61,9 @@ if [[ $permanent_status == "enforcing" ]]; then
     # Change SELinux to permissive
     sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
     permanent_status="permissive"
-    echo "ok: [Set permanent SELinux policy to $permanent_status]"
+    echo "ok: [Set permanent selinux policy to $permanent_status]"
 elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permissive" ]]; then
-    echo "ok: [Permanent SELinux policy is already $permanent_status]"
+    echo "ok: [Permanent selinux policy is already $permanent_status]"
 
 else
     echo "failed: [SELinux permanent policy is $permanent_status, expected permissive or disabled]"
@@ -71,13 +71,13 @@ fi
 
 # Temporarily set SELinux security policy to permissive
 setenforce 0 >/dev/null 2>&1 || true
-run_command "[Disable temporary SELinux enforcement]"
+run_command "[Disable temporary selinux enforcement]"
 
 # Add an empty line after the task
 echo
 
 # Step 4:
-PRINT_TASK "TASK [Install required RPM packages]"
+PRINT_TASK "TASK [Install Required RPM Packages]"
 
 # List of RPM packages to install
 packages=("podman" "bind-utils" "bind" "httpd" "httpd-tools" "haproxy" "nfs-utils" "wget" "skopeo" "jq" "bash-completion" "vim-enhanced")
@@ -103,7 +103,7 @@ done
 echo
 
 # Step 5:
-PRINT_TASK "TASK [Install OpenShift installer, client tools and oc-mirror]"
+PRINT_TASK "TASK [Install OpenShift Install, Client, and oc-mirror Tools]"
 
 # Delete the old version of oc cli
 rm -f /usr/local/bin/oc* >/dev/null 2>&1
@@ -204,7 +204,7 @@ rm -rf $oc_mirror >/dev/null 2>&1
 echo
 
 # Step 6:
-PRINT_TASK "TASK [Configure and verify httpd service]"
+PRINT_TASK "TASK [Configure and Verify HTTPD Service]"
 
 # Update httpd listen port
 update_httpd_listen_port() {
@@ -215,9 +215,9 @@ update_httpd_listen_port() {
     if [ "$listen_port" != "8080" ]; then
         # Change listen port to 8080
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
-        echo "ok: [Set the HTTP listening port to 8080]"
+        echo "ok: [Set the httpd listening port to 8080]"
     else
-        echo "skipped: [HTTP listening port is already 8080]"
+        echo "skipped: [Listening port for httpd is already set to 8080]"
     fi
 }
 # Call the function to update listen port
@@ -265,7 +265,7 @@ run_command "[Remove the httpd test file]"
 echo
 
 # Step 7:
-PRINT_TASK "TASK [Configure and verify nfs service]"
+PRINT_TASK "TASK [Configure and Verify NFS Service]"
 
 # Create NFS directories
 rm -rf ${NFS_DIR} >/dev/null 2>&1
@@ -283,18 +283,18 @@ fi
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_DIR} >/dev/null 2>&1
-run_command "[Set ownership of ${NFS_DIR} directory]"
+run_command "[Set ownership of nfs directory]"
 
 chmod -R 777 ${NFS_DIR} >/dev/null 2>&1
-run_command "[Set permissions of ${NFS_DIR} directory]"
+run_command "[Set permissions of nfs directory]"
 
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "skipped: [NFS export configuration already exists]"
+    echo "skipped: [Export configuration for nfs already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo "ok: [Setting up NFS export configuration]"
+    echo "ok: [Setting up nfs export configuration]"
 fi
 
 # Enable and start service
@@ -334,7 +334,7 @@ run_command "[Remove test mount directory: /tmp/nfs-test]"
 echo
 
 # Step 8:
-PRINT_TASK "TASK [Configure and verify named service]"
+PRINT_TASK "TASK [Configure and Verify Named Service]"
 
 # Construct forward DNS zone name and zone file name
 FORWARD_ZONE_NAME="${BASE_DOMAIN}"
@@ -396,15 +396,8 @@ include "/etc/named.rfc1912.zones";
 EOF
 run_command "[Generate named configuration file]"
 
-# Create forward zone file
-# Function to format and align DNS entries
-format_dns_entry() {
-    domain="$1"
-    ip="$2"
-    printf "%-40s IN  A      %s\n" "$domain" "$ip"
-}
-
-rm -f /var/named/${FORWARD_ZONE_FILE} >/dev/null 2>&1
+# Create Forward Zone file
+rm -f /var/named/${FORWARD_ZONE_FILE}  >/dev/null 2>&1
 
 cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 \$TTL 1W
@@ -420,31 +413,31 @@ cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 ns1     IN      A       ${LOCAL_DNS_IP}
 ;
 ; The api identifies the IP of load balancer.
-$(format_dns_entry "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
-$(format_dns_entry "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
+$(printf "%-40s IN  A      %s\n" "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
+$(printf "%-40s IN  A      %s\n" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
 ;
 ; The wildcard also identifies the load balancer.
-$(format_dns_entry "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
+$(printf "%-40s IN  A      %s\n" "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
 ;
 ; Create entries for the master hosts.
-$(format_dns_entry "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
-$(format_dns_entry "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
-$(format_dns_entry "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
+$(printf "%-40s IN  A      %s\n" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
+$(printf "%-40s IN  A      %s\n" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
+$(printf "%-40s IN  A      %s\n" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
 ;
 ; Create entries for the worker hosts.
-$(format_dns_entry "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
-$(format_dns_entry "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
-$(format_dns_entry "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
+$(printf "%-40s IN  A      %s\n" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
+$(printf "%-40s IN  A      %s\n" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
+$(printf "%-40s IN  A      %s\n" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
 ;
 ; Create an entry for the bootstrap host.
-$(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
+$(printf "%-40s IN  A      %s\n" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
 ;
 ; Create entries for the mirror registry hosts.
-$(format_dns_entry "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}." "${REGISTRY_IP}")
+$(printf "%-40s IN  A      %s\n" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}." "${REGISTRY_IP}")
 EOF
 run_command "[Generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 
-# Create reverse zone file
+# Create Reverse Zone file
 get_reverse_ip() {
   local ip=$1
   IFS='.' read -r a b c d <<< "$ip"
@@ -540,7 +533,6 @@ hostnames=(
     "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}"
     "${API_IP}"
     "${MASTER01_IP}"
     "${MASTER02_IP}"
@@ -549,7 +541,6 @@ hostnames=(
     "${WORKER02_IP}"
     "${WORKER03_IP}"
     "${BOOTSTRAP_IP}"
-    "${REGISTRY_IP}"
     "${NSLOOKUP_TEST_PUBLIC_DOMAIN}"
 )
 
@@ -601,7 +592,7 @@ run_command "[Update /etc/hosts with hostname and IP]"
 echo
 
 # Step 9:
-PRINT_TASK "TASK [Configure and verify HAproxy service]"
+PRINT_TASK "TASK [Configure and Verify HAProxy Service]"
 
 # Setup haproxy services configuration
 cat << EOF > /etc/haproxy/haproxy.cfg 
@@ -672,15 +663,15 @@ listen default-ingress-router-443
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
   server     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
 EOF
-run_command "[Generate HAProxy configuration file]"
+run_command "[Generate haproxy configuration file]"
 
 # Path to HAProxy configuration file
 haproxy -c -f /etc/haproxy/haproxy.cfg >/dev/null 2>&1
-run_command "[Validate HAProxy configuration]"
+run_command "[Validate haproxy configuration]"
 
 # Enable and start service
 systemctl enable --now haproxy >/dev/null 2>&1
-run_command "[Enable HAProxy service at boot]"
+run_command "[Enable haproxy service at boot]"
 
 systemctl restart haproxy >/dev/null 2>&1
 run_command "[Restart haproxy service]"
@@ -693,7 +684,7 @@ echo
 
 # Offline settings
 # Step 10: 
-PRINT_TASK "TASK [Install mirror registry]"
+PRINT_TASK "TASK [Install Mirror Registry]"
 
 # Check if there is an quay-app.service
  if [ -f /etc/systemd/system/quay-pod.service ]; then
@@ -720,18 +711,18 @@ run_command "[Create registry installation directory: ${INSTALL_DIR}]"
 chmod -R 777 ${REGISTRY_INSTALL_DIR}
 run_command "[Set permissions of ${REGISTRY_INSTALL_DIR} directory]"
 
-# Download mirror-registry
-echo "info: [Preparing download of mirror-registry package]"
+# Download mirror registry
+echo "info: [Preparing download of mirror registry package]"
 
 wget -O ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz >/dev/null 2>&1
-run_command "[Download mirror-registry package]"
+run_command "[Download mirror registry package]"
 
-# Extract the downloaded mirror-registry package
+# Extract the downloaded mirror registry package
 tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR}/ >/dev/null 2>&1
-run_command "[Extract the mirror-registry package]"
+run_command "[Extract the mirror registry package]"
 
-echo "info: [Preparing to install the mirror-registry]"
-# Install mirror-registry
+echo "info: [Preparing to install the mirror registry]"
+# Install mirror registry
 ${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} \
      --quayRoot ${REGISTRY_INSTALL_DIR} \
@@ -739,7 +730,7 @@ ${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
      --sqliteStorage ${REGISTRY_INSTALL_DIR}/sqlite-storage \
      --initUser ${REGISTRY_ID} \
      --initPassword ${REGISTRY_PW}
-run_command "[Installing the mirror-registry]"
+run_command "[Install mirror registry]"
 
 progress_started=false
 while true; do
@@ -789,7 +780,7 @@ echo
 
 # Offline settings
 # Step 11:
-PRINT_TASK "TASK [Create installation configuration file]"
+PRINT_TASK "TASK [Create Installation Configuration File]"
 
 # Backup and format the registry CA certificate
 rm -rf "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
@@ -799,14 +790,14 @@ run_command "[Backup registry rootCA certificate]"
 sed -i 's/^/  /' "${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem.bak"
 run_command "[Format registry rootCA certificate]"
 
-# Create ssh-key for accessing CoreOS
+# Create ssh key for accessing CoreOS
 if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
     rm -rf ${SSH_KEY_PATH} 
     mkdir -p ${SSH_KEY_PATH}
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    echo "ok: [Create an ssh-key for accessing the node]"
+    echo "ok: [Create an ssh key for accessing the node]"
 else
-    echo "skipped: [Create an ssh-key for accessing the node]"
+    echo "skipped: [Create an ssh key for accessing the node]"
 fi
 
 # If known_hosts exists, clear it without error
@@ -861,7 +852,7 @@ run_command "[Create ${HTTPD_DIR}/install-config.yaml file]"
 echo
 
 # Step 12:
-PRINT_TASK "TASK [Generate the kubernetes manifest and ignition config files]"
+PRINT_TASK "TASK [Generate Kubernetes Manifests and Ignition Configs]"
 
 # Create installation directory
 rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
@@ -875,7 +866,7 @@ run_command "[Copy install-config.yaml to installation directory]"
 
 # Generate manifests
 /usr/local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[Generate Kubernetes manifests]"
+run_command "[Generate kubernetes manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
 if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
@@ -894,7 +885,7 @@ run_command "[Generate ignition config files]"
 echo
 
 # Step 13:
-PRINT_TASK "TASK [Generate setup script file]"
+PRINT_TASK "TASK [Generate an Ignition File Containing the Node Hostname]"
 
 # Copy ignition files with appropriate hostnames
 BOOTSTRAP_HOSTNAME="bs"
@@ -943,7 +934,7 @@ run_command "[Set permissions for ${INSTALL_DIR}/*.ign file]"
 echo
 
 # Step 14:
-PRINT_TASK "TASK [Generate setup script file]"
+PRINT_TASK "TASK [Generate OCP Install Script File]"
 
 # Function to generate setup script for a node
 generate_setup_script() {
@@ -983,13 +974,13 @@ generate_setup_script "w${WORKER03_HOSTNAME: -1}" "${WORKER03_IP}"  # → w3
 
 # Make the script executable
 chmod a+rx "${INSTALL_DIR}"/{bs,m*,w*}
-run_command "[Set permissions on OpenShift install scripts]"
+run_command "[Set permissions on ocp install scripts]"
 
 # Add an empty line after the task
 echo
 
 # Step 15:
-PRINT_TASK "TASK [Generate CSR approval script]"
+PRINT_TASK "TASK [Generate CSR Approval Scripts]"
 
 # If the file exists, delete it
 rm -rf "${INSTALL_DIR}/approve-csr.sh"
