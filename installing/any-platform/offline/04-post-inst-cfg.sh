@@ -92,6 +92,7 @@ run_command "[Clear pvc claim field to enable automatic storage provisioning]"
 # Add an empty line after the task
 echo
 
+# Offline settings
 # Step 4:
 PRINT_TASK "TASK [Disable Default OperatorHub Sources]"
 
