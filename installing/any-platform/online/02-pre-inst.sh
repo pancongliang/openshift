@@ -48,7 +48,7 @@ run_command "[Write LANG=en_US.UTF-8 to ./bash_profile]"
 echo
 
 # Step 3:
-PRINT_TASK "TASK [Disable firewalld service and update SELinux policy]"
+PRINT_TASK "TASK [Disable Firewalld Service and Update SELinux Policy]"
 
 # Stop and disable firewalld services
 systemctl disable --now firewalld >/dev/null 2>&1
@@ -77,7 +77,7 @@ run_command "[Disable temporary SELinux enforcement]"
 echo
 
 # Step 4:
-PRINT_TASK "TASK [Install required RPM packages]"
+PRINT_TASK "TASK [Install Required RPM Packages]"
 
 # List of RPM packages to install
 packages=("podman" "bind-utils" "bind" "httpd" "httpd-tools" "haproxy" "nfs-utils" "wget" "skopeo" "jq" "bash-completion" "vim-enhanced")
@@ -103,7 +103,7 @@ done
 echo
 
 # Step 5:
-PRINT_TASK "TASK [Install OpenShift install and client tools]"
+PRINT_TASK "TASK [Install OpenShift Install and Client Tools]"
 
 # Delete the old version of oc cli
 rm -f /usr/local/bin/oc >/dev/null 2>&1
@@ -164,7 +164,7 @@ rm -rf $openshift_client >/dev/null 2>&1
 echo
 
 # Step 6:
-PRINT_TASK "TASK [Configure and verify httpd service]"
+PRINT_TASK "TASK [Configure and Verify HTTPD Service]"
 
 # Update httpd listen port
 update_httpd_listen_port() {
@@ -175,9 +175,9 @@ update_httpd_listen_port() {
     if [ "$listen_port" != "8080" ]; then
         # Change listen port to 8080
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
-        echo "ok: [Set the HTTP listening port to 8080]"
+        echo "ok: [Set the httpd listening port to 8080]"
     else
-        echo "skipped: [HTTP listening port is already 8080]"
+        echo "skipped: [Listening port for httpd is already set to 8080]"
     fi
 }
 # Call the function to update listen port
@@ -225,7 +225,7 @@ run_command "[Remove the httpd test file]"
 echo
 
 # Step 7:
-PRINT_TASK "TASK [Configure and verify nfs service]"
+PRINT_TASK "TASK [Configure and Verify NFS Service]"
 
 # Create NFS directories
 rm -rf ${NFS_DIR} >/dev/null 2>&1
@@ -243,18 +243,18 @@ fi
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_DIR} >/dev/null 2>&1
-run_command "[Set ownership of NFS directory]"
+run_command "[Set ownership of nfs directory]"
 
 chmod -R 777 ${NFS_DIR} >/dev/null 2>&1
-run_command "[Set permissions of NFS directory]"
+run_command "[Set permissions of nfs directory]"
 
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "skipped: [NFS export configuration already exists]"
+    echo "skipped: [Export configuration for nfs already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo "ok: [Setting up NFS export configuration]"
+    echo "ok: [Setting up nfs export configuration]"
 fi
 
 # Enable and start service
@@ -294,7 +294,7 @@ run_command "[Remove test mount directory: /tmp/nfs-test]"
 echo
 
 # Step 8:
-PRINT_TASK "TASK [Configure and verify named service]"
+PRINT_TASK "TASK [Configure and Verify Named Service]"
 
 # Construct forward DNS zone name and zone file name
 FORWARD_ZONE_NAME="${BASE_DOMAIN}"
@@ -549,7 +549,7 @@ run_command "[Update /etc/hosts with hostname and IP]"
 echo
 
 # Step 9:
-PRINT_TASK "TASK [Configure and verify HAproxy service]"
+PRINT_TASK "TASK [Configure and Verify HAProxy Service]"
 
 # Setup haproxy services configuration
 cat << EOF > /etc/haproxy/haproxy.cfg 
@@ -620,15 +620,15 @@ listen default-ingress-router-443
   server     ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
   server     ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
 EOF
-run_command "[Generate HAProxy configuration file]"
+run_command "[Generate haproxy configuration file]"
 
 # Path to HAProxy configuration file
 haproxy -c -f /etc/haproxy/haproxy.cfg >/dev/null 2>&1
-run_command "[Validate HAProxy configuration]"
+run_command "[Validate haproxy configuration]"
 
 # Enable and start service
 systemctl enable --now haproxy >/dev/null 2>&1
-run_command "[Enable HAProxy service at boot]"
+run_command "[Enable haproxy service at boot]"
 
 systemctl restart haproxy >/dev/null 2>&1
 run_command "[Restart haproxy service]"
@@ -640,7 +640,7 @@ sleep 15
 echo
 
 # Step 10:
-PRINT_TASK "TASK [Create installation configuration file]"
+PRINT_TASK "TASK [Create Installation Configuration File]"
 
 # Create ssh-key for accessing node
 if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; then
@@ -693,7 +693,7 @@ run_command "[Create ${HTTPD_DIR}/install-config.yaml file]"
 echo
 
 # Step 11:
-PRINT_TASK "TASK [Generate Kubernetes manifests and ignition configs]"
+PRINT_TASK "TASK [Generate Kubernetes Manifests and Ignition Configs]"
 
 # Create installation directory
 rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
@@ -707,7 +707,7 @@ run_command "[Copy install-config.yaml to installation directory]"
 
 # Generate manifests
 /usr/local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[Generate Kubernetes manifests]"
+run_command "[Generate kubernetes manifests]"
 
 # Check if the file contains "mastersSchedulable: true"
 if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
@@ -726,7 +726,7 @@ run_command "[Generate ignition config files]"
 echo
 
 # Step 12:
-PRINT_TASK "TASK [Generate setup script file]"
+PRINT_TASK "TASK [Generate OCP Install Script File]"
 
 # Function to generate setup script for a node
 generate_setup_script() {
@@ -779,13 +779,13 @@ run_command "[Set permissions for ${INSTALL_DIR}/*.ign file]"
 
 # Make the script executable
 chmod a+rx "${INSTALL_DIR}"/{bs,m*,w*}
-run_command "[Set permissions on OpenShift install scripts]"
+run_command "[Set permissions on ocp install scripts]"
 
 # Add an empty line after the task
 echo
 
 # Step 13:
-PRINT_TASK "TASK [Generate CSR approval script]"
+PRINT_TASK "TASK [Generate CSR Approval Scripts]"
 
 # If the file exists, delete it
 rm -rf "${INSTALL_DIR}/approve-csr.sh" >/dev/null 2>&1
@@ -810,7 +810,7 @@ run_command "[Execute CSR auto-approval script: ${INSTALL_DIR}/ocp4cert-approver
 echo
 
 ## Step 13:
-#PRINT_TASK "TASK [Generate an ignition file containing the node hostname]"
+#PRINT_TASK "TASK [Generate an Ignition File Containing the Node Hostname]"
 #
 ## Copy ignition files with appropriate hostnames
 #BOOTSTRAP_HOSTNAME="bs"
@@ -859,7 +859,7 @@ echo
 #echo
 #
 ## Step 14:
-#PRINT_TASK "TASK [Generate setup script file]"
+#PRINT_TASK "TASK [Generate OCP Install Script File]"
 #
 ## Function to generate setup script for a node
 #generate_setup_script() {
