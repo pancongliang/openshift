@@ -30,7 +30,7 @@ source 01-set-params.sh
 export PATH="/usr/local/bin:$PATH"
 
 # Step 2:
-PRINT_TASK "TASK [Change hostname and time zone]"
+PRINT_TASK "TASK [Configure Hostname and Time Zone]"
 
 # Change hostname
 hostnamectl set-hostname ${BASTION_HOSTNAME}
