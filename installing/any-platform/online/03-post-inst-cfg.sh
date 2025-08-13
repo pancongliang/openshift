@@ -171,7 +171,7 @@ done
 echo
 
 # Step 5:
-PRINT_TASK "TASK [Check the Status of the OCP Cluster ]"
+PRINT_TASK "TASK [Check the Status of the OCP Cluster]"
 
 # Check cluster operator status
 MAX_RETRIES=60
