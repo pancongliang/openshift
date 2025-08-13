@@ -102,6 +102,7 @@ done
 # Add an empty line after the task
 echo
 
+# Offline settings
 # Step 5:
 PRINT_TASK "TASK [Install OpenShift Install, Client, and oc-mirror Tools]"
 
@@ -333,6 +334,7 @@ run_command "[Remove test mount directory: /tmp/nfs-test]"
 # Add an empty line after the task
 echo
 
+# Offline settings
 # Step 8:
 PRINT_TASK "TASK [Configure and Verify Named Service]"
 
