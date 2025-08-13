@@ -356,15 +356,8 @@ include "/etc/named.rfc1912.zones";
 EOF
 run_command "[Generate named configuration file]"
 
-# Create forward zone file
-# Function to format and align DNS entries
-format_dns_entry() {
-    domain="$1"
-    ip="$2"
-    printf "%-40s IN  A      %s\n" "$domain" "$ip"
-}
-
-rm -f /var/named/${FORWARD_ZONE_FILE}
+# Create Forward Zone file
+rm -f /var/named/${FORWARD_ZONE_FILE}  >/dev/null 2>&1
 
 cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 \$TTL 1W
@@ -380,28 +373,28 @@ cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 ns1     IN      A       ${LOCAL_DNS_IP}
 ;
 ; The api identifies the IP of load balancer.
-$(format_dns_entry "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
-$(format_dns_entry "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
+$(printf "%-40s IN  A      %s\n" "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
+$(printf "%-40s IN  A      %s\n" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
 ;
 ; The wildcard also identifies the load balancer.
-$(format_dns_entry "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
+$(printf "%-40s IN  A      %s\n" "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
 ;
 ; Create entries for the master hosts.
-$(format_dns_entry "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
-$(format_dns_entry "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
-$(format_dns_entry "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
+$(printf "%-40s IN  A      %s\n" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
+$(printf "%-40s IN  A      %s\n" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
+$(printf "%-40s IN  A      %s\n" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
 ;
 ; Create entries for the worker hosts.
-$(format_dns_entry "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
-$(format_dns_entry "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
-$(format_dns_entry "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
+$(printf "%-40s IN  A      %s\n" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
+$(printf "%-40s IN  A      %s\n" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
+$(printf "%-40s IN  A      %s\n" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
 ;
 ; Create an entry for the bootstrap host.
-$(format_dns_entry "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
+$(printf "%-40s IN  A      %s\n" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
 EOF
 run_command "[Generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 
-# Create reverse zone file
+# Create Reverse Zone file
 get_reverse_ip() {
   local ip=$1
   IFS='.' read -r a b c d <<< "$ip"
