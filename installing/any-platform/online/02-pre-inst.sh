@@ -259,10 +259,10 @@ fi
 
 # Enable and start service
 systemctl enable nfs-server >/dev/null 2>&1
-run_command "[Enable nfs-server service at boot]"
+run_command "[Enable nfs server service at boot]"
 
 systemctl restart nfs-server >/dev/null 2>&1
-run_command "[Restart nfs-server service]"
+run_command "[Restart nfs server service]"
 
 # Wait for the service to restart
 sleep 15
@@ -276,7 +276,7 @@ run_command "[Create test mount directory: /tmp/nfs-test]"
 
 # Attempt to mount the NFS share
 mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test >/dev/null 2>&1
-run_command "[Mount NFS shared directory for testing: /tmp/nfs-test]"
+run_command "[Mount nfs shared directory for testing: /tmp/nfs-test]"
 
 # Wait mount the NFS share
 sleep 10
@@ -284,7 +284,7 @@ sleep 10
 # Unmount the NFS share
 fuser -km /tmp/nfs-test >/dev/null 2>&1 || true
 umount /tmp/nfs-test >/dev/null 2>&1 || true
-run_command "[Unmount NFS shared directory: /tmp/nfs-test]"
+run_command "[Unmount nfs shared directory: /tmp/nfs-test]"
 
 # Delete /tmp/nfs-test
 rm -rf /tmp/nfs-test >/dev/null 2>&1
