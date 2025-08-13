@@ -45,7 +45,7 @@ openssl req -x509 \
   -new -nodes \
   -key ${CERTS_DIR}/rootCA.key \
   -sha256 \
-  -days 1024 \
+  -days 36500 \
   -out ${CERTS_DIR}/rootCA.pem \
   -subj /CN="${CA_CN}" \
   -reqexts SAN \
