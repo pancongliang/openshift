@@ -30,7 +30,7 @@ source 01-set-params.sh
 export PATH="/usr/local/bin:$PATH"
 
 # Step 2:
-PRINT_TASK "TASK [Kubeconfig login and oc completion]"
+PRINT_TASK "TASK [Kubeconfig Login and OC Completion]"
 
 # kubeconfig login:
 rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
@@ -46,7 +46,7 @@ run_command "[Enable oc bash completion]"
 echo
 
 # Step 3:
-PRINT_TASK "TASK [Configure data persistence for the image-registry operator]"
+PRINT_TASK "TASK [Configure Persistent Volumes for the Image Registry Operator]"
 
 rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
 mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
@@ -75,24 +75,24 @@ EOF
 run_command "[Generate ${IMAGE_REGISTRY_PV}.yaml configuration file]"
 
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml >/dev/null 2>&1
-run_command "[Apply ${IMAGE_REGISTRY_PV} persistent volume]"
+run_command "[Apply ${IMAGE_REGISTRY_PV} persistent volumes]"
 
 rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
 run_command "[Remove temporary ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}' >/dev/null 2>&1
-run_command "[Set Image Registry operator management state to Managed]"
+run_command "[Set image registry operator management state to managed]"
 
 # Leave the claim field blank to allow the automatic creation of an image-registry-storage PVC.
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}' >/dev/null 2>&1
-run_command "[Clear PVC claim field to enable automatic storage provisioning]"
+run_command "[Clear pvc claim field to enable automatic storage provisioning]"
 
 # Add an empty line after the task
 echo
 
 # Step 4:
-PRINT_TASK "TASK [Create htpasswd User]"
+PRINT_TASK "TASK [Create HTPasswd User]"
 
 rm -rf $INSTALL_DIR/users.htpasswd
 htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat >/dev/null 2>&1
@@ -171,7 +171,7 @@ done
 echo
 
 # Step 5:
-PRINT_TASK "TASK [Check cluster status]"
+PRINT_TASK "TASK [Check the Status of the OCP Cluster ]"
 
 # Check cluster operator status
 MAX_RETRIES=60
@@ -255,7 +255,7 @@ done
 echo
 
 # Step 6:
-PRINT_TASK "TASK [Login cluster information]"
+PRINT_TASK "TASK [Access OCP Cluster Information]"
 
 # Change the root password to 'redhat' on each node
 nodes=$(oc get nodes -o jsonpath='{range .items[*]}{.metadata.name}{" "}{end}')
