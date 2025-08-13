@@ -87,7 +87,7 @@ PRINT_TASK() {
 }
 
 # Step 1:
-PRINT_TASK "TASK [Set environment variables]"
+PRINT_TASK "TASK [Configure Environment Variables]"
 
 # Function to check command success and display appropriate message
 run_command() {
