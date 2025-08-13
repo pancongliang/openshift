@@ -34,7 +34,7 @@ export PATH="/usr/local/bin:$PATH"
 PRINT_TASK "TASK [Kubeconfig Login and OC Completion]"
 
 # kubeconfig login:
-rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
+rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1 || true
 cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
 run_command "[Add kubeconfig to ~/.bash_profile]"
@@ -49,7 +49,7 @@ echo
 # Step 3:
 PRINT_TASK "TASK [Configure Persistent Volumes for the Image Registry Operator]"
 
-rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
+rm -rf ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1 || true
 mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
 run_command "[Create ${NFS_DIR}/${IMAGE_REGISTRY_PV} director]"
 
@@ -78,7 +78,7 @@ run_command "[Generate ${IMAGE_REGISTRY_PV}.yaml configuration file]"
 /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig apply -f /tmp/${IMAGE_REGISTRY_PV}.yaml >/dev/null 2>&1
 run_command "[Apply ${IMAGE_REGISTRY_PV} persistent volume]"
 
-rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml
+rm -f /tmp/${IMAGE_REGISTRY_PV}.yaml >/dev/null 2>&1 || true
 run_command "[Remove temporary ${IMAGE_REGISTRY_PV}.yaml file]"
 
 # Change the Image registry operator configuration’s managementState from Removed to Managed
@@ -106,7 +106,7 @@ echo
 # Step 5:
 PRINT_TASK "TASK [Create HTPasswd User]"
 
-rm -rf $INSTALL_DIR/users.htpasswd
+rm -rf $INSTALL_DIR/users.htpasswd >/dev/null 2>&1 || true
 htpasswd -c -B -b $INSTALL_DIR/users.htpasswd admin redhat >/dev/null 2>&1
 run_command "[Create user with htpasswd tool]"
 
