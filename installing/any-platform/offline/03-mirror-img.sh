@@ -71,9 +71,5 @@ run_command "[Create ${IMAGE_SET_CONF_PATH}/imageset-config.yaml file]"
 /usr/local/bin/oc-mirror --config=${IMAGE_SET_CONF_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
 run_command "[Mirroring ocp ${OCP]_VERSION} release image]"
 
-# Remove the temporary file
-# rm -f "${PULL_SECRET_FILE}"
-# run_command "[Remove temporary pull-secret file]"
-
 # Add an empty line after the task
 echo
