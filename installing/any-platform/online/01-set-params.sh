@@ -76,7 +76,7 @@ PRINT_TASK() {
 }
 
 # Step 1:
-PRINT_TASK "TASK [Set environment variables]"
+PRINT_TASK "TASK [Configure Environment Variables]"
 
 # Function to check command success and display appropriate message
 run_command() {
@@ -89,7 +89,7 @@ run_command() {
 }
 
 cat $PULL_SECRET_FILE >/dev/null 2>&1
-run_command "[Verify existence of  $PULL_SECRET_FILE file]"
+run_command "[Verify existence of $PULL_SECRET_FILE file]"
 
 # Define variables
 missing_variables=()
