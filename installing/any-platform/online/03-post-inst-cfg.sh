@@ -33,7 +33,7 @@ export PATH="/usr/local/bin:$PATH"
 PRINT_TASK "TASK [Kubeconfig Login and OC Completion]"
 
 # kubeconfig login:
-rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
+rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1 || true
 cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
 run_command "[Add kubeconfig to ~/.bash_profile]"
