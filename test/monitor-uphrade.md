@@ -258,7 +258,7 @@ router-default-97f4559c7-hl2w2   1/1     Running   0          4m49s   10.184.134
 router-default-97f4559c7-ssqzb   1/1     Running   0          51s     10.184.134.67    worker01.ocp.example.com   <none>           <none>
 ~~~
 
-### 5. During the OCP upgrade, the node restarted. Check the haproxy disconnection detection log.
+### 5. During the OCP upgrade, the node restarted. Check the haproxy disconnection detection log
 #### upgrade reboot: worker03
 ~~~
 $ grep -v 'Connect from' /var/log/haproxy.log | grep worker03
@@ -455,4 +455,87 @@ worker03.ocp.example.com   Ready                      worker                 19d
 ~~~
 cp /var/log/haproxy.log 4.16_upgrade_haproxy.log
 cp ocp_status.log 4.16_upgrade_ocp_status.log
+~~~
+
+
+### OCP upgrades the ingress pod, which triggers the startup of the pod using the new image
+
+#### ### Upgrading from 4.16.23 to 4.16.28(https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.16.23/release.txt)
+~~~
+$ oc get clusterversion
+NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+version   4.16.24   True        False         88s     Cluster version is 4.16.24
+
+$ oc get po -n openshift-ingress-operator
+NAME                               READY   STATUS    RESTARTS   AGE
+ingress-operator-f6d8bfd79-cgb7x   2/2     Running   0          7m34s
+
+$ oc get pods -n openshift-ingress-operator -o yaml | grep "image:" | awk '{print $2}' | sort -u
+quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1e293bd6b6ab89646f3161aded334d963f2012decf385e56060baf0e8e65aabe
+quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fdf45a8ece42fe7d57d8e2154e4c53ee50136789f041dc42f328b9d86a9fbb8b
+
+$ oc get po -n openshift-ingress
+NAME                             READY   STATUS    RESTARTS   AGE
+router-default-564fd8fbd-fpjnd   1/1     Running   0          14m
+router-default-564fd8fbd-zx64x   1/1     Running   0          9m20s
+
+$ oc get po -n openshift-ingress router-default-564fd8fbd-fpjnd -o yaml | grep "image:" | awk '{print $2}' | sort -u
+quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:eb2185825dbc8551d841a3a61f1d70e0826564e28a58b9a67eb4eb1d71efafa6
+
+# upgrade to 4.16.28
+$ oc get clusterversion
+NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+version   4.16.28   True        False         50m     Cluster version is 4.16.28
+
+$ oc get co |grep ingress
+ingress                                    4.16.28   True        False         False      3d23h   
+
+$ oc get po -n openshift-ingress-operator 
+NAME                               READY   STATUS    RESTARTS   AGE
+ingress-operator-559fddb65-72dpp   2/2     Running   0          8m18s
+
+$ oc get pods -n openshift-ingress-operator -o yaml | grep "image:" | awk '{print $2}' | sort -u
+quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:336d5f09ef32e91f592ad178fae9dfdc8e0292d3802aa4f6ecc5488623527fd8
+quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ff24e7b46f5fbaa9beae69bbd5d878e3e37e802cbbdce9f69291d985e7edd7c4
+
+$ oc get po -n openshift-ingress 
+NAME                             READY   STATUS    RESTARTS   AGE
+router-default-576cf676f-4nhfg   1/1     Running   0          10m
+router-default-576cf676f-6wwst   1/1     Running   0          5m20s
+
+$ oc get po -n openshift-ingress router-default-576cf676f-4nhfg -o yaml | grep "image:" | awk '{print $2}' | sort -u
+quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8246b63cdf76387c06913a97738ad88110f7a3a55d9d57661d09b41e00b8369b
+~~~
+
+
+### Upgrading from 4.16.28 to 4.16.29(https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.16.28/release.txt)
+~~~
+$ oc get clusterversion
+
+
+$ oc get po -n openshift-ingress-operator 
+
+
+$ oc get pods -n openshift-ingress-operator -o yaml | grep "image:" | awk '{print $2}' | sort -u
+
+
+$ oc get po -n openshift-ingress 
+
+$ oc get po -n openshift-ingress router-default-7f99cd86f-ks99d -o yaml | grep "image:" | awk '{print $2}' | sort -u
+
+# upgrade to 4.16.29
+
+$ oc get clusterversion
+
+$ oc get co |grep ingress
+
+$ oc get po -n openshift-ingress-operator 
+
+$ oc get pods -n openshift-ingress-operator -o yaml | grep "image:" | awk '{print $2}' | sort -u
+
+
+$ oc get po -n openshift-ingress 
+
+$ oc get po -n openshift-ingress router-default-564fd8fbd-9wbzh -o yaml | grep "image:" | awk '{print $2}' | sort -u
+
 ~~~
