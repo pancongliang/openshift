@@ -83,7 +83,7 @@
   ```
 
 
-  ### Delete network settings configured through the NMState operator
+### Delete network settings configured through the NMState operator
 * Delete network settings configured through the NMState operator
   ```
   # Create policy
