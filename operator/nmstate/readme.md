@@ -134,7 +134,8 @@
 
   # OR
   
-  oc delete nncp worker03-static-ip-ens8-policy 
+  oc delete nncp worker03-static-ip-ens8-policy
+  
   cat << EOF | oc apply -f -
   apiVersion: nmstate.io/v1
   kind: NodeNetworkConfigurationPolicy
