@@ -167,7 +167,7 @@ EOF
 ~~~
 $ oc get po -n openshift-numaresources -o wide
 NAME                                          READY   STATUS    RESTARTS   AGE     IP             NODE
-dynamic-irq-798559ff47-blkq2                  1/1     Running   0          62s     10.128.2.3     worker03.ocp.example.com
+dynamic-irq-798559ff47-dxc65                  1/1     Running   0          62s     10.128.2.3     worker03.ocp.example.com
 ~~~
 
 
