@@ -135,59 +135,84 @@ cat << EOF | oc apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: numa-deployment-1
+  name: dynamic-irq-deployment
   namespace: openshift-numaresources
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: test
+      app: dynamic-irq
   template:
     metadata:
       labels:
-        app: test
+        app: dynamic-irq
     spec:
-      schedulerName: topo-aware-scheduler 
+      schedulerName: topo-aware-scheduler
       containers:
-      - name: ctnr
-        image: quay.io/openshifttest/hello-openshift:openshift
-        imagePullPolicy: IfNotPresent
+      - name: dynamic-irq-pod
+        image: "quay.io/openshift-kni/cnf-tests:4.9"
+        command: ["sleep", "10h"]
         resources:
-          limits:
-            memory: "100Mi"
-            cpu: "2"
           requests:
-            memory: "100Mi"
-            cpu: "2"
-      - name: ctnr2
-        image: registry.access.redhat.com/rhel:latest
-        imagePullPolicy: IfNotPresent
-        command: ["/bin/sh", "-c"]
-        args: [ "while true; do sleep 1h; done;" ]
-        resources:
+            cpu: 2
+            memory: "200M"
           limits:
-            memory: "100Mi"
-            cpu: "2"
-          requests:
-            memory: "100Mi"
-            cpu: "2"
+            cpu: 2
+            memory: "200M"
 EOF
 ~~~
+
 
 #### Identify the node that is running the deployment pod by running the following command
 ~~~
 $ oc get po -n openshift-numaresources -o wide
-NAME                                                READY   STATUS    RESTARTS   AGE    IP             NODE
-numa-deployment-1-588d54659c-sxhhk                  2/2     Running   0          36m    10.128.2.5     worker03.ocp.example.com
+NAME                                                READY   STATUS    RESTARTS   AGE     IP             NODE
+numa-deployment-1-588d54659c-z7hdz                  2/2     Running   0          62s     10.128.2.3     worker03.ocp.example.com
 ~~~
+
 
 #### The available capacity is reduced because some resources have already been allocated to Guaranteed QoS pods
+~~~ 
+POD_NAME=$(oc get pod -n openshift-numaresources -l app=dynamic-irq -o jsonpath='{.items[0].metadata.name}')
+oc exec -it "$POD_NAME" -n openshift-numaresources -- /bin/bash -c "grep Cpus_allowed_list /proc/self/status | awk '{print \$2}'"
 
-~~~
-$ oc describe noderesourcetopologies.topology.node.k8s.io worker03.ocp.example.com
+oc describe noderesourcetopologies.topology.node.k8s.io worker03.ocp.example.com
+···
+Zones:
+  Costs:
+    Name:   node-0
+    Value:  10
+    Name:   node-1
+    Value:  20
+  Name:     node-0
+  Resources:
+    Allocatable:  13
+    Available:    11
+    Capacity:     16
+    Name:         cpu
+    Allocatable:  32596250624
+    Available:    32396250624
+    Capacity:     33749684224
+    Name:         memory
+  Type:           Node
+  Costs:
+    Name:   node-0
+    Value:  20
+    Name:   node-1
+    Value:  10
+  Name:     node-1
+  Resources:
+    Allocatable:  13
+    Available:    13
+    Capacity:     16
+    Name:         cpu
+    Allocatable:  33771720704
+    Available:    33771720704
+    Capacity:     33771720704
+    Name:         memory
+  Type:           Node
 
-
-$ oc get pod numa-deployment-1-588d54659c-sxhhk -n openshift-numaresources -o jsonpath="{ .status.qosClass }"
+oc get pod $POD_NAME -n openshift-numaresources -o jsonpath="{ .status.qosClass }"
 Guaranteed
 ~~~
 
