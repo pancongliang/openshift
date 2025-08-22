@@ -3,23 +3,19 @@ cat << EOF | oc create -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
-  labels:
-    machineconfiguration.openshift.io/role: worker-cnf
   name: worker-cnf
+  labels:
+    pools.operator.machineconfiguration.openshift.io/worker: ""
 spec:
   machineConfigSelector:
     matchExpressions:
-    - key: machineconfiguration.openshift.io/role
-      operator: In
-      values:
-      - worker
-      - worker-cnf
+      - {key: machineconfiguration.openshift.io/role, operator: In, values: [worker,worker-cnf]} 
   nodeSelector:
     matchLabels:
-      node-role.kubernetes.io/worker-cnf: ""
+      node-role.kubernetes.io/worker-cnf: "" 
 EOF
 
-oc label node worker03.ocp.example.net node-role.kubernetes.io/worker-cnf=
+oc label node worker03.ocp.example.com node-role.kubernetes.io/worker-cnf=
 ~~~
 ~~~
 cat << EOF | oc create -f -
@@ -89,7 +85,7 @@ secondary-scheduler-7cd657696c-nxk8b                1/1     Running   0         
 ~~~
 
 ~~~
-cat << EOF | oc replace -f -
+cat << EOF | oc create -f -
 apiVersion: performance.openshift.io/v2
 kind: PerformanceProfile
 metadata:
@@ -98,6 +94,30 @@ spec:
   cpu:
     isolated: "3-15,19-31"
     reserved: "0-2,16-18"
+  machineConfigPoolSelector:
+    pools.operator.machineconfiguration.openshift.io/worker-cnf: "" 
+  nodeSelector:
+    node-role.kubernetes.io/worker-cnf: ""
+  numa:
+    topologyPolicy: single-numa-node 
+  realTimeKernel:
+    enabled: true
+  workloadHints:
+    highPowerConsumption: true
+    perPodPowerManagement: false
+    realTime: true
+EOF
+cat << EOF | oc create -f -
+apiVersion: performance.openshift.io/v2
+kind: PerformanceProfile
+metadata:
+  name: performance
+spec:
+  cpu:
+    isolated: "3-15,19-31"
+    reserved: "0-2,16-18"
+  machineConfigPoolSelector:
+    machineconfiguration.openshift.io/role: worker-cnf 
   nodeSelector:
     node-role.kubernetes.io/worker-cnf: ""
   numa:
