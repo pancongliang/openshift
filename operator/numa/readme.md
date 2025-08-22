@@ -1,13 +1,13 @@
 
-### Create a new MachineConfigPool to bind the CNF node
+#### Create a new MachineConfigPool to bind the CNF node
 ~~~
-cat << EOF | oc create -f -
+cat << EOF | oc replace -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
   name: worker-cnf
   labels:
-    pools.operator.machineconfiguration.openshift.io/worker: ""
+    pools.operator.machineconfiguration.openshift.io/worker-cnf: ""
 spec:
   machineConfigSelector:
     matchExpressions:
@@ -18,12 +18,12 @@ spec:
 EOF
 ~~~
 
-### Label a node to join the worker-cnf MCP
+#### Label a node to join the worker-cnf MCP
 ~~~
 oc label node worker03.ocp.example.com node-role.kubernetes.io/worker-cnf=
 ~~~
 
-### Install the NUMA Resources Operator
+#### Install the NUMA Resources Operator
 ~~~
 cat << EOF | oc create -f -
 apiVersion: v1
@@ -53,7 +53,7 @@ spec:
 EOF
 ~~~
 
-### Create the NUMAResourcesOperator custom resource
+#### Create the NUMAResourcesOperator custom resource
 ~~~
 cat << EOF | oc create -f -
 apiVersion: nodetopology.openshift.io/v1
@@ -68,15 +68,15 @@ spec:
 EOF
 ~~~
 
-### After a few minutes, run the following command to verify that the required resources deployed successfully
+#### After a few minutes, run the following command to verify that the required resources deployed successfully
 ~~~
 $ oc get all -n openshift-numaresources
 NAME                                                    READY   STATUS    RESTARTS   AGE
-pod/numaresources-controller-manager-7d9d84c58d-qk2mr   1/1     Running   0          12m
-pod/numaresourcesoperator-worker-cnf-4464w              2/2     Running   0          97s
+pod/numaresources-controller-manager-744b67cb6d-s7f9f   1/1     Running   0          1h
+pod/numaresourcesoperator-worker-cnf-dqd4s              2/2     Running   0          29s
 ~~~
 
-### Create the NUMAResourcesScheduler custom resource that deploys the NUMA-aware custom pod scheduler
+#### Create the NUMAResourcesScheduler custom resource that deploys the NUMA-aware custom pod scheduler
 ~~~
 cat << EOF | oc create -f -
 apiVersion: nodetopology.openshift.io/v1
@@ -88,16 +88,16 @@ spec:
 EOF
 ~~~
 
-### After a few seconds, run the following command to confirm the successful deployment of the required resources:
+#### After a few seconds, run the following command to confirm the successful deployment of the required resources
 ~~~
 $ oc get all -n openshift-numaresources
 NAME                                                    READY   STATUS    RESTARTS   AGE
-pod/numaresources-controller-manager-7d9d84c58d-qk2mr   1/1     Running   0          15m
-pod/numaresourcesoperator-worker-cnf-4464w              2/2     Running   0          100s
-pod/secondary-scheduler-7cd657696c-nxk8b                1/1     Running   0          10s
+pod/numaresources-controller-manager-744b67cb6d-s7f9f   1/1     Running   0          1h
+pod/numaresourcesoperator-worker-cnf-dqd4s              2/2     Running   0          50s
+pod/secondary-scheduler-7cd657696c-kjmql                1/1     Running   0          2s
 ~~~
 
-### Configuring a Single NUMA Node Policy Using a PerformanceProfile
+#### Configuring a Single NUMA Node Policy Using a PerformanceProfile
 ~~~
 cat << EOF | oc create -f -
 apiVersion: performance.openshift.io/v2
@@ -121,37 +121,15 @@ spec:
     perPodPowerManagement: false
     realTime: true
 EOF
-cat << EOF | oc create -f -
-apiVersion: performance.openshift.io/v2
-kind: PerformanceProfile
-metadata:
-  name: performance
-spec:
-  cpu:
-    isolated: "3-15,19-31"
-    reserved: "0-2,16-18"
-  machineConfigPoolSelector:
-    machineconfiguration.openshift.io/role: worker-cnf 
-  nodeSelector:
-    node-role.kubernetes.io/worker-cnf: ""
-  numa:
-    topologyPolicy: single-numa-node 
-  realTimeKernel:
-    enabled: true
-  workloadHints:
-    highPowerConsumption: true
-    perPodPowerManagement: false
-    realTime: true
-EOF
 ~~~
 
-### Get the name of the NUMA-aware scheduler that is deployed in the cluster by running the following command
+#### Get the name of the NUMA-aware scheduler that is deployed in the cluster by running the following command
 ~~~
 oc get numaresourcesschedulers.nodetopology.openshift.io numaresourcesscheduler -o json | jq '.status.schedulerName'
 ~~~
 
 
-### Create a Deployment CR that uses scheduler named topo-aware-scheduler, for example:
+#### Create a Deployment CR that uses scheduler named topo-aware-scheduler, for example
 ~~~
 cat << EOF | oc apply -f -
 apiVersion: apps/v1
@@ -196,14 +174,14 @@ spec:
 EOF
 ~~~
 
-### Identify the node that is running the deployment pod by running the following command:
+#### Identify the node that is running the deployment pod by running the following command
 ~~~
 $ oc get po -n openshift-numaresources -o wide
 NAME                                                READY   STATUS    RESTARTS   AGE    IP             NODE
 numa-deployment-1-588d54659c-sxhhk                  2/2     Running   0          36m    10.128.2.5     worker03.ocp.example.com
 ~~~
 
-### The available capacity is reduced because some resources have already been allocated to Guaranteed QoS pods.
+#### The available capacity is reduced because some resources have already been allocated to Guaranteed QoS pods
 
 ~~~
 $ oc describe noderesourcetopologies.topology.node.k8s.io worker03.ocp.example.com
