@@ -135,7 +135,7 @@ cat << EOF | oc apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dynamic-irq-deployment
+  name: dynamic-irq
   namespace: openshift-numaresources
 spec:
   replicas: 1
@@ -166,8 +166,8 @@ EOF
 #### Identify the node that is running the deployment pod by running the following command
 ~~~
 $ oc get po -n openshift-numaresources -o wide
-NAME                                                READY   STATUS    RESTARTS   AGE     IP             NODE
-numa-deployment-1-588d54659c-z7hdz                  2/2     Running   0          62s     10.128.2.3     worker03.ocp.example.com
+NAME                                          READY   STATUS    RESTARTS   AGE     IP             NODE
+dynamic-irq-798559ff47-blkq2                  1/1     Running   0          62s     10.128.2.3     worker03.ocp.example.com
 ~~~
 
 
