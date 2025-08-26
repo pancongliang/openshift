@@ -5,6 +5,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export STORAGE_SIZE="50Gi"   # Requires default storage class
+export BUCKETS=("loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket")
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -74,8 +75,9 @@ oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmi
 run_command "[configured minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
-for BUCKET_NAME in "loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket"; do
-    oc rsh -n minio deployments/minio mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
+for BUCKET_NAME in "${BUCKETS[@]}"; do
+    oc rsh -n minio deployments/minio \
+        mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
     run_command "[created bucket $BUCKET_NAME]"
 done
 
