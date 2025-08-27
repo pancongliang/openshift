@@ -68,7 +68,7 @@
 
 - Filesystem Volume Mode
   ```
-  cat > local.yaml << EOF
+  oc create -f - <<EOF
   apiVersion: "local.storage.openshift.io/v1"
   kind: "LocalVolume"
   metadata:
