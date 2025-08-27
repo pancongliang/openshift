@@ -60,22 +60,22 @@
         forceWipeDevicesAndDestroyAllData: false
         volumeMode: Block 
         devicePaths: 
-          - ${DEVICE_PATH_1}
-          ${DEVICE_PATH_2:+- ${DEVICE_PATH_2}}
-          ${DEVICE_PATH_3:+- ${DEVICE_PATH_3}}
+  $(for v in $(compgen -A variable | grep -E '^DEVICE_PATH_[0-9]+$' | sort -V); do
+      echo "        - ${!v}"
+  done)
   EOF
   ```
 
 - Filesystem Volume Mode
   ```
-  oc create -f - <<EOF
+  cat > local.yaml << EOF
   apiVersion: "local.storage.openshift.io/v1"
   kind: "LocalVolume"
   metadata:
     name: "local-disk"
-    namespace: "openshift-local-storage" 
+    namespace: "openshift-local-storage"
   spec:
-    nodeSelector: 
+    nodeSelector:
       nodeSelectorTerms:
       - matchExpressions:
           - key: local.storage.openshift.io/openshift-local-storage
@@ -83,14 +83,14 @@
             values:
             - ""
     storageClassDevices:
-      - storageClassName: "local-fs" 
+      - storageClassName: "local-fs"
         forceWipeDevicesAndDestroyAllData: false
         volumeMode: Filesystem
         fsType: xfs
         devicePaths:
-          - ${DEVICE_PATH_1}
-          ${DEVICE_PATH_2:+- ${DEVICE_PATH_2}}
-          ${DEVICE_PATH_3:+- ${DEVICE_PATH_3}}
+  $(for v in $(compgen -A variable | grep -E '^DEVICE_PATH_[0-9]+$' | sort -V); do
+      echo "        - ${!v}"
+  done)
   EOF
   ```
 
