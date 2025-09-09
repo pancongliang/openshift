@@ -373,24 +373,24 @@ cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 ns1     IN      A       ${LOCAL_DNS_IP}
 ;
 ; The api identifies the IP of load balancer.
-$(printf "%-40s IN  A      %s\n" "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
-$(printf "%-40s IN  A      %s\n" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
+$(printf "%-35s IN  A      %s\n" "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
+$(printf "%-35s IN  A      %s\n" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
 ;
 ; The wildcard also identifies the load balancer.
-$(printf "%-40s IN  A      %s\n" "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
+$(printf "%-35s IN  A      %s\n" "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
 ;
 ; Create entries for the master hosts.
-$(printf "%-40s IN  A      %s\n" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
-$(printf "%-40s IN  A      %s\n" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
-$(printf "%-40s IN  A      %s\n" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
+$(printf "%-35s IN  A      %s\n" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
+$(printf "%-35s IN  A      %s\n" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
+$(printf "%-35s IN  A      %s\n" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
 ;
 ; Create entries for the worker hosts.
-$(printf "%-40s IN  A      %s\n" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
-$(printf "%-40s IN  A      %s\n" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
-$(printf "%-40s IN  A      %s\n" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
+$(printf "%-35s IN  A      %s\n" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
+$(printf "%-35s IN  A      %s\n" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
+$(printf "%-35s IN  A      %s\n" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
 ;
 ; Create an entry for the bootstrap host.
-$(printf "%-40s IN  A      %s\n" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
+$(printf "%-35s IN  A      %s\n" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
 EOF
 run_command "[Generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
 
@@ -417,21 +417,21 @@ cat << EOF > "/var/named/${REVERSE_ZONE_FILE}"
 ; with a trailing dot.
 ;
 ; The api identifies the IP of load balancer.
-$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$API_IP")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_IP")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_IP")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_IP")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the master hosts.
-$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER01_IP")" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER02_IP")" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER03_IP")" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER01_IP")" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER02_IP")" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER03_IP")" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the worker hosts.
-$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER01_IP")" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER02_IP")" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER03_IP")" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER01_IP")" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER02_IP")" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER03_IP")" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create an entry for the bootstrap host.
-$(printf "%-19s IN  PTR      %s\n" "$(get_reverse_ip "$BOOTSTRAP_IP")" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$BOOTSTRAP_IP")" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 EOF
 run_command "[Generate reverse DNS zone file: /var/named/${REVERSE_ZONE_FILE}]"
 
