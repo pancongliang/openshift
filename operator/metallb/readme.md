@@ -42,8 +42,6 @@
   spec:
     addresses:
     - ${ADDRESSES}
-    autoAssign: true
-    avoidBuggyIPs: false
   EOF
   ```
 
