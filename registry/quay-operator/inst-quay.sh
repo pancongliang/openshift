@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export CHANNEL_NAME="stable-3.15"
@@ -34,7 +34,7 @@ run_command() {
 PRINT_TASK "TASK [Uninstall old quay resources...]"
 
 # Delete custom resources
-echo "info: [uninstall custom resources...]"
+echo "info: [Uninstall custom resources...]"
 export NAMESPACE="quay-enterprise" || true
 oc delete quayregistry example-registry -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
@@ -52,13 +52,13 @@ PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Check if the Deployment exists
 if oc get deployment minio -n minio >/dev/null 2>&1; then
-    echo "ok: [minio already exists, skipping deployment]"
+    echo "ok: [Minio already exists, skipping deployment]"
 else
-    echo "info: [minio not found, starting deployment...]"
+    echo "info: [Minio not found, starting deployment...]"
 
     # Deploy MinIO
     curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-    run_command "[deploying minio object storage]"
+    run_command "[Deploying minio object storage]"
 fi
 
 sleep 5
@@ -79,7 +79,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -91,7 +91,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
             exit 1 
         fi
     else
@@ -99,32 +99,32 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all $pod_name pods are in 'running' state]"
+        echo "ok: [All $pod_name pods are in 'running' state]"
         break
     fi
 done
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-run_command "[minio route host: $BUCKET_HOST]"
+run_command "[Minio route host: $BUCKET_HOST]"
 
 sleep 20
 
 # Set Minio client alias
 oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin >/dev/null 2>&1
-run_command "[configured minio client alias]"
+run_command "[Configured minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 oc rsh -n minio deployments/minio mc --no-color rb --force my-minio/quay-bucket >/dev/null 2>&1 || true
 oc rsh -n minio deployments/minio mc --no-color mb my-minio/quay-bucket >/dev/null 2>&1
-run_command "[created bucket: quay-bucket]"
+run_command "[Created bucket: quay-bucket]"
 
 # Set environment variables
 export ACCESS_KEY_ID="minioadmin"
 export ACCESS_KEY_SECRET="minioadmin"
 export BUCKET_NAME="quay-bucket"
 
-echo "ok: [minio default id/pw: minioadmin/minioadmin]"
+echo "ok: [Minio default id/pw: minioadmin/minioadmin]"
 
 # Add an empty line after the task
 echo
@@ -146,12 +146,12 @@ spec:
   source: $CATALOG_SOURCE_NAME
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[installing quay operator...]"
+run_command "[Installing quay operator...]"
 
 # Approval IP
 export NAMESPACE="openshift-operators"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "[approve openshift-operators install plan]"
+run_command "[Approve openshift-operators install plan]"
 
 sleep 10
 
@@ -171,7 +171,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -183,7 +183,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
             exit 1 
         fi
     else
@@ -191,7 +191,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all $pod_name pods are in 'running' state]"
+        echo "ok: [All $pod_name pods are in 'running' state]"
         break
     fi
 done
@@ -199,7 +199,7 @@ done
 # Create a namespace
 export NAMESPACE="quay-enterprise"
 oc new-project $NAMESPACE >/dev/null 2>&1
-run_command "[create a $NAMESPACE namespace]"
+run_command "[Create a $NAMESPACE namespace]"
 
 CLEAN_HOST=${BUCKET_HOST#http://}
 # Create a quay config
@@ -223,13 +223,13 @@ DEFAULT_TAG_EXPIRATION: 1m
 TAG_EXPIRATION_OPTIONS:
     - 1m
 EOF
-run_command "[create a quay config file]"
+run_command "[Create a quay config file]"
 
 sleep 10
 
 # Create a secret containing the quay config
 oc create secret generic quay-config --from-file=config.yaml -n $NAMESPACE >/dev/null 2>&1
-run_command "[create a secret containing quay-config]"
+run_command "[Create a secret containing quay-config]"
 
 rm -rf config.yaml >/dev/null 2>&1
 
@@ -260,7 +260,7 @@ spec:
       overrides:
         replicas: 1
 EOF
-run_command "[create a quay registry]"
+run_command "[Create a quay registry]"
 
 sleep 10
 
@@ -279,7 +279,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for quay-enterprise namespace pods to be in 'running' state"
+            echo -n "info: [Waiting for quay-enterprise namespace pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -291,7 +291,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, quay-enterprise namespace pods may still be initializing]"
+            echo "failed: [Reached max retries, quay-enterprise namespace pods may still be initializing]"
             exit 1 
         fi
     else
@@ -299,7 +299,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all quay-enterprise namespace pods are in 'running' state]"
+        echo "ok: [All quay-enterprise namespace pods are in 'running' state]"
         break
     fi
 done
@@ -313,17 +313,17 @@ PRINT_TASK "TASK [Configuring additional trust stores for image registry access]
 # Export the router-ca certificate
 rm -rf tls.crt >/dev/null
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator >/dev/null 2>&1
-run_command "[export the router-ca certificate]"
+run_command "[Export the router-ca certificate]"
 
 sleep 2
 
 rm -rf /etc/pki/ca-trust/source/anchors/ingress-ca.crt >/dev/null 2>&1
 cp tls.crt /etc/pki/ca-trust/source/anchors/ingress-ca.crt >/dev/null 2>&1
-run_command "[copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/ingress-ca.crt]"
+run_command "[Copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/ingress-ca.crt]"
 
 # Trust the rootCA certificate
 update-ca-trust
-run_command "[trust the rootCA certificate]"
+run_command "[Trust the rootCA certificate]"
 
 sleep 10
 
@@ -341,19 +341,19 @@ if [[ -n "$REGISTRY_CAS" ]]; then
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
   oc create configmap registry-config --from-file=$QUAY_HOST=tls.crt -n openshift-config >/dev/null 2>&1
-  run_command  "[create a configmap containing the registry CA certificate: registry-config]"
+  run_command  "[Create a configmap containing the registry CA certificate: registry-config]"
   
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
-  run_command  "[trust the registry-config configmap]"
+  run_command  "[Trust the registry-config configmap]"
 else
   # If it doesn't exist, execute the following commands
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc create configmap registry-cas --from-file=$QUAY_HOST=tls.crt -n openshift-config >/dev/null 2>&1
-  run_command  "[create a configmap containing the registry CA certificate: registry-cas]"
+  run_command  "[Create a configmap containing the registry CA certificate: registry-cas]"
 
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge >/dev/null 2>&1
-  run_command  "[trust the registry-cas configmap]"
+  run_command  "[Trust the registry-cas configmap]"
 fi
 
 rm -rf tls.crt >/dev/null
@@ -367,7 +367,7 @@ PRINT_TASK "TASK [Update pull-secret]"
 # Export pull-secret
 rm -rf pull-secret
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
-run_command "[export pull-secret]"
+run_command "[Export pull-secret]"
 
 # Update pull-secret file
 export AUTHFILE="pull-secret"
@@ -392,11 +392,11 @@ cat <<EOF > $AUTHFILE
 }
 EOF
 fi
-echo "ok: [authentication information for quay registry added to $AUTHFILE]"
+echo "ok: [Authentication information for quay registry added to $AUTHFILE]"
 
 # Update pull-secret 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
-run_command "[update pull-secret for the cluster]"
+run_command "[Update pull-secret for the cluster]"
 
 rm -rf tmp-authfile >/dev/null 2>&1
 rm -rf pull-secret >/dev/null 2>&1
@@ -421,7 +421,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all cluster operators to reach the expected state"
+            echo -n "info: [Waiting for all cluster operators to reach the expected state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -433,7 +433,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, cluster operator may still be initializing]"
+            echo "failed: [Reached max retries, cluster operator may still be initializing]"
             break
         fi
     else
@@ -441,7 +441,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all cluster operators have reached the expected state]"
+        echo "ok: [All cluster operators have reached the expected state]"
         break
     fi
 done
@@ -460,7 +460,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for all mcps to reach the expected state"
+            echo -n "info: [Waiting for all mcps to reach the expected state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -472,7 +472,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, mcp may still be initializing]"
+            echo "failed: [Reached max retries, mcp may still be initializing]"
             break
         fi
     else
@@ -480,7 +480,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all mcp have reached the expected state]"
+        echo "ok: [All mcp have reached the expected state]"
         break
     fi
 done
@@ -492,5 +492,5 @@ echo
 PRINT_TASK "TASK [Manually create a user]"
 
 export URL="https://$(oc get route -n quay-enterprise example-registry-quay -o jsonpath='{.spec.host}')"
-echo "note: [***  quay console: $URL  ***]"
-echo "note: [***  you need to create a user in the quay console with an id of <quayadmin> and a pw of <password>  ***]"
+echo "note: [***  Quay console: $URL  ***]"
+echo "note: [***  You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>  ***]"
