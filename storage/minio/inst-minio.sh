@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export STORAGE_SIZE="50Gi"   # Requires default storage class
@@ -34,7 +34,7 @@ PRINT_TASK "TASK [Deploying Minio Object Storage]"
 # Deploy Minio with the specified YAML template
 oc delete ns minio >/dev/null 2>&1 || true
 sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-run_command "[deploying minio object storage]]"
+run_command "[Deploying minio object storage]]"
 
 # Wait for Minio pods to be in 'Running' state
 # Initialize progress_started as false
@@ -47,7 +47,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [Waiting for pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -59,7 +59,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [minio pods are in 'running' state]"
+        echo "ok: [Minio pods are in 'running' state]"
         break
     fi
 done
@@ -68,19 +68,19 @@ sleep 10
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-run_command "[retrieved minio host: $BUCKET_HOST]"
+run_command "[Retrieved minio host: $BUCKET_HOST]"
 
 # Set Minio client alias
 oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
-run_command "[configured minio client alias]"
+run_command "[Configured minio client alias]"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 for BUCKET_NAME in "${BUCKETS[@]}"; do
     oc rsh -n minio deployments/minio \
         mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
-    run_command "[created bucket $BUCKET_NAME]"
+    run_command "[Created bucket $BUCKET_NAME]"
 done
 
 # Print Minio address and credentials
-echo "info: [minio address: $BUCKET_HOST]"
-echo "info: [minio default id/pw: minioadmin/minioadmin]"
+echo "info: [Minio Host: $BUCKET_HOST]"
+echo "info: [Minio default Id/PW: minioadmin/minioadmin]"
