@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export CHANNEL_NAME="stable-3.15"
+export CHANNEL_NAME="stable-3.13"
 export STORAGE_CLASS_NAME="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 export CATALOG_SOURCE_NAME=redhat-operators
@@ -317,12 +317,12 @@ run_command "[Export the router-ca certificate]"
 
 sleep 2
 
-rm -rf /etc/pki/ca-trust/source/anchors/ingress-ca.crt >/dev/null 2>&1
-cp tls.crt /etc/pki/ca-trust/source/anchors/ingress-ca.crt >/dev/null 2>&1
+sudo rm -rf /etc/pki/ca-trust/source/anchors/ingress-ca.crt >/dev/null 2>&1
+sudo cp tls.crt /etc/pki/ca-trust/source/anchors/ingress-ca.crt >/dev/null 2>&1
 run_command "[Copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/ingress-ca.crt]"
 
 # Trust the rootCA certificate
-update-ca-trust
+sudo update-ca-trust
 run_command "[Trust the rootCA certificate]"
 
 sleep 10
