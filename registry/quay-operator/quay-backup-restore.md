@@ -44,7 +44,6 @@ oc exec -n $QUAY_NAMESPACE -it $(oc get pod -n $QUAY_NAMESPACE -l app=quay -o js
 QUAY_DB_NAME=$(oc -n $QUAY_NAMESPACE rsh $(oc get pod -l app=quay -o name -n $QUAY_NAMESPACE | head -n 1) cat /conf/stack/config.yaml | awk -F"/" '/^DB_URI/ {print $4}')
 ~~~
 
-
 #### Scaling down Red Hat Quay deployment
 ~~~
 oc patch quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE \
@@ -60,7 +59,7 @@ oc scale --replicas=0 deployment $(oc get deployment -n $QUAY_NAMESPACE |awk '/c
 ~~~
 
 #### Backing up the Red Hat Quay managed database 
-~~~~
+~~~
 POSTGRES_POD=$(oc get pod -n $QUAY_NAMESPACE -l quay-component=postgres -o jsonpath='{.items[0].metadata.name}')
 oc -n $QUAY_NAMESPACE exec $POSTGRES_POD -- /usr/bin/pg_dump -C $QUAY_DB_NAME  > backup.sql
 ~~~
