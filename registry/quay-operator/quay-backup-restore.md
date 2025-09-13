@@ -13,13 +13,13 @@ sudo rm -rf aws awscliv2.zip
 
 ### Verify that Quay superuser and robot accounts are logged in properly before restoring
 ~~~
-QUAY_HOST=$(oc get route -n $QUAY_NAMESPACE --no-headers | awk '{print $1}' | grep '\-quay$')
+QUAY_HOST=$(oc get route -n $QUAY_NAMESPACE --no-headers | awk '$1 ~ /-quay$/ {print $2}')
 
 podman login -u='quayadmin+admin' -p='N06EBN5D3RO4KL8FKEZI51T5IAVX7SN1CILWCAU1GYOP9POO7KYX8Q2QA707L46U' $QUAY_HOST --tls-verify=false
 podman login -u quayadmin -p password $QUAY_HOST --tls-verify=false
 
 podman pull quay.io/redhattraining/hello-world-nginx:v1.0
-podman tag quay.io/redhattraining/hello-world-nginx:v1.0 $QUAY_HOST/quayadmin//hello-world-nginx:v1.0 --tls-verify=false
+podman tag quay.io/redhattraining/hello-world-nginx:v1.0 $QUAY_HOST/quayadmin/hello-world-nginx:v1.0 --tls-verify=false
 ~~~
 
 ### Backing up Red Hat Quay 
@@ -157,11 +157,11 @@ oc get po -n $QUAY_NAMESPACE
 
 ### Verify that the Quay superuser and robot accounts are normal after restoration
 ~~~
-QUAY_HOST=$(oc get route -n $QUAY_NAMESPACE --no-headers | awk '{print $1}' | grep '\-quay$')
+QUAY_HOST=$(oc get route -n $QUAY_NAMESPACE --no-headers | awk '$1 ~ /-quay$/ {print $2}')
 
 podman login -u='quayadmin+admin' -p='N06EBN5D3RO4KL8FKEZI51T5IAVX7SN1CILWCAU1GYOP9POO7KYX8Q2QA707L46U' $QUAY_HOST --tls-verify=false
 podman login -u quayadmin -p password $QUAY_HOST --tls-verify=false
 
-podman pull $QUAY_HOST/quayadmin//hello-world-nginx:v1.0 --tls-verify=false
+podman pull $QUAY_HOST/quayadmin/hello-world-nginx:v1.0 --tls-verify=false
 ~~~
 
