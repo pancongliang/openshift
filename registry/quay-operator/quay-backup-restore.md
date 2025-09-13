@@ -97,9 +97,9 @@ oc delete ns $OLD_QUAY_NAMESPACE
 QUAY_NAMESPACE=quay-enterprise-test
 oc new-project $QUAY_NAMESPACE
 
-sed -i "s/namespace: quay-enterprise/namespace: $QUAY_NAMESPACE/" $HOME/quay-backup/config-bundle.yaml
-sed -i "s/namespace: quay-enterprise/namespace: $QUAY_NAMESPACE/" $HOME/quay-backup/managed-secret-keys.yaml
-sed -i "s/namespace: quay-enterprise/namespace: $QUAY_NAMESPACE/" $HOME/quay-backup/quay-registry.yaml
+sed -i '/^[[:space:]]*namespace:/d' $HOME/quay-backup/config-bundle.yaml
+sed -i '/^[[:space:]]*namespace:/d' $HOME/quay-backup/managed-secret-keys.yaml
+sed -i '/^[[:space:]]*namespace:/d' $HOME/quay-backup/quay-registry.yaml
 
 oc create -f $HOME/quay-backup/config-bundle.yaml
 oc create -f $HOME/quay-backup/managed-secret-keys.yaml
