@@ -94,7 +94,7 @@ oc wait quayregistry $QUAY_REGISTRY --for=condition=Available=true -n $QUAY_NAME
 ~~~
 oc delete ns $OLD_QUAY_NAMESPACE
 
-QUAY_NAMESPACE=quay-enterprise-test
+QUAY_NAMESPACE=quay-enterprise-restore
 oc new-project $QUAY_NAMESPACE
 
 sed -i '/^[[:space:]]*namespace:/d' $HOME/quay-backup/config-bundle.yaml
