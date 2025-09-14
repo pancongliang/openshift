@@ -91,32 +91,3 @@ spec:
     name: minio
   port:
     targetPort: 9000
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: minio-client
-  namespace: minio
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      deployment: minio-client
-  template:
-    metadata:
-      labels:
-        deployment: minio-client
-    spec:
-      containers:
-      - name: minio-client
-        image: docker.io/minio/mc:latest
-        command: ["tail", "-f", "/dev/null"]
-        env:
-        - name: MC_CONFIG_DIR
-          value: "/tmp/.mc"
-        volumeMounts:
-        - mountPath: /tmp/.mc
-          name: mc-config
-      volumes:
-      - name: mc-config
-        emptyDir: {}
