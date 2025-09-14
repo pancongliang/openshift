@@ -42,7 +42,7 @@
   oc get backupStorageLocations -n openshift-adp
 
   echo "alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'" >> ~/.bashrc && source ~/.bashrc
-  velero get backup-locations -n openshift-adp
+  velero get backup-locations
   ```
 
 ### Deploy test application
@@ -55,102 +55,110 @@
   --add --name nginx-html --type pvc --claim-mode RWO --claim-size 5Gi --mount-path /usr/share/nginx/html --claim-name nginx-html
   
   export POD_NAME=$(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx | head -n 1)
-  oc rsh -n sample-backup $POD_NAME sh -c 'echo "Hello OpenShift!" > /usr/share/nginx/html/index.html'
-  oc rsh -n sample-backup $POD_NAME cat /usr/share/nginx/html/index.html
-  Hello OpenShift!
-  
   export ROUTE_HOST=$(oc get route nginx -n sample-backup -o jsonpath='{.spec.host}')
-  curl http://$ROUTE_HOST
+  oc rsh -n sample-backup $POD_NAME sh -c 'echo "Hello OpenShift!" > /usr/share/nginx/html/index.html'
+
+  $ curl http://$ROUTE_HOST
   Hello OpenShift!
   ```
 
-### Backing up applications
+### Application Backup and Restore with FSB
+#### Backing up applications
 
-* Create a Backup CR:
+* Modify Deployment to Add Annotation to Pods, Specifying Which PVC(s) Should Be Backed Up:
   ```
-  export BACKUP_NAMESPACE=sample-backup
-  export STORAGELOCATION=$(oc get backupStorageLocations -n openshift-adp -o jsonpath='{.items[0].metadata.name}')
+  export NAMESPACE=sample-backup
+  export DEPLOYMENT=nginx
   
-  cat <<EOF | envsubst | oc apply -f -
-  apiVersion: velero.io/v1
-  kind: Backup
-  metadata:
-    name: sample-backup
-    namespace: openshift-adp
-  spec:
-      hooks: {}
-      includedNamespaces:
-      - ${BACKUP_NAMESPACE}
-      storageLocation: ${STORAGELOCATION}
-      defaultVolumesToRestic: true 
-      ttl: 720h0m0s
-  EOF
+  # Single volume
+  export VOLUME_NAME=nginx-html
+  oc patch deployment $DEPLOYMENT -n $NAMESPACE --type=merge \
+    -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"backup.velero.io/backup-volumes\":\"$VOLUME_NAME\"}}}}}"
+
+  # Multiple volumes
+  export VOLUME_NAMES="nginx-html,nginx-logs"
+  oc patch deployment $DEPLOYMENT -n $NAMESPACE --type=merge \
+    -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"backup.velero.io/backup-volumes\":\"$VOLUME_NAMES\"}}}}}"
+
+  ```
+* Create a FSB Backup:
+  ```
+  velero backup create sample-backup-1 --include-namespaces $NAMESPACE
   ```
 
-* Verify that the status of the Backup CR is Completed:
+* Verify that the status of the Backup is Completed:
   ```
-  oc get backup -n openshift-adp sample-backup -o jsonpath='{.status.phase}'
-  Completed
+  oc get backup -n openshift-adp
 
-  velero get backup -n openshift-adp
-  NAME            STATUS      ERRORS   WARNINGS   CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
-  sample-backup   Completed   0        0          2023-12-14 05:26:05 +0000 UTC   29d       dpa-sample-1       <none>
+  velero get backup
   ```
 
-* Verify whether there is backup data in "my minio/ocp backup/velo/backups/sample backup":
+* Viewing Backup details:
   ```
-  oc rsh -n minio deployments/minio mc ls my-minio/oadp-bucket/velero/backups/sample-backup
+  $ velero backup describe sample-backup-1 --details
+  ···
+  Backup Volumes:
+    Velero-Native Snapshots: <none included>
+    CSI Snapshots: <none included>
+    Pod Volume Backups - kopia:
+      Completed:
+        sample-backup/nginx-5945948fc6-9tdvm: nginx-html
+  ```
   
-  [2023-12-14 05:26:15 UTC]    29B STANDARD sample-backup-csi-volumesnapshotclasses.json.gz
-  [2023-12-14 05:26:16 UTC]    29B STANDARD sample-backup-csi-volumesnapshotcontents.json.gz
-  [2023-12-14 05:26:16 UTC]    29B STANDARD sample-backup-csi-volumesnapshots.json.gz
-  [2023-12-14 05:26:15 UTC]    27B STANDARD sample-backup-itemoperations.json.gz
-  [2023-12-14 05:26:15 UTC]  11KiB STANDARD sample-backup-logs.gz
-  [2023-12-14 05:26:15 UTC]   902B STANDARD sample-backup-podvolumebackups.json.gz
-  [2023-12-14 05:26:15 UTC]   899B STANDARD sample-backup-resource-list.json.gz
-  [2023-12-14 05:26:15 UTC]    49B STANDARD sample-backup-results.gz
-  [2023-12-14 05:26:15 UTC]    29B STANDARD sample-backup-volumesnapshots.json.gz
-  [2023-12-14 05:26:15 UTC] 157KiB STANDARD sample-backup.tar.gz
-  [2023-12-14 05:26:16 UTC] 3.6KiB STANDARD velero-backup.json
+* Viewing PodVolumeBackup:
+  ```
+  $ oc get PodVolumeBackup -n openshift-adp
+  NAME                    STATUS      CREATED   NAMESPACE       POD                      VOLUME       UPLOADER TYPE   STORAGE LOCATION   AGE
+  sample-backup-1-gmt8g   Completed   39s       sample-backup   nginx-5945948fc6-9tdvm   nginx-html   kopia           dpa-sample-1       39s
+  ```
+  
+* Verify that the backup data exists in the object storage:
+  ```
+  $ mc ls my-minio/oadp-bucket/velero/backups/sample-backup-1
+  [2025-09-14 10:25:35 UTC]    29B STANDARD sample-backup-1-csi-volumesnapshotclasses.json.gz
+  [2025-09-14 10:25:35 UTC]    29B STANDARD sample-backup-1-csi-volumesnapshotcontents.json.gz
+  [2025-09-14 10:25:35 UTC]    29B STANDARD sample-backup-1-csi-volumesnapshots.json.gz
+  [2025-09-14 10:25:35 UTC]    27B STANDARD sample-backup-1-itemoperations.json.gz
+  [2025-09-14 10:25:35 UTC]  12KiB STANDARD sample-backup-1-logs.gz
+  [2025-09-14 10:25:35 UTC]   904B STANDARD sample-backup-1-podvolumebackups.json.gz
+  [2025-09-14 10:25:35 UTC] 1.1KiB STANDARD sample-backup-1-resource-list.json.gz
+  [2025-09-14 10:25:35 UTC]    49B STANDARD sample-backup-1-results.gz
+  [2025-09-14 10:25:35 UTC]   376B STANDARD sample-backup-1-volumeinfo.json.gz
+  [2025-09-14 10:25:35 UTC]    29B STANDARD sample-backup-1-volumesnapshots.json.gz
+  [2025-09-14 10:25:35 UTC]  37KiB STANDARD sample-backup-1.tar.gz
+  [2025-09-14 10:25:35 UTC] 3.0KiB STANDARD velero-backup.json
+  
+  $ mc ls my-minio/oadp-bucket/velero/kopia/sample-backup/
+  [2025-09-14 10:25:35 UTC] 4.2KiB STANDARD p74e338399e964208fd55a48ea1b8227b-s85e49dbb4de8b303138
+  [2025-09-14 10:25:35 UTC] 4.2KiB STANDARD q34ba78474d24679248a0531fcca59d05-s064ac8fac7310fa0138
+  [2025-09-14 10:25:35 UTC] 4.3KiB STANDARD qe1a5112a6281ef0e09f97d1f69aa29f5-s85e49dbb4de8b303138
+  [2025-09-14 10:25:35 UTC]   379B STANDARD xn0_0da1edd4eb4e8eaf4f06fdf79f45e04a-s85e49dbb4de8b303138-c1
+  [2025-09-14 10:25:35 UTC]   143B STANDARD xn0_53b2666e0bf8547c4c8cbae3a7bb7ed9-s064ac8fac7310fa0138-c1
+
   ```
 
 * If a backup error occurs, can view the Log by the following method
   ```
-  velero backup logs sample-backup
-  velero describe backup sample-backup
+  velero backup logs sample-backup-1
+  velero describe backup sample-backup-1
   ```
-###  Restoring applications
+  
+#### Restore Testing
 * Delete the namespace to back up the object:
   ```
-  oc delete project sample-backup
+  oc delete project $NAMESPACE
+  oc get pv -o json | jq -r ".items[] | select(.spec.claimRef.namespace==\"$NAMESPACE\") | .metadata.name" | xargs -r oc delete pv
   ```
   
 * Creating a Restore CR:
   ```
-  oc get backup -n openshift-adp
-  NAME            AGE
-  sample-backup   5m30s
-
-  export BACKUP_NAME=sample-backup
-  
-  cat <<EOF | envsubst | oc apply -f -
-  apiVersion: velero.io/v1
-  kind: Restore
-  metadata:
-    name: sample-restore
-    namespace: openshift-adp
-  spec:
-    backupName: ${BACKUP_NAME}
-    restorePVs: true
-  EOF
+  velero create restore sample-restore-1 --from-backup sample-backup-1
   ```
 
-* Verify that the status of the Restore CR is Completed by entering the following command:
+* Verify that the status of the Restore is Completed by entering the following command:
   ```
-  oc get restore -n openshift-adp sample-restore -o jsonpath='{.status.phase}'
-  Completed
+  oc get restore -n openshift-adp sample-restore-1 -o jsonpath='{.status.phase}'
 
-  alias velero='oc -n openshift-adp exec deployment/velero -c velero -it -- ./velero'
   velero get restore -n openshift-adp
   NAME             BACKUP          STATUS      STARTED                         COMPLETED                       ERRORS   WARNINGS   CREATED                         SELECTOR
   sample-restore   sample-backup   Completed   2023-12-14 05:35:15 +0000 UTC   2023-12-14 05:35:53 +0000 UTC   0        11         2023-12-14 05:35:15 +0000 UTC   <none>
@@ -162,18 +170,16 @@
   oc get pvc -n sample-backup
 
   export POD_NAME=$(oc get pods -n sample-backup --no-headers -o custom-columns=":metadata.name" | grep nginx | head -n 1)
-  oc rsh -n sample-backup $POD_NAME cat /usr/share/nginx/html/index.html
-  Hello OpenShift!
-  
   export ROUTE_HOST=$(oc get route nginx -n sample-backup -o jsonpath='{.spec.host}')
-  curl http://$ROUTE_HOST
+
+  $ curl http://$ROUTE_HOST
   Hello OpenShift!
   ```
 
 * If a restore error occurs, can view the Log by the following method
   ```
-  velero restore logs sample-restore
-  velero describe restore sample-restore
+  velero restore logs sample-restore-1
+  velero describe restore sample-restore-1
   ```
   
 ### Scheduling backups using Schedule CR
