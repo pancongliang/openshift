@@ -52,8 +52,9 @@
   Create an alias named "my-minio" and Access Minio, After creating/using an "alias", the Minio url can be ignored the next time visit
   ```    
   export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-  
-  oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
+  echo "alias mc='oc -n minio exec -it deployment/minio -- mc'" >> ~/.bashrc && source ~/.bashrc
+
+  mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin
   ```
 
   Create a bucket named "loki-bucket, quay-bucket, oadp-bucket, mtc-bucket" in the "my-minio" alias
@@ -66,14 +67,14 @@
   Commonly used [mc commands](https://min.io/docs/minio/linux/reference/minio-mc.html?ref=docs#command-quick-reference)
   ```
   # List "my-minio" alias info
-  oc rsh -n minio deployments/minio mc alias list my-minio
+  mc alias list my-minio
 
   # List buckets in "my-minio" alias
-  oc rsh -n minio deployments/minio mc ls my-minio
+  mc ls my-minio
 
   # List files in bucket
-  oc rsh -n minio deployments/minio mc ls my-minio/${BUCKET_NAME}
+  mc ls my-minio/${BUCKET_NAME}
 
   # Delete  bucket
-  oc rsh -n minio deployments/minio mc rb --force my-minio/loki-bucket
+  mc rb --force my-minio/loki-bucket
   ```  
