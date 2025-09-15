@@ -67,8 +67,8 @@ run_command "[approve the install plan]"
 
 # Wait for rhsso-operator pods to be in 'Running' state
 NAMESPACE="rhsso"
-MAX_RETRIES=300
-SLEEP_INTERVAL=2
+MAX_RETRIES=360
+SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
 pod_name=rhsso-operator
@@ -116,8 +116,8 @@ sleep 15
 
 # Wait for Keycloak pods to be in 'Running' state
 NAMESPACE="rhsso"
-MAX_RETRIES=300
-SLEEP_INTERVAL=2
+MAX_RETRIES=360
+SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
 pod_name=keycloak
@@ -174,8 +174,8 @@ sleep 10
 # Configuration
 NAMESPACE="rhsso" 
 SECRET_NAME="keycloak-client-secret-example-client"
-MAX_RETRIES=300
-SLEEP_INTERVAL=2
+MAX_RETRIES=360
+SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
 
@@ -242,8 +242,8 @@ run_command "[apply identity provider configuration]"
 
 # Wait for OpenShift authentication pods to be in 'Running' state
 NAMESPACE="openshift-authentication"
-MAX_RETRIES=300
-SLEEP_INTERVAL=2
+MAX_RETRIES=360
+SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
 pod_name=oauth
