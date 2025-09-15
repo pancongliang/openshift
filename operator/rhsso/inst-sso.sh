@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Need a default storageclass
 
@@ -38,7 +38,7 @@ run_command() {
 PRINT_TASK "TASK [Uninstall old rhsso resources...]"
 
 # Uninstall first
-echo "info: [uninstall old rhsso resources...]"
+echo "info: [Uninstall old rhsso resources...]"
 oc delete configmap openid-route-ca -n openshift-config >/dev/null 2>&1 || true
 oc delete secret openid-client-secret -n openshift-config >/dev/null 2>&1 || true
 oc delete keycloakuser --all -n $NAMESPACE >/dev/null 2>&1 || true
@@ -58,16 +58,16 @@ PRINT_TASK "TASK [Deploying Single Sign-On Operator]"
 
 # Install the RHSSO operator
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/01-operator.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-run_command "[install rhsso operator]"
+run_command "[Install rhsso operator]"
 
 # Approve the install plan
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "[approve the install plan]"
+run_command "[Approve the install plan]"
 
 
 # Wait for rhsso-operator pods to be in 'Running' state
 NAMESPACE="rhsso"
-MAX_RETRIES=360
+MAX_RETRIES=180
 SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
@@ -81,7 +81,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -93,7 +93,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
             exit 1 
         fi
     else
@@ -101,7 +101,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all $pod_name pods are in 'running' state]"
+        echo "ok: [All $pod_name pods are in 'running' state]"
         break
     fi
 done
@@ -110,13 +110,13 @@ sleep 30
 
 # Create the Keycloak resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc create -f - >/dev/null 2>&1
-run_command "[create keycloak instance]"
+run_command "[Create keycloak instance]"
 
 sleep 15
 
 # Wait for Keycloak pods to be in 'Running' state
 NAMESPACE="rhsso"
-MAX_RETRIES=360
+MAX_RETRIES=180
 SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
@@ -130,7 +130,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -142,7 +142,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
             exit 1
         fi
     else
@@ -150,14 +150,14 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all $pod_name pods are in 'running' state]"
+        echo "ok: [All $pod_name pods are in 'running' state]"
         break
     fi
 done
 
 # Create the Keycloak realm resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/03-keycloak-realm.yaml | envsubst | oc create -f - >/dev/null 2>&1
-run_command "[create realm custom resource]"
+run_command "[Create realm custom resource]"
 
 # Get OpenShift OAuth and Console route details
 export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
@@ -165,7 +165,7 @@ export CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.s
 
 # Create the Keycloak client resource
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-client.yaml | envsubst | oc create -f - >/dev/null 2>&1
-run_command "[create client custom resource]"
+run_command "[Create client custom resource]"
 
 # Waiting for keycloak-client-secret-example-client secret to be created
 sleep 10
@@ -174,7 +174,7 @@ sleep 10
 # Configuration
 NAMESPACE="rhsso" 
 SECRET_NAME="keycloak-client-secret-example-client"
-MAX_RETRIES=360
+MAX_RETRIES=180
 SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
@@ -188,12 +188,12 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [$SECRET_NAME secret is created]"
+        echo "ok: [The secret $SECRET_NAME has been created]"
         break
     else
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $SECRET_NAME secret to be created"
+            echo -n "info: [Waiting for $SECRET_NAME secret to be created"
             progress_started=true  # Mark progress as started
         fi
         
@@ -205,7 +205,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $SECRET_NAME secret was not created]"
+            echo "failed: [Reached max retries, $SECRET_NAME secret was not created]"
             exit 1 
         fi
     fi
@@ -214,12 +214,12 @@ done
 # Create a Keycloak user
 oc delete user $USER_NAME >/dev/null 2>&1 || true
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-run_command "[create a user named $USER_NAME]"
+run_command "[Create a user named $USER_NAME]"
 
 sleep 5
 
 oc adm policy add-cluster-role-to-user cluster-admin $USER_NAME >/dev/null 2>&1 || true
-run_command "[grant cluster-admin privileges to the $USER_NAME account]"
+run_command "[Grant cluster-admin privileges to the $USER_NAME account]"
 
 # Create client authenticator secret and ConfigMap containing router CA certificate
 oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config >/dev/null 2>&1
@@ -230,19 +230,19 @@ oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator --conf
 sleep 5
 
 oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config >/dev/null 2>&1
-run_command "[create client authenticator secret and configmap containing router-ca certificate]"
+run_command "[Create client authenticator secret and configmap containing router-ca certificate]"
 sudo rm -rf tls.crt >/dev/null 2>&1
 
 # Apply Identity Provider configuration
 export KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-patch-identity-provider.yaml | envsubst | oc replace -f - >/dev/null 2>&1
 # curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-identity-provider.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-run_command "[apply identity provider configuration]"
+run_command "[Apply identity provider configuration]"
 
 
 # Wait for OpenShift authentication pods to be in 'Running' state
 NAMESPACE="openshift-authentication"
-MAX_RETRIES=360
+MAX_RETRIES=180
 SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
@@ -256,7 +256,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -268,7 +268,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
             exit
         fi
     else
@@ -276,7 +276,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all $pod_name pods are in 'running' state]"
+        echo "ok: [All $pod_name pods are in 'running' state]"
         break
     fi
 done
@@ -299,7 +299,7 @@ oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
 }
 EOF
 )" >/dev/null 2>&1
-run_command "[configuring console logout redirection]"
+run_command "[Configuring console logout redirection]"
 
 
 # Retrieve Keycloak route
@@ -310,10 +310,10 @@ KEYCLOAK_ADMIN_USER=$(oc get secret credential-example-sso -o=jsonpath='{.data.A
 KEYCLOAK_ADMIN_PASSWORD=$(oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${NAMESPACE} | base64 -d)
 
 # Print variables for verification (optional)
-echo "info: [keycloak host: $KEYCLOAK_HOST]"
-echo "info: [keycloak console username: $KEYCLOAK_ADMIN_USER]"
-echo "info: [keycloak console password: $KEYCLOAK_ADMIN_PASSWORD]"
-echo "info: [user created by keycloak: $USER_NAME/$PASSWORD]"
+echo "info: [Keycloak host: $KEYCLOAK_HOST]"
+echo "info: [Keycloak console username: $KEYCLOAK_ADMIN_USER]"
+echo "info: [Keycloak console password: $KEYCLOAK_ADMIN_PASSWORD]"
+echo "info: [User created by keycloak: $USER_NAME/$PASSWORD]"
 
 # Add an empty line after the task
 echo
