@@ -7,7 +7,7 @@ metadata:
     app: sso
 spec:
   realm:
-    id: basic
+    id: openshift-realm
     realm: "OpenShift"
     enabled: True
     displayName: "OpenShift Realm"
