@@ -301,6 +301,44 @@ EOF
 )" >/dev/null 2>&1
 run_command "[Configuring console logout redirection]"
 
+# Check cluster operator status
+MAX_RETRIES=180
+SLEEP_INTERVAL=5
+progress_started=false
+retry_count=0
+
+while true; do
+    # Get the status of all cluster operators
+    output=$(oc get co --no-headers | awk '{print $3, $4, $5}')
+    
+    # Check cluster operators status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
+        if ! $progress_started; then
+            echo -n "info: [Waiting for all cluster operators to reach the expected state"
+            progress_started=true  # Set to true to prevent duplicate messages
+        fi
+        
+        # Print progress indicator (dots)
+        echo -n '.'
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [Reached max retries, cluster operator may still be initializing]"
+            break
+        fi
+    else
+        # Close the progress indicator and print the success message
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [All cluster operators have reached the expected state]"
+        break
+    fi
+done
 
 # Retrieve Keycloak route
 KEYCLOAK_HOST=$(oc get route keycloak -o jsonpath='{.spec.host}' -n ${NAMESPACE})
