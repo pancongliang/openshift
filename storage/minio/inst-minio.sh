@@ -81,9 +81,9 @@ for BUCKET_NAME in "${BUCKETS[@]}"; do
     run_command "[Created bucket $BUCKET_NAME]"
 done
 
-echo "alias mc='oc -n minio exec -it deployment/minio -- mc'" >> ~/.bashrc && source ~/.bashrc
+grep -qxF "alias mc='oc -n minio exec -it deployment/minio -- mc'" ~/.bashrc || \
+echo "alias mc='oc -n minio exec -it deployment/minio -- mc'" >> ~/.bashrc
 run_command "[Add mc cli alias to $HOME/.bashrc]"
-
 
 # Print Minio address and credentials
 echo "info: [Minio Host: $BUCKET_HOST]"
