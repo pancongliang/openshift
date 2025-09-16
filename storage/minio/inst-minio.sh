@@ -33,7 +33,102 @@ PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
 oc delete ns minio >/dev/null 2>&1 || true
-sudo curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f - >/dev/null 2>&1
+
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: minio
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: minio
+spec:
+  selector:
+    matchLabels:
+      app: minio
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: quay.io/minio/minio:latest
+        command:
+        - /bin/bash
+        - -c
+        args: 
+        - minio server /data --console-address :9090
+        volumeMounts:
+        - mountPath: /data
+          name: minio-pvc
+      volumes:
+      - name: minio-pvc
+        persistentVolumeClaim:
+          claimName: minio-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-pvc
+  namespace: minio
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: ${STORAGE_SIZE}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: minio
+spec:
+  selector:
+    app: minio
+  ports:
+    - name: 9090-tcp
+      protocol: TCP
+      port: 9090
+      targetPort: 9090
+    - name: 9000-tcp
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: minio-console
+  namespace: minio
+  labels:
+    app: minio
+spec:
+  to:
+    kind: Service
+    name: minio
+  port:
+    targetPort: 9090
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: minio
+  namespace: minio
+  labels:
+    app: minio
+spec:
+  to:
+    kind: Service
+    name: minio
+  port:
+    targetPort: 9000
+EOF
 run_command "[Deploying minio object storage]]"
 
 # Wait for Minio pods to be in 'Running' state
@@ -64,11 +159,10 @@ while true; do
     fi
 done
 
-sleep 10
+sleep 3
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-run_command "[Retrieved minio host: $BUCKET_HOST]"
 
 # Set Minio client alias
 oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
@@ -88,4 +182,4 @@ run_command "[Add mc cli alias to $HOME/.bashrc]"
 # Print Minio address and credentials
 echo "info: [Minio Host: $BUCKET_HOST]"
 echo "info: [Minio default Id/PW: minioadmin/minioadmin]"
-echo "info: [Run source ~/.bashrc to Make the mc Alias Take Effect]"
+echo "info: [Run source ~/.bashrc to make the mc alias take effect]"
