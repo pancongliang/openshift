@@ -32,7 +32,9 @@ run_command() {
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Deploy Minio with the specified YAML template
-oc delete ns minio >/dev/null 2>&1 || true
+echo "info: [Uninstall minio resources...]"
+oc delete project minio >/dev/null 2>&1 || true
+oc get pv -o json | jq -r '.items[] | select(.spec.claimRef.namespace=="minio") | .metadata.name' | xargs -r oc delete pv >/dev/null 2>&1 || true
 
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
