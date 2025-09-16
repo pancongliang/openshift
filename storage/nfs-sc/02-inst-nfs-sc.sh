@@ -29,26 +29,73 @@ run_command() {
 }
 
 
+PRINT_TASK "TASK [Configure and Verify NFS Service]"
+
+# Install nfs-utils
+rpm -q nfs-utils >/dev/null 2>&1 || sudo dnf install -y nfs-utils
+run_command "[Install nfs-utils package]"
+
+# Create NFS directories
+rm -rf ${NFS_DIR} >/dev/null 2>&1
+sleep 1
+mkdir -p ${NFS_DIR} >/dev/null 2>&1
+run_command "[Create ${NFS_DIR} directory]"
+
+# Add nfsnobody user if not exists
+if id "nfsnobody" >/dev/null 2>&1; then
+    echo "ok: [User nfsnobody exists]"
+else
+    useradd nfsnobody
+    echo "ok: [Create the nfsnobody user]"
+fi
+
+# Change ownership and permissions
+chown -R nfsnobody.nfsnobody ${NFS_DIR} >/dev/null 2>&1
+run_command "[Set ownership of nfs directory]"
+
+chmod -R 777 ${NFS_DIR} >/dev/null 2>&1
+run_command "[Set permissions of nfs directory]"
+
+# Add NFS export configuration
+export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
+if grep -q "$export_config_line" "/etc/exports"; then
+    echo "ok: [Export configuration for nfs already exists]"
+else
+    echo "$export_config_line" >> "/etc/exports"
+    echo "ok: [Setting up nfs export configuration]"
+fi
+
+# Enable and start service
+systemctl enable nfs-server >/dev/null 2>&1
+run_command "[Enable nfs server service at boot]"
+
+systemctl restart nfs-server >/dev/null 2>&1
+run_command "[Restart nfs server service]"
+
+# Add an empty line after the task
+echo
+
 # Task: Install NFS storage class
 PRINT_TASK "TASK [Install NFS storage class]"
 
+echo "info: [Uninstall nfs storage class resources...]"
 export NAMESPACE="nfs-client-provisioner"
+oc delete ns $NAMESPACE > /dev/null 2>&1 || true
+oc delete clusterrole nfs-client-provisioner-runner > /dev/null 2>&1 || true
+oc delete clusterrolebinding run-nfs-client-provisioner > /dev/null 2>&1 || true
+oc delete storageclass managed-nfs-storage > /dev/null 2>&1 || true
 
 # Create namespace
-cat << EOF > namespace.yaml
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Namespace
 metadata:
   name: ${NAMESPACE}
 EOF
-oc delete -f namespace.yaml > /dev/null 2>&1 || true
-oc create -f namespace.yaml > /dev/null 2>&1
-run_command "[create new namespace: ${NAMESPACE}]"
-
-rm -rf namespace.yaml > /dev/null 2>&1 || true
+run_command "[Create new namespace: ${NAMESPACE}]"
 
 # Create sa and rbac
-cat << EOF > sa_and_rbac.yaml
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -115,19 +162,14 @@ roleRef:
   name: leader-locking-nfs-client-provisioner
   apiGroup: rbac.authorization.k8s.io
 EOF
-
-oc delete -f sa_and_rbac.yaml > /dev/null 2>&1 || true
-oc create -f sa_and_rbac.yaml > /dev/null 2>&1
-run_command "[create rbac configuration]"
-
-rm -rf sa_and_rbac.yaml > /dev/null 2>&1 || true
+run_command "[Create RBAC configuration]"
 
 # Add scc
 oc adm policy add-scc-to-user hostmount-anyuid system:serviceaccount:${NAMESPACE}:nfs-client-provisioner >/dev/null
-run_command "[add scc hostmount-anyuid to nfs-client-provisioner user]"
+run_command "[Add scc hostmount-anyuid to nfs-client-provisioner user]"
 
 # deployment
-cat << EOF > deployment.yaml
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -168,40 +210,52 @@ spec:
             server: ${NFS_SERVER_IP}
             path: ${NFS_DIR}
 EOF
+run_command "[Deploy nfs-client-provisioner]"
 
-oc delete -f deployment.yaml > /dev/null 2>&1 || true
-oc create -f deployment.yaml > /dev/null 2>&1
-run_command "[deploy nfs-client-provisioner]"
-
-rm -rf deployment.yaml > /dev/null 2>&1 || true
 
 # Wait for nfs-client-provisioner pods to be in 'Running' state
+export NAMESPACE="nfs-client-provisioner"
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
 progress_started=false
+retry_count=0
+pod_name=nfs-client-provisioner
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers | awk '{print $2, $3}')
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 2
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo "]"
+            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
+            exit 1 
+        fi
     else
         # Close the progress indicator and print the success message
-        echo "]"
-        echo "ok: [nfs-client-provisioner pods are in 'running' state]"
+        if $progress_started; then
+            echo "]"
+        fi
+        echo "ok: [All $pod_name pods are in 'running' state]"
         break
     fi
 done
 
 # storage class
-cat << EOF > storageclass.yaml
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -213,9 +267,4 @@ parameters:
   archiveOnDelete: "false"
   reclaimPolicy: Retain
 EOF
-
-oc delete -f storageclass.yaml > /dev/null 2>&1 || true
-oc create -f storageclass.yaml > /dev/null 2>&1
 run_command "[create nfs storage class]"
-
-rm -rf storageclass.yaml > /dev/null 2>&1 || true
