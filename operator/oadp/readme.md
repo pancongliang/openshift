@@ -161,7 +161,7 @@
   oc get pv -o json | jq -r ".items[] | select(.spec.claimRef.namespace==\"$NAMESPACE\") | .metadata.name" | xargs -r oc delete pv
   ```
   
-* Creating a Restore CR:
+* Create a Restore from Backup with Velero:
   ```
   velero create restore sample-restore-1 --from-backup sample-backup-1
   ```
@@ -236,8 +236,12 @@
   ```
   
 * Create a CSI Snapshot Backup:
+
   ```
   velero backup create sample-backup-2 --include-namespaces $NAMESPACE
+
+  # The VolumeSnapshot is automatically deleted after the backup
+  oc get volumesnapshot -n $NAMESPACE -w
   ```
 
 * Verify that the status of the Backup is Completed:
@@ -300,7 +304,7 @@
   oc get pv -o json | jq -r ".items[] | select(.spec.claimRef.namespace==\"$NAMESPACE\") | .metadata.name" | xargs -r oc delete pv
   ```
   
-* Creating a Restore CR:
+* Create a Restore from Backup with Velero:
   ```
   velero create restore sample-restore-2 --from-backup sample-backup-2
   ```
@@ -366,9 +370,14 @@
   oc patch deploy $DEPLOYMENT -n $NAMESPACE --type=json -p '[{"op": "remove", "path": "/spec/template/metadata/annotations"}]'
   ```
   
-* Create a CSI Snapshot Backup:
+* Create a Snapshot Move Data Backup:
   ```
   velero create backup sample-backup-3 --include-namespaces $NAMESPACE
+
+  # The VolumeSnapshot is automatically deleted after the backup
+  oc get volumesnapshot -n $NAMESPACE -w
+  oc get VolumeSnapshotContent -w
+  
   ```
 
 * Verify that the status of the Backup is Completed:
@@ -378,18 +387,6 @@
   $ velero get backup sample-backup-3
   NAME              STATUS      ERRORS   WARNINGS   CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
   sample-backup-3   Completed   0        0          2025-09-14 15:44:16 +0000 UTC   29d       dpa-sample-1       <none>
-  ```
-
-* View VolumeSnapshot and VolumeSnapshot Objects
-  ```
-  $ oc get VolumeSnapshot -n $NAMESPACE
-  NAME                      READYTOUSE   SOURCEPVC   SOURCESNAPSHOTCONTENT           RESTORESIZE   SNAPSHOTCLASS   SNAPSHOTCONTENT                 CREATIONTIME   AGE
-  velero-nginx-html-k6sqn   true                     velero-nginx-html-k6sqn-jbbcf   5Gi           csi-aws-vsc     velero-nginx-html-k6sqn-jbbcf   32m            20m   true                     velero-nginx-html-k6sqn-jbbcf   5Gi           csi-aws-vsc     velero-nginx-html-k6sqn-jbbcf   14m            117s
-
-  $ oc get VolumeSnapshotContent
-  NAME                                               READYTOUSE   RESTORESIZE   DELETIONPOLICY   DRIVER            VOLUMESNAPSHOTCLASS   VOLUMESNAPSHOT                              VOLUMESNAPSHOTNAMESPACE                   AGE
-  snapcontent-66017d1c-633a-4214-a61a-e99f21a0d05a   true         5368709120    Retain           ebs.csi.aws.com   csi-aws-vsc           name-4d3484a3-6d69-491f-a58b-565b73326a47   ns-4d3484a3-6d69-491f-a58b-565b73326a47   32m
-  velero-nginx-html-k6sqn-jbbcf                      true         5368709120    Retain           ebs.csi.aws.com   csi-aws-vsc           velero-nginx-html-k6sqn                     sample-backup                             20m
   ```
   
 * Viewing Backup details:
@@ -464,9 +461,10 @@
   oc get pv -o json | jq -r ".items[] | select(.spec.claimRef.namespace==\"$NAMESPACE\") | .metadata.name" | xargs -r oc delete pv
   ```
   
-* Creating a Restore CR:
+* Create a Restore from Backup with Velero:
   ```
   velero create restore sample-restore-3 --from-backup sample-backup-3
+  oc get volumesnapshot -n $NAMESPACE
   ```
 
 * Verify that the status of the Restore is Completed by entering the following command:
