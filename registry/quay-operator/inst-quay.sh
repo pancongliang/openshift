@@ -165,7 +165,7 @@ pod_name=quay-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | grep "quay-operator" | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
