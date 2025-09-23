@@ -5,6 +5,7 @@
 ```text
 Notes:
 - Metrics Server → serves real-time metrics for `oc adm top pod` and `oc adm top node`
+- Metrics Server: https://github.com/openshift/kubernetes-metrics-server/blob/main/README.md
 
  ┌───────────────────────────┐
  │       oc adm top pod      │
@@ -16,7 +17,7 @@ Notes:
  └─────────────┬─────────────┘
                │
        ┌───────┴────────┐
-       │  Metrics Server│
+       │  Metrics Server│  
        └───────┬────────┘
                │ scrape_interval: 15s
                ▼
