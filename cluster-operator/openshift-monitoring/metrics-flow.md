@@ -56,9 +56,9 @@ Notes:
  └─────────────┬─────────────┘
                │ scrape_interval: 30s
                ▼
- ┌──────────────────┬────────────────────┬──────────────────┬─────────────────────────┐
- │ kubelet/cAdvisor │ kube-state-metrics │ node-exporter    │ openshift-state-metrics │
- │  (Pod CPU/MEM &  │  (K8s object       │  (Node-level     │ (OpenShift-specific     │
- │   Node summary)  │   status info)     │   metrics)       │   resource metrics)     │
- └──────────────────┴────────────────────┴──────────────────┴─────────────────────────┘
+ ┌──────────────────┬────────────────────┬─────────────────┬─────────────────────────┐
+ │ kubelet/cAdvisor │ kube-state-metrics │  node-exporter  │ openshift-state-metrics │
+ │  (Pod CPU/MEM &  │  (K8s object       │   (Node-level   │ (OpenShift-specific     │
+ │   Node summary)  │   status info)     │    metrics)     │   resource metrics)     │
+ └──────────────────┴────────────────────┴─────────────────┴─────────────────────────┘
 ```
