@@ -24,7 +24,7 @@ Notes:
  ┌─────────────────────────────┐
  │      Kubelet/cAdvisor       │
  │ (Node-level & Pod-level)    │
- │ Collects CPU/memory metrics │
+ │ Collects CPU/Memory metrics │
  └─────────────────────────────┘
 ```
 
@@ -58,7 +58,7 @@ Notes:
                ▼
  ┌──────────────────┬────────────────────┬──────────────────┬─────────────────────────┐
  │ kubelet/cAdvisor │ kube-state-metrics │ node-exporter    │ openshift-state-metrics │
- │  (Pod CPU/mem &  │  (K8s object       │  (Node-level     │ (OpenShift-specific     │
+ │  (Pod CPU/MEM &  │  (K8s object       │  (Node-level     │ (OpenShift-specific     │
  │   Node summary)  │   status info)     │   metrics)       │   resource metrics)     │
  └──────────────────┴────────────────────┴──────────────────┴─────────────────────────┘
 ```
