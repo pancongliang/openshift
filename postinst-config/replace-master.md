@@ -119,7 +119,7 @@
   [root@localhost ~]# sudo nmcli con up 'Wired connection 1'
   
   # Install CoreOS using Ignition
-  [root@localhost ~]# sudo coreos-installer install /dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:0:0 --insecure-ignition --ignition-url=http://10.184.134.  128:8080/pre/abi-master.ign --insecure-ignition --firstboot-args 'rd.neednet=1' --copy-network
+  [root@localhost ~]# sudo coreos-installer install /dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:0:0 --insecure-ignition --ignition-url=http://10.184.134.128:8080/pre/abi-master.ign --insecure-ignition --firstboot-args 'rd.neednet=1' --copy-network
   Install complete.
   
   [root@localhost ~]# reboot
