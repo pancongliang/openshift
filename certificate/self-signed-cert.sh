@@ -6,6 +6,7 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 # Default variable
 export DOMAIN="quay-server.example.com"
 export CERTS_DIR="certs"
+export CERT_VALID_DAYS=36500
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -45,7 +46,7 @@ openssl req -x509 \
   -new -nodes \
   -key ${CERTS_DIR}/rootCA.key \
   -sha256 \
-  -days 36500 \
+  -days ${CERT_VALID_DAYS} \
   -out ${CERTS_DIR}/rootCA.pem \
   -subj /CN="${CA_CN}" \
   -reqexts SAN \
@@ -73,7 +74,7 @@ openssl x509 \
     -req \
     -sha256 \
     -extfile <(printf "subjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
-    -days 365 \
+    -days ${CERT_VALID_DAYS} \
     -in ${CERTS_DIR}/ssl.csr \
     -CA ${CERTS_DIR}/rootCA.pem \
     -CAkey ${CERTS_DIR}/rootCA.key \
