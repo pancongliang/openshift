@@ -77,7 +77,7 @@ openssl x509 \
     -in ${CERTS_DIR}/ssl.csr \
     -CA ${CERTS_DIR}/rootCA.pem \
     -CAkey ${CERTS_DIR}/rootCA.key \
-    -CAcreateserial -out ${CERTS_DIR}/ssl.cert  > /dev/null 2>&1
+    -CAcreateserial -out ${CERTS_DIR}/ssl.crt  > /dev/null 2>&1
 run_command "[Generate SSL certificate signed by root CA]"
 
 # self-signed-certificates 
