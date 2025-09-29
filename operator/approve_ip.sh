@@ -21,7 +21,7 @@ while true; do
             echo "]"
         fi
 
-        echo "ok: [approved install plan: $NAME in namespace $NAMESPACE]"
+        echo "ok: [Approved install plan: $NAME in namespace $NAMESPACE]"
         break
     fi
     
@@ -31,13 +31,13 @@ while true; do
         if [[ "$progress_started" == true ]]; then
             echo "]"
         fi
-        echo "failed: [max retries reached. no unapproved install plans found in $NAMESPACE]"
+        echo "failed: [Max retries reached. no unapproved install plans found in $NAMESPACE]"
         break
     fi
     
     # Print progress indicator every 6 seconds
     if [[ "$progress_started" == false ]]; then
-        echo -n "info: [waiting for unapproved install plans in namespace $NAMESPACE"
+        echo -n "info: [Waiting for unapproved install plans in namespace $NAMESPACE"
         progress_started=true
     fi
 
