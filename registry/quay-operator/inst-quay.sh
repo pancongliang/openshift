@@ -65,7 +65,7 @@ sleep 5
 
 # Wait for Minio pods to be in 'Running' state
 NAMESPACE="minio"
-MAX_RETRIES=60
+MAX_RETRIES=100
 SLEEP_INTERVAL=2
 progress_started=false
 retry_count=0
