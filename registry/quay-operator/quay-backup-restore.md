@@ -13,6 +13,7 @@ sudo rm -rf aws awscliv2.zip
 
 ### Verify that Quay superuser and robot accounts are logged in properly before restoring
 ~~~
+QUAY_NAMESPACE=quay-enterprise
 QUAY_HOST=$(oc get route -n $QUAY_NAMESPACE --no-headers | awk '$1 ~ /-quay$/ {print $2}')
 
 podman login -u='quayadmin+admin' -p='N06EBN5D3RO4KL8FKEZI51T5IAVX7SN1CILWCAU1GYOP9POO7KYX8Q2QA707L46U' $QUAY_HOST --tls-verify=false
@@ -26,7 +27,6 @@ podman tag quay.io/redhattraining/hello-world-nginx:v1.0 $QUAY_HOST/quayadmin/he
 
 #### Red Hat Quay configuration backup 
 ~~~
-QUAY_NAMESPACE=quay-enterprise
 QUAY_REGISTRY=$(oc get quayregistry -n $QUAY_NAMESPACE -o jsonpath='{.items[0].metadata.name}')
 
 oc get quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE -o json \
