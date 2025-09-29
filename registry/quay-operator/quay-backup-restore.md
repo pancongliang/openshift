@@ -46,12 +46,12 @@ QUAY_DB_NAME=$(oc -n $QUAY_NAMESPACE rsh $(oc get pod -l app=quay -o name -n $QU
 
 #### Scaling down Red Hat Quay deployment
 ~~~
-oc patch quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE \
---type='json' -p='[
-  {"op": "replace", "path": "/spec/components/2/overrides/replicas", "value": 0},
-  {"op": "replace", "path": "/spec/components/3/overrides/replicas", "value": 0},
-  {"op": "replace", "path": "/spec/components/4/overrides/replicas", "value": 0}
-]'
+oc get quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE -o yaml | \
+yq eval '.spec.components[] |= (select(.kind=="quay") .overrides.replicas = 0) | 
+        .spec.components[] |= (select(.kind=="clair") .overrides.replicas = 0) |
+        .spec.components[] |= (select(.kind=="mirror") .overrides.replicas = 0)' - | \
+oc apply -f -
+
 # If the above command fails to reduce the size of the replica, use the following command to forcefully reduce the size of the replica
 oc scale --replicas=0 deployment $(oc get deployment -n $QUAY_NAMESPACE |awk '/quay-app/ {print $1}') -n $QUAY_NAMESPACE 
 oc scale --replicas=0 deployment $(oc get deployment -n $QUAY_NAMESPACE |awk '/quay-mirror/ {print $1}') -n $QUAY_NAMESPACE
@@ -78,12 +78,11 @@ aws s3 sync --no-verify-ssl --endpoint http://$AWS_S3_ENDPOINT s3://$AWS_S3_BUCK
 
 #### Scale the Red Hat Quay deployment back up
 ~~~
-oc patch quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE \
---type='json' -p='[
-  {"op": "replace", "path": "/spec/components/2/overrides/replicas", "value": 1},
-  {"op": "replace", "path": "/spec/components/3/overrides/replicas", "value": 1},
-  {"op": "replace", "path": "/spec/components/4/overrides/replicas", "value": 1}
-]'
+oc get quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE -o yaml | \
+yq eval '.spec.components[] |= (select(.kind=="quay") .overrides.replicas = 1) | 
+        .spec.components[] |= (select(.kind=="clair") .overrides.replicas = 1) |
+        .spec.components[] |= (select(.kind=="mirror") .overrides.replicas = 1)' - | \
+oc apply -f -
 
 oc wait quayregistry $QUAY_REGISTRY --for=condition=Available=true -n $QUAY_NAMESPACE --timeout=10m
 ~~~
@@ -111,12 +110,11 @@ oc wait quayregistry $QUAY_REGISTRY --for=condition=Available=true -n $QUAY_NAME
 
 #### Scaling down Red Hat Quay deployment 
 ~~~
-oc patch quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE \
---type='json' -p='[
-  {"op": "replace", "path": "/spec/components/2/overrides/replicas", "value": 0},
-  {"op": "replace", "path": "/spec/components/3/overrides/replicas", "value": 0},
-  {"op": "replace", "path": "/spec/components/4/overrides/replicas", "value": 0}
-]'
+oc get quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE -o yaml | \
+yq eval '.spec.components[] |= (select(.kind=="quay") .overrides.replicas = 0) | 
+        .spec.components[] |= (select(.kind=="clair") .overrides.replicas = 0) |
+        .spec.components[] |= (select(.kind=="mirror") .overrides.replicas = 0)' - | \
+oc apply -f -
 
 oc get po -n $QUAY_NAMESPACE
 ~~~
@@ -143,12 +141,11 @@ aws s3 sync --no-verify-ssl --endpoint http://$AWS_S3_ENDPOINT blobs  s3://$AWS_
 
 #### Scaling up Red Hat Quay deployment
 ~~~
-oc patch quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE \
---type='json' -p='[
-  {"op": "replace", "path": "/spec/components/2/overrides/replicas", "value": 1},
-  {"op": "replace", "path": "/spec/components/3/overrides/replicas", "value": 1},
-  {"op": "replace", "path": "/spec/components/4/overrides/replicas", "value": 1}
-]'
+oc get quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE -o yaml | \
+yq eval '.spec.components[] |= (select(.kind=="quay") .overrides.replicas = 1) | 
+        .spec.components[] |= (select(.kind=="clair") .overrides.replicas = 1) |
+        .spec.components[] |= (select(.kind=="mirror") .overrides.replicas = 1)' - | \
+oc apply -f -
 
 oc wait quayregistry $QUAY_REGISTRY --for=condition=Available=true -n $QUAY_NAMESPACE --timeout=10m
 
