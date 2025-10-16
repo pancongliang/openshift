@@ -40,6 +40,20 @@ export DATASTORE="/ceedatacenter/datastore/vsanDatastore"
 export RESOURCE_POOL="/ceedatacenter/host/ceecluster/Resources"
 export VM_NETWORKS="cee-vlan-1167"
 
+#CP=(); WK=(); BOOT=""
+#
+#for i in {41..200}; do
+#    ip="10.184.134.$i"
+#    ping -c1 -W0.2 $ip &>/dev/null || continue
+#    [ ${#CP[@]} -lt 3 ] && { CP+=("$ip"); continue; }
+#    [ ${#WK[@]} -lt 3 ] && { WK+=("$ip"); continue; }
+#    [ -z "$BOOT" ] && { BOOT="$ip"; }
+#    [ ${#CP[@]} -eq 3 ] && [ ${#WK[@]} -eq 3 ] && [ -n "$BOOT" ] && break
+#done
+#export CONTROL_PLANE_IPS=(${CP[@]})
+#export WORKER_IPS=(${WK[@]})
+#export BOOTSTRAP_IP="$BOOT"
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
