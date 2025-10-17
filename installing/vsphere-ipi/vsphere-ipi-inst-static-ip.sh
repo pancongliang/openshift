@@ -40,15 +40,20 @@ export DATASTORE="/ceedatacenter/datastore/vsanDatastore"
 export RESOURCE_POOL="/ceedatacenter/host/ceecluster/Resources"
 export VM_NETWORKS="cee-vlan-1167"
 
+# Automatically find unused IP addresses and assign them to nodes
+#export MACHINE_NETWORK_STARTIP="91"
+#export MACHINE_NETWORK_ENDIP="230"
+#export WORKER_COUNT="5"
+#
 #CP=(); WK=(); BOOT=""
 #ip_prefix=$(echo "$MACHINE_NETWORK_CIDR" | cut -d'.' -f1-3)
-#for i in {90..200}; do
+#for i in $(seq $MACHINE_NETWORK_STARTIP $MACHINE_NETWORK_ENDIP); do
 #    ip="${ip_prefix}.$i"
 #    ping -c1 -W0.2 $ip &>/dev/null && continue
 #    [ ${#CP[@]} -lt 3 ] && { CP+=("$ip"); continue; }
-#    [ ${#WK[@]} -lt 3 ] && { WK+=("$ip"); continue; }
+#    [ ${#WK[@]} -lt $WORKER_COUNT ] && { WK+=("$ip"); continue; }
 #    [ -z "$BOOT" ] && { BOOT="$ip"; }
-#    [ ${#CP[@]} -eq 3 ] && [ ${#WK[@]} -eq 3 ] && [ -n "$BOOT" ] && break
+#    [ ${#CP[@]} -eq 3 ] && [ ${#WK[@]} -eq $WORKER_COUNT ] && [ -n "$BOOT" ] && break
 #done
 #export CONTROL_PLANE_IPS=(${CP[@]})
 #export WORKER_IPS=(${WK[@]})
