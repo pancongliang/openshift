@@ -41,10 +41,9 @@ export RESOURCE_POOL="/ceedatacenter/host/ceecluster/Resources"
 export VM_NETWORKS="cee-vlan-1167"
 
 #CP=(); WK=(); BOOT=""
-#
-#for i in {41..200}; do
-#    ip="10.184.134.$i"
-#    ping -c1 -W0.2 $ip &>/dev/null || continue
+#for i in {90..200}; do
+#    ip="${ip_prefix}.$i"
+#    ping -c1 -W0.2 $ip &>/dev/null && continue
 #    [ ${#CP[@]} -lt 3 ] && { CP+=("$ip"); continue; }
 #    [ ${#WK[@]} -lt 3 ] && { WK+=("$ip"); continue; }
 #    [ -z "$BOOT" ] && { BOOT="$ip"; }
