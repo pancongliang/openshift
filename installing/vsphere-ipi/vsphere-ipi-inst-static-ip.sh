@@ -41,6 +41,7 @@ export RESOURCE_POOL="/ceedatacenter/host/ceecluster/Resources"
 export VM_NETWORKS="cee-vlan-1167"
 
 #CP=(); WK=(); BOOT=""
+#ip_prefix=$(echo "$MACHINE_NETWORK_CIDR" | cut -d'.' -f1-3)
 #for i in {90..200}; do
 #    ip="${ip_prefix}.$i"
 #    ping -c1 -W0.2 $ip &>/dev/null && continue
