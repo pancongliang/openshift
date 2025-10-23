@@ -128,7 +128,7 @@ while true; do
     output=$(sudo podman pod ps | awk 'NR>1' | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b3\b)')
     
     # Check if the pod is not in the "Running" state
-    if  -z "$output" ]; then
+    if [ -z "$output" ]; then
         # Print the info message only once
         if ! $progress_started; then
             echo -n "info: [Waiting for quay pod to be in 'running' state]"
@@ -172,7 +172,7 @@ PRINT_TASK "TASK [Configuring additional trust stores for image registry access]
 # Check if the registry-cas field exists
 REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas') >/dev/null 2>&1 || true
 
-if  -n "$REGISTRY_CAS" ]]; then
+if [[ -n "$REGISTRY_CAS" ]]; then
   # If it exists, execute the following commands
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
