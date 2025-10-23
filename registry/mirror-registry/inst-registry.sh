@@ -109,7 +109,7 @@ else
   echo "skipping: [Registry entry already exists in /etc/hosts]"
 fi
 
-echo "ok: Start installing mirror-registry...]"
+echo "ok: [Start installing mirror-registry...]"
 # echo "ok: [Generate mirror-registry log: ${REGISTRY_INSTALL_DIR}/mirror-registry.log]"
 
 # Install mirror-registry
