@@ -62,7 +62,7 @@ PRINT_TASK "TASK [Delete existing duplicate data]"
 
 # Check if there is an quay-app.service
  if [ -f /etc/systemd/system/quay-pod.service ]; then
-    echo "info: Mirror registry detected, starting uninstall]"
+    echo "info: [Mirror registry detected, starting uninstall]"
     if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
         echo "ok: [Uninstall the mirror registry]"
     else
