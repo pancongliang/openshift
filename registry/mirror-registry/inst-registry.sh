@@ -38,7 +38,7 @@ PRINT_TASK "TASK Install infrastructure rpm]"
 packages=("wget" "podman")
 
 # Convert the array to a space-separated string
-package_list="${packages*]}"
+package_list="${packages[@]}"
 
 # Install all packages at once
 sudo dnf install -y $package_list >/dev/null 2>&1
