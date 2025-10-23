@@ -223,7 +223,7 @@ while true; do
     
     if echo "$operator_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
-            echo -n "info: [Waiting for all cluster operators to reach the expected state]"
+            echo -n "info: [Waiting for all cluster operators to reach the expected state"
             progress_started=true  
         fi
         
@@ -246,7 +246,7 @@ while true; do
 
     if echo "$mcp_status" | grep -q -v "True False False"; then
         if ! $progress_started; then
-            echo -n "info: [Waiting for all mcps to reach the expected state]"
+            echo -n "info: [Waiting for all mcps to reach the expected state"
             progress_started=true  
         fi
         
