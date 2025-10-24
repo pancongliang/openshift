@@ -23,7 +23,7 @@
 * Save the file either as $XDG_RUNTIME_DIR/containers/auth.json
   ```
   mkdir -p $XDG_RUNTIME_DIR/containers
-  cat ./pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
+  cat pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
   ```
 
 ### Get operator information
@@ -93,7 +93,7 @@
   MIRROR_REGISTRY=mirror.registry.example.com:8443
   MIRROR_REGISTRY_ID='admin'
   MIRROR_REGISTRY_PW='password'
-  podman login -u $MIRROR_REGISTRY_ID -p $MIRROR_REGISTRY_PW ${MIRROR_REGISTRY}
+  podman login -u ${MIRROR_REGISTRY_ID} -p ${MIRROR_REGISTRY_PW} ${MIRROR_REGISTRY} --tls-verify=false
 
   oc-mirror -c isc.yaml --from file://${MIRROR_RESOURCES_DIR} docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
   ```
@@ -105,7 +105,7 @@
   MIRROR_REGISTRY=mirror.registry.example.com:8443
   MIRROR_REGISTRY_ID='admin'
   MIRROR_REGISTRY_PW='password'
-  podman login -u $MIRROR_REGISTRY_ID -p $MIRROR_REGISTRY_PW --authfile ./pull-secret ${MIRROR_REGISTRY}
+  podman login -u ${MIRROR_REGISTRY_ID} -p ${MIRROR_REGISTRY_PW} --authfile ./pull-secret ${MIRROR_REGISTRY} --tls-verify=false
 
   mkdir -p $XDG_RUNTIME_DIR/containers 
   cat ./pull-secret | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
@@ -116,7 +116,7 @@
   MIRROR_RESOURCES_DIR=./olm
   mkdir ${MIRROR_RESOURCES_DIR}
 
-  oc-mirror -c isc.yaml --workspace file://olm docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
+  oc-mirror -c isc.yaml --workspace file://${MIRROR_RESOURCES_DIR}  docker://${MIRROR_REGISTRY} --v2 --dest-tls-verify=false
   ```
   
 ### Create IDMS, ITMS, CatalogSource, and Signature ConfigMap
@@ -160,7 +160,7 @@
   MIRROR_REGISTRY=mirror.registry.example.com:8443
   MIRROR_REGISTRY_ID='admin'
   MIRROR_REGISTRY_PW='password'
-  podman login -u $MIRROR_REGISTRY_ID -p $MIRROR_REGISTRY_PW ${MIRROR_REGISTRY}
+  podman login -u $MIRROR_REGISTRY_ID -p $MIRROR_REGISTRY_PW ${MIRROR_REGISTRY} --tls-verify=false
   
   oc-mirror delete --config disc.yaml --workspace file://${PREVIOUS_MIRROR_RESOURCES_DIR} --v2 --generate docker://${MIRROR_REGISTRY} --dest-tls-verify=false
   ```
