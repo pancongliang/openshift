@@ -8,6 +8,7 @@ oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disab
 #### Update Global Pull Secret
 ~~~
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret 
+podman login -u admin -p password mirror.registry.example.com:8443 --tls-verify=false --authfile pull-secret
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret
 
 #!/bin/bash
