@@ -9,12 +9,6 @@ oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disab
 ~~~
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret
-~~~
-
-#### Export and Update htpasswd Secret
-~~~
-oc extract secret/htpasswd-secret -n openshift-config --to . --confirm
-oc set data secret/htpasswd-secret --from-file htpasswd=htpasswd -n openshift-config
 
 #!/bin/bash
 for Hostname in $(oc get nodes  -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
@@ -23,6 +17,12 @@ do
    ssh -o StrictHostKeyChecking=no core@$Hostname sudo cat /var/lib/kubelet/config.json
    echo
 done
+~~~
+
+#### Export and Update htpasswd Secret
+~~~
+oc extract secret/htpasswd-secret -n openshift-config --to . --confirm
+oc set data secret/htpasswd-secret --from-file htpasswd=htpasswd -n openshift-config
 ~~~
 
 #### Use the master node's kubeconfig for cluster administration
