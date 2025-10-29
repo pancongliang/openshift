@@ -594,10 +594,10 @@ listen api-server-6443
   option  httpchk GET /readyz HTTP/1.0
   option  log-health-checks
   balance roundrobin
-  server ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 3 backup
-  server ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 3
-  server ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 3
-  server ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 3
+  server ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2 backup
+  server ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
+  server ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
+  server ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
 
 listen machine-config-server-22623 
   bind ${MCS_VIPS}:22623
@@ -628,9 +628,10 @@ listen default-ingress-router-health-check
   option httpchk GET /healthz/ready
   option log-health-checks
   http-check expect status 200
-  server ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:1936 check inter 10s timeout check 5s fall 2 rise 2 
-  server ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:1936 check inter 10s timeout check 5s fall 2 rise 2
-  server ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:1936 check inter 10s timeout check 5s fall 2 rise 2
+  timeout check 5s 
+  server ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:1936 check inter 10s fall 2 rise 2 
+  server ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:1936 check inter 10s fall 2 rise 2
+  server ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:1936 check inter 10s fall 2 rise 2
 EOF
 run_command "[Generate haproxy configuration file]"
 
