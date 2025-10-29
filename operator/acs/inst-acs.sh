@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 export CHANNEL_NAME="stable"
@@ -32,7 +32,7 @@ run_command() {
 PRINT_TASK "TASK [Uninstall old acs resources...]"
 
 # Uninstall first
-echo "info: [uninstall old logging resources...]"
+echo "info: [Uninstall old logging resources...]"
 oc delete securedcluster stackrox-secured-cluster-services -n stackrox >/dev/null 2>&1 || true
 oc delete central stackrox-central-services -n stackrox >/dev/null 2>&1 || true
 oc delete subscription rhacs-operator -n rhacs-operator >/dev/null 2>&1 || true
@@ -55,7 +55,7 @@ kind: Namespace
 metadata:
   name: rhacs-operator
 EOF
-run_command "[create a rhacs-operator namespace]"
+run_command "[Create a rhacs-operator namespace]"
 
 # Create a Subscription
 cat << EOF | oc create -f - >/dev/null 2>&1
@@ -69,7 +69,7 @@ metadata:
 spec:
   upgradeStrategy: Default
 EOF
-run_command "[create a operator group]"
+run_command "[Create a operator group]"
 
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1alpha1
@@ -86,14 +86,14 @@ spec:
   name: rhacs-operator
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[installing rhacs operator...]"
+run_command "[Installing rhacs operator...]"
 
 sleep 30
 
 # Approval IP
 export NAMESPACE="rhacs-operator"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "[approve rhacs-operator install plan]"
+run_command "[Approve rhacs-operator install plan]"
 
 sleep 10
 
@@ -112,7 +112,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $pod_name pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -124,7 +124,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $pod_name pods may still be initializing]"
+            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
             exit 1
         fi
     else
@@ -132,7 +132,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all $pod_name pods are in 'running' state]"
+        echo "ok: [All $pod_name pods are in 'running' state]"
         break
     fi
 done
@@ -144,7 +144,7 @@ kind: Namespace
 metadata:
   name: stackrox
 EOF
-run_command "[create a stackrox namespace]"
+run_command "[Create a stackrox namespace]"
 
 # Create a Central
 cat << EOF | oc apply -f - >/dev/null 2>&1
@@ -182,7 +182,7 @@ spec:
         replicas: 3
     scannerComponent: Enabled
 EOF
-run_command "[create a central instance]"
+run_command "[Create a central instance]"
 
 sleep 30
 
@@ -202,7 +202,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $pod_name namespace pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name namespace pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -214,7 +214,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $pod_name namespace pods may still be initializing]"
+            echo "failed: [Reached max retries, $pod_name namespace pods may still be initializing]"
             exit 1
         fi
     else
@@ -222,36 +222,36 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all $pod_name namespace pods are in 'running' state]"
+        echo "ok: [All $pod_name namespace pods are in 'running' state]"
         break
     fi
 done
 
 # Check if roxctl is already installed and operational
 if roxctl -h >/dev/null 2>&1; then
-    run_command "[the roxctl tool already installed, skipping installation]"
+    run_command "[The roxctl tool already installed, skipping installation]"
 else
     # Download the roxctl tool
     arch="$(uname -m | sed "s/x86_64//")"; arch="${arch:+-$arch}"
     curl -f -o roxctl "https://mirror.openshift.com/pub/rhacs/assets/latest/bin/Linux/roxctl${arch}" >/dev/null 2>&1
-    run_command "[downloaded roxctl tool]"
+    run_command "[Downloaded roxctl tool]"
 
     # Remove the old version (if it exists)
     sudo rm -f /usr/local/bin/roxctl >/dev/null 2>&1
     
     # Set execute permissions for the tool
     chmod +x roxctl >/dev/null 2>&1
-    run_command "[set execute permissions for roxctl tool]"
+    run_command "[Set execute permissions for roxctl tool]"
 
     # Move the new version to /usr/local/bin
     sudo mv -f roxctl /usr/local/bin/ >/dev/null
-    run_command "[installed roxctl tool to /usr/local/bin/]"
+    run_command "[Installed roxctl tool to /usr/local/bin/]"
 
     # Verify the installation
     if roxctl -h >/dev/null 2>&1; then
-       echo "ok: [roxctl tool installation complete]"
+       echo "ok: [Roxctl tool installation complete]"
     else
-       echo "failed: [roxctl tool installation complete]"
+       echo "failed: [Roxctl tool installation complete]"
     fi
 fi
 
@@ -271,7 +271,7 @@ roxctl -e "${ROX_CENTRAL_ADDRESS}" -p "${ROX_CENTRAL_ADMIN_PASS}" central init-b
 sleep 1
 
 oc apply -f cluster_init_bundle.yaml -n stackrox >/dev/null 2>&1
-run_command "[creating resources by using the init bundle]"
+run_command "[Creating resources by using the init bundle]"
 
 sudo rm -rf cluster_init_bundle.yaml
 
@@ -314,7 +314,7 @@ spec:
         replicas: 3
     scannerComponent: AutoSense
 EOF
-run_command "[create a secured cluster]"
+run_command "[Create a secured cluster]"
 
 sleep 10
 
@@ -334,7 +334,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [waiting for $pod_name namespace pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name namespace pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -346,7 +346,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [reached max retries, $pod_name namespace pods may still be initializing]"
+            echo "failed: [Reached max retries, $pod_name namespace pods may still be initializing]"
             exit 1
         fi
     else
@@ -354,7 +354,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [all $pod_name namespace pods are in 'running' state]"
+        echo "ok: [All $pod_name namespace pods are in 'running' state]"
         break
     fi
 done
@@ -368,8 +368,8 @@ PRINT_TASK "TASK [Login cluster information]"
 ACS_CONSOLE=$(oc get route central -n stackrox -o jsonpath='{"https://"}{.spec.host}{"\n"}')
 ACS_PW=$(oc get secret central-htpasswd -n stackrox -o jsonpath='{.data.password}' | base64 -d)
 
-echo "info: [acs console: $ACS_CONSOLE]"
-echo "info: [acs user id: admin  pw: $ACS_PW]"
+echo "info: [ACS console: $ACS_CONSOLE]"
+echo "info: [ACS user id: admin  pw: $ACS_PW]"
 
 # Add an empty line after the task
 echo
