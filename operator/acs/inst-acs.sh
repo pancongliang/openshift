@@ -154,7 +154,14 @@ metadata:
   name: stackrox-central-services
   namespace: stackrox
 spec:
+  monitoring:
+    openshift:
+      enabled: true
+  network:
+    policies: Enabled
   central:
+    notifierSecretsEncryption:
+      enabled: false
     exposure:
       loadBalancer:
         enabled: false
@@ -163,16 +170,36 @@ spec:
         enabled: false
       route:
         enabled: true
-    persistence:
-      persistentVolumeClaim:
-        claimName: stackrox-db
+    telemetry:
+      enabled: true
     db:
       isEnabled: Default
       persistence:
         persistentVolumeClaim:
           claimName: central-db
+    persistence:
+      persistentVolumeClaim:
+        claimName: stackrox-db
   egress:
     connectivityPolicy: Online
+  scannerV4:
+    db:
+      persistence:
+        persistentVolumeClaim:
+          claimName: scanner-v4-db
+    indexer:
+      scaling:
+        autoScaling: Enabled
+        maxReplicas: 5
+        minReplicas: 2
+        replicas: 3
+    matcher:
+      scaling:
+        autoScaling: Enabled
+        maxReplicas: 5
+        minReplicas: 2
+        replicas: 3
+    scannerComponent: Default
   scanner:
     analyzer:
       scaling:
@@ -180,7 +207,6 @@ spec:
         maxReplicas: 5
         minReplicas: 2
         replicas: 3
-    scannerComponent: Enabled
 EOF
 run_command "[Create a central instance]"
 
