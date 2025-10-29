@@ -321,7 +321,7 @@ sleep 10
 # Wait for stackrox pods to be in 'Running' state
 NAMESPACE="stackrox"
 MAX_RETRIES=60
-SLEEP_INTERVAL=2
+SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
 pod_name=stackrox
