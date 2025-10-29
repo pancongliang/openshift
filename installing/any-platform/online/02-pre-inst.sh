@@ -649,6 +649,36 @@ run_command "[Restart haproxy service]"
 # Wait for the service to restart
 sleep 15
 
+# Configure HAProxy logs to be written to /var/log/haproxy.log
+#rm -rf /etc/rsyslog.d/haproxy.conf
+#cat <<EOF >/etc/rsyslog.d/haproxy.conf
+#local2.*    /var/log/haproxy.log
+#EOF
+#
+## Enable imudp module
+#if grep -q '^#module(load="imudp")' "/etc/rsyslog.conf"; then
+#  sed -i 's/^#module(load="imudp")/module(load="imudp")/' "/etc/rsyslog.conf"
+#  echo "ok: [Enabled imudp module]"
+#elif grep -q '^module(load="imudp")' "/etc/rsyslog.conf"; then
+#  echo "info: [Imudp module already enabled]"
+#else
+#  echo 'module(load="imudp")' >> "/etc/rsyslog.conf"
+#  echo "ok: [Added imudp module]"
+#fi
+#
+## Enable UDP port 514 input
+#if grep -q '^#input(type="imudp" port="514")' "/etc/rsyslog.conf"; then
+#  sed -i 's/^#input(type="imudp" port="514")/input(type="imudp" port="514")/' "/etc/rsyslog.conf"
+#  echo "ok: [Enabled UDP port 514 input]"
+#elif grep -q '^input(type="imudp" port="514")' "/etc/rsyslog.conf"; then
+#  echo "info: [UDP port 514 input already enabled]"
+#else
+#  echo 'input(type="imudp" port="514")' >> "/etc/rsyslog.conf"
+#  echo "ok: [Added UDP port 514 input]"
+#fi
+#
+#systemctl restart rsyslog
+
 # Add an empty line after the task
 echo
 
