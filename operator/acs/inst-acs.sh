@@ -112,7 +112,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for $pod_name pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name pods to be in 'Running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -132,7 +132,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [All $pod_name pods are in 'running' state]"
+        echo "ok: [All $pod_name pods are in 'Running' state]"
         break
     fi
 done
@@ -202,7 +202,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for $pod_name namespace pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name namespace pods to be in 'Running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -222,7 +222,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [All $pod_name namespace pods are in 'running' state]"
+        echo "ok: [All $pod_name namespace pods are in 'Running' state]"
         break
     fi
 done
@@ -334,7 +334,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for $pod_name namespace pods to be in 'running' state"
+            echo -n "info: [Waiting for $pod_name namespace pods to be in 'Running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -354,7 +354,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [All $pod_name namespace pods are in 'running' state]"
+        echo "ok: [All $pod_name namespace pods are in 'Running' state]"
         break
     fi
 done
