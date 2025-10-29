@@ -50,7 +50,7 @@
 * Installing the roxctl CLI
   ```
   arch="$(uname -m | sed "s/x86_64//")"; arch="${arch:+-$arch}"
-  curl -f -o roxctl "https://mirror.openshift.com/pub/rhacs/assets/4.3.1/bin/Linux/roxctl${arch}"
+  curl -f -o roxctl "https://mirror.openshift.com/pub/rhacs/assets/latest/bin/Linux/roxctl${arch}"
   chmod +x roxctl
   mv ./roxctl /usr/local/bin/
   ```
