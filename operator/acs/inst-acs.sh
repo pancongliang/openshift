@@ -4,6 +4,7 @@ set -euo pipefail
 trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
+# A default storage class is needed: https://github.com/pancongliang/openshift/blob/main/storage/nfs-sc/readme.md
 export CHANNEL_NAME="stable"
 export CATALOG_SOURCE_NAME=redhat-operators
 
