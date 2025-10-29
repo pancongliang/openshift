@@ -304,9 +304,9 @@ containers=("postgresql-quay" "redis" "quay")
 
 for c in "${containers[@]}"; do
   if podman ps --format "{{.Names}}" | grep -qw "$c"; then
-    echo "ok: [Container $c is running]"
+    echo "ok: [Container $c is Running]"
   else
-    echo "failed: [Container $c is running]"
+    echo "failed: [Container $c is Running]"
   fi
 done
 
