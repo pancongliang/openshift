@@ -182,9 +182,11 @@
   export ROX_API_TOKEN="${ROX_API_TOKEN}"
   export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
 
-  # Checking single image
-  roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS" \
-    image scan --image bastion.ocp4.example.com:5000/openshift/release@sha256:28869cebbf8e5454493def0e6c8eb9bf33bfd8d56d1ce106a6c6708530c2c1c2 -o json
+  # image check → Check policy compliance
+  roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS" image check --image mirror.registry.example.com:8443/admin/hello-openshift:latest
+
+  # image scan → Scan image for CVE vulnerabilities
+  roxctl --insecure-skip-tls-verify -e "$ROX_CENTRAL_ADDRESS" image scan --image mirror.registry.example.com:8443/admin/hello-openshift:latest --output=table
   ```
 
 * Scan all images in docker registry
