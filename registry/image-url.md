@@ -54,79 +54,18 @@ oc set volumes deployment/postgresql-persistent \
 
 ### Tool
 ~~~
-cat << EOF | oc apply -f -
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: dnsutils
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: dnsutils
-  template:
-    metadata:
-      labels:
-        app: dnsutils
-    spec:
-      containers:
-        - name: dnsutils
-          image: k8s.gcr.io/e2e-test-images/jessie-dnsutils@sha256:143e8cd723f58a8b341526c060d3577e8a129c4fb7bb71cbba343297028331cb
-          command:
-            - sleep
-            - "3600"
-EOF
+oc run busybox --image=docker.io/library/busybox:latest --restart=Never --command -- sleep infinity
+oc run dnsutils --image=docker.io/tutum/dnsutils:latest --restart=Never --command -- sleep infinity
+oc run ose --image=registry.redhat.io/openshift4/ose-cli  --restart=Never --command -- sleep infinity
 
-cat << EOF | oc apply -f -
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: busybox
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: busybox
-  template:
-    metadata:
-      labels:
-        app: busybox
-    spec:
-      dnsConfig:
-        options:
-        - name: ndots
-          value: "1"   
-      containers:
-        - name: busybox
-          image: docker.io/library/busybox:latest
-          command:
-            - sleep
-            - "3600"
-EOF
+oc new-app --name busybox --image=docker.io/library/busybox:latest
+oc patch deployment busybox --patch '{"spec":{"template":{"spec":{"containers":[{"name":"busybox","command":["sleep","infinity"]}]}}}}'
 
+oc new-app --name dnsutils --image=docker.io/tutum/dnsutils:latest
+oc patch deployment dnsutils --patch '{"spec":{"template":{"spec":{"containers":[{"name":"dnsutils","command":["sleep","infinity"]}]}}}}'
 
-cat << EOF | oc apply -f -
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ose
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ose
-  template:
-    metadata:
-      labels:
-        app: ose
-    spec:
-      containers:
-        - name: ose
-          image: registry.redhat.io/openshift4/ose-cli 
-          command:
-            - sleep
-            - "3600"
-EOF
+oc new-app --name ose --image=registry.redhat.io/openshift4/ose-cli
+oc patch deployment ose --patch '{"spec":{"template":{"spec":{"containers":[{"name":"ose","command":["sleep","infinity"]}]}}}}'
 ~~~
 
 ### Todo list and mariadb pvc(Input data from web page to mariadb)
