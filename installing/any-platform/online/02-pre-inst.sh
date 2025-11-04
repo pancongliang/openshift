@@ -552,6 +552,7 @@ echo
 PRINT_TASK "TASK [Configure and Verify HAProxy Service]"
 
 # Setup haproxy services configuration
+# https://access.redhat.com/solutions/4677531
 cat << EOF > /etc/haproxy/haproxy.cfg 
 global
   log         127.0.0.1 local2
