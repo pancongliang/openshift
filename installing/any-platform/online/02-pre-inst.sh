@@ -625,6 +625,7 @@ listen default-ingress-router-443
 
 listen default-ingress-router-health-check
   mode http
+  balance roundrobin
   option httpchk GET /healthz/ready
   option log-health-checks
   http-check expect status 200
