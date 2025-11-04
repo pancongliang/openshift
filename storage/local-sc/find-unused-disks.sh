@@ -50,7 +50,7 @@ COUNTER=1
 for node in $NODES; do
 
   # SSH into each node and execute the script with the current counter value
-  ssh core@$node "sudo bash -s $COUNTER" < find-secondary-device.sh
+  ssh -o StrictHostKeyChecking=no core@$node "sudo bash -s $COUNTER" < find-secondary-device.sh
 
   # Increment the counter for the next device on the next node
   COUNTER=$(($COUNTER + 1))
