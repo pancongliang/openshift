@@ -585,23 +585,23 @@ frontend stats
   stats hide-version
   stats refresh 30s
   stats show-node
-  stats show-desc Stats for ocp4 cluster 
+  stats show-desc Stats for ocp4 cluster
   stats auth admin:passwd
   stats uri /stats
 
-listen api-server-6443 
+listen kube-apiserver-6443
   bind ${API_VIPS}:6443
   mode tcp
+  balance roundrobin
   option  httpchk GET /readyz HTTP/1.0
   option  log-health-checks
-  balance roundrobin
-  timeout check 10s 
+  timeout check 10s
   server ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2 backup
   server ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
   server ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
   server ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
 
-listen machine-config-server-22623 
+listen machine-config-server-22623
   bind ${MCS_VIPS}:22623
   mode tcp
   server ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:22623 check inter 1s backup
@@ -609,7 +609,7 @@ listen machine-config-server-22623
   server ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:22623 check inter 1s
   server ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:22623 check inter 1s
 
-listen default-ingress-router-80
+listen ingress-router-80
   bind ${INGRESS_VIPS}:80
   mode tcp
   balance source
@@ -617,7 +617,7 @@ listen default-ingress-router-80
   server ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check inter 1s
   server ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:80 check inter 1s
   
-listen default-ingress-router-443
+listen ingress-router-443
   bind ${INGRESS_VIPS}:443
   mode tcp
   balance source
@@ -625,14 +625,14 @@ listen default-ingress-router-443
   server ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
   server ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
 
-listen default-ingress-router-health-check
+listen ingress-router-health-check
   mode http
   balance roundrobin
   option httpchk GET /healthz/ready
   option log-health-checks
   http-check expect status 200
-  timeout check 5s 
-  server ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:1936 check inter 10s fall 2 rise 2 
+  timeout check 5s
+  server ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:1936 check inter 10s fall 2 rise 2
   server ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:1936 check inter 10s fall 2 rise 2
   server ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:1936 check inter 10s fall 2 rise 2
 EOF
