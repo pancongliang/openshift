@@ -594,6 +594,7 @@ listen api-server-6443
   option  httpchk GET /readyz HTTP/1.0
   option  log-health-checks
   balance roundrobin
+  timeout check 10s 
   server ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2 backup
   server ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
   server ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
