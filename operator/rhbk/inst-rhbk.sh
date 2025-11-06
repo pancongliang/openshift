@@ -432,11 +432,11 @@ spec:
           - "https://${CONSOLE_HOST}/*"
         defaultClientScopes:
           - acr
+          - email
+          - profile
           - roles
           - web-origins
         optionalClientScopes:
-          - email
-          - profile
           - address
           - microprofile-jwt
           - offline_access
