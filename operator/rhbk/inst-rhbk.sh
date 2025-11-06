@@ -419,7 +419,6 @@ spec:
     realm: "openshift"
     displayName: "OpenShift Realm"
     enabled: true
-    updateProfileOnInitialSocialLogin: false
     clients:
       - clientId: openshift-demo
         enabled: true
@@ -433,11 +432,11 @@ spec:
           - "https://${CONSOLE_HOST}/*"
         defaultClientScopes:
           - acr
-          - email
-          - profile
           - roles
           - web-origins
         optionalClientScopes:
+          - email
+          - profile
           - address
           - microprofile-jwt
           - offline_access
@@ -613,7 +612,7 @@ oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
 {
   "spec": {
     "authentication": {
-      "logoutRedirect": "https://${KEYCLOAK_HOST}/realms/openshift/protocol/openid-connect/logout?client_id=${CLIENT_SECRET}&post_logout_redirect_uri=https://${CONSOLE_HOST}"
+      "logoutRedirect": "https://${KEYCLOAK_HOST}/realms/openshift/protocol/openid-connect/logout?client_id=${CLIENT_ID}&post_logout_redirect_uri=https://${CONSOLE_HOST}"
     }
   }
 }
