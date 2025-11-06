@@ -310,6 +310,8 @@ rm -rf rootCA.key  rootCA.pem  rootCA.srl  ssl.crt  ssl.csr  ssl.key
 # Add an empty line after the task
 echo
 
+sleep 3
+
 # Step 4:
 PRINT_TASK "TASK [Deploy the Red Hat Build of Keycloak Instance]"
 
@@ -446,9 +448,13 @@ spec:
     users:
       - username: "${KEYCLOAK_REALM_USER}"
         enabled: true
+        email: rhadmin@example.com
+        firstName: admin
+        lastName: rh
         credentials:
           - type: password
             value: "${KEYCLOAK_REALM_PASSWORD}"
+            temporary: false
         realmRoles:
           - "default-roles-openshift"
 EOF
