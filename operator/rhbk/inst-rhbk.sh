@@ -605,7 +605,7 @@ done
 
 
 # Configure OpenShift console logout redirection to Keycloak
-CLIENT_SECRET=$(oc -n ${NAMESPACE} get secret keycloak-client-secret -o jsonpath='{.data.client-secret}' | base64 -d)
+CLIENT_ID=$(oc get keycloakrealmimport -n ${NAMESPACE} example-realm-import -o jsonpath='{.spec.realm.clients[0].clientId}')
 KEYCLOAK_HOST=$(oc get route -n ${NAMESPACE} -l app.kubernetes.io/instance=example-kc -o jsonpath='{.items[0].spec.host}')
 CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
 
@@ -613,7 +613,7 @@ oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
 {
   "spec": {
     "authentication": {
-      "logoutRedirect": "https://${KEYCLOAK_HOST}/realms/openshift/protocol/openid-connect/logout?post_logout_redirect_uri=https://${CONSOLE_HOST}&client_id=${CLIENT_SECRET}"
+      "logoutRedirect": "https://${KEYCLOAK_HOST}/realms/openshift/protocol/openid-connect/logout?client_id=${CLIENT_SECRET}&post_logout_redirect_uri=https://${CONSOLE_HOST}"
     }
   }
 }
