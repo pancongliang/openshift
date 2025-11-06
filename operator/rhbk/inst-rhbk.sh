@@ -661,8 +661,9 @@ while true; do
     fi
 done
 
-oc adm policy add-cluster-role-to-user cluster-admin $USER_NAME >/dev/null 2>&1 || true
-run_command "[Grant cluster-admin privileges to the $USER_NAME account]"
+# Grant cluster-admin privileges to the $KEYCLOAK_REALM_USER account
+oc adm policy add-cluster-role-to-user cluster-admin $KEYCLOAK_REALM_USER >/dev/null 2>&1 || true
+run_command "[Grant cluster-admin privileges to the $KEYCLOAK_REALM_USER account]"
 
 # Retrieve Keycloak route
 KEYCLOAK_HOST=$(oc get route -n ${NAMESPACE} -l app.kubernetes.io/instance=example-kc -o jsonpath='{.items[0].spec.host}')
