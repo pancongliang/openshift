@@ -31,7 +31,7 @@ run_command() {
 }
 
 # Step 0:
-PRINT_TASK "TASK [Uninstall old quay resources...]"
+PRINT_TASK "TASK [Uninstall old quay resources]"
 
 # Delete custom resources
 echo "info: [Uninstall custom resources...]"
