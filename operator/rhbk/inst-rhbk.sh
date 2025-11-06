@@ -44,7 +44,7 @@ oc delete user $KEYCLOAK_REALM_USER >/dev/null 2>&1 || true
 oc delete identity.user.openshift.io "${IDENTITY_NAME}" >/dev/null 2>&1 || true
 oc delete secret openid-client-secret -n openshift-config >/dev/null 2>&1 || true
 oc delete configmap openid-route-ca -n openshift-config >/dev/null 2>&1 || true
-oc delete kkeycloakrealmimport example-realm-import  -n $NAMESPACE  >/dev/null 2>&1 || true
+oc delete keycloakrealmimport example-realm-import  -n $NAMESPACE  >/dev/null 2>&1 || true
 oc delete keycloak example-kc -n $NAMESPACE  >/dev/null 2>&1 || true
 oc delete secret example-tls-secret -n $NAMESPACE  >/dev/null 2>&1 || true
 oc delete secret keycloak-db-secret -n $NAMESPACE  >/dev/null 2>&1 || true
