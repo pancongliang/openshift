@@ -30,7 +30,7 @@ run_command() {
 }
 
 # Step 0:
-PRINT_TASK "TASK [Uninstall old acs resources...]"
+PRINT_TASK "TASK [Uninstall old acs resources]"
 
 # Uninstall first
 echo "info: [Uninstall old logging resources...]"
