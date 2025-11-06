@@ -544,12 +544,6 @@ metadata:
   name: cluster
 spec:
   identityProviders:
-  - htpasswd:
-      fileData:
-        name: htpasswd-secret
-    mappingMethod: claim
-    name: htpasswd-user
-    type: HTPasswd
   - mappingMethod: claim
     openID:
       ca:
