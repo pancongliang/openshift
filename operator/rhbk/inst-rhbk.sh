@@ -675,4 +675,4 @@ KEYCLOAK_INITIAL_ADMIN_PASSWORD=$(oc -n ${NAMESPACE} get secret example-kc-initi
 # Print variables for verification (optional)
 echo "info: [Keycloak Host -> https://$KEYCLOAK_HOST]"
 echo "info: [Keycloak Console -> Username: $KEYCLOAK_INITIAL_ADMIN_USER, Password: $KEYCLOAK_INITIAL_ADMIN_PASSWORD]"
-echo "info: [Keycloak Realm User -> Username: $KEYCLOAK_REALM_USER, Password: $KEYCLOAK_REALM_PASSWORD"]"
+echo "info: [Keycloak Realm User -> Username: $KEYCLOAK_REALM_USER, Password: $KEYCLOAK_REALM_PASSWORD]"
