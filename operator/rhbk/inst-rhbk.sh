@@ -47,11 +47,11 @@ oc delete keycloakrealmimport example-realm-import  -n $NAMESPACE  >/dev/null 2>
 oc delete keycloak example-kc -n $NAMESPACE  >/dev/null 2>&1 || true
 oc delete secret example-tls-secret -n $NAMESPACE  >/dev/null 2>&1 || true
 oc delete secret keycloak-db-secret -n $NAMESPACE  >/dev/null 2>&1 || true
-oc delete statefulsets.apps postgresql-db -n $NAMESPACE  >/dev/null 2>&1 || true
+oc delete statefulset postgresql-db -n $NAMESPACE  >/dev/null 2>&1 || true
 oc delete svc postgres-db -n $NAMESPACE  >/dev/null 2>&1 || true
 oc delete operatorgroup rhbk-operator-group $NAMESPACE >/dev/null 2>&1 || true
 oc delete sub rhbk-operator -n $NAMESPACE >/dev/null 2>&1 || true
-oc get csv -n $NAMESPACE -o name | grep rhbk-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n $NAMESPACE >/dev/null 2>&1 || true
+oc delete csv $(oc get csv -n "$NAMESPACE" -o name | grep rhbk-operator | awk -F/ '{print $2}') -n "$NAMESPACE" 
 oc delete ns $NAMESPACE >/dev/null 2>&1 || true
 
 # Add an empty line after the task
