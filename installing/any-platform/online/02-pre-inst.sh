@@ -679,7 +679,8 @@ sleep 15
 #  echo 'input(type="imudp" port="514")' >> "/etc/rsyslog.conf"
 #  echo "ok: [Added UDP port 514 input]"
 #fi
-#
+# 
+# sed -i '/^[[:space:]]*\*\.[[:space:]]*emerg[[:space:]]*:omusrmsg:/ s/^/#/' /etc/rsyslog.conf
 #systemctl restart rsyslog
 
 # Add an empty line after the task
