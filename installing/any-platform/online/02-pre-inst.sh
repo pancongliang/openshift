@@ -657,31 +657,100 @@ sleep 15
 #cat <<EOF >/etc/rsyslog.d/haproxy.conf
 #local2.*    /var/log/haproxy.log
 #EOF
+#run_command "[Generate /etc/rsyslog.d/haproxy.conf configuration file]"
+
+#rm -rf /etc/haproxy/haproxy.cfg 
+#cat << EOF > /etc/haproxy/haproxy.cfg 
+## rsyslog configuration file
 #
-## Enable imudp module
-#if grep -q '^#module(load="imudp")' "/etc/rsyslog.conf"; then
-#  sed -i 's/^#module(load="imudp")/module(load="imudp")/' "/etc/rsyslog.conf"
-#  echo "ok: [Enabled imudp module]"
-#elif grep -q '^module(load="imudp")' "/etc/rsyslog.conf"; then
-#  echo "info: [Imudp module already enabled]"
-#else
-#  echo 'module(load="imudp")' >> "/etc/rsyslog.conf"
-#  echo "ok: [Added imudp module]"
-#fi
+## For more information see /usr/share/doc/rsyslog-*/rsyslog_conf.html
+## or latest version online at http://www.rsyslog.com/doc/rsyslog_conf.html 
+## If you experience problems, see http://www.rsyslog.com/doc/troubleshoot.html
 #
-## Enable UDP port 514 input
-#if grep -q '^#input(type="imudp" port="514")' "/etc/rsyslog.conf"; then
-#  sed -i 's/^#input(type="imudp" port="514")/input(type="imudp" port="514")/' "/etc/rsyslog.conf"
-#  echo "ok: [Enabled UDP port 514 input]"
-#elif grep -q '^input(type="imudp" port="514")' "/etc/rsyslog.conf"; then
-#  echo "info: [UDP port 514 input already enabled]"
-#else
-#  echo 'input(type="imudp" port="514")' >> "/etc/rsyslog.conf"
-#  echo "ok: [Added UDP port 514 input]"
-#fi
-# 
-# sed -i '/^[[:space:]]*\*\.[[:space:]]*emerg[[:space:]]*:omusrmsg:/ s/^/#/' /etc/rsyslog.conf
+##### GLOBAL DIRECTIVES ####
+#
+## Where to place auxiliary files
+#global(workDirectory="/var/lib/rsyslog")
+#
+## Use default timestamp format
+#module(load="builtin:omfile" Template="RSYSLOG_TraditionalFileFormat")
+#
+##### MODULES ####
+#
+#module(load="imuxsock"    # provides support for local system logging (e.g. via logger command)
+#       SysSock.Use="off") # Turn off message reception via local log socket; 
+#                          # local messages are retrieved through imjournal now.
+#module(load="imjournal"             # provides access to the systemd journal
+#       UsePid="system" # PID nummber is retrieved as the ID of the process the journal entry originates from
+#       FileCreateMode="0644" # Set the access permissions for the state file
+#       StateFile="imjournal.state") # File to store the position in the journal
+##module(load="imklog") # reads kernel messages (the same are read from journald)
+##module(load="immark") # provides --MARK-- message capability
+#
+## Include all config files in /etc/rsyslog.d/
+#include(file="/etc/rsyslog.d/*.conf" mode="optional")
+#
+## Provides UDP syslog reception
+## for parameters see http://www.rsyslog.com/doc/imudp.html
+#module(load="imudp") # needs to be done just once
+#input(type="imudp" port="514")
+#
+## Provides TCP syslog reception
+## for parameters see http://www.rsyslog.com/doc/imtcp.html
+##module(load="imtcp") # needs to be done just once
+##input(type="imtcp" port="514")
+#
+##### RULES ####
+#
+## Log all kernel messages to the console.
+## Logging much else clutters up the screen.
+##kern.*                                                 /dev/console
+#
+## Log anything (except mail) of level info or higher.
+## Don't log private authentication messages!
+#*.info;mail.none;authpriv.none;cron.none                /var/log/messages
+#
+## The authpriv file has restricted access.
+#authpriv.*                                              /var/log/secure
+#
+## Log all the mail messages in one place.
+#mail.*                                                  -/var/log/maillog
+#
+#
+## Log cron stuff
+#cron.*                                                  /var/log/cron
+#
+## Everybody gets emergency messages
+##*.emerg                                                 :omusrmsg:*
+#
+## Save news errors of level crit and higher in a special file.
+#uucp,news.crit                                          /var/log/spooler
+#
+## Save boot messages also to boot.log
+#local7.*                                                /var/log/boot.log
+#
+#
+## ### sample forwarding rule ###
+##action(type="omfwd"  
+## # An on-disk queue is created for this action. If the remote host is
+## # down, messages are spooled to disk and sent when it is up again.
+##queue.filename="fwdRule1"       # unique name prefix for spool files
+##queue.maxdiskspace="1g"         # 1gb space limit (use as much as possible)
+##queue.saveonshutdown="on"       # save messages to disk on shutdown
+##queue.type="LinkedList"         # run asynchronously
+##action.resumeRetryCount="-1"    # infinite retries if host is down
+## # Remote Logging (we use TCP for reliable delivery)
+## # remote_host is: name/ip, e.g. 192.168.0.1, port optional e.g. 10514
+##Target="remote_host" Port="XXX" Protocol="tcp")
+#EOF
+#run_command "[Generate rsyslog configuration to write HAProxy logs to /var/log/haproxy.log]"
+
+# Enable and start service
+systemctl enable --now rsyslog >/dev/null 2>&1
+run_command "[Enable rsyslog service at boot]"
+
 #systemctl restart rsyslog
+run_command "[Restart rsyslog service]"
 
 # Add an empty line after the task
 echo
