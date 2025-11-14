@@ -20,6 +20,7 @@
     -reqexts SAN \
     -extensions SAN \
     -config <(cat /etc/pki/tls/openssl.cnf \
+            <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature'))
   ~~~
 
 
@@ -79,4 +80,7 @@
   -p "[{\"op\":\"replace\",\"path\":\"/spec/defaultCertificate\",\"value\":{\"name\":\"$INGRESS_CERT_SECRET\"}}]"
   ~~~
 
-  
+* Verify automatic renewal of ingress certificate
+  ~~~
+  openssl s_client -connect console-openshift-console.apps.ocp.example.com:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  ~~~
