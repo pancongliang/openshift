@@ -120,6 +120,7 @@
 
 * Wait one hour to verify the automatic renewal of the ingress certificate
   ~~~
+  # The router pod will not restart during certificate renewal.
   $ oc get po -n openshift-ingress
   ··· Output ···
   NAME                              READY   STATUS    RESTARTS   AGE
@@ -149,4 +150,29 @@
   notAfter=Nov 14 14:21:05 2025 GMT
   issuer=CN = Test Workspace Signer
   subject=CN = apps.ocp.example.com
+
+
+  $ openssl s_client -connect console-openshift-console.$INGRESS_DOMAIN:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  ··· Output ···
+  ···
+  issuer=CN = Test Workspace Signer
+  notBefore=Nov 14 13:21:05 2025 GMT
+  notAfter=Nov 14 15:21:05 2025 GMT
+  subject=CN = apps.ocp.example.com
+  X509v3 Subject Alternative Name: 
+      DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
+
+  $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
+  ··· Output ···
+  notBefore=Nov 14 13:21:05 2025 GMT
+  notAfter=Nov 14 15:21:05 2025 GMT
+  issuer=CN = Test Workspace Signer
+  subject=CN = apps.ocp.example.com
+
+  # The router pod will not restart during certificate renewal.
+  $ oc get po -n openshift-ingress
+  ··· Output ···
+  NAME                              READY   STATUS    RESTARTS   AGE
+  router-default-768dbb9787-q8b9k   1/1     Running   0          122m
+  router-default-768dbb9787-sxk4x   1/1     Running   0          122m
   ~~~
