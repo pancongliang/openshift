@@ -53,7 +53,9 @@
   ~~~
   export INGRESS_DOMAIN=apps.ocp.example.com
   export INGRESS_CERT_SECRET=router-certs-custom
-  
+  export CERT_DURATION="2h"                       # Validity period of the certificate
+  export CERT_RENEW_BEFORE_EXPIRY="1h"            # Time before expiry to renew the certificate
+
   cat << EOF | oc apply -f -
   apiVersion: cert-manager.io/v1
   kind: Certificate
@@ -70,8 +72,8 @@
     issuerRef:
       name: $CLUSTERISSUER
       kind: ClusterIssuer
-    duration: 2h              # Certificate validity period
-    renewBefore: 1h           # Certificate Early renewal time
+    duration: $CERT_DURATION
+    renewBefore: $CERT_RENEW_BEFORE_EXPIRY
   EOF
   ~~~
 
@@ -115,6 +117,24 @@
 * Wait one hour to verify the automatic renewal of the ingress certificate
   ~~~
   $ openssl s_client -connect console-openshift-console.apps.ocp.example.com:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  depth=0 CN = apps.ocp.example.com
+  verify error:num=20:unable to get local issuer certificate
+  verify return:1
+  depth=0 CN = apps.ocp.example.com
+  verify error:num=21:unable to verify the first certificate
+  verify return:1
+  depth=0 CN = apps.ocp.example.com
+  verify return:1
+  issuer=CN = Test Workspace Signer
+  notBefore=Nov 14 12:21:05 2025 GMT
+  notAfter=Nov 14 14:21:05 2025 GMT
+  subject=CN = apps.ocp.example.com
+  X509v3 Subject Alternative Name: 
+      DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
 
   $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
+  notBefore=Nov 14 12:21:05 2025 GMT
+  notAfter=Nov 14 14:21:05 2025 GMT
+  issuer=CN = Test Workspace Signer
+  subject=CN = apps.ocp.example.com
   ~~~
