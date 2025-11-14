@@ -1,3 +1,5 @@
+
+#### Install Cert Manager Operator
 * Install the Operator using the default namespace
   ~~~
   export CHANNEL_NAME="stable-v1"
@@ -6,8 +8,10 @@
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/cert-manager/01-operator.yaml | envsubst | oc create -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ~~~
+
+#### Configure a Self-Signed CA Issuer
     
-* Create a Private CA Certificate
+* Generate a Private CA Certificate
   ~~~
   openssl genrsa -out rootCA.key
   
@@ -24,10 +28,9 @@
             <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature'))
   ~~~
 
-
-* Create a Secret to Store the CA in cert-manager Namespace
+* Create a Secret for the CA in cert-manager Namespace
   ~~~
-  export CA_SIGNER_SECRET=example-ca-signer
+  export CA_SIGNER_SECRET=example-root-ca
   export CA_CRT=rootCA.pem
   export CA_KEY=rootCA.key
 
@@ -36,8 +39,7 @@
 
 * Create a ClusterIssuer Using the Private CA
   ~~~
-  export CLUSTER_ISSUER=example-clusterissuer
-  export CA_SIGNER_SECRET=example-ca-signer
+  export CLUSTER_ISSUER=example-ca-issuer
 
   cat << EOF | oc apply -f -
   apiVersion: cert-manager.io/v1
@@ -50,10 +52,12 @@
   EOF
   ~~~
 
-* Create a New Certificate Request (e.g., for the Ingress Controller)
+#### Create Certificate Resources
+
+* Create a Certificate resource for the Ingress Controller
   ~~~
   export INGRESS_DOMAIN=apps.ocp.example.com
-  export INGRESS_CERT_SECRET=router-certs-custom
+  export INGRESS_CERT_SECRET=example-router-certs
   export CERT_DURATION="2h"                       # Validity period of the certificate
   export CERT_RENEW_BEFORE_EXPIRY="1h"            # Time before expiry to renew the certificate
 
@@ -75,7 +79,33 @@
       kind: ClusterIssuer
     duration: $CERT_DURATION
     renewBefore: $CERT_RENEW_BEFORE_EXPIRY
-  EOF
+  EOF  
+  ~~~
+
+* Verify Certificate Status and Generated TLS Secret
+  ~~~
+  $ oc get certificate -n openshift-ingress
+    ··· Output ···
+    NAME           READY   SECRET                 AGE
+    ingress-cert   True    example-router-certs   21s
+
+  $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET
+    ··· Output ···
+    NAME                  TYPE                 DATA   AGE
+    example-router-certs   kubernetes.io/tls   3      34s
+  ~~~
+
+  
+#### Replace the Default Ingress Certificate
+
+* Create a config map that includes only the root CA certificate that is used to sign the wildcard certificate
+  ~~~
+  oc create configmap custom-ca --from-file=ca-bundle.crt=rootCA.pem -n openshift-config
+  ~~~
+  
+* Update the cluster-wide proxy configuration with the newly created config map:
+  ~~~
+  oc patch proxy/cluster --type=merge --patch='{"spec":{"trustedCA":{"name":"custom-ca"}}}'
   ~~~
 
 * Update the Ingress Controller configuration with the newly created secret  
@@ -85,18 +115,35 @@
   -p "[{\"op\":\"replace\",\"path\":\"/spec/defaultCertificate\",\"value\":{\"name\":\"$INGRESS_CERT_SECRET\"}}]"
   ~~~
 
-* Verify that the ingress certificate has been updated
+* Confirm that the cluster status has returned to normal
   ~~~
+  oc get co
+  oc get mcp
+  oc get node
+  ~~~
+  
+#### Verify Automatic Certificate Renewal
+
+* Check that the Ingress Certificate Has Been Updated
+  ~~~
+  $ oc get certificaterequests.cert-manager.io -n openshift-ingress
+  ··· Output ···
+  NAME             APPROVED   DENIED   READY   ISSUER                  REQUESTER                                         AGE
+  ingress-cert-1   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   5m18s    
+
   $ oc get po -n openshift-ingress
   ··· Output ···
   NAME                              READY   STATUS    RESTARTS   AGE
-  router-default-768dbb9787-q8b9k   1/1     Running   0          2m48s
-  router-default-768dbb9787-sxk4x   1/1     Running   0          2m16s
+  router-default-85b58cfff6-hb5qd   1/1     Running   0          3m51s
+  router-default-85b58cfff6-xl7gt   1/1     Running   0          3m19s
 
+  $ date
+  Fri Nov 14 04:32:47 PM UTC 2025
+  
   $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
   ··· Output ···  
-  notBefore=Nov 14 11:21:05 2025 GMT
-  notAfter=Nov 14 13:21:05 2025 GMT
+  notBefore=Nov 14 16:26:28 2025 GMT
+  notAfter=Nov 14 18:26:28 2025 GMT
   issuer=CN = Test Workspace Signer
   subject=CN = apps.ocp.example.com
 
@@ -111,50 +158,69 @@
   depth=0 CN = apps.ocp.example.com
   verify return:1
   issuer=CN = Test Workspace Signer
-  notBefore=Nov 14 11:21:05 2025 GMT
-  notAfter=Nov 14 13:21:05 2025 GMT
+  notBefore=Nov 14 16:26:28 2025 GMT
+  notAfter=Nov 14 18:26:28 2025 GMT
   subject=CN = apps.ocp.example.com
   X509v3 Subject Alternative Name: 
       DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
   ~~~
 
-* Wait one hour to verify the automatic renewal of the ingress certificate
+* Wait and Verify Automatic Renewal
   ~~~
+  $ date
+  Fri Nov 14 05:31:51 PM UTC 2025
+
+  $ oc get certificaterequests.cert-manager.io -n openshift-ingress
+  ··· Output ···
+  NAME             APPROVED   DENIED   READY   ISSUER                  REQUESTER                                         AGE
+  ingress-cert-1   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   65m
+  ingress-cert-2   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   5m33s
+
+  $ oc get co | grep -v "True\s*False\s*False"
+  NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE  
+  kube-apiserver                             4.16.29   True        True          False      46d     NodeInstallerProgressing: 3 nodes are at revision 35; 0 nodes have achieved new revision 36
+  kube-controller-manager                    4.16.29   True        True          False      46d     NodeInstallerProgressing: 3 nodes are at revision 37; 0 nodes have achieved new revision 38
+  kube-scheduler                             4.16.29   True        True          False      46d     NodeInstallerProgressing: 1 node is at revision 35; 2 nodes are at revision 36; 0 nodes have achieved new revision 37
+
   # The router pod will not restart during certificate renewal.
   $ oc get po -n openshift-ingress
   ··· Output ···
   NAME                              READY   STATUS    RESTARTS   AGE
-  router-default-768dbb9787-q8b9k   1/1     Running   0          104m
-  router-default-768dbb9787-sxk4x   1/1     Running   0          104m
+  router-default-85b58cfff6-hb5qd   1/1     Running   0          64m
+  router-default-85b58cfff6-xl7gt   1/1     Running   0          63m
 
   $ openssl s_client -connect console-openshift-console.$INGRESS_DOMAIN:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
   ··· Output ···
-  depth=0 CN = apps.ocp.example.com
-  verify error:num=20:unable to get local issuer certificate
-  verify return:1
-  depth=0 CN = apps.ocp.example.com
-  verify error:num=21:unable to verify the first certificate
-  verify return:1
-  depth=0 CN = apps.ocp.example.com
-  verify return:1
-  issuer=CN = Test Workspace Signer
-  notBefore=Nov 14 12:21:05 2025 GMT
-  notAfter=Nov 14 14:21:05 2025 GMT
+  notBefore=Nov 14 17:26:28 2025 GMT
+  notAfter=Nov 14 19:26:28 2025 GMT
   subject=CN = apps.ocp.example.com
   X509v3 Subject Alternative Name: 
-      DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
+    DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
 
   $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
   ··· Output ···
-  notBefore=Nov 14 12:21:05 2025 GMT
-  notAfter=Nov 14 14:21:05 2025 GMT
+  notBefore=Nov 14 17:26:28 2025 GMT
+  notAfter=Nov 14 19:26:28 2025 GMT
   issuer=CN = Test Workspace Signer
   subject=CN = apps.ocp.example.com
 
 
+  $ date
+
+
+  $ oc get co | grep -v "True\s*False\s*False"
+  NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
+
+  
+  $ oc get certificaterequests.cert-manager.io -n openshift-ingress
+  ··· Output ···  
+
+
+  # The router pod will not restart during certificate renewal.
+  $ oc get po -n openshift-ingress
+  
   $ openssl s_client -connect console-openshift-console.$INGRESS_DOMAIN:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
   ··· Output ···
-  ···
   issuer=CN = Test Workspace Signer
   notBefore=Nov 14 13:21:05 2025 GMT
   notAfter=Nov 14 15:21:05 2025 GMT
@@ -175,4 +241,5 @@
   NAME                              READY   STATUS    RESTARTS   AGE
   router-default-768dbb9787-q8b9k   1/1     Running   0          122m
   router-default-768dbb9787-sxk4x   1/1     Running   0          122m
+
   ~~~
