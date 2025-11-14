@@ -87,17 +87,20 @@
 * Verify that the ingress certificate has been updated
   ~~~
   $ oc get po -n openshift-ingress
+  ··· Output ···
   NAME                              READY   STATUS    RESTARTS   AGE
   router-default-768dbb9787-q8b9k   1/1     Running   0          2m48s
   router-default-768dbb9787-sxk4x   1/1     Running   0          2m16s
 
   $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
+  ··· Output ···  
   notBefore=Nov 14 11:21:05 2025 GMT
   notAfter=Nov 14 13:21:05 2025 GMT
   issuer=CN = Test Workspace Signer
   subject=CN = apps.ocp.example.com
 
   $ openssl s_client -connect console-openshift-console.apps.ocp.example.com:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  ··· Output ···  
   depth=0 CN = apps.ocp.example.com
   verify error:num=20:unable to get local issuer certificate
   verify return:1
@@ -116,7 +119,14 @@
 
 * Wait one hour to verify the automatic renewal of the ingress certificate
   ~~~
+  $ oc get po -n openshift-ingress
+  ··· Output ···
+  NAME                              READY   STATUS    RESTARTS   AGE
+  router-default-768dbb9787-q8b9k   1/1     Running   0          104m
+  router-default-768dbb9787-sxk4x   1/1     Running   0          104m
+
   $ openssl s_client -connect console-openshift-console.apps.ocp.example.com:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  ··· Output ···
   depth=0 CN = apps.ocp.example.com
   verify error:num=20:unable to get local issuer certificate
   verify return:1
@@ -133,6 +143,7 @@
       DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
 
   $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
+  ··· Output ···
   notBefore=Nov 14 12:21:05 2025 GMT
   notAfter=Nov 14 14:21:05 2025 GMT
   issuer=CN = Test Workspace Signer
