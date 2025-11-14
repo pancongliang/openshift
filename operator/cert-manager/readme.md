@@ -177,6 +177,7 @@
   ingress-cert-2   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   5m33s
 
   $ oc get co | grep -v "True\s*False\s*False"
+  ··· Output ···  
   NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE  
   kube-apiserver                             4.16.29   True        True          False      46d     NodeInstallerProgressing: 3 nodes are at revision 35; 0 nodes have achieved new revision 36
   kube-controller-manager                    4.16.29   True        True          False      46d     NodeInstallerProgressing: 3 nodes are at revision 37; 0 nodes have achieved new revision 38
@@ -206,40 +207,41 @@
 
 
   $ date
-
+  Fri Nov 14 06:34:16 PM UTC 2025
 
   $ oc get co | grep -v "True\s*False\s*False"
+  ··· Output ···  
   NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
-
+  kube-apiserver                             4.16.29   True        True          False      46d     NodeInstallerProgressing: 3 nodes are at revision 36; 0 nodes have achieved new revision 37
+  kube-controller-manager                    4.16.29   True        True          False      46d     NodeInstallerProgressing: 2 nodes are at revision 39; 1 node is at revision 40
+  kube-scheduler                             4.16.29   True        True          False      46d     NodeInstallerProgressing: 1 node is at revision 37; 2 nodes are at revision 38; 0 nodes have achieved new revision 39
   
   $ oc get certificaterequests.cert-manager.io -n openshift-ingress
   ··· Output ···  
+  NAME             APPROVED   DENIED   READY   ISSUER                  REQUESTER                                         AGE
+  ingress-cert-1   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   128m
+  ingress-cert-2   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   68m
+  ingress-cert-3   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   8m13s
 
-
-  # The router pod will not restart during certificate renewal.
+  # The router pod will not restart during certificate renewal
+  ··· Output ···  
   $ oc get po -n openshift-ingress
-  
+  NAME                              READY   STATUS    RESTARTS   AGE
+  router-default-85b58cfff6-hb5qd   1/1     Running   0          127m
+  router-default-85b58cfff6-xl7gt   1/1     Running   0          126m
+
   $ openssl s_client -connect console-openshift-console.$INGRESS_DOMAIN:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
   ··· Output ···
-  issuer=CN = Test Workspace Signer
-  notBefore=Nov 14 13:21:05 2025 GMT
-  notAfter=Nov 14 15:21:05 2025 GMT
+  notBefore=Nov 14 18:26:28 2025 GMT
+  notAfter=Nov 14 20:26:28 2025 GMT
   subject=CN = apps.ocp.example.com
   X509v3 Subject Alternative Name: 
       DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
 
   $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
   ··· Output ···
-  notBefore=Nov 14 13:21:05 2025 GMT
-  notAfter=Nov 14 15:21:05 2025 GMT
+  notBefore=Nov 14 18:26:28 2025 GMT
+  notAfter=Nov 14 20:26:28 2025 GMT
   issuer=CN = Test Workspace Signer
   subject=CN = apps.ocp.example.com
-
-  # The router pod will not restart during certificate renewal.
-  $ oc get po -n openshift-ingress
-  ··· Output ···
-  NAME                              READY   STATUS    RESTARTS   AGE
-  router-default-768dbb9787-q8b9k   1/1     Running   0          122m
-  router-default-768dbb9787-sxk4x   1/1     Running   0          122m
-
   ~~~
