@@ -10,6 +10,7 @@
 * Create a Private CA Certificate
   ~~~
   openssl genrsa -out rootCA.key
+  
   openssl req -x509 \
     -new -nodes \
     -key rootCA.key \
@@ -26,26 +27,26 @@
 
 * Create a Secret to Store the CA in cert-manager Namespace
   ~~~
-  export SIGNER_SECRET=example-ca-signer
+  export CA_SIGNER_SECRET=example-ca-signer
   export CA_CRT=rootCA.pem
   export CA_KEY=rootCA.key
 
-  oc create secret tls -n cert-manager $SIGNER_SECRET --cert=$CA_CRT --key=$CA_KEY
+  oc create secret tls -n cert-manager $CA_SIGNER_SECRET --cert=$CA_CRT --key=$CA_KEY
   ~~~
 
 * Create a ClusterIssuer Using the Private CA
   ~~~
-  export CLUSTERISSUER=example-clusterissuer
-  export SIGNER_SECRET=example-ca-signer
+  export CLUSTER_ISSUER=example-clusterissuer
+  export CA_SIGNER_SECRET=example-ca-signer
 
   cat << EOF | oc apply -f -
   apiVersion: cert-manager.io/v1
   kind: ClusterIssuer
   metadata:
-    name: $CLUSTERISSUER
+    name: $CLUSTER_ISSUER
   spec:
     ca:
-      secretName: $SIGNER_SECRET
+      secretName: $CA_SIGNER_SECRET
   EOF
   ~~~
 
@@ -70,7 +71,7 @@
     - "$INGRESS_DOMAIN" 
     - "*.$INGRESS_DOMAIN" 
     issuerRef:
-      name: $CLUSTERISSUER
+      name: $CLUSTER_ISSUER
       kind: ClusterIssuer
     duration: $CERT_DURATION
     renewBefore: $CERT_RENEW_BEFORE_EXPIRY
