@@ -99,7 +99,7 @@
   issuer=CN = Test Workspace Signer
   subject=CN = apps.ocp.example.com
 
-  $ openssl s_client -connect console-openshift-console.apps.ocp.example.com:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  $ openssl s_client -connect console-openshift-console.$INGRESS_DOMAIN:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
   ··· Output ···  
   depth=0 CN = apps.ocp.example.com
   verify error:num=20:unable to get local issuer certificate
@@ -125,7 +125,7 @@
   router-default-768dbb9787-q8b9k   1/1     Running   0          104m
   router-default-768dbb9787-sxk4x   1/1     Running   0          104m
 
-  $ openssl s_client -connect console-openshift-console.apps.ocp.example.com:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  $ openssl s_client -connect console-openshift-console.$INGRESS_DOMAIN:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
   ··· Output ···
   depth=0 CN = apps.ocp.example.com
   verify error:num=20:unable to get local issuer certificate
