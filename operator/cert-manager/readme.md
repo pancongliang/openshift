@@ -36,7 +36,8 @@
 * Create a ClusterIssuer Using the Private CA
   ~~~
   export CLUSTERISSUER=example-clusterissuer
-  
+  export SIGNER_SECRET=example-ca-signer
+
   cat << EOF | oc apply -f -
   apiVersion: cert-manager.io/v1
   kind: ClusterIssuer
@@ -45,13 +46,14 @@
   spec:
     ca:
       secretName: $SIGNER_SECRET
-  EOF  
+  EOF
   ~~~
 
 * Create a New Certificate Request (e.g., for the Ingress Controller)
   ~~~
   export INGRESS_DOMAIN=apps.ocp.example.com
   export INGRESS_CERT_SECRET=router-certs-custom
+  
   cat << EOF | oc apply -f -
   apiVersion: cert-manager.io/v1
   kind: Certificate
@@ -68,8 +70,8 @@
     issuerRef:
       name: $CLUSTERISSUER
       kind: ClusterIssuer
-    duration: 2h
-    renewBefore: 1h
+    duration: 2h              # Certificate validity period
+    renewBefore: 1h           # Certificate Early renewal time
   EOF
   ~~~
 
@@ -80,7 +82,39 @@
   -p "[{\"op\":\"replace\",\"path\":\"/spec/defaultCertificate\",\"value\":{\"name\":\"$INGRESS_CERT_SECRET\"}}]"
   ~~~
 
-* Verify automatic renewal of ingress certificate
+* Verify that the ingress certificate has been updated
   ~~~
-  openssl s_client -connect console-openshift-console.apps.ocp.example.com:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  $ oc get po -n openshift-ingress
+  NAME                              READY   STATUS    RESTARTS   AGE
+  router-default-768dbb9787-q8b9k   1/1     Running   0          2m48s
+  router-default-768dbb9787-sxk4x   1/1     Running   0          2m16s
+
+  $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
+  notBefore=Nov 14 11:21:05 2025 GMT
+  notAfter=Nov 14 13:21:05 2025 GMT
+  issuer=CN = Test Workspace Signer
+  subject=CN = apps.ocp.example.com
+
+  $ openssl s_client -connect console-openshift-console.apps.ocp.example.com:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  depth=0 CN = apps.ocp.example.com
+  verify error:num=20:unable to get local issuer certificate
+  verify return:1
+  depth=0 CN = apps.ocp.example.com
+  verify error:num=21:unable to verify the first certificate
+  verify return:1
+  depth=0 CN = apps.ocp.example.com
+  verify return:1
+  issuer=CN = Test Workspace Signer
+  notBefore=Nov 14 11:21:05 2025 GMT
+  notAfter=Nov 14 13:21:05 2025 GMT
+  subject=CN = apps.ocp.example.com
+  X509v3 Subject Alternative Name: 
+      DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
+  ~~~
+
+* Wait one hour to verify the automatic renewal of the ingress certificate
+  ~~~
+  $ openssl s_client -connect console-openshift-console.apps.ocp.example.com:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+
+  $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
   ~~~
