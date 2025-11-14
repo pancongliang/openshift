@@ -1,0 +1,82 @@
+* Install the Operator using the default namespace
+  ~~~
+  export CHANNEL_NAME="stable-v1"
+  export CATALOG_SOURCE_NAME="redhat-operators"
+  export NAMESPACE="cert-manager-operator"
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/cert-manager/01-operator.yaml | envsubst | oc create -f -
+  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+  ~~~
+    
+* Create a Private CA Certificate
+  ~~~
+  openssl genrsa -out rootCA.key
+  openssl req -x509 \
+    -new -nodes \
+    -key rootCA.key \
+    -sha256 \
+    -days 36500 \
+    -out rootCA.pem \
+    -subj /CN="Test Workspace Signer" \
+    -reqexts SAN \
+    -extensions SAN \
+    -config <(cat /etc/pki/tls/openssl.cnf \
+  ~~~
+
+
+* Create a Secret to Store the CA in cert-manager Namespace
+  ~~~
+  export SIGNER_SECRET=example-ca-signer
+  export CA_CRT=rootCA.pem
+  export CA_KEY=rootCA.key
+
+  oc create secret tls -n cert-manager $SIGNER_SECRET --cert=$CA_CRT --key=$CA_KEY
+  ~~~
+
+* Create a ClusterIssuer Using the Private CA
+  ~~~
+  export CLUSTERISSUER=example-clusterissuer
+  
+  cat << EOF | oc apply -f -
+  apiVersion: cert-manager.io/v1
+  kind: ClusterIssuer
+  metadata:
+    name: $CLUSTERISSUER
+  spec:
+    ca:
+      secretName: $SIGNER_SECRET
+  EOF  
+  ~~~
+
+* Create a New Certificate Request (e.g., for the Ingress Controller)
+  ~~~
+  export INGRESS_DOMAIN=apps.ocp.example.com
+  export INGRESS_CERT_SECRET=router-certs-custom
+  cat << EOF | oc apply -f -
+  apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    name: ingress-cert
+    namespace: openshift-ingress
+  spec:
+    isCA: false
+    commonName: "$INGRESS_DOMAIN" 
+    secretName: $INGRESS_CERT_SECRET
+    dnsNames:
+    - "$INGRESS_DOMAIN" 
+    - "*.$INGRESS_DOMAIN" 
+    issuerRef:
+      name: $CLUSTERISSUER
+      kind: ClusterIssuer
+    duration: 2h
+    renewBefore: 1h
+  EOF
+  ~~~
+
+* Update the Ingress Controller configuration with the newly created secret  
+  ~~~
+  oc patch ingresscontroller.operator default \
+  --type=json -n openshift-ingress-operator \
+  -p "[{\"op\":\"replace\",\"path\":\"/spec/defaultCertificate\",\"value\":{\"name\":\"$INGRESS_CERT_SECRET\"}}]"
+  ~~~
+
+  
