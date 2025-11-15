@@ -2,9 +2,9 @@
 
 * Install the Operator using the default namespace
   ```
-  export CHANNEL_NAME="pipelines-1.17"
-  export CATALOG_SOURCE_NAME="redhat-operators"
-  export NAMESPACE="openshift-operators"
+  export SUB_CHANNEL="pipelines-1.17"
+  export CATALOG_SOURCE="redhat-operators"
+  export OPERATOR_NS="openshift-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/pipeline/01-operator.yaml | envsubst | oc create -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
