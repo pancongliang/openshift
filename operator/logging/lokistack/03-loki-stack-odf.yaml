@@ -5,7 +5,7 @@ metadata:
   namespace: openshift-logging
 spec:
   size: 1x.extra-small
-  storageClassName: ${STORAGE_CLASS_NAME}
+  storageClassName: ${STORAGE_CLASS}
   storage:
     secret:
       name: ${BUCKET_NAME}-credentials
