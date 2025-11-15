@@ -6,9 +6,10 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 # Set environment variables
 export COLLECTOR="fluentd"
 #export COLLECTOR="vector"
-export CHANNEL_NAME="stable"
+export SUB_CHANNEL="stable"
+export CATALOG_SOURCE=redhat-operators
 export STORAGE_CLASS_NAME="managed-nfs-storage"
-export CATALOG_SOURCE_NAME=redhat-operators
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
