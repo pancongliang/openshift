@@ -4,7 +4,7 @@
   ~~~
   export SUB_CHANNEL="stable-v1"
   export CATALOG_SOURCE="redhat-operators"
-  export NAMESPACE="cert-manager-operator"
+  export OPERATOR_NS="cert-manager-operator"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/cert-manager/01-operator.yaml | envsubst | oc create -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ~~~
