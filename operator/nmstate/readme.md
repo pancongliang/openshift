@@ -3,9 +3,9 @@
 ### Install NMState Operator
 * Install the Operator using the openshift-nmstate namespace
   ```
-  export CHANNEL_NAME="stable"
-  export CATALOG_SOURCE_NAME="redhat-operators"
-  export NAMESPACE="openshift-nmstate"
+  export SUB_CHANNEL="stable"
+  export CATALOG_SOURCE="redhat-operators"
+  export OPERATOR_NS="openshift-nmstate"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/nmstate/operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
