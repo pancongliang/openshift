@@ -19,8 +19,8 @@ metadata:
   name: openshift-gitops-operator
   namespace: openshift-gitops-operator
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: openshift-gitops-operator 
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
