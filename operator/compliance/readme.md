@@ -6,7 +6,7 @@
   ```
   export SUB_CHANNEL="stable"
   export CATALOG_SOURCE="redhat-operators"
-  export SUB_CHANNEL="openshift-compliance"
+  export OPERATOR_NS="openshift-compliance"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/compliance/01-operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
