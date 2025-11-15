@@ -44,16 +44,16 @@ oc delete user $KEYCLOAK_REALM_USER >/dev/null 2>&1 || true
 oc delete identity "$(oc get identity -o jsonpath="{.items[?(@.user.name=='${KEYCLOAK_REALM_USER}')].metadata.name}")" >/dev/null 2>&1 || true
 oc delete secret openid-client-secret -n openshift-config >/dev/null 2>&1 || true
 oc delete configmap openid-route-ca -n openshift-config >/dev/null 2>&1 || true
-oc delete keycloakrealmimport example-realm-import  -n $NAMESPACE  >/dev/null 2>&1 || true
-oc delete keycloak example-kc -n $NAMESPACE  >/dev/null 2>&1 || true
-oc delete secret example-tls-secret -n $NAMESPACE  >/dev/null 2>&1 || true
-oc delete secret keycloak-db-secret -n $NAMESPACE  >/dev/null 2>&1 || true
-oc delete statefulset postgresql-db -n $NAMESPACE  >/dev/null 2>&1 || true
-oc delete svc postgres-db -n $NAMESPACE  >/dev/null 2>&1 || true
-oc delete operatorgroup rhbk-operator-group $NAMESPACE >/dev/null 2>&1 || true
-oc delete sub rhbk-operator -n $NAMESPACE >/dev/null 2>&1 || true
-oc delete csv $(oc get csv -n "$NAMESPACE" -o name | grep rhbk-operator | awk -F/ '{print $2}') -n "$NAMESPACE" 
-oc delete ns $NAMESPACE >/dev/null 2>&1 || true
+oc delete keycloakrealmimport example-realm-import  -n $OPERATOR_NS  >/dev/null 2>&1 || true
+oc delete keycloak example-kc -n $OPERATOR_NS  >/dev/null 2>&1 || true
+oc delete secret example-tls-secret -n $OPERATOR_NS  >/dev/null 2>&1 || true
+oc delete secret keycloak-db-secret -n $OPERATOR_NS  >/dev/null 2>&1 || true
+oc delete statefulset postgresql-db -n $OPERATOR_NS  >/dev/null 2>&1 || true
+oc delete svc postgres-db -n $OPERATOR_NS  >/dev/null 2>&1 || true
+oc delete operatorgroup rhbk-operator-group $OPERATOR_NS >/dev/null 2>&1 || true
+oc delete sub rhbk-operator -n $OPERATOR_NS >/dev/null 2>&1 || true
+oc delete csv $(oc get csv -n "$OPERATOR_NS" -o name | grep rhbk-operator | awk -F/ '{print $2}') -n "$OPERATOR_NS" 
+oc delete ns $OPERATOR_NS >/dev/null 2>&1 || true
 
 # Add an empty line after the task
 echo
@@ -66,22 +66,22 @@ cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ${NAMESPACE}
+  name: ${OPERATOR_NS}
 ---
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: rhbk-operator-group
-  namespace: ${NAMESPACE}
+  namespace: ${OPERATOR_NS}
 spec:
   targetNamespaces:
-  - ${NAMESPACE}
+  - ${OPERATOR_NS}
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: rhbk-operator
-  namespace: ${NAMESPACE}
+  namespace: ${OPERATOR_NS}
 spec:
   channel: ${SUB_CHANNEL}
   installPlanApproval: Manual
@@ -104,7 +104,7 @@ pod_name=rhbk-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -149,7 +149,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgresql-db
-  namespace: ${NAMESPACE}
+  namespace: ${OPERATOR_NS}
 spec:
   serviceName: postgresql-db-service
   selector:
@@ -190,7 +190,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-db
-  namespace: ${NAMESPACE}
+  namespace: ${OPERATOR_NS}
 spec:
   selector:
     app: postgresql-db
@@ -211,7 +211,7 @@ pod_name=postgresql-db-0
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po $pod_name -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
+    output=$(oc get po $pod_name -n "$OPERATOR_NS" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -248,7 +248,7 @@ kind: Secret
 apiVersion: v1
 metadata:
   name: keycloak-db-secret
-  namespace: ${NAMESPACE}
+  namespace: ${OPERATOR_NS}
 stringData:
   password: testpassword
   username: testuser
@@ -305,7 +305,7 @@ openssl x509 \
 run_command "[Generate SSL certificate signed by root CA]"
 
 # Create secret for Keycloak TLS certificate
-oc create secret -n ${NAMESPACE} tls example-tls-secret --cert=ssl.crt --key=ssl.key >/dev/null 2>&1
+oc create secret -n ${OPERATOR_NS} tls example-tls-secret --cert=ssl.crt --key=ssl.key >/dev/null 2>&1
 run_command "[Create a secret containing the keycloak SSL certificate]"
 
 # Clean temporary files
@@ -325,7 +325,7 @@ apiVersion: k8s.keycloak.org/v2alpha1
 kind: Keycloak
 metadata:
   name: example-kc
-  namespace: ${NAMESPACE}
+  namespace: ${OPERATOR_NS}
 spec:
   instances: 1
   db:
@@ -355,7 +355,7 @@ pod_name=example-kc-0
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po $pod_name -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
+    output=$(oc get po $pod_name -n "$OPERATOR_NS" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -401,12 +401,12 @@ CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.hos
 run_command "[OpenShift Console host detected: ${CONSOLE_HOST}]"
 
 # Create Keycloak client secret
-oc create secret generic keycloak-client-secret --from-literal=client-secret=$(openssl rand -base64 32) -n ${NAMESPACE}  >/dev/null 2>&1
+oc create secret generic keycloak-client-secret --from-literal=client-secret=$(openssl rand -base64 32) -n ${OPERATOR_NS}  >/dev/null 2>&1
 run_command "[Create the Keycloak client secret]"
 
 sleep 3
 
-CLIENT_SECRET=$(oc get -n ${NAMESPACE} secret keycloak-client-secret -o jsonpath='{.data.client-secret}' | base64 --decode)
+CLIENT_SECRET=$(oc get -n ${OPERATOR_NS} secret keycloak-client-secret -o jsonpath='{.data.client-secret}' | base64 --decode)
 run_command "[Keycloak client secret detected: ${CLIENT_SECRET}]"
 
 sleep 1
@@ -417,7 +417,7 @@ apiVersion: k8s.keycloak.org/v2alpha1
 kind: KeycloakRealmImport
 metadata:
   name: example-realm-import
-  namespace: ${NAMESPACE}
+  namespace: ${OPERATOR_NS}
 spec:
   keycloakCRName: example-kc
   realm:
@@ -474,7 +474,7 @@ progress_started=false
 
 while true; do
     # Ignore errors if the resource is not yet created
-    status=$(oc get keycloakrealmimports/${REALM_IMPORT} -n ${NAMESPACE} -o go-template='{{range .status.conditions}}{{.type}}={{.status}} {{end}}' 2>/dev/null || true)
+    status=$(oc get keycloakrealmimports/${REALM_IMPORT} -n ${OPERATOR_NS} -o go-template='{{range .status.conditions}}{{.type}}={{.status}} {{end}}' 2>/dev/null || true)
 
     started=$(echo "$status" | grep -o "Started=True" || true)
     done=$(echo "$status" | grep -o "Done=True" || true)
@@ -516,7 +516,7 @@ echo
 PRINT_TASK "TASK [Configure Identity Providers]"
 
 # Create a generic secret in OpenShift config namespace using the existing Keycloak client secret
-oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret -o jsonpath='{.data.client-secret}' | base64 -d) -n openshift-config >/dev/null 2>&1
+oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${OPERATOR_NS} get secret keycloak-client-secret -o jsonpath='{.data.client-secret}' | base64 -d) -n openshift-config >/dev/null 2>&1
 run_command "[Creates a secret that includes the Keycloak client key]"
 
 # Extract the Router CA certificate to a local file
@@ -534,7 +534,7 @@ run_command "[Create a ConfigMap that contains the router's CA certificate]"
 rm -rf tls.crt >/dev/null 2>&1
 
 # Apply Identity Provider configuration
-export KEYCLOAK_HOST=$(oc get route -n ${NAMESPACE} -l app.kubernetes.io/instance=example-kc -o jsonpath='{.items[0].spec.host}')
+export KEYCLOAK_HOST=$(oc get route -n ${OPERATOR_NS} -l app.kubernetes.io/instance=example-kc -o jsonpath='{.items[0].spec.host}')
 
 # Configure Identity Providers
 cat << EOF | oc apply -f - >/dev/null 2>&1
@@ -608,8 +608,8 @@ done
 
 
 # Configure OpenShift console logout redirection to Keycloak
-CLIENT_ID=$(oc get keycloakrealmimport -n ${NAMESPACE} example-realm-import -o jsonpath='{.spec.realm.clients[0].clientId}')
-KEYCLOAK_HOST=$(oc get route -n ${NAMESPACE} -l app.kubernetes.io/instance=example-kc -o jsonpath='{.items[0].spec.host}')
+CLIENT_ID=$(oc get keycloakrealmimport -n ${OPERATOR_NS} example-realm-import -o jsonpath='{.spec.realm.clients[0].clientId}')
+KEYCLOAK_HOST=$(oc get route -n ${OPERATOR_NS} -l app.kubernetes.io/instance=example-kc -o jsonpath='{.items[0].spec.host}')
 CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
 
 oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
@@ -669,11 +669,11 @@ oc adm policy add-cluster-role-to-user cluster-admin $KEYCLOAK_REALM_USER >/dev/
 run_command "[Grant cluster-admin privileges to the $KEYCLOAK_REALM_USER account]"
 
 # Retrieve Keycloak route
-KEYCLOAK_HOST=$(oc get route -n ${NAMESPACE} -l app.kubernetes.io/instance=example-kc -o jsonpath='{.items[0].spec.host}')
+KEYCLOAK_HOST=$(oc get route -n ${OPERATOR_NS} -l app.kubernetes.io/instance=example-kc -o jsonpath='{.items[0].spec.host}')
 
 # Retrieve Keycloak admin credentials
-KEYCLOAK_INITIAL_ADMIN_USER=$(oc -n ${NAMESPACE} get secret example-kc-initial-admin -o jsonpath='{.data.username}' | base64 --decode)
-KEYCLOAK_INITIAL_ADMIN_PASSWORD=$(oc -n ${NAMESPACE} get secret example-kc-initial-admin -o jsonpath='{.data.password}' | base64 --decode)
+KEYCLOAK_INITIAL_ADMIN_USER=$(oc -n ${OPERATOR_NS} get secret example-kc-initial-admin -o jsonpath='{.data.username}' | base64 --decode)
+KEYCLOAK_INITIAL_ADMIN_PASSWORD=$(oc -n ${OPERATOR_NS} get secret example-kc-initial-admin -o jsonpath='{.data.password}' | base64 --decode)
 
 # Print variables for verification (optional)
 echo "info: [Keycloak Host -> https://$KEYCLOAK_HOST]"
