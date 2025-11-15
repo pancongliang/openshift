@@ -7,7 +7,7 @@
   ```
   export SUB_CHANNEL="stable"
   export CATALOG_SOURCE="redhat-operators"
-  export NAMESPACE="rhsso"
+  export OPERATOR_NS="rhsso"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/01-operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
@@ -18,6 +18,8 @@
   
 * Create Keycloak
   ```
+  export NAMESPACE="$OPERATOR_NS"
+  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc create -f -
   oc get po -n ${NAMESPACE}
   ```
@@ -27,7 +29,6 @@
   oc get route keycloak -o jsonpath='{.spec.host}' -n ${NAMESPACE}
 
   # Username
-  export NAMESPACE="rhsso"
   oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_USERNAME}' -n ${NAMESPACE} | base64 -d && echo
   # Password
   oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${NAMESPACE} | base64 -d && echo
