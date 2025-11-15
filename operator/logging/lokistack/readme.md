@@ -8,8 +8,10 @@
   export SUB_CHANNEL="stable-5.9"
   export CATALOG_SOURCE="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/01-operator.yaml | envsubst | oc create -f -
+
   export OPERATOR_NS="openshift-logging"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+
   export OPERATOR_NS="openshift-operators-redhat"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
@@ -18,10 +20,13 @@
   export SUB_CHANNEL="stable-6.1"
   export CATALOG_SOURCE="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/01-operator-v6.yaml | envsubst | oc create -f -
+
   export OPERATOR_NS="openshift-logging"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+
   export OPERATOR_NS="openshift-operators-redhat"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+
   export OPERATOR_NS="openshift-cluster-observability-operator"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
