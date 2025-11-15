@@ -244,4 +244,37 @@
   notAfter=Nov 14 20:26:28 2025 GMT
   issuer=CN = Test Workspace Signer
   subject=CN = apps.ocp.example.com
+
+
+  $ date
+  Sat Nov 15 10:08:34 AM UTC 2025
+  
+  $ oc get certificaterequests.cert-manager.io -n openshift-ingress
+  ··· Output ···  
+  ···
+  ingress-cert-16   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   163m
+  ingress-cert-17   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   103m
+  ingress-cert-18   True                True    example-clusterissuer   system:serviceaccount:cert-manager:cert-manager   43m
+
+  # The router pod will not restart during certificate renewal
+  ··· Output ···  
+  $ oc get po -n openshift-ingress
+  NAME                              READY   STATUS    RESTARTS   AGE
+  router-default-85b58cfff6-hb5qd   1/1     Running   0          17h
+  router-default-85b58cfff6-xl7gt   1/1     Running   0          17h
+
+  $ openssl s_client -connect console-openshift-console.$INGRESS_DOMAIN:443 -showcerts | openssl x509 -noout -issuer -dates -subject -ext subjectAltName
+  ··· Output ···
+  notBefore=Nov 15 09:26:28 2025 GMT
+  notAfter=Nov 15 11:26:28 2025 GMT
+  subject=CN = apps.ocp.example.com
+  X509v3 Subject Alternative Name: 
+      DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
+
+  $ oc get secret -n openshift-ingress $INGRESS_CERT_SECRET -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer -subject
+  ··· Output ···
+  notBefore=Nov 15 09:26:28 2025 GMT
+  notAfter=Nov 15 11:26:28 2025 GMT
+  issuer=CN = Test Workspace Signer
+  subject=CN = apps.ocp.example.com
   ~~~
