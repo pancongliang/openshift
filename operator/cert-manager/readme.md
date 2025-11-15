@@ -2,8 +2,8 @@
 #### Install Cert Manager Operator
 * Install the Operator using the default namespace
   ~~~
-  export CHANNEL_NAME="stable-v1"
-  export CATALOG_SOURCE_NAME="redhat-operators"
+  export SUB_CHANNEL="stable-v1"
+  export CATALOG_SOURCE="redhat-operators"
   export NAMESPACE="cert-manager-operator"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/cert-manager/01-operator.yaml | envsubst | oc create -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
