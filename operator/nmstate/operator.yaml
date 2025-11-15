@@ -28,8 +28,8 @@ metadata:
   name: kubernetes-nmstate-operator
   namespace: openshift-nmstate
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: kubernetes-nmstate-operator
-  source:  ${CATALOG_SOURCE_NAME}
+  source:  ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
