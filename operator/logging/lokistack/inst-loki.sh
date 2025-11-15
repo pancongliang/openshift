@@ -4,11 +4,11 @@ set -euo pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export LOGGING_CHANNEL_NAME="stable-6.1"
-export LOKI_CHANNEL_NAME="stable-6.1"
-export OBSERVABILITY_CHANNEL_NAME="stable"
-export CATALOG_SOURCE_NAME=redhat-operators
-export STORAGE_CLASS_NAME="managed-nfs-storage"
+export LOGGING_SUB_CHANNEL="stable-6.1"
+export LOKI_SUB_CHANNEL="stable-6.1"
+export OBSERVABILITY_SUB_CHANNEL="stable"
+export CATALOG_SOURCE=redhat-operators
+export STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 
 
@@ -203,10 +203,10 @@ metadata:
   name: cluster-logging
   namespace: openshift-logging 
 spec:
-  channel: ${LOGGING_CHANNEL_NAME}
+  channel: ${LOGGING_SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: cluster-logging
-  source: $CATALOG_SOURCE_NAME
+  source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[create a cluster-logging-operator]"
@@ -225,10 +225,10 @@ metadata:
   name: "loki-operator"
   namespace: "openshift-operators-redhat" 
 spec:
-  channel: ${LOKI_CHANNEL_NAME}
+  channel: ${LOKI_SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: loki-operator
-  source: $CATALOG_SOURCE_NAME
+  source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[create a loki-operator]"
@@ -248,10 +248,10 @@ metadata:
   name: cluster-observability-operator
   namespace: openshift-cluster-observability-operator
 spec:
-  channel: ${OBSERVABILITY_CHANNEL_NAME}
+  channel: ${OBSERVABILITY_SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: cluster-observability-operator
-  source: $CATALOG_SOURCE_NAME
+  source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[create a cluster-observability-operator]"
@@ -430,7 +430,7 @@ spec:
     secret:
       name: ${BUCKET_NAME}-credentials
       type: s3
-  storageClassName: ${STORAGE_CLASS_NAME}
+  storageClassName: ${STORAGE_CLASS}
   tenants:
     mode: openshift-logging
 EOF
