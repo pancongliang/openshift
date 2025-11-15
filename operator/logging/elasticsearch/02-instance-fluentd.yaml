@@ -17,7 +17,7 @@ spec:
     elasticsearch:
       nodeCount: 3
       storage:
-        storageClassName: ${STORAGE_CLASS_NAME}
+        storageClassName: ${STORAGE_CLASS}
         size: 100G
       resources: 
         limits:
