@@ -1,11 +1,11 @@
 apiVersion: keycloak.org/v1alpha1
 kind: KeycloakUser
 metadata:
-  name: ${KEYCLOAK_REALM_USER_NAME}
+  name: ${KEYCLOAK_REALM_USER}
   namespace: ${OPERATOR_NS}
 spec:
   user:
-    username: ${KEYCLOAK_REALM_USER_NAME}
+    username: ${KEYCLOAK_REALM_USER}
     credentials:
       - type: "password"
         value: "${KEYCLOAK_REALM_PASSWORD}"
