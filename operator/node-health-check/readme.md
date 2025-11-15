@@ -6,9 +6,10 @@
 
 * Install the Operator using the default namespace.
   ```
-  export CHANNEL_NAME="stable"
-  export CATALOG_SOURCE_NAME="redhat-operators"
-  export NAMESPACE="node-health-check"
+  export SUB_CHANNEL="stable"
+  export CATALOG_SOURCE="redhat-operators"
+  export OPERATOR_NS="node-health-check"
+
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/node-health-check/01-operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
