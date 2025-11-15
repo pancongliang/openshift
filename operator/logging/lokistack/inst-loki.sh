@@ -257,15 +257,15 @@ EOF
 run_command "[create a cluster-observability-operator]"
 
 # Approval IP
-export NAMESPACE="openshift-logging"
+export OPERATOR_NS="openshift-logging"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve cluster-logging-operator install plan]"
 
-export NAMESPACE="openshift-operators-redhat"
+export OPERATOR_NS="openshift-operators-redhat"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve loki-operator install plan]"
 
-export NAMESPACE="openshift-cluster-observability-operator"
+export OPERATOR_NS="openshift-cluster-observability-operator"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve cluster-observability-operator install plan]"
 
