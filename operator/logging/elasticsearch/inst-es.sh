@@ -6,7 +6,8 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 # Set environment variables
 export COLLECTOR="fluentd"
 #export COLLECTOR="vector"
-export SUB_CHANNEL="stable"
+export LOGGING_SUB_CHANNEL="stable"
+export ES_SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
 export STORAGE_CLASS="managed-nfs-storage"
 
@@ -94,7 +95,7 @@ metadata:
   name: "elasticsearch-operator"
   namespace: "openshift-operators-redhat" 
 spec:
-  channel: ${SUB_CHANNEL}
+  channel: ${ES_SUB_CHANNEL}
   installPlanApproval: "Manual"
   source: ${CATALOG_SOURCE}
   sourceNamespace: "openshift-marketplace"
@@ -119,7 +120,7 @@ metadata:
   name: cluster-logging
   namespace: openshift-logging 
 spec:
-  channel: ${SUB_CHANNEL}
+  channel: ${LOGGING_SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: cluster-logging
   source: $CATALOG_SOURCE
