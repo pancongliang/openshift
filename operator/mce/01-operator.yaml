@@ -19,7 +19,7 @@ metadata:
   namespace: multicluster-engine
 spec:
   sourceNamespace: openshift-marketplace
-  source: ${CATALOG_SOURCE_NAME}
-  channel: ${CHANNEL_NAME}
+  source: ${CATALOG_SOURCE}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: multicluster-engine
