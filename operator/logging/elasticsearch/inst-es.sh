@@ -94,9 +94,9 @@ metadata:
   name: "elasticsearch-operator"
   namespace: "openshift-operators-redhat" 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: "openshift-marketplace"
   name: "elasticsearch-operator"
 
@@ -119,20 +119,20 @@ metadata:
   name: cluster-logging
   namespace: openshift-logging 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: cluster-logging
-  source: $CATALOG_SOURCE_NAME
+  source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[create a cluster-logging operator]"
 
 # Approval IP
-export NAMESPACE="openshift-logging"
+export OPERATOR_NS="openshift-logging"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve cluster-logging install plan]"
 
-export NAMESPACE="openshift-operators-redhat"
+export OPERATOR_NS="openshift-operators-redhat"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[approve elasticsearch-operator install plan]"
 
