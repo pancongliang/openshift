@@ -15,10 +15,10 @@ metadata:
   name: node-health-check-operator
   namespace: node-health-check 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: Manual 
   name: node-healthcheck-operator
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
   package: node-healthcheck-operator
 
