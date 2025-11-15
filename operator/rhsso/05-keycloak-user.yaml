@@ -1,14 +1,14 @@
 apiVersion: keycloak.org/v1alpha1
 kind: KeycloakUser
 metadata:
-  name: ${USER_NAME}
+  name: ${KEYCLOAK_REALM_USER_NAME}
   namespace: ${NAMESPACE}
 spec:
   user:
-    username: ${USER_NAME}
+    username: ${KEYCLOAK_REALM_USER_NAME}
     credentials:
       - type: "password"
-        value: "${PASSWORD}"
+        value: "${KEYCLOAK_REALM_PASSWORD}"
     enabled: true
     realmRoles:
       - "default-roles-openshift"
