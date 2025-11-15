@@ -6,11 +6,11 @@ trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
 # Need a default storageclass
 
 # Applying environment variables
-export USER_NAME=rhadmin
+export USER=rhadmin
 export PASSWORD=redhat
-export CHANNEL="stable"
 export NAMESPACE="rhsso"
-export CATALOG_SOURCE_NAME="redhat-operators"
+export SUB_CHANNEL="stable"
+export CATALOG_SOURCE="redhat-operators"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -212,14 +212,14 @@ while true; do
 done
 
 # Create a Keycloak user
-oc delete user $USER_NAME >/dev/null 2>&1 || true
+oc delete user $USER >/dev/null 2>&1 || true
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f - >/dev/null 2>&1
-run_command "[Create a user named $USER_NAME]"
+run_command "[Create a user named $USER]"
 
 sleep 5
 
-oc adm policy add-cluster-role-to-user cluster-admin $USER_NAME >/dev/null 2>&1 || true
-run_command "[Grant cluster-admin privileges to the $USER_NAME account]"
+oc adm policy add-cluster-role-to-user cluster-admin $USER >/dev/null 2>&1 || true
+run_command "[Grant cluster-admin privileges to the $USER account]"
 
 # Create client authenticator secret and ConfigMap containing router CA certificate
 oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config >/dev/null 2>&1
@@ -351,7 +351,7 @@ KEYCLOAK_ADMIN_PASSWORD=$(oc get secret credential-example-sso -o=jsonpath='{.da
 echo "info: [Keycloak host: $KEYCLOAK_HOST]"
 echo "info: [Keycloak console username: $KEYCLOAK_ADMIN_USER]"
 echo "info: [Keycloak console password: $KEYCLOAK_ADMIN_PASSWORD]"
-echo "info: [User created by keycloak: $USER_NAME/$PASSWORD]"
+echo "info: [User created by keycloak: $USER/$PASSWORD]"
 
 # Add an empty line after the task
 echo
