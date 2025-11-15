@@ -8,7 +8,7 @@ trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
 # Applying environment variables
 export USER=rhadmin
 export PASSWORD=redhat
-export NAMESPACE="rhsso"
+export OPERATOR_NS="rhsso"
 export SUB_CHANNEL="stable"
 export CATALOG_SOURCE="redhat-operators"
 
@@ -41,14 +41,14 @@ PRINT_TASK "TASK [Uninstall old rhsso resources]"
 echo "info: [Uninstall old rhsso resources...]"
 oc delete configmap openid-route-ca -n openshift-config >/dev/null 2>&1 || true
 oc delete secret openid-client-secret -n openshift-config >/dev/null 2>&1 || true
-oc delete keycloakuser --all -n $NAMESPACE >/dev/null 2>&1 || true
-oc delete keycloakclient --all -n $NAMESPACE >/dev/null 2>&1 || true
-oc delete keycloakrealm --all -n $NAMESPACE >/dev/null 2>&1 || true
-oc delete keycloak --all -n $NAMESPACE >/dev/null 2>&1 || true
-oc delete operatorgroup rhsso-operator-group $NAMESPACE >/dev/null 2>&1 || true
-oc delete sub rhsso-operator -n $NAMESPACE >/dev/null 2>&1 || true
-oc get csv -n $NAMESPACE -o name | grep rhsso-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n $NAMESPACE >/dev/null 2>&1 || true
-oc delete ns $NAMESPACE >/dev/null 2>&1 || true
+oc delete keycloakuser --all -n $OPERATOR_NS >/dev/null 2>&1 || true
+oc delete keycloakclient --all -n $OPERATOR_NS >/dev/null 2>&1 || true
+oc delete keycloakrealm --all -n $OPERATOR_NS >/dev/null 2>&1 || true
+oc delete keycloak --all -n $OPERATOR_NS >/dev/null 2>&1 || true
+oc delete operatorgroup rhsso-operator-group $OPERATOR_NS >/dev/null 2>&1 || true
+oc delete sub rhsso-operator -n $OPERATOR_NS >/dev/null 2>&1 || true
+oc get csv -n $OPERATOR_NS -o name | grep rhsso-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n $OPERATOR_NS >/dev/null 2>&1 || true
+oc delete ns $OPERATOR_NS >/dev/null 2>&1 || true
 
 # Add an empty line after the task
 echo
@@ -66,7 +66,7 @@ run_command "[Approve the install plan]"
 
 
 # Wait for rhsso-operator pods to be in 'Running' state
-NAMESPACE="rhsso"
+OPERATOR_NS="rhsso"
 MAX_RETRIES=180
 SLEEP_INTERVAL=5
 progress_started=false
@@ -75,7 +75,7 @@ pod_name=rhsso-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -115,7 +115,7 @@ run_command "[Create keycloak instance]"
 sleep 15
 
 # Wait for Keycloak pods to be in 'Running' state
-NAMESPACE="rhsso"
+OPERATOR_NS="rhsso"
 MAX_RETRIES=180
 SLEEP_INTERVAL=5
 progress_started=false
@@ -124,7 +124,7 @@ pod_name=keycloak
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -172,7 +172,7 @@ sleep 10
 
 # Initialize progress tracking
 # Configuration
-NAMESPACE="rhsso" 
+OPERATOR_NS="rhsso" 
 SECRET_NAME="keycloak-client-secret-example-client"
 MAX_RETRIES=180
 SLEEP_INTERVAL=5
@@ -181,7 +181,7 @@ retry_count=0
 
 while true; do
     # Check if the secret exists
-    secret_exists=$(oc get secret -n "$NAMESPACE" "$SECRET_NAME" --no-headers 2>/dev/null || true)
+    secret_exists=$(oc get secret -n "$OPERATOR_NS" "$SECRET_NAME" --no-headers 2>/dev/null || true)
     
     if [ -n "$secret_exists" ]; then
         # If progress was displayed, close it properly
@@ -222,7 +222,7 @@ oc adm policy add-cluster-role-to-user cluster-admin $USER >/dev/null 2>&1 || tr
 run_command "[Grant cluster-admin privileges to the $USER account]"
 
 # Create client authenticator secret and ConfigMap containing router CA certificate
-oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config >/dev/null 2>&1
+oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${OPERATOR_NS} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config >/dev/null 2>&1
 
 sudo rm -rf tls.crt >/dev/null 2>&1
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator --confirm >/dev/null >/dev/null 2>&1
@@ -234,7 +234,7 @@ run_command "[Create client authenticator secret and configmap containing router
 sudo rm -rf tls.crt >/dev/null 2>&1
 
 # Apply Identity Provider configuration
-export KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
+export KEYCLOAK_HOST=$(oc get route keycloak -n ${OPERATOR_NS} --template='{{.spec.host}}')
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-patch-identity-provider.yaml | envsubst | oc replace -f - >/dev/null 2>&1
 # curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-identity-provider.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 run_command "[Apply identity provider configuration]"
@@ -282,11 +282,11 @@ while true; do
 done
 
 # Configure OpenShift console logout redirection to Keycloak
-NAMESPACE="rhsso"
+OPERATOR_NS="rhsso"
 KEYCLOAK_CLIENT_NAME='example-client'
 KEYCLOAK_CLIENT_SECRET="keycloak-client-secret-${KEYCLOAK_CLIENT_NAME}"
 OPENID_CLIENT_ID=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_ID}' | base64 -d)
-KEYCLOAK_HOST=$(oc get route keycloak -n $NAMESPACE -o=jsonpath='{.spec.host}')
+KEYCLOAK_HOST=$(oc get route keycloak -n $OPERATOR_NS -o=jsonpath='{.spec.host}')
 CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
 
 oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
@@ -341,11 +341,11 @@ while true; do
 done
 
 # Retrieve Keycloak route
-KEYCLOAK_HOST=$(oc get route keycloak -o jsonpath='{.spec.host}' -n ${NAMESPACE})
+KEYCLOAK_HOST=$(oc get route keycloak -o jsonpath='{.spec.host}' -n ${OPERATOR_NS})
 
 # Retrieve Keycloak admin credentials
-KEYCLOAK_ADMIN_USER=$(oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_USERNAME}' -n ${NAMESPACE} | base64 -d)
-KEYCLOAK_ADMIN_PASSWORD=$(oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${NAMESPACE} | base64 -d)
+KEYCLOAK_ADMIN_USER=$(oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_USERNAME}' -n ${OPERATOR_NS} | base64 -d)
+KEYCLOAK_ADMIN_PASSWORD=$(oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${OPERATOR_NS} | base64 -d)
 
 # Print variables for verification (optional)
 echo "info: [Keycloak host: $KEYCLOAK_HOST]"
