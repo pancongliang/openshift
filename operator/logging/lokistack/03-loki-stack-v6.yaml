@@ -13,6 +13,6 @@ spec:
     secret:
       name: ${BUCKET_NAME}-credentials
       type: s3
-  storageClassName: ${STORAGE_CLASS_NAME}
+  storageClassName: ${STORAGE_CLASS}
   tenants:
     mode: openshift-logging
