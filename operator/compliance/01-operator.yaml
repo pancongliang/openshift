@@ -21,8 +21,8 @@ metadata:
   name: compliance-operator-sub
   namespace: openshift-compliance
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: compliance-operator
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
