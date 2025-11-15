@@ -18,8 +18,8 @@ metadata:
   name: hco-operatorhub
   namespace: openshift-cnv
 spec:
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   installPlanApproval: "Manual"
   sourceNamespace: openshift-marketplace
   name: kubevirt-hyperconverged
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
