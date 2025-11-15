@@ -2,7 +2,7 @@ apiVersion: keycloak.org/v1alpha1
 kind: KeycloakRealm
 metadata:
   name: example-keycloakrealm
-  namespace: ${NAMESPACE}
+  namespace: ${OPERATOR_NS}
   labels:
     app: sso
 spec:
