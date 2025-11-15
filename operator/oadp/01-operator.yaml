@@ -19,8 +19,8 @@ metadata:
   name: redhat-oadp-operator
   namespace: openshift-adp
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: Manual
   name: redhat-oadp-operator
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
