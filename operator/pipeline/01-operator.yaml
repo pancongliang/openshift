@@ -4,8 +4,8 @@ metadata:
   name: openshift-pipelines-operator-rh
   namespace: openshift-operators 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: openshift-pipelines-operator-rh
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
