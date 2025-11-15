@@ -7,9 +7,9 @@
 * To install the Operator using the default namespace, follow these steps:
 
   ```
-  export CHANNEL_NAME="release-2.12"
-  export CATALOG_SOURCE_NAME="redhat-operators"
-  export NAMESPACE="open-cluster-management"
+  export SUB_CHANNEL="release-2.12"
+  export CATALOG_SOURCE="redhat-operators"
+  export OPERATOR_NS="open-cluster-management"
 
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/acm/01-operator.yaml | envsubst | oc create -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
