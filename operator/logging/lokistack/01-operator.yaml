@@ -29,10 +29,10 @@ metadata:
   name: "loki-operator"
   namespace: "openshift-operators-redhat" 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: loki-operator
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
 ---
 apiVersion: operators.coreos.com/v1
@@ -50,8 +50,8 @@ metadata:
   name: cluster-logging
   namespace: openshift-logging 
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: cluster-logging
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
