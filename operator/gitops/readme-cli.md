@@ -2,9 +2,9 @@
 
 * Install the Operator using the default namespace
   ```
-  export CHANNEL_NAME="latest"
-  export CATALOG_SOURCE_NAME="redhat-operators"
-  export NAMESPACE="openshift-gitops-operator"
+  export SUB_CHANNEL="latest"
+  export CATALOG_SOURCE="redhat-operators"
+  export OPERATOR_NS="openshift-gitops-operator"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/gitops/01-operator.yaml | envsubst | oc apply -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
