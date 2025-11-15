@@ -20,7 +20,7 @@
 
 * Deploy [NFS Storage Class](/storage/nfs-sc/readme.md)
   ```
-  export STORAGE_CLASS_NAME="managed-nfs-storage"
+  export STORAGE_CLASS="managed-nfs-storage"
   ```
 
 * Create ClusterLogging instance
