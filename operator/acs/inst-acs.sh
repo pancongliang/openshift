@@ -5,8 +5,8 @@ trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
 # A default storage class is needed: https://github.com/pancongliang/openshift/blob/main/storage/nfs-sc/readme.md
-export CHANNEL_NAME="stable"
-export CATALOG_SOURCE_NAME=redhat-operators
+export SUB_CHANNEL="stable"
+export CATALOG_SOURCE=redhat-operators
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -81,9 +81,9 @@ metadata:
   name: rhacs-operator
   namespace: rhacs-operator
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   name: rhacs-operator
   sourceNamespace: openshift-marketplace
 EOF
@@ -92,7 +92,7 @@ run_command "[Installing rhacs operator...]"
 sleep 30
 
 # Approval IP
-export NAMESPACE="rhacs-operator"
+export OPERATOR_NS="rhacs-operator"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[Approve rhacs-operator install plan]"
 
