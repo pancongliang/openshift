@@ -18,8 +18,8 @@ metadata:
   name: ingress-node-firewall-sub
   namespace: openshift-ingress-node-firewall
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: Manual
   name: ingress-node-firewall
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
