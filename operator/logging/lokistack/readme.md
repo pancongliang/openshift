@@ -5,24 +5,24 @@
 
 * If the operator version is 5.9 or below
   ```
-  export CHANNEL_NAME="stable-5.9"
-  export CATALOG_SOURCE_NAME="redhat-operators"
+  export SUB_CHANNEL="stable-5.9"
+  export CATALOG_SOURCE="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/01-operator.yaml | envsubst | oc create -f -
-  export NAMESPACE="openshift-logging"
+  export OPERATOR_NS="openshift-logging"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-  export NAMESPACE="openshift-operators-redhat"
+  export OPERATOR_NS="openshift-operators-redhat"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 * If the operator version is 6.0 or above
   ```
-  export CHANNEL_NAME="stable-6.1"
-  export CATALOG_SOURCE_NAME="redhat-operators"
+  export SUB_CHANNEL="stable-6.1"
+  export CATALOG_SOURCE="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/01-operator-v6.yaml | envsubst | oc create -f -
-  export NAMESPACE="openshift-logging"
+  export OPERATOR_NS="openshift-logging"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-  export NAMESPACE="openshift-operators-redhat"
+  export OPERATOR_NS="openshift-operators-redhat"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-  export NAMESPACE="openshift-cluster-observability-operator"
+  export OPERATOR_NS="openshift-cluster-observability-operator"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
 
@@ -48,7 +48,7 @@
   
 * If the operator version is 5.9 or below, create the LokiStack ClusterLogging ClusterLogForwarder resource as follows
   ```
-  export STORAGE_CLASS_NAME="managed-nfs-storage"
+  export STORAGE_CLASS="managed-nfs-storage"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack.yaml | envsubst | oc create -f -
 
   oc get po -n openshift-logging 
@@ -56,7 +56,7 @@
 
 * If the operator version is 6.0 or above, create the LokiStack ClusterLogging ClusterLogForwarder resource as follows:
   ```
-  export STORAGE_CLASS_NAME="managed-nfs-storage"
+  export STORAGE_CLASSE="managed-nfs-storage"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack-v6.yaml | envsubst | oc create -f -
   oc get po -n openshift-logging
 
@@ -107,7 +107,7 @@
 
 * Create extra-small LokiStack ClusterLogging ClusterLogForwarder resource
    ```
-  export STORAGE_CLASS_NAME="ocs-storagecluster-cephfs"  # or  managed-nfs-storage
+  export STORAGE_CLASS="ocs-storagecluster-cephfs"  # or  managed-nfs-storage
   export BUCKET_NAME="${OBC_NAME}"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/lokistack/03-loki-stack-odf.yaml | envsubst | oc apply -f -
    ```
