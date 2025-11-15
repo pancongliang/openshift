@@ -4,14 +4,14 @@
 
 * Install the Operator using the default namespace
   ```
-  export ES_CHANNEL_NAME="stable"
-  export LOGGING_CHANNEL_NAME="stable-5.9"
-  export CATALOG_SOURCE_NAME="redhat-operators"
+  export ES_SUB_CHANNEL="stable"
+  export LOGGING_SUB_CHANNEL="stable-5.9"
+  export CATALOG_SOURCE="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/01-operator.yaml | envsubst | oc apply -f -
-  export NAMESPACE="openshift-logging"
+  export OPERATOR_NS="openshift-logging"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   sleep 3
-  export NAMESPACE="openshift-operators-redhat"
+  export OPERATOR_NS="openshift-operators-redhat"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
   
