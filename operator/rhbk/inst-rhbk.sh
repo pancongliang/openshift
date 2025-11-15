@@ -4,13 +4,14 @@ set -euo pipefail
 trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Applying environment variables
-export NAMESPACE="keycloak"
-export CHANNEL="stable-v26.4"
+export OPERATOR_NS="keycloak"
+export SUB_CHANNEL="stable-v26.4"
+export CATALOG_SOURCE=redhat-operators
+export KEYCLOAK_HOST="keycloak.apps.ocp.example.com"
+export STORAGE_CLASS="managed-nfs-storage"
 export KEYCLOAK_REALM_USER=rhadmin
 export KEYCLOAK_REALM_PASSWORD=redhat
-export KEYCLOAK_HOST="keycloak.apps.ocp.example.com"
-export STORAGE_CLASS_NAME="managed-nfs-storage"
-export CATALOG_SOURCE_NAME=redhat-operators
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -82,10 +83,10 @@ metadata:
   name: rhbk-operator
   namespace: ${NAMESPACE}
 spec:
-  channel: ${CHANNEL}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: Manual
   name: rhbk-operator
-  source: ${CATALOG_SOURCE_NAME}
+  source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[Installing redhat build of keycloak operator...]"
@@ -180,7 +181,7 @@ spec:
       name: psql
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "$STORAGE_CLASS_NAME"
+      storageClassName: "$STORAGE_CLASS"
       resources:
         requests:
           storage: 10Gi
