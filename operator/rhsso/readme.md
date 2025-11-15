@@ -18,20 +18,18 @@
   
 * Create Keycloak
   ```
-  export NAMESPACE="$OPERATOR_NS"
-  
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/02-keycloak.yaml | envsubst | oc create -f -
-  oc get po -n ${NAMESPACE}
+  oc get po -n ${OPERATOR_NS}
   ```
   
 * Keycloak console URL and username/password information
   ```
-  oc get route keycloak -o jsonpath='{.spec.host}' -n ${NAMESPACE}
+  oc get route keycloak -o jsonpath='{.spec.host}' -n ${OPERATOR_NS}
 
   # Username
-  oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_USERNAME}' -n ${NAMESPACE} | base64 -d && echo
+  oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_USERNAME}' -n ${OPERATOR_NS} | base64 -d && echo
   # Password
-  oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${NAMESPACE} | base64 -d && echo
+  oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${OPERATOR_NS} | base64 -d && echo
   ```
   
 ### Configuring the Red Hat Single Sign-On Operator
@@ -60,8 +58,8 @@
   > Can update properties in the YAML file and changes appear in the Red Hat Single Sign-On admin console,
   > however changes to the admin console do not update the custom resource.
   ```
-  export USER_NAME=rhadmin
-  export PASSWORD=redhat
+  export KEYCLOAK_REALM_USER=rhadmin
+  export KEYCLOAK_REALM_PASSWORD=redhat
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/05-keycloak-user.yaml | envsubst | oc apply -f -
   ```
 
@@ -69,14 +67,14 @@
 
 * Create client authenticator secret and configmap containing router-ca certificate
   ```
-  oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${NAMESPACE} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config
+  oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${OPERATOR_NS} get secret keycloak-client-secret-example-client -o jsonpath='{.data.CLIENT_SECRET}' | base64 -d) -n openshift-config
   oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator
   oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config && rm -rf tls.crt
   ```
 
 * Configure Identity Providers
   ```
-  export KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
+  export KEYCLOAK_HOST=$(oc get route keycloak -n ${OPERATOR_NS} --template='{{.spec.host}}')
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/06-identity-provider.yaml | envsubst | oc apply -f -
   ```
 
@@ -88,11 +86,11 @@
 ### Configure logout Redirect in OpenShift
 * Set up RHSSO logout and redirection for OpenShift Console
   ```
-  export NAMESPACE=rhsso
-  KEYCLOAK_CLIENT_NAME='example-client'     # oc get keycloakclients -n $NAMESPACE
+  export OPERATOR_NS=rhsso
+  KEYCLOAK_CLIENT_NAME='example-client'     # oc get keycloakclients -n $OPERATOR_NS
   KEYCLOAK_CLIENT_SECRET="keycloak-client-secret-${KEYCLOAK_CLIENT_NAME}"
   OPENID_CLIENT_ID=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_ID}' | base64 -d)
-  KEYCLOAK_HOST=$(oc get route keycloak -n $NAMESPACE -o=jsonpath='{.spec.host}')
+  KEYCLOAK_HOST=$(oc get route keycloak -n $OPERATOR_NS -o=jsonpath='{.spec.host}')
   CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
 
   oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
@@ -109,18 +107,18 @@
 
 * Set up RHSSO [logout](https://www.redhat.com/en/blog/sso-integration-for-the-openshift-gitops-operator) and redirection for OpenShift GitOps
   ```
-  export NAMESPACE=rhsso
+  export OPERATOR_NS=rhsso
   export OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
   export GITOPS_HOST=$(oc get route openshift-gitops-server -o jsonpath='{.spec.host}' -n openshift-gitops)
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/rhsso/04-keycloak-gitops-client.yaml | envsubst | oc create -f -
   
   # No changes required
-  KEYCLOAK_CLIENT_NAME='gitops-client'   # oc get keycloakclients -n $NAMESPACE
-  KEYCLOAK_HOST=$(oc get route keycloak -n ${NAMESPACE} --template='{{.spec.host}}')
-  KEYCLOAK_CLIENT_SECRET=$(oc get keycloakclients -n $NAMESPACE $KEYCLOAK_CLIENT_NAME -o jsonpath='{.status.secondaryResources.Secret[0]}')
+  KEYCLOAK_CLIENT_NAME='gitops-client'   # oc get keycloakclients -n $OPERATOR_NS
+  KEYCLOAK_HOST=$(oc get route keycloak -n ${OPERATOR_NS} --template='{{.spec.host}}')
+  KEYCLOAK_CLIENT_SECRET=$(oc get keycloakclients -n $OPERATOR_NS $KEYCLOAK_CLIENT_NAME -o jsonpath='{.status.secondaryResources.Secret[0]}')
   KEYCLOAK_CLIENT_SECRET="keycloak-client-secret-${KEYCLOAK_CLIENT_NAME}"
-  KEYCLOAK_REALM_NAME=$(oc get keycloakrealms -n "$NAMESPACE" -o=jsonpath='{.items[0].metadata.name}')
-  REALM=$(oc get keycloakrealms "$KEYCLOAK_REALM_NAME" -n "$NAMESPACE" -o=jsonpath='{.spec.realm.realm}')
+  KEYCLOAK_REALM_NAME=$(oc get keycloakrealms -n "$OPERATOR_NS" -o=jsonpath='{.items[0].metadata.name}')
+  REALM=$(oc get keycloakrealms "$KEYCLOAK_REALM_NAME" -n "$OPERATOR_NS" -o=jsonpath='{.spec.realm.realm}')
   OPENID_CLIENT_ID=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_ID}' | base64 -d)
   OPENID_CLIENT_SECRET=$(oc get secret "$KEYCLOAK_CLIENT_SECRET" -n rhsso -o jsonpath='{.data.CLIENT_SECRET}')
   OPENID_ISSUER="$KEYCLOAK_HOST/auth/realms/$REALM"
