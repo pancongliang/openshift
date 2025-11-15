@@ -8,7 +8,7 @@ export COLLECTOR="fluentd"
 #export COLLECTOR="vector"
 export SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
-export STORAGE_CLASS_NAME="managed-nfs-storage"
+export STORAGE_CLASS="managed-nfs-storage"
 
 
 # Function to print a task with uniform length
