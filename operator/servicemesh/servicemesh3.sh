@@ -4,8 +4,7 @@ set -euo pipefail
 trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Applying environment variables
-export STORAGE_CLASS_NAME="managed-nfs-storage"
-#export STORAGE_CLASS_NAME="gp2-csi"
+export STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 
 cat << EOF | oc create -f -
@@ -379,7 +378,7 @@ metadata:
   name: minio-pvc
   namespace: minio
 spec:
-  storageClassName: ${STORAGE_CLASS_NAME}
+  storageClassName: ${STORAGE_CLASS}
   accessModes:
     - ReadWriteOnce
   resources:
