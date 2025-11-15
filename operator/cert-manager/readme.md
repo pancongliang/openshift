@@ -58,8 +58,8 @@
   ~~~
   export INGRESS_DOMAIN=apps.ocp.example.com
   export INGRESS_CERT_SECRET=example-router-certs
-  export CERT_DURATION="2h"                       # Validity period of the certificate
-  export CERT_RENEW_BEFORE_EXPIRY="1h"            # Time before expiry to renew the certificate
+  export CERT_DURATION="2h"
+  export CERT_RENEW_BEFORE="1h"
 
   cat << EOF | oc apply -f -
   apiVersion: cert-manager.io/v1
@@ -78,7 +78,7 @@
       name: $CLUSTER_ISSUER
       kind: ClusterIssuer
     duration: $CERT_DURATION
-    renewBefore: $CERT_RENEW_BEFORE_EXPIRY
+    renewBefore: $CERT_RENEW_BEFORE
   EOF  
   ~~~
 
