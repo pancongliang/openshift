@@ -8,9 +8,10 @@
   export LOGGING_SUB_CHANNEL="stable-5.9"
   export CATALOG_SOURCE="redhat-operators"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/01-operator.yaml | envsubst | oc apply -f -
+
   export OPERATOR_NS="openshift-logging"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-  sleep 3
+
   export OPERATOR_NS="openshift-operators-redhat"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
