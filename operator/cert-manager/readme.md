@@ -21,7 +21,7 @@
     -sha256 \
     -days 36500 \
     -out rootCA.pem \
-    -subj /CN="Test Workspace Signer" \
+    -subj /CN="Local Test Private Root CA" \
     -reqexts SAN \
     -extensions SAN \
     -config <(cat /etc/pki/tls/openssl.cnf \
