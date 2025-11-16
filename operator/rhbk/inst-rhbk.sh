@@ -259,7 +259,7 @@ run_command "[Create a database secret]"
 echo
 
 # Step 3:
-PRINT_TASK "TASK [Use the Router CA to generate a Keycloak SSL certificate]"
+PRINT_TASK "TASK [Use the Router CA to generate a Keycloak TLS certificate]"
 
 export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 export CERT_VALID_DAYS=36500
@@ -305,7 +305,7 @@ run_command "[Generate TLS certificate signed by root CA]"
 
 # Create secret for Keycloak TLS certificate
 oc create secret -n ${OPERATOR_NS} tls example-tls-secret --cert=tls.crt --key=tls.key >/dev/null 2>&1
-run_command "[Create a secret containing the keycloak SSL certificate]"
+run_command "[Create a secret containing the keycloak TLS certificate]"
 
 # Clean temporary files
 rm -rf rootCA.key  rootCA.pem  rootCA.srl  tls.crt  tls.csr  tls.key
