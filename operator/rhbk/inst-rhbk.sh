@@ -8,10 +8,9 @@ export OPERATOR_NS="keycloak"
 export SUB_CHANNEL="stable-v26.4"
 export CATALOG_SOURCE=redhat-operators
 export KEYCLOAK_HOST="keycloak.apps.ocp.example.com"
-export STORAGE_CLASS="managed-nfs-storage"
 export KEYCLOAK_REALM_USER=rhadmin
 export KEYCLOAK_REALM_PASSWORD=redhat
-
+export STORAGE_CLASS="managed-nfs-storage"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -266,7 +265,7 @@ export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 export CERT_VALID_DAYS=36500
 
 # Clean old files
-rm -rf rootCA.key  rootCA.pem  rootCA.srl  ssl.crt  ssl.csr  ssl.key  tls.key  tls.crt
+rm -rf rootCA.key  rootCA.pem  rootCA.srl  tls.crt  tls.csr  tls.key
 
 # Extract router CA certificate and key
 oc extract secret/router-ca -n openshift-ingress-operator --keys=tls.crt,tls.key >/dev/null 2>&1
@@ -278,38 +277,38 @@ sleep 1
 mv tls.key rootCA.key
 mv tls.crt rootCA.pem
 
-# Generate the SSL key
-openssl genrsa -out ssl.key 2048 > /dev/null 2>&1
-run_command "[Generate SSL private key]"
+# Generate the TLS key
+openssl genrsa -out tls.key 2048 > /dev/null 2>&1
+run_command "[Generate TLS private key]"
 
-# Generate a certificate signing request (CSR) for the SSL
+# Generate a certificate signing request (CSR) for the TLS
 openssl req -new -sha256 \
-    -key ssl.key \
-    -subj "/O=Local Red Hat CodeReady Workspaces/CN=${KEYCLOAK_HOST}" \
+    -key tls.key \
+    -subj "/O=Local Test Private Root CA/CN=${KEYCLOAK_HOST}" \
     -reqexts SAN \
     -config <(cat ${OPENSSL_CNF} \
         <(printf "\n[SAN]\nsubjectAltName=DNS:${KEYCLOAK_HOST}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
-    -out ssl.csr > /dev/null 2>&1
-run_command "[Generate SSL certificate signing request]"
+    -out tls.csr > /dev/null 2>&1
+run_command "[Generate TLS certificate signing request]"
 
-# Generate the SSL certificate (CRT)
+# Generate the TLS certificate (CRT)
 openssl x509 \
     -req \
     -sha256 \
     -extfile <(printf "subjectAltName=DNS:${KEYCLOAK_HOST}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth") \
     -days ${CERT_VALID_DAYS} \
-    -in ssl.csr \
+    -in tls.csr \
     -CA rootCA.pem \
     -CAkey rootCA.key \
-    -CAcreateserial -out ssl.crt  > /dev/null 2>&1
-run_command "[Generate SSL certificate signed by root CA]"
+    -CAcreateserial -out tls.crt  > /dev/null 2>&1
+run_command "[Generate TLS certificate signed by root CA]"
 
 # Create secret for Keycloak TLS certificate
-oc create secret -n ${OPERATOR_NS} tls example-tls-secret --cert=ssl.crt --key=ssl.key >/dev/null 2>&1
+oc create secret -n ${OPERATOR_NS} tls example-tls-secret --cert=tls.crt --key=tls.key >/dev/null 2>&1
 run_command "[Create a secret containing the keycloak SSL certificate]"
 
 # Clean temporary files
-rm -rf rootCA.key  rootCA.pem  rootCA.srl  ssl.crt  ssl.csr  ssl.key
+rm -rf rootCA.key  rootCA.pem  rootCA.srl  tls.crt  tls.csr  tls.key
 
 # Add an empty line after the task
 echo
