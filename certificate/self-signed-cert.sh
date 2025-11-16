@@ -62,7 +62,7 @@ run_command "[Generate TLS private key]"
 # Generate a certificate signing request (CSR) for the TLS
 openssl req -new -sha256 \
     -key ${CERT_OUTPUT_DIR}/tls.key \
-    -subj "/O=Local Red Hat CodeReady Workspaces/CN=${DOMAIN}" \
+    -subj "/O=${CA_CN}/CN=${DOMAIN}" \
     -reqexts SAN \
     -config <(cat ${OPENSSL_CNF} \
         <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
