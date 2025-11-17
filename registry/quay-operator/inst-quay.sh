@@ -4,11 +4,12 @@ set -euo pipefail
 trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export CHANNEL_NAME="stable-3.13"
-export STORAGE_CLASS_NAME="managed-nfs-storage"
+export SUB_CHANNEL="stable-3.14"
+export OPERATOR_NS=openshift-operators
+export CATALOG_SOURCE=redhat-operators
+export STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
-export CATALOG_SOURCE_NAME=redhat-operators
-
+export NAMESPACE="quay-enterprise"
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -35,12 +36,11 @@ PRINT_TASK "TASK [Uninstall old quay resources]"
 
 # Delete custom resources
 echo "info: [Uninstall custom resources...]"
-export NAMESPACE="quay-enterprise" || true
 oc delete quayregistry example-registry -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || true
 oc get csv -n openshift-operators -o name | grep quay-operator | awk -F/ '{print $2}'  | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
-oc delete ns quay-enterprise >/dev/null 2>&1 || true
+oc delete ns $NAMESPACE >/dev/null 2>&1 || true
 
 sleep 5
 
@@ -64,7 +64,6 @@ fi
 sleep 5
 
 # Wait for Minio pods to be in 'Running' state
-NAMESPACE="minio"
 MAX_RETRIES=100
 SLEEP_INTERVAL=2
 progress_started=false
@@ -73,7 +72,7 @@ pod_name=minio
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "minio" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -140,23 +139,21 @@ metadata:
   name: quay-operator
   namespace: openshift-operators
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: quay-operator
-  source: $CATALOG_SOURCE_NAME
+  source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
 EOF
 run_command "[Installing quay operator...]"
 
 # Approval IP
-export NAMESPACE="openshift-operators"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "[Approve openshift-operators install plan]"
 
 sleep 10
 
 # Wait for quay-operator pods to be in 'Running' state
-NAMESPACE="openshift-operators"
 MAX_RETRIES=60
 SLEEP_INTERVAL=2
 progress_started=false
@@ -165,7 +162,7 @@ pod_name=quay-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
@@ -197,7 +194,6 @@ while true; do
 done
 
 # Create a namespace
-export NAMESPACE="quay-enterprise"
 oc new-project $NAMESPACE >/dev/null 2>&1
 run_command "[Create a $NAMESPACE namespace]"
 
@@ -265,7 +261,6 @@ run_command "[Create a quay registry]"
 sleep 10
 
 # Wait for quay pods to be in 'Running' state
-NAMESPACE="quay-enterprise"
 MAX_RETRIES=60
 SLEEP_INTERVAL=5
 progress_started=false
@@ -279,7 +274,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for quay-enterprise namespace pods to be in 'Running' state"
+            echo -n "info: [Waiting for $NAMESPACE namespace pods to be in 'Running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -291,7 +286,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo "]"
-            echo "failed: [Reached max retries, quay-enterprise namespace pods may still be initializing]"
+            echo "failed: [Reached max retries, $NAMESPACE namespace pods may still be initializing]"
             exit 1 
         fi
     else
@@ -299,7 +294,7 @@ while true; do
         if $progress_started; then
             echo "]"
         fi
-        echo "ok: [All quay-enterprise namespace pods are in 'Running' state]"
+        echo "ok: [All $NAMESPACE namespace pods are in 'Running' state]"
         break
     fi
 done
@@ -328,7 +323,6 @@ run_command "[Trust the rootCA certificate]"
 sleep 10
 
 # Create a configmap containing the CA certificate
-export NAMESPACE="quay-enterprise"
 export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}') >/dev/null 2>&1
 
 sleep 10
@@ -491,6 +485,6 @@ echo
 # Step 6:
 PRINT_TASK "TASK [Manually create a user]"
 
-export URL="https://$(oc get route -n quay-enterprise example-registry-quay -o jsonpath='{.spec.host}')"
+export URL="https://$(oc get route -n $NAMESPACE example-registry-quay -o jsonpath='{.spec.host}')"
 echo "note: [***  Quay console: $URL  ***]"
 echo "note: [***  You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>  ***]"
