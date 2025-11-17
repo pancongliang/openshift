@@ -7,7 +7,7 @@ trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 export SUB_CHANNEL="stable-3.14"
 export OPERATOR_NS=openshift-operators
 export CATALOG_SOURCE=redhat-operators
-export STORAGE_CLASS="managed-nfs-storage"
+export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 export NAMESPACE="quay-enterprise"
 # Function to print a task with uniform length
