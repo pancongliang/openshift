@@ -4,9 +4,9 @@ set -euo pipefail
 trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-# A default storage class is needed: https://github.com/pancongliang/openshift/blob/main/storage/nfs-sc/readme.md
 export SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
+export DEFAULT_STORAGE_CLASS=managed-nfs-storage
 
 # Function to print a task with uniform length
 PRINT_TASK() {
