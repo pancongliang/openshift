@@ -235,7 +235,7 @@ run_command "[Create ${NFS_DIR} directory]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" >/dev/null 2>&1; then
-    echo "skipped: [User nfsnobody exists]"
+    echo "skipped: [Create the nfsnobody user]"
 else
     useradd nfsnobody
     echo "ok: [Create the nfsnobody user]"
