@@ -43,7 +43,7 @@ export VM_NETWORKS="cee-vlan-1167"
 # Automatically find unused IP addresses and assign them to nodes
 #export MACHINE_NETWORK_STARTIP="91"
 #export MACHINE_NETWORK_ENDIP="230"
-#export WORKER_REPLICAS=="2"
+#export WORKER_REPLICAS="2"
 #
 #CP=(); WK=(); BOOT=""
 #ip_prefix=$(echo "$MACHINE_NETWORK_CIDR" | cut -d'.' -f1-3)
