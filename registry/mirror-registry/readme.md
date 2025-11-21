@@ -4,7 +4,7 @@
 
 * Deploy the latest version of Mirror Registry
   ```
-  curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/inst-mirror-registry.sh
+  curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/main/registry/mirror-registry/inst-quay.sh
 
   vim inst-mirror-registry.sh
   export REGISTRY_HOST_NAME="mirror.registry.example.com"
