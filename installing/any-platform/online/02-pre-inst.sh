@@ -468,7 +468,7 @@ if ! sed -n '/^\[main\]/,/^\[/{/dns=none/p}' /etc/NetworkManager/NetworkManager.
     sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
     echo "ok: [Prevent NetworkManager from modifying /etc/resolv.conf]"
 else
-    echo "skipped: [Prevent NetworkManager from modifying /etc/resolv.conf]"
+    echo "ok: [Prevent NetworkManager from modifying /etc/resolv.conf]"
 fi
 
 # Restart service
