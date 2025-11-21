@@ -682,7 +682,6 @@ sleep 15
 #                          # local messages are retrieved through imjournal now.
 #module(load="imjournal"             # provides access to the systemd journal
 #       UsePid="system" # PID nummber is retrieved as the ID of the process the journal entry originates from
-#       FileCreateMode="0644" # Set the access permissions for the state file
 #       StateFile="imjournal.state") # File to store the position in the journal
 ##module(load="imklog") # reads kernel messages (the same are read from journald)
 ##module(load="immark") # provides --MARK-- message capability
