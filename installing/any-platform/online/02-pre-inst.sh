@@ -659,8 +659,8 @@ sleep 15
 #EOF
 #run_command "[Generate /etc/rsyslog.d/haproxy.conf configuration file]"
 
-#rm -rf /etc/haproxy/haproxy.cfg 
-#cat << EOF > /etc/haproxy/haproxy.cfg 
+#rm -rf /etc/rsyslog.conf
+#cat << EOF > /etc/rsyslog.conf
 ## rsyslog configuration file
 #
 ## For more information see /usr/share/doc/rsyslog-*/rsyslog_conf.html
