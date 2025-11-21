@@ -745,11 +745,11 @@ sleep 15
 #run_command "[Generate rsyslog configuration to write HAProxy logs to /var/log/haproxy.log]"
 
 # Enable and start service
-systemctl enable --now rsyslog >/dev/null 2>&1
-run_command "[Enable rsyslog service at boot]"
+#systemctl enable --now rsyslog >/dev/null 2>&1
+#run_command "[Enable rsyslog service at boot]"
 
 #systemctl restart rsyslog
-run_command "[Restart rsyslog service]"
+#run_command "[Restart rsyslog service]"
 
 # Add an empty line after the task
 echo
