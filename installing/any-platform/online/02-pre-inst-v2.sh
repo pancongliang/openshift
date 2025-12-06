@@ -881,7 +881,7 @@ spec:
     name: htpasswd-user
     type: HTPasswd
 EOF
-run_command "[Create OAuth htpasswd identityprovider manifests]"
+run_command "[Create oauth htpasswd identityprovider manifests]"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-image-registry-persistentvolume.yaml
 apiVersion: v1
