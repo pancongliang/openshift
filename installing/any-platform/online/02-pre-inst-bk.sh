@@ -114,6 +114,7 @@ rm -f /usr/local/bin/README.md >/dev/null 2>&1
 rm -f openshift-install-linux.tar.gz* >/dev/null 2>&1
 rm -f openshift-client-linux-amd64-rhel8.tar.gz* >/dev/null 2>&1
 rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
+rm -f /etc/bash_completion.d/oc_completion >/dev/null 2>&1
 
 # Download the openshift-install
 echo "info: [Preparing download of openshift-install tool]"
@@ -160,6 +161,10 @@ run_command "[Set permissions for /usr/local/bin/kubectl]"
 
 rm -f /usr/local/bin/README.md >/dev/null 2>&1
 rm -rf $openshift_client >/dev/null 2>&1
+
+# completion command:
+bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' || true
+run_command "[Enable oc bash completion]"
 
 # Add an empty line after the task
 echo
@@ -228,12 +233,6 @@ echo
 # Step 7:
 PRINT_TASK "TASK [Configure and Verify NFS Service]"
 
-# Create NFS directories
-rm -rf ${NFS_DIR} >/dev/null 2>&1
-sleep 1
-mkdir -p ${NFS_DIR} >/dev/null 2>&1
-run_command "[Create ${NFS_DIR} directory]"
-
 # Add nfsnobody user if not exists
 if id "nfsnobody" >/dev/null 2>&1; then
     echo "skipped: [Create the nfsnobody user]"
@@ -242,12 +241,18 @@ else
     echo "ok: [Create the nfsnobody user]"
 fi
 
-# Change ownership and permissions
-chown -R nfsnobody.nfsnobody ${NFS_DIR} >/dev/null 2>&1
-run_command "[Set ownership of nfs directory]"
+# Create NFS directories
+rm -rf ${NFS_DIR} >/dev/null 2>&1
+sleep 1
+mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
+run_command "[Create ${NFS_DIR} directory]"
 
 chmod -R 777 ${NFS_DIR} >/dev/null 2>&1
 run_command "[Set permissions of nfs directory]"
+
+# Change ownership and permissions
+chown -R nfsnobody.nfsnobody ${NFS_DIR} >/dev/null 2>&1
+run_command "[Set ownership of nfs directory]"
 
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
@@ -809,7 +814,7 @@ run_command "[Create ${HTTPD_DIR}/install-config.yaml file]"
 echo
 
 # Step 11:
-PRINT_TASK "TASK [Generate Kubernetes Manifests and Ignition Configs]"
+PRINT_TASK "TASK [Creating the Kubernetes manifest and Ignition config files]"
 
 # Create installation directory
 rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
@@ -923,7 +928,7 @@ run_command "[Create imageregistry config manifests]"
 
 # Generate and modify ignition configuration files
 /usr/local/bin/openshift-install create ignition-configs --dir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[Generate ignition config files]"
+run_command "[Create the ignition configuration files]"
 
 # Add an empty line after the task
 echo
@@ -1011,3 +1016,24 @@ run_command "[Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver
 
 # Add an empty line after the task
 echo
+
+# Step 14:
+PRINT_TASK "TASK [Kubeconfig setup and cluster login instructions]"
+
+# Backup and configure kubeconfig
+rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1 || true
+cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
+grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
+run_command "[Add kubeconfig to ~/.bash_profile]"
+
+echo "info: [Default login: use kubeconfig]"
+echo "info: [HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443]"
+
+# Add an empty line after the task
+echo
+
+# Step 15:
+PRINT_TASK "TASK [Booting from RHCOS ISO and installing OCP]"
+info: [Bootstrap node: curl -s http://BASTION_IP:8080/pre/bs | sh]
+info: [Control Plane nodes: curl -s http://BASTION_IP:8080/pre/cp | sh]
+info: [Worker nodes: curl -s http://BASTION_IP:8080/pre/worker | sh]
