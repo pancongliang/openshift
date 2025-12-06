@@ -1034,10 +1034,10 @@ echo
 
 # Step 15:
 PRINT_TASK "TASK [Booting from RHCOS ISO and installing OCP]"
-info: [Bootstrap node: curl -s http://BASTION_IP:8080/pre/bs | sh]
-info: [Control Plane nodes: curl -s http://BASTION_IP:8080/pre/m1| sh]
-info: [Control Plane nodes: curl -s http://BASTION_IP:8080/pre/m2| sh]
-info: [Control Plane nodes: curl -s http://BASTION_IP:8080/pre/m3| sh]
-info: [Worker nodes: curl -s http://BASTION_IP:8080/pre/w1 | sh]
-info: [Worker nodes: curl -s http://BASTION_IP:8080/pre/w2 | sh]
-info: [Worker nodes: curl -s http://BASTION_IP:8080/pre/w3 | sh]
+info: [Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs | sh]
+info: [Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1| sh]
+info: [Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2| sh]
+info: [Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3| sh]
+info: [Worker nodes: curl -s http://$BASTION_IP:8080/pre/w1 | sh]
+info: [Worker nodes: curl -s http://$BASTION_IP:8080/pre/w2 | sh]
+info: [Worker nodes: curl -s http://$BASTION_IP:8080/pre/w3 | sh]
