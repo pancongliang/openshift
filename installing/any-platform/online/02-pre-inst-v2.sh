@@ -245,7 +245,7 @@ fi
 rm -rf ${NFS_DIR} >/dev/null 2>&1
 sleep 1
 mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
-run_command "[Create ${NFS_DIR} directory]"
+run_command "[Create nfs directory]"
 
 chmod -R 777 ${NFS_DIR} >/dev/null 2>&1
 run_command "[Set permissions of nfs directory]"
