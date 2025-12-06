@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Specify the OpenShift release version
-export OCP_VERSION="4.16.52"
+export OCP_VERSION="4.16.21"
 
 # Specify required parameters for install-config.yaml
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
@@ -47,7 +47,7 @@ export SERVICE_CIDR="172.30.0.0/16"
 # Specify the NFS directory to use for the image-registry pod PV
 export NFS_SERVER_IP="$BASTION_IP"
 export NFS_DIR="/nfs"
-export IMAGE_REGISTRY_PV="image-registry"
+export IMAGE_REGISTRY_PV="image-registry-storage"
 
 # Specify the HTTPD path to serve the Ignition file for download
 export HTTPD_DIR="/var/www/html/materials"
