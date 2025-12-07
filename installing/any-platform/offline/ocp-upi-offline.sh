@@ -401,9 +401,6 @@ run_command "Enable httpd service at boot"
 systemctl restart httpd >/dev/null 2>&1
 run_command "Restart httpd service"
 
-# Wait for the service to restart
-sleep 15
-
 # Test httpd configuration
 rm -rf ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 sleep 1
@@ -460,7 +457,7 @@ systemctl restart nfs-server >/dev/null 2>&1
 run_command "Restart nfs server service"
 
 # Wait for the service to restart
-sleep 15
+sleep 5
 
 # Create the mount point
 umount /tmp/nfs-test >/dev/null 2>&1 || true
@@ -674,7 +671,7 @@ systemctl restart NetworkManager >/dev/null 2>&1
 run_command "Restart the network manager service"
 
 # Wait for the service to restart
-sleep 15
+sleep 3
 
 # List of hostnames and IP addresses to check
 hostnames=(
@@ -847,7 +844,7 @@ systemctl restart haproxy >/dev/null 2>&1
 run_command "Restart haproxy service"
 
 # Wait for the service to restart
-sleep 15
+sleep 3
 
 # Configure HAProxy logs to be written to /var/log/haproxy.log
 #rm -rf /etc/rsyslog.d/haproxy.conf
