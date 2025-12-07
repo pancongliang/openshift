@@ -1358,7 +1358,7 @@ run_command "Create ${IMAGE_SET_CONF_PATH}/imageset-config.yaml file"
 # Mirroring ocp release image
 /usr/local/bin/oc-mirror --config=${IMAGE_SET_CONF_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
 
-rm -rf "${IMAGE_SET_CONF_PATH}"
+rm -rf oc-mirror-workspace
 EOF
 run_command "Generate ocp image mirroring script: ${INSTALL_DIR}/mirror-img.sh"
 
