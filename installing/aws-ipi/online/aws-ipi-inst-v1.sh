@@ -284,8 +284,8 @@ run_command "Create oauth htpasswd identityprovider manifests"
 /usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "Install OpenShift AWS IPI completed"
 
-echo -e "\e[96mINFO\e[0m Login using htpasswd user: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443"
-echo -e "\e[96mINFO\e[0m Login using kubeconfig: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig"
+echo -e "\e[96mINFO\e[0m HTPasswd login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443"
+echo -e "\e[96mINFO\e[0m kubeconfig login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig"
 
 # Add an empty line after the task
 echo
