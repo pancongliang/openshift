@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export OCP_VERSION=4.16.29                              # Only supports installation of version 4.14+
@@ -14,7 +14,7 @@ export VCENTER_PASSWORD="xxxxx"
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
 export MACHINE_NETWORK_CIDR="10.184.134.0/24"
-export MACHINE_NETWORK_STARTIP="91"
+export MACHINE_NETWORK_STARTIP="41"
 export MACHINE_NETWORK_ENDIP="230"
 export GATEWAY="10.184.134.1"
 export NAMESERVER="10.184.134.30"                      # The nameserver needs to be able to resolve the vCenter URL
