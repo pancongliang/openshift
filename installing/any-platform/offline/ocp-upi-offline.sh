@@ -1372,14 +1372,9 @@ echo
 PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 
 # Backup and configure kubeconfig
-rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1 || true
-cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
-run_command "Copy kubeconfig to ${INSTALL_DIR}/auth/kubeconfigbk"
-
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
-run_command "Add kubeconfig to $HOME/.bash_profile"
+run_command "Default login: use kubeconfig"
 
-echo -e "\e[96mINFO\e[0m Default login: use kubeconfig"
 echo -e "\e[96mINFO\e[0m HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
 echo -e "\e[33mACTION\e[0m Please manually run: source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile"
 
