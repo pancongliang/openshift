@@ -60,10 +60,10 @@ PRINT_TASK "TASK [Install OpenShift Install and Client Tools]"
 
 # Determine the operating system
 OS_TYPE=$(uname -s)
-echo -e "\e[96mINFO\e[0mClient operating system: $OS_TYPE"
+echo -e "\e[96mINFO\e[0m Client operating system: $OS_TYPE"
 
 ARCH=$(uname -m)
-echo -e "\e[96mINFO\e[0mClient architecture: $ARCH"
+echo -e "\e[96mINFO\e[0m Client architecture: $ARCH"
 
 # Handle macOS
 if [ "$OS_TYPE" = "Darwin" ]; then
@@ -77,7 +77,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Installer
-    echo -e "\e[96mINFO\e[0mPreparing download of openshift-install tool"
+    echo -e "\e[96mINFO\e[0m Preparing download of openshift-install tool"
     curl -sL "$download_url" -o "$openshift_install"
     run_command "Download openshift-install"
 
@@ -100,7 +100,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Client
-    echo -e "\e[96mINFO\e[0mPreparing download of openshift-client tool"
+    echo -e "\e[96mINFO\e[0m Preparing download of openshift-client tool"
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift-client"
 
@@ -122,7 +122,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
 # Handle Linux
 elif [ "$OS_TYPE" = "Linux" ]; then
     # Download the OpenShift Installer
-    echo -e "\e[96mINFO\e[0mPreparing download of openshift-install tool"
+    echo -e "\e[96mINFO\e[0m Preparing download of openshift-install tool"
     curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "Download openshift-install tool"
 
@@ -153,7 +153,7 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     fi
 
     # Download the OpenShift client
-    echo -e "\e[96mINFO\e[0mPreparing download of openshift-client tool"
+    echo -e "\e[96mINFO\e[0m Preparing download of openshift-client tool"
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift client tool"
 
@@ -284,8 +284,8 @@ run_command "Create oauth htpasswd identityprovider manifests"
 /usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "Install OpenShift AWS IPI completed"
 
-echo -e "\e[96mINFO\e[0mLogin using htpasswd user: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443"
-echo -e "\e[96mINFO\e[0mLogin using kubeconfig: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig"
+echo -e "\e[96mINFO\e[0m Login using htpasswd user: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443"
+echo -e "\e[96mINFO\e[0m Login using kubeconfig: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig"
 
 # Add an empty line after the task
 echo
