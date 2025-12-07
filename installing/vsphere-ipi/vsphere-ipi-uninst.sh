@@ -21,15 +21,14 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        echo "ok: $1"
+        echo -e "\e[96mINFO\e[0m $1"
     else
-        echo "failed: $1"
+        echo -e "\e[31mFAILED\e[0m $1"
         exit 1
     fi
 }
 
 PRINT_TASK "TASK [Uninstalling a cluster]"
 
-echo "info: [Preparing uninstall the cluster]"
 /usr/local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
-run_command "[Uninstalled cluster]"
+run_command "Uninstalled cluster"
