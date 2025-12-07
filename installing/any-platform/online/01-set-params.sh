@@ -75,9 +75,6 @@ PRINT_TASK() {
     echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
 }
 
-# Step 1:
-PRINT_TASK "TASK [Configure Environment Variables]"
-
 # Function to check command success and display appropriate message
 run_command() {
     local exit_code=$?
@@ -87,6 +84,9 @@ run_command() {
         echo "failed: $1"
     fi
 }
+
+# Step 1:
+PRINT_TASK "TASK [Configure Environment Variables]"
 
 cat $PULL_SECRET_FILE >/dev/null 2>&1
 run_command "[Verify existence of $PULL_SECRET_FILE file]"
