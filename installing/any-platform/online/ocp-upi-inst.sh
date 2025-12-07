@@ -177,9 +177,9 @@ run_command "Set hostname to ${BASTION_HOSTNAME}"
 timedatectl set-timezone UTC
 run_command "Set time zone to UTC"
 
-# Write LANG=en_US.UTF-8 to the ./bash_profile file]
+# Write LANG=en_US.UTF-8 to the $HOME/bash_profile file]
 grep -q "^export LANG=en_US.UTF-8" ~/.bash_profile || echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
-run_command "Write LANG=en_US.UTF-8 to ./bash_profile"
+run_command "Write LANG=en_US.UTF-8 to $HOME/.bash_profile"
 
 # Add an empty line after the task
 echo
@@ -1160,7 +1160,7 @@ PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1 || true
 cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
-run_command "Add kubeconfig to ~/.bash_profile"
+run_command "Add kubeconfig to $HOME/.bash_profile"
 
 echo -e "\e[96mINFO\e[0m Default login: use kubeconfig"
 echo -e "\e[96mINFO\e[0m HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
