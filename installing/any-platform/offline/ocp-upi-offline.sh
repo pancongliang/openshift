@@ -457,7 +457,7 @@ systemctl restart nfs-server >/dev/null 2>&1
 run_command "Restart nfs server service"
 
 # Wait for the service to restart
-sleep 5
+sleep 3
 
 # Create the mount point
 umount /tmp/nfs-test >/dev/null 2>&1 || true
@@ -471,7 +471,7 @@ mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test >/dev/null 2>&1
 run_command "Mount nfs shared directory for testing: /tmp/nfs-test"
 
 # Wait mount the NFS share
-sleep 5
+sleep 3
 
 # Unmount the NFS share
 fuser -km /tmp/nfs-test >/dev/null 2>&1 || true
@@ -842,9 +842,6 @@ run_command "Enable haproxy service at boot"
 
 systemctl restart haproxy >/dev/null 2>&1
 run_command "Restart haproxy service"
-
-# Wait for the service to restart
-sleep 3
 
 # Configure HAProxy logs to be written to /var/log/haproxy.log
 #rm -rf /etc/rsyslog.d/haproxy.conf
