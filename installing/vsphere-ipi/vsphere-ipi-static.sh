@@ -106,7 +106,7 @@ sudo rm -rf vc_certs
 echo
 
 # Step 2:
-PRINT_TASK "TASK [Install openshift-install and openshift-client tools]"
+PRINT_TASK "TASK [Install OpenShift Install and Client Tools]"
 
 # Delete the old version of oc cli
 sudo rm -f /usr/local/bin/oc >/dev/null 2>&1
@@ -167,7 +167,7 @@ sudo rm -rf $openshift_client >/dev/null 2>&1
 echo
 
 # Step 3:
-PRINT_TASK "TASK [Create openshift cluster]"
+PRINT_TASK "TASK [Create OpenShift Cluster]"
 
 # Delete old records
 export API_OAUTH_ANNOTATION="Openshift vSphere-IPI API and OAUTH URL Resolve"
