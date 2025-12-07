@@ -87,7 +87,7 @@ packages=("podman" "bind-utils" "bind" "httpd" "httpd-tools" "haproxy" "nfs-util
 package_list="${packages[*]}"
 
 # Install all packages at once
-echo "info: [Preparing install rpm packages]"
+echo "ok: [Downloading RPM packages for installation...]"
 dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
@@ -117,7 +117,7 @@ rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
 rm -f /etc/bash_completion.d/oc_completion >/dev/null 2>&1
 
 # Download the openshift-install
-echo "info: [Preparing download of openshift-install tool]"
+echo "ok: [Downloading the openshift-install tool...]"
 
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
 run_command "[Download openshift-install tool]"
@@ -144,7 +144,7 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the OpenShift client
-echo "info: [Preparing download of openshift-client tool]"
+echo "ok: [Downloading the openshift-client tool...]"
 
 wget -q "$download_url" -O "$openshift_client"
 run_command "[Download openshift-client tool]"
@@ -183,7 +183,7 @@ update_httpd_listen_port() {
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
         echo "ok: [Set the httpd listening port to 8080]"
     else
-        echo "skipped: [Listening port for httpd is already set to 8080]"
+        echo "ok: [Listening port for httpd is already set to 8080]"
     fi
 }
 # Call the function to update listen port
@@ -235,7 +235,7 @@ PRINT_TASK "TASK [Configure and Verify NFS Service]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" >/dev/null 2>&1; then
-    echo "skipped: [Create the nfsnobody user]"
+    echo "ok: [The nfsnobody user is already present]"
 else
     useradd nfsnobody
     echo "ok: [Create the nfsnobody user]"
@@ -257,7 +257,7 @@ run_command "[Set ownership of nfs directory]"
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "skipped: [Export configuration for nfs already exists]"
+    echo "ok: [Export configuration for nfs already exists]"
 else
     echo "$export_config_line" >> "/etc/exports"
     echo "ok: [Setting up nfs export configuration]"
@@ -770,7 +770,7 @@ if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; t
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
     echo "ok: [Create an ssh-key for accessing the node]"
 else
-    echo "skipped: [Create an ssh-key for accessing the node]"
+    echo "ok: [SSH key for accessing the node already exists]"
 fi
 
 # If known_hosts exists, clear it without error
