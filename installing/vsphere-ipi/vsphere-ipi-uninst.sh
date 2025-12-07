@@ -29,5 +29,5 @@ run_command() {
 }
 
 PRINT_TASK "TASK [Uninstalling a cluster]"
-echo -e "\e[96mINFO\e[0m Starting the OpenShift cluster uninstallation"
+echo -e "\e[96mINFO\e[0m Starting the OpenShift cluster uninstallation..."
 /usr/local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
