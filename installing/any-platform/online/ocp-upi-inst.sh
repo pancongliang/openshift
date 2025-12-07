@@ -1166,6 +1166,8 @@ PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 # Backup and configure kubeconfig
 rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1 || true
 cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
+run_command "Copy kubeconfig to ${INSTALL_DIR}/auth/kubeconfigbk"
+
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
 run_command "Add kubeconfig to $HOME/.bash_profile"
 
