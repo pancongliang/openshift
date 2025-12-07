@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export OCP_VERSION=4.16.21                                     # Only supports installation of version 4.10+
@@ -9,8 +9,8 @@ export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"           # https://cloud.r
 export INSTALL_DIR="$HOME/ocp-inst/ocp"
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
-export VCENTER_USERNAME="xxxxx"
-export VCENTER_PASSWORD="xxxxx"
+export VCENTER_USERNAME="copan@cee.ibmc.devcluster.openshift.com"
+export VCENTER_PASSWORD="!Chonglyang0721"
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
 export MACHINE_NETWORK_CIDR="10.184.134.0/24"
