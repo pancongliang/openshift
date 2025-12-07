@@ -318,9 +318,6 @@ sshKey: |
 EOF
 run_command "Append remaining configuration $INSTALL_DIR/install-config.yaml"
 
-
-echo -e "\e[96mINFO\e[0m Preparing install the OpenShift cluster"
-
 export PATH="/usr/local/bin:$PATH"
 
 # Generate manifests
