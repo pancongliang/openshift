@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Set environment variables
-export REGISTRY_HOST_NAME="mirror.registry.example.com"
+export REGISTRY_HOSTNAME="mirror.registry.example.com"
 export REGISTRY_HOST_IP="10.184.134.128"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
@@ -73,7 +73,7 @@ else
 fi
 
 # Delete existing duplicate data
-rm -rf "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOST_NAME}.ca.pem" >/dev/null 2>&1
+rm -rf "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem" >/dev/null 2>&1
 rm -rf "${REGISTRY_INSTALL_DIR}" >/dev/null 2>&1
 
 # Add an empty line after the task
@@ -101,9 +101,9 @@ run_command "[Extract the mirror-registry package]"
 
 
 # Add registry entry to /etc/hosts
-if ! grep -q "$REGISTRY_HOST_NAME" /etc/hosts; then
+if ! grep -q "$REGISTRY_HOSTNAME" /etc/hosts; then
   echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts > /dev/null
-  echo "$REGISTRY_HOST_IP $REGISTRY_HOST_NAME" | sudo tee -a /etc/hosts > /dev/null
+  echo "$REGISTRY_HOST_IP $REGISTRY_HOSTNAME" | sudo tee -a /etc/hosts > /dev/null
   echo "ok: [Add registry entry to /etc/hosts]"
 else
   echo "skipping: [Registry entry already exists in /etc/hosts]"
@@ -114,7 +114,7 @@ echo "ok: [Start installing mirror-registry...]"
 
 # Install mirror-registry
 sudo ${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
-     --quayHostname ${REGISTRY_HOST_NAME} \
+     --quayHostname ${REGISTRY_HOSTNAME} \
      --quayRoot ${REGISTRY_INSTALL_DIR} \
      --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
      --sqliteStorage ${REGISTRY_INSTALL_DIR}/sqlite-storage \
@@ -148,8 +148,8 @@ while true; do
 done
 
 # Copy the rootCA certificate to the trusted source
-sudo cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOST_NAME}.ca.pem
-run_command "[Copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOST_NAME}.ca.pem]"
+sudo cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem
+run_command "[Copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem]"
 
 # Trust the rootCA certificate
 sudo update-ca-trust
@@ -160,8 +160,8 @@ sudo rm -rf pause.tar postgres.tar quay.tar redis.tar >/dev/null 2>&1
 run_command "[Delete the tar package: pause.tar postgres.tar quay.tar redis.tar]"
 
 # loggin registry
-sudo podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOST_NAME}:8443 >/dev/null 2>&1
-run_command "[Login registry https://${REGISTRY_HOST_NAME}:8443]"
+sudo podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}:8443 >/dev/null 2>&1
+run_command "[Login registry https://${REGISTRY_HOSTNAME}:8443]"
 
 # Add an empty line after the task
 echo
@@ -176,7 +176,7 @@ if [[ -n "$REGISTRY_CAS" ]]; then
   # If it exists, execute the following commands
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
-  oc create configmap registry-config --from-file=${REGISTRY_HOST_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOST_NAME}.ca.pem -n openshift-config >/dev/null 2>&1
+  oc create configmap registry-config --from-file=${REGISTRY_HOSTNAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem -n openshift-config >/dev/null 2>&1
   run_command  "[Create a configmap containing the registry CA certificate: registry-config]"
   
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
@@ -185,7 +185,7 @@ else
   # If it doesn't exist, execute the following commands
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
-  oc create configmap registry-cas --from-file=${REGISTRY_HOST_NAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOST_NAME}.ca.pem -n openshift-config >/dev/null 2>&1
+  oc create configmap registry-cas --from-file=${REGISTRY_HOSTNAME}..8443=/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem -n openshift-config >/dev/null 2>&1
   run_command  "[Create a configmap containing the registry CA certificate: registry-cas]"
 
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge >/dev/null 2>&1
@@ -202,7 +202,7 @@ sudo rm -rf pull-secret >/dev/null 2>&1
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
 run_command  "[Export pull-secret file]"
 
-podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile pull-secret ${REGISTRY_HOST_NAME}:8443 >/dev/null 2>&1
+podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile pull-secret ${REGISTRY_HOSTNAME}:8443 >/dev/null 2>&1
 run_command  "[Authentication identity information to the pull-secret file]"
 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
