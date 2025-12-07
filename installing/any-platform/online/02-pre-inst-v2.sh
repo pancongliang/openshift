@@ -814,7 +814,7 @@ run_command "[Create ${HTTPD_DIR}/install-config.yaml file]"
 echo
 
 # Step 11:
-PRINT_TASK "TASK [Creating the Kubernetes manifest and Ignition config files]"
+PRINT_TASK "TASK [Creating the Kubernetes Manifest and Ignition Config Files]"
 
 # Create installation directory
 rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
@@ -849,7 +849,7 @@ type: Opaque
 data:
   htpasswd: YWRtaW46JDJ5JDA1JDNLdkxTckw0TDhXb3Z4cVk3eGpLRWUxVHg0U21PODZBR3VxSzVteVRDTmVLeG80dmNtaFpxCg==
 EOF
-run_command "[Create htpasswd secret manifests]]"
+run_command "[Create htpasswd secret manifests]"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-clusterrolebinding-cluster-admin-0.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -1018,7 +1018,7 @@ run_command "[Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver
 echo
 
 # Step 14:
-PRINT_TASK "TASK [Kubeconfig setup and cluster login instructions]"
+PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 
 # Backup and configure kubeconfig
 rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1 || true
@@ -1033,7 +1033,7 @@ echo "info: [HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat htt
 echo
 
 # Step 15:
-PRINT_TASK "TASK [Booting from RHCOS ISO and installing OCP]"
+PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
 echo "info: [Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh]"
 echo "info: [Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh]"
 echo "info: [Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh]"
