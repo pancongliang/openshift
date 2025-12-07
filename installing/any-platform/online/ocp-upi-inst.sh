@@ -1,6 +1,6 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-# set -euo pipefail
+set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Specify the OpenShift release version
@@ -1172,17 +1172,20 @@ run_command "Add kubeconfig to $HOME/.bash_profile"
 
 echo -e "\e[96mINFO\e[0m Default login: use kubeconfig"
 echo -e "\e[96mINFO\e[0m HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
-echo -e "\e[96mINFO\e[0m Please manually run: source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile"
+echo -e "\e[33mACTION\e[0m Please manually run: source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile"
 
 # Add an empty line after the task
 echo
 
 # Step 15:
 PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
-echo -e "\e[96mINFO\e[0m Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh"
-echo -e "\e[96mINFO\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh"
-echo -e "\e[96mINFO\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh"
-echo -e "\e[96mINFO\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3 |sh"
-echo -e "\e[96mINFO\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w1 |sh"
-echo -e "\e[96mINFO\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w2 |sh"
-echo -e "\e[96mINFO\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w3 |sh"
+echo -e "\e[33mACTION\e[0m Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh"
+echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh"
+echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh"
+echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3 |sh"
+echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w1 |sh"
+echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w2 |sh"
+echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w3 |sh"
+
+# Add an empty line after the task
+echo
