@@ -118,7 +118,7 @@ sudo rm -f openshift-client-linux-amd64-rhel8.tar.gz* >/dev/null 2>&1
 sudo rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
 
 # Download the openshift-install
-echo -e "\e[96mINFO\e[0m Preparing download of openshift-install tool"
+echo -e "\e[96mINFO\e[0m Downloading the openshift-install tool"
 
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
 run_command "Download openshift-install tool"
@@ -145,7 +145,7 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the OpenShift client
-echo -e "\e[96mINFO\e[0m Preparing download of openshift-client tool"
+echo -e "\e[96mINFO\e[0m Downloading the openshift-client tool"
 
 wget -q "$download_url" -O "$openshift_client"
 run_command "Download openshift-client tool"
