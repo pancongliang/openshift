@@ -1,4 +1,7 @@
 #!/bin/bash
+# Enable strict mode for robust error handling and log failures with line number.
+set -euo pipefail
+trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Specify the OpenShift release version
 export OCP_VERSION="4.16.21"
