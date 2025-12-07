@@ -27,7 +27,7 @@ export MASTER03_HOSTNAME="master03"
 export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
 export WORKER03_HOSTNAME="worker03"
-export BASTION_IP="10.184.134.30"
+export BASTION_IP="10.184.134.77"
 export BOOTSTRAP_IP="10.184.134.94"
 export MASTER01_IP="10.184.134.81"
 export MASTER02_IP="10.184.134.145"
@@ -198,12 +198,12 @@ if [[ $permanent_status == "enforcing" ]]; then
     # Change SELinux to permissive
     sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
     permanent_status="permissive"
-    echo "echo -e "\e[96mINFO\e[0m Set permanent selinux policy to $permanent_status"
+    echo -e "\e[96mINFO\e[0m Set permanent selinux policy to $permanent_status"
 elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permissive" ]]; then
-    echo "echo -e "\e[96mINFO\e[0m Permanent selinux policy is already $permanent_status"
+    echo -e "\e[96mINFO\e[0m Permanent selinux policy is already $permanent_status"
 
 else
-    echo "echo -e "\e[31mFAILED\e[0m SELinux permanent policy is $permanent_status, expected permissive or disabled"
+    echo -e "\e[31mFAILED\e[0m SELinux permanent policy is $permanent_status, expected permissive or disabled"
 fi
 
 # Temporarily set SELinux security policy to permissive
