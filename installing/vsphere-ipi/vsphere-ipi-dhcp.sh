@@ -394,7 +394,7 @@ grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || e
 run_command "Default login: use kubeconfig"
 
 echo -e "\e[96mINFO\e[0m HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
-echo -e "\e[96mINFO\e[0m Please manually run: source ~/.bash_profile"
+echo -e "\e[33mACTION\e[0m Please manually run: source ~/.bash_profile"
 
 # Add an empty line after the task
 echo
