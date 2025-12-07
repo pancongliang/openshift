@@ -44,5 +44,5 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "Set up AWS credentials"
 
-echo -e "\e[96mINFO\e[0m Starting the OpenShift cluster uninstallation"
+echo -e "\e[96mINFO\e[0m Starting the OpenShift cluster uninstallation..."
 /usr/local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
