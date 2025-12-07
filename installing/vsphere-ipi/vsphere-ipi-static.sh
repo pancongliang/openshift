@@ -369,7 +369,7 @@ EOF
 run_command "Create oauth htpasswd identityprovider manifests"
 
 /usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
-run_command "Install OpenShift VMware IPI"
+run_command "OpenShift VMware IPI installation completed"
 
 # Add an empty line after the task
 echo
