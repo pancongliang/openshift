@@ -1,6 +1,6 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-set -euo pipefail
+# set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Specify the OpenShift release version
@@ -167,7 +167,6 @@ fi
 
 # Add an empty line after the task
 echo
-
 
 # Step 2:
 PRINT_TASK "TASK [Configure Hostname and Time Zone]"
