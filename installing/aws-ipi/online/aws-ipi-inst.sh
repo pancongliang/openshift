@@ -56,7 +56,7 @@ run_command "[Set up aws credentials]"
 echo
 
 # Step 2:
-PRINT_TASK "TASK [Install openshift-install adn oc-cli]"
+PRINT_TASK "TASK [Install openshift-install and openshift-client tools]"
 
 # Determine the operating system
 OS_TYPE=$(uname -s)
