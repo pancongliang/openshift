@@ -77,7 +77,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Installer
-    echo -e "\e[96mINFO\e[0m Preparing download of openshift-install tool"
+    echo -e "\e[96mINFO\e[0m Downloading the openshift-install tool"
     curl -sL "$download_url" -o "$openshift_install"
     run_command "Download openshift-install"
 
@@ -100,7 +100,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Client
-    echo -e "\e[96mINFO\e[0m Preparing download of openshift-client tool"
+    echo -e "\e[96mINFO\e[0m Downloading the openshift-client tool"
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift-client"
 
@@ -122,7 +122,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
 # Handle Linux
 elif [ "$OS_TYPE" = "Linux" ]; then
     # Download the OpenShift Installer
-    echo -e "\e[96mINFO\e[0m Preparing download of openshift-install tool"
+    echo -e "\e[96mINFO\e[0m Downloading the openshift-install tool"
     curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "Download openshift-install tool"
 
@@ -153,7 +153,7 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     fi
 
     # Download the OpenShift client
-    echo -e "\e[96mINFO\e[0m Preparing download of openshift-client tool"
+    echo -e "\e[96mINFO\e[0m Downloading the openshift-client tool"
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift client tool"
 
