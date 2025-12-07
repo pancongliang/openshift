@@ -1,4 +1,8 @@
 #!/bin/bash
+# Enable strict mode for robust error handling and log failures with line number.
+# set -euo pipefail
+trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+
 # Specify the OpenShift release version
 export OCP_VERSION="4.16.21"
 
@@ -989,7 +993,7 @@ run_command "Extract the mirror registry package"
 
 echo -e "\e[96mINFO\e[0m Installing the mirror registry..."
 # Install mirror registry
-${REGISTRY_INSTALL_DIR}/mirror-registry install -v \
+${REGISTRY_INSTALL_DIR}/mirror-registry install \
      --quayHostname ${REGISTRY_HOSTNAME}.${BASE_DOMAIN} \
      --quayRoot ${REGISTRY_INSTALL_DIR} \
      --quayStorage ${REGISTRY_INSTALL_DIR}/quay-storage \
@@ -1299,26 +1303,25 @@ echo
 cat << EOF > ${INSTALL_DIR}/mirror-img.sh
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-set -euo pipefail
-trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
+# set -euo pipefail
+trap 'echo -e "\e[31mFAILED\e[0m Line \$LINENO - Command: \$BASH_COMMAND"; exit 1' ERR
 
 # Function to print a task with uniform length
 PRINT_TASK() {
-    max_length=110  # Adjust this to your desired maximum length
-    task_title="$1"
-    title_length=${#task_title}
-    stars=$((max_length - title_length))
-
-    echo "$task_title$(printf '*%.0s' $(seq 1 $stars))"
+    max_length=110
+    task_title="\$1"
+    title_length=\${#task_title}
+    stars=\$((max_length - title_length))
+    echo "\$task_title\$(printf '*%.0s' \$(seq 1 \$stars))"
 }
 
 # Function to check command success and display appropriate message
 run_command() {
-    local exit_code=$?
-    if [ $exit_code -eq 0 ]; then
-        echo -e "\e[96mINFO\e[0m $1"
+    local exit_code=\$?
+    if [ \$exit_code -eq 0 ]; then
+        echo -e "INFO \$1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "FAILED \$1"
         exit 1
     fi
 }
@@ -1328,16 +1331,12 @@ run_command() {
 PRINT_TASK "TASK [Mirror OCP Release Images to Mirror Registry]"
 
 # Login to the registry
-rm -rf $XDG_RUNTIME_DIR/containers
-podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" >/dev/null 2>&1
-run_command  "Login registry https://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443"
-
 podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET_FILE}" "${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443" >/dev/null 2>&1
 run_command "Add authentication information to pull-secret"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-cat ${PULL_SECRET_FILE} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
-run_command "Save the pull-secret file either as $XDG_RUNTIME_DIR/containers/auth.json"
+cat "${PULL_SECRET_FILE}" | jq . > \$XDG_RUNTIME_DIR/containers/auth.json
+run_command "Save pull-secret file to \$XDG_RUNTIME_DIR/containers/auth.json"
 
 # Create ImageSetConfiguration directory
 rm -rf ${IMAGE_SET_CONF_PATH} >/dev/null 2>&1
@@ -1345,8 +1344,7 @@ mkdir ${IMAGE_SET_CONF_PATH} >/dev/null 2>&1
 run_command "Create ${IMAGE_SET_CONF_PATH} directory"
 
 # Create ImageSetConfiguration file
-mkdir -p ${IMAGE_SET_CONF_PATH}
-cat << YAML_EOF > ${IMAGE_SET_CONF_PATH}/imageset-config.yaml
+cat <<YAML_EOF > "${IMAGE_SET_CONF_PATH}/imageset-config.yaml"
 apiVersion: mirror.openshift.io/v1alpha2
 kind: ImageSetConfiguration
 storageConfig:
@@ -1366,7 +1364,7 @@ run_command "Create ${IMAGE_SET_CONF_PATH}/imageset-config.yaml file"
 # Mirroring ocp release image
 /usr/local/bin/oc-mirror --config=${IMAGE_SET_CONF_PATH}/imageset-config.yaml docker://${REGISTRY_HOSTNAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
 
-rm -rf ${IMAGE_SET_CONF_PATH}
+rm -rf "${IMAGE_SET_CONF_PATH}"
 EOF
 run_command "Generate ocp image mirroring script: ${INSTALL_DIR}/mirror-img.sh"
 
