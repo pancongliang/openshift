@@ -1296,9 +1296,6 @@ run_command "Generate csr approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 bash ${INSTALL_DIR}/ocp4cert-approver.sh &
 run_command "Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 
-# Add an empty line after the task
-echo
-
 # Create script to mirror the OpenShift image
 cat << EOF > ${INSTALL_DIR}/mirror-img.sh
 #!/bin/bash
@@ -1319,9 +1316,9 @@ PRINT_TASK() {
 run_command() {
     local exit_code=\$?
     if [ \$exit_code -eq 0 ]; then
-        echo -e "INFO \$1"
+        echo -e "\e[96mINFO\e[0m \$1"
     else
-        echo -e "FAILED \$1"
+        echo -e "\e[31mFAILED\e[0m \$1"
         exit 1
     fi
 }
