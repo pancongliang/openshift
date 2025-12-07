@@ -308,8 +308,6 @@ EOF
     run_command "Generate install-config.yaml file"
 fi
 
-echo -e "\e[96mINFO\e[0m Preparing install the OpenShift cluster"
-
 export PATH="/usr/local/bin:$PATH"
 
 # Generate manifests
