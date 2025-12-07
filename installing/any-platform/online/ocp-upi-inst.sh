@@ -1,8 +1,69 @@
-
 #!/bin/bash
-# Enable strict mode for robust error handling and log failures with line number.
-set -euo pipefail
-trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
+
+# Specify the OpenShift release version
+export OCP_VERSION="4.16.21"
+
+# Specify required parameters for install-config.yaml
+export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export CLUSTER_NAME="ocp"
+export BASE_DOMAIN="example.com"
+export NETWORK_TYPE="OVNKubernetes"                    # OVNKubernetes or OpenShiftSDN(≤ 4.14)
+
+# Specify the OpenShift node’s installation disk and network manager connection name
+export COREOS_INSTALL_DEV="/dev/sda"
+export NET_IF_NAME="'Wired connection 1'" 
+
+# Specify the OpenShift node infrastructure network configuration
+export GATEWAY_IP="10.184.134.1"
+export NETMASK="24"
+export DNS_FORWARDER_IP="10.184.134.1"                 # Resolve DNS addresses on the Internet
+
+# Specify OpenShift node’s hostname and ip address
+export BASTION_HOSTNAME="bastion"
+export BOOTSTRAP_HOSTNAME="bootstrap"
+export MASTER01_HOSTNAME="master01"
+export MASTER02_HOSTNAME="master02"
+export MASTER03_HOSTNAME="master03"
+export WORKER01_HOSTNAME="worker01"
+export WORKER02_HOSTNAME="worker02"
+export WORKER03_HOSTNAME="worker03"
+export BASTION_IP="10.184.134.30"
+export BOOTSTRAP_IP="10.184.134.94"
+export MASTER01_IP="10.184.134.81"
+export MASTER02_IP="10.184.134.145"
+export MASTER03_IP="10.184.134.185"
+export WORKER01_IP="10.184.134.229"
+export WORKER02_IP="10.184.134.91"
+export WORKER03_IP="10.184.134.217"
+
+
+# More options — no changes required!
+# Specify required parameters for install-config.yaml
+export SSH_KEY_PATH="$HOME/.ssh"
+export POD_CIDR="10.128.0.0/14"
+export HOST_PREFIX="23"
+export SERVICE_CIDR="172.30.0.0/16"
+
+# Specify the NFS directory to use for the image-registry pod PV
+export NFS_SERVER_IP="$BASTION_IP"
+export NFS_DIR="/nfs"
+export IMAGE_REGISTRY_PV="image-registry-storage"
+
+# Specify the HTTPD path to serve the Ignition file for download
+export HTTPD_DIR="/var/www/html/materials"
+export INSTALL_DIR="${HTTPD_DIR}/pre"
+
+# Specify a publicly resolvable domain name for testing
+export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
+
+# Do not change the following parameters
+export LOCAL_DNS_IP="$BASTION_IP"
+export API_VIPS="$BASTION_IP"
+export INGRESS_VIPS="$BASTION_IP"
+export MCS_VIPS="$API_VIPS"
+export API_IP="$API_VIPS"
+export API_INT_IP="$API_VIPS"
+export APPS_IP="$INGRESS_VIPS"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -18,32 +79,107 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        echo "ok: $1"
+        echo -e "\e[96mINFO\e[0m $1"
     else
-        echo "failed: $1"
+        echo -e "\e[31mFAILED\e[0m $1"
         exit 1
     fi
 }
 
 # Step 1:
-# Applying environment variables
-source 01-set-params.sh
-export PATH="/usr/local/bin:$PATH"
+PRINT_TASK "TASK [Configure Environment Variables]"
+
+cat $PULL_SECRET_FILE >/dev/null 2>&1
+run_command "Verify existence of $PULL_SECRET_FILE file"
+
+# Define variables
+missing_variables=()
+
+# Define a function to check if a variable is set
+check_variable() {
+    if [ -z "${!1}" ]; then
+        missing_variables+=("$1")
+    fi
+}
+
+# Check all variables that need validation
+check_all_variables() {
+    check_variable "OCP_VERSION"
+    check_variable "CLUSTER_NAME"
+    check_variable "BASE_DOMAIN"
+    check_variable "SSH_KEY_PATH"
+    check_variable "PULL_SECRET_FILE"
+    check_variable "NETWORK_TYPE"
+    check_variable "POD_CIDR"
+    check_variable "HOST_PREFIX"
+    check_variable "SERVICE_CIDR"
+    check_variable "GATEWAY_IP"
+    check_variable "NETMASK"
+    check_variable "DNS_FORWARDER_IP"
+    check_variable "BASTION_HOSTNAME"
+    check_variable "BOOTSTRAP_HOSTNAME"
+    check_variable "MASTER01_HOSTNAME"
+    check_variable "MASTER02_HOSTNAME"
+    check_variable "MASTER03_HOSTNAME"
+    check_variable "WORKER01_HOSTNAME"
+    check_variable "WORKER02_HOSTNAME"
+    check_variable "WORKER03_HOSTNAME"
+    check_variable "BASTION_IP"
+    check_variable "MASTER01_IP"
+    check_variable "MASTER02_IP"
+    check_variable "MASTER03_IP"
+    check_variable "WORKER01_IP"
+    check_variable "WORKER02_IP"
+    check_variable "WORKER03_IP"    
+    check_variable "BOOTSTRAP_IP"
+    check_variable "COREOS_INSTALL_DEV"
+    check_variable "NET_IF_NAME"
+    check_variable "NFS_DIR"
+    check_variable "IMAGE_REGISTRY_PV"
+    check_variable "LOCAL_DNS_IP"
+    check_variable "API_IP"
+    check_variable "API_INT_IP"
+    check_variable "APPS_IP"
+    check_variable "API_VIPS"
+    check_variable "MCS_VIPS"
+    check_variable "INGRESS_VIPS"
+    check_variable "NFS_SERVER_IP"
+    check_variable "NSLOOKUP_TEST_PUBLIC_DOMAIN"
+    check_variable "HTTPD_DIR"
+    check_variable "INSTALL_DIR"
+    # If all variables are set, display a success message  
+}
+
+# Call the function to check all variables
+check_all_variables
+
+# Display missing variables, if any
+if [ ${#missing_variables[@]} -gt 0 ]; then
+    IFS=', '
+    echo -e "\e[31mFAILED\e[0m Missing variables: ${missing_variables[*]}"
+    unset IFS
+else
+    echo -e "\e[96mINFO\e[0m Confirm all required variables are set"
+fi
+
+# Add an empty line after the task
+echo
+
 
 # Step 2:
 PRINT_TASK "TASK [Configure Hostname and Time Zone]"
 
 # Change hostname
 hostnamectl set-hostname ${BASTION_HOSTNAME}
-run_command "[Set hostname to ${BASTION_HOSTNAME}]"
+run_command "Set hostname to ${BASTION_HOSTNAME}"
 
 # Change time zone to UTC
 timedatectl set-timezone UTC
-run_command "[Set time zone to UTC]"
+run_command "Set time zone to UTC"
 
 # Write LANG=en_US.UTF-8 to the ./bash_profile file]
 grep -q "^export LANG=en_US.UTF-8" ~/.bash_profile || echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
-run_command "[Write LANG=en_US.UTF-8 to ./bash_profile]"
+run_command "Write LANG=en_US.UTF-8 to ./bash_profile"
 
 # Add an empty line after the task
 echo
@@ -53,7 +189,7 @@ PRINT_TASK "TASK [Disable Firewalld Service and Update SELinux Policy]"
 
 # Stop and disable firewalld services
 systemctl disable --now firewalld >/dev/null 2>&1
-run_command "[Stop and disable firewalld service]"
+run_command "Stop and disable firewalld service"
 
 # Read the SELinux configuration
 permanent_status=$(grep "^SELINUX=" /etc/selinux/config | cut -d= -f2)
@@ -62,17 +198,17 @@ if [[ $permanent_status == "enforcing" ]]; then
     # Change SELinux to permissive
     sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
     permanent_status="permissive"
-    echo "ok: [Set permanent selinux policy to $permanent_status]"
+    echo "echo -e "\e[96mINFO\e[0m Set permanent selinux policy to $permanent_status"
 elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permissive" ]]; then
-    echo "ok: [Permanent selinux policy is already $permanent_status]"
+    echo "echo -e "\e[96mINFO\e[0m Permanent selinux policy is already $permanent_status"
 
 else
-    echo "failed: [SELinux permanent policy is $permanent_status, expected permissive or disabled]"
+    echo "echo -e "\e[31mFAILED\e[0m SELinux permanent policy is $permanent_status, expected permissive or disabled"
 fi
 
 # Temporarily set SELinux security policy to permissive
 setenforce 0 >/dev/null 2>&1 || true
-run_command "[Disable temporary selinux enforcement]"
+run_command "Disable temporary selinux enforcement"
 
 # Add an empty line after the task
 echo
@@ -87,16 +223,16 @@ packages=("podman" "bind-utils" "bind" "httpd" "httpd-tools" "haproxy" "nfs-util
 package_list="${packages[*]}"
 
 # Install all packages at once
-echo "ok: [Downloading RPM packages for installation...]"
+echo -e "\e[96mINFO\e[0m Downloading RPM packages for installation..."
 dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
     rpm -q $package >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo "ok: [Install $package package]"
+        echo -e "\e[96mINFO\e[0m Install $package package"
     else
-        echo "failed: [Install $package package]"
+        echo -e "\e[31mFAILED\e[0m Install $package package"
     fi
 done
 
@@ -117,22 +253,22 @@ rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
 rm -f /etc/bash_completion.d/oc_completion >/dev/null 2>&1
 
 # Download the openshift-install
-echo "ok: [Downloading the openshift-install tool...]"
+echo -e "\e[96mINFO\e[0m Downloading the openshift-install tool..."
 
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
-run_command "[Download openshift-install tool]"
+run_command "Download openshift-install tool"
 
 tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
-run_command "[Install openshift-install tool]"
+run_command "Install openshift-install tool"
 
 chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
-run_command "[Set permissions for /usr/local/bin/openshift-install]"
+run_command "Set permissions for /usr/local/bin/openshift-install"
 
 rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
-run_command "[Check RHEL version]"
+run_command "Check RHEL version"
 
 # Determine the download URL based on the RHEL version
 if [ "$rhel_version" -eq 8 ]; then
@@ -144,27 +280,27 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the OpenShift client
-echo "ok: [Downloading the openshift-client tool...]"
+echo -e "\e[96mINFO\e[0m Downloading the openshift-client tool..."
 
 wget -q "$download_url" -O "$openshift_client"
-run_command "[Download openshift-client tool]"
+run_command "Download openshift-client tool"
 
 # Extract the downloaded tarball to /usr/local/bin/
 tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
-run_command "[Install openshift-client tool]"
+run_command "Install openshift-client tool"
 
 chmod +x /usr/local/bin/oc >/dev/null 2>&1
-run_command "[Set permissions for /usr/local/bin/oc]"
+run_command "Set permissions for /usr/local/bin/oc"
 
 chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
-run_command "[Set permissions for /usr/local/bin/kubectl]"
+run_command "Set permissions for /usr/local/bin/kubectl"
 
 rm -f /usr/local/bin/README.md >/dev/null 2>&1
 rm -rf $openshift_client >/dev/null 2>&1
 
 # completion command:
 bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completion' || true
-run_command "[Enable oc bash completion]"
+run_command "Enable oc bash completion"
 
 # Add an empty line after the task
 echo
@@ -181,9 +317,9 @@ update_httpd_listen_port() {
     if [ "$listen_port" != "8080" ]; then
         # Change listen port to 8080
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
-        echo "ok: [Set the httpd listening port to 8080]"
+        echo -e "\e[96mINFO\e[0m Set the httpd listening port to 8080"
     else
-        echo "ok: [Listening port for httpd is already set to 8080]"
+        echo -e "\e[96mINFO\e[0m Listening port for httpd is already set to 8080"
     fi
 }
 # Call the function to update listen port
@@ -197,20 +333,20 @@ cat << EOF > /etc/httpd/conf.d/base.conf
    DocumentRoot ${HTTPD_DIR}
 </VirtualHost>
 EOF
-run_command "[Create virtual host configuration]"
+run_command "Create virtual host configuration"
 
 # Create http directory
 rm -rf ${HTTPD_DIR} >/dev/null 2>&1
 sleep 1
 mkdir -p ${HTTPD_DIR} >/dev/null 2>&1
-run_command "[Create ${HTTPD_DIR} directory]"
+run_command "Create ${HTTPD_DIR} directory"
 
 # Enable and start service
 systemctl enable httpd >/dev/null 2>&1
-run_command "[Enable httpd service at boot]"
+run_command "Enable httpd service at boot"
 
 systemctl restart httpd >/dev/null 2>&1
-run_command "[Restart httpd service]"
+run_command "Restart httpd service"
 
 # Wait for the service to restart
 sleep 15
@@ -219,13 +355,13 @@ sleep 15
 rm -rf ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
 sleep 1
 touch ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
-run_command "[Create a test file to verify httpd download functionality]"
+run_command "Create a test file to verify httpd download functionality"
 
 wget -q http://${BASTION_IP}:8080/httpd-test
-run_command "[Verify httpd download functionality]"
+run_command "Verify httpd download functionality"
 
 rm -rf httpd-test ${HTTPD_DIR}/httpd-test >/dev/null 2>&1
-run_command "[Remove the httpd test file]"
+run_command "Remove the httpd test file"
 
 # Add an empty line after the task
 echo
@@ -235,40 +371,40 @@ PRINT_TASK "TASK [Configure and Verify NFS Service]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" >/dev/null 2>&1; then
-    echo "ok: [The nfsnobody user is already present]"
+    echo -e "\e[96mINFO\e[0m The nfsnobody user is already present"
 else
     useradd nfsnobody
-    echo "ok: [Create the nfsnobody user]"
+    echo -e "\e[96mINFO\e[0m Create the nfsnobody user"
 fi
 
 # Create NFS directories
 rm -rf ${NFS_DIR} >/dev/null 2>&1
 sleep 1
 mkdir -p ${NFS_DIR}/${IMAGE_REGISTRY_PV} >/dev/null 2>&1
-run_command "[Create nfs directory]"
+run_command "Create nfs directory"
 
 chmod -R 777 ${NFS_DIR} >/dev/null 2>&1
-run_command "[Set permissions of nfs directory]"
+run_command "Set permissions of nfs directory"
 
 # Change ownership and permissions
 chown -R nfsnobody.nfsnobody ${NFS_DIR} >/dev/null 2>&1
-run_command "[Set ownership of nfs directory]"
+run_command "Set ownership of nfs directory"
 
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo "ok: [Export configuration for nfs already exists]"
+    echo -e "\e[96mINFO\e[0m Export configuration for nfs already exists"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo "ok: [Setting up nfs export configuration]"
+    echo -e "\e[96mINFO\e[0m Setting up nfs export configuration"
 fi
 
 # Enable and start service
 systemctl enable nfs-server >/dev/null 2>&1
-run_command "[Enable nfs server service at boot]"
+run_command "Enable nfs server service at boot"
 
 systemctl restart nfs-server >/dev/null 2>&1
-run_command "[Restart nfs server service]"
+run_command "Restart nfs server service"
 
 # Wait for the service to restart
 sleep 15
@@ -278,11 +414,11 @@ umount /tmp/nfs-test >/dev/null 2>&1 || true
 rm -rf /tmp/nfs-test >/dev/null 2>&1
 sleep 1
 mkdir -p /tmp/nfs-test >/dev/null 2>&1
-run_command "[Create test mount directory: /tmp/nfs-test]"
+run_command "Create test mount directory: /tmp/nfs-test"
 
 # Attempt to mount the NFS share
 mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test >/dev/null 2>&1
-run_command "[Mount nfs shared directory for testing: /tmp/nfs-test]"
+run_command "Mount nfs shared directory for testing: /tmp/nfs-test"
 
 # Wait mount the NFS share
 sleep 10
@@ -290,11 +426,11 @@ sleep 10
 # Unmount the NFS share
 fuser -km /tmp/nfs-test >/dev/null 2>&1 || true
 umount /tmp/nfs-test >/dev/null 2>&1 || true
-run_command "[Unmount nfs shared directory: /tmp/nfs-test]"
+run_command "Unmount nfs shared directory: /tmp/nfs-test"
 
 # Delete /tmp/nfs-test
 rm -rf /tmp/nfs-test >/dev/null 2>&1
-run_command "[Remove test mount directory: /tmp/nfs-test]"
+run_command "Remove test mount directory: /tmp/nfs-test"
 
 # Add an empty line after the task
 echo
@@ -360,7 +496,7 @@ zone "." IN {
 
 include "/etc/named.rfc1912.zones";
 EOF
-run_command "[Generate named configuration file]"
+run_command "Generate named configuration file"
 
 # Create Forward Zone file
 rm -f /var/named/${FORWARD_ZONE_FILE}  >/dev/null 2>&1
@@ -398,7 +534,7 @@ $(printf "%-35s IN  A      %s\n" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DO
 ; Create an entry for the bootstrap host.
 $(printf "%-35s IN  A      %s\n" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
 EOF
-run_command "[Generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}]"
+run_command "Generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}"
 
 # Create Reverse Zone file
 get_reverse_ip() {
@@ -439,47 +575,47 @@ $(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER03_IP")" "${WORKER0
 ; Create an entry for the bootstrap host.
 $(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$BOOTSTRAP_IP")" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 EOF
-run_command "[Generate reverse DNS zone file: /var/named/${REVERSE_ZONE_FILE}]"
+run_command "Generate reverse DNS zone file: /var/named/${REVERSE_ZONE_FILE}"
 
 # Check named configuration file
 named-checkconf >/dev/null 2>&1
-run_command "[Validate named configuration]"
+run_command "Validate named configuration"
 
 # Check forward zone file
 named-checkzone ${FORWARD_ZONE_FILE} /var/named/${FORWARD_ZONE_FILE} >/dev/null 2>&1
-run_command "[Validate forward zone file]"
+run_command "Validate forward zone file"
 
 # Check reverse zone file
 named-checkzone ${REVERSE_ZONE_FILE} /var/named/${REVERSE_ZONE_FILE} >/dev/null 2>&1
-run_command "[Validate reverse zone file]"
+run_command "Validate reverse zone file"
 
 # Change ownership
 chown named. /var/named/*.zone
-run_command "[Set ownership of /var/named zone files]"
+run_command "Set ownership of /var/named zone files"
 
 # Enable and start service
 systemctl enable named >/dev/null 2>&1
-run_command "[Enable named service at boot]"
+run_command "Enable named service at boot"
 
 systemctl restart named >/dev/null 2>&1
-run_command "[Restart named service]"
+run_command "Restart named service"
 
 # Add dns ip to resolv.conf
 sed -i "/${LOCAL_DNS_IP}/d" /etc/resolv.conf
 sed -i "1s/^/nameserver ${LOCAL_DNS_IP}\n/" /etc/resolv.conf
-run_command "[Add DNS IP $LOCAL_DNS_IP to /etc/resolv.conf]"
+run_command "Add DNS IP $LOCAL_DNS_IP to /etc/resolv.conf"
 
 # Append “dns=none” immediately below the “[main]” section in the main NM config
 if ! sed -n '/^\[main\]/,/^\[/{/dns=none/p}' /etc/NetworkManager/NetworkManager.conf | grep -q 'dns=none'; then
     sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
-    echo "ok: [Prevent NetworkManager from modifying /etc/resolv.conf]"
+    echo -e "\e[96mINFO\e[0m Prevent NetworkManager from modifying /etc/resolv.conf"
 else
-    echo "ok: [Prevent NetworkManager from modifying /etc/resolv.conf]"
+    echo -e "\e[96mINFO\e[0m Prevent NetworkManager from modifying /etc/resolv.conf"
 fi
 
 # Restart service
 systemctl restart NetworkManager >/dev/null 2>&1
-run_command "[Restart the network manager service]"
+run_command "Restart the network manager service"
 
 # Wait for the service to restart
 sleep 15
@@ -521,9 +657,9 @@ done
 
 # Display results
 if [ "$all_successful" = true ]; then
-    echo "ok: [Verify DNS resolution with nslookup]"
+    echo -e "\e[96mINFO\e[0m Verify DNS resolution with nslookup"
 else
-    echo "failed: [DNS resolve failed for the following domain/ip: ${failed_hostnames[*]}]"
+    echo -e "\e[31mFAILED\e[0m DNS resolve failed for the following domain/ip: ${failed_hostnames[*]}"
 fi
 
 # Delete old records
@@ -549,7 +685,7 @@ sed -i "/# ${NODE_ANNOTATION}/d;
   printf "%-15s %s\n" "${WORKER02_IP}"     "${WORKER02_HOSTNAME}"
   printf "%-15s %s\n" "${WORKER03_IP}"     "${WORKER03_HOSTNAME}"
 } | tee -a /etc/hosts >/dev/null
-run_command "[Update /etc/hosts with hostname and IP]"
+run_command "Update /etc/hosts with hostname and IP"
 
 # Add an empty line after the task
 echo
@@ -642,18 +778,18 @@ listen ingress-router-health-check
   server ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:1936 check inter 10s fall 2 rise 2
   server ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:1936 check inter 10s fall 2 rise 2
 EOF
-run_command "[Generate haproxy configuration file]"
+run_command "Generate haproxy configuration file"
 
 # Path to HAProxy configuration file
 haproxy -c -f /etc/haproxy/haproxy.cfg >/dev/null 2>&1
-run_command "[Validate haproxy configuration]"
+run_command "Validate haproxy configuration"
 
 # Enable and start service
 systemctl enable --now haproxy >/dev/null 2>&1
-run_command "[Enable haproxy service at boot]"
+run_command "Enable haproxy service at boot"
 
 systemctl restart haproxy >/dev/null 2>&1
-run_command "[Restart haproxy service]"
+run_command "Restart haproxy service"
 
 # Wait for the service to restart
 sleep 15
@@ -663,7 +799,7 @@ sleep 15
 #cat <<EOF >/etc/rsyslog.d/haproxy.conf
 #local2.*    /var/log/haproxy.log
 #EOF
-#run_command "[Generate /etc/rsyslog.d/haproxy.conf configuration file]"
+#run_command "Generate /etc/rsyslog.d/haproxy.conf configuration file"
 
 #rm -rf /etc/rsyslog.conf
 #cat << EOF > /etc/rsyslog.conf
@@ -748,14 +884,14 @@ sleep 15
 ## # remote_host is: name/ip, e.g. 192.168.0.1, port optional e.g. 10514
 ##Target="remote_host" Port="XXX" Protocol="tcp")
 #EOF
-#run_command "[Generate rsyslog configuration to write HAProxy logs to /var/log/haproxy.log]"
+#run_command "Generate rsyslog configuration to write HAProxy logs to /var/log/haproxy.log"
 
 # Enable and start service
 #systemctl enable --now rsyslog >/dev/null 2>&1
-#run_command "[Enable rsyslog service at boot]"
+#run_command "Enable rsyslog service at boot"
 
 #systemctl restart rsyslog
-#run_command "[Restart rsyslog service]"
+#run_command "Restart rsyslog service"
 
 # Add an empty line after the task
 echo
@@ -768,9 +904,9 @@ if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; t
     rm -rf ${SSH_KEY_PATH} 
     mkdir -p ${SSH_KEY_PATH}
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    echo "ok: [Create an ssh-key for accessing the node]"
+    echo -e "\e[96mINFO\e[0m Create an ssh-key for accessing the node"
 else
-    echo "ok: [SSH key for accessing the node already exists]"
+    echo -e "\e[96mINFO\e[0m SSH key for accessing the node already exists"
 fi
 
 # If known_hosts exists, clear it without error
@@ -808,7 +944,7 @@ fips: false
 pullSecret: '$(cat $PULL_SECRET_FILE)'
 sshKey: '${SSH_PUB_STR}'
 EOF
-run_command "[Create ${HTTPD_DIR}/install-config.yaml file]"
+run_command "Create ${HTTPD_DIR}/install-config.yaml file"
 
 # Add an empty line after the task
 echo
@@ -820,23 +956,23 @@ PRINT_TASK "TASK [Creating the Kubernetes Manifest and Ignition Config Files]"
 rm -rf "${INSTALL_DIR}" >/dev/null 2>&1
 sleep 1
 mkdir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[Create installation directory: ${INSTALL_DIR}]"
+run_command "Create installation directory: ${INSTALL_DIR}"
 
 # Copy install-config.yaml to installation directory
 cp "${HTTPD_DIR}/install-config.yaml" "${INSTALL_DIR}"
-run_command "[Copy install-config.yaml to installation directory]"
+run_command "Copy install-config.yaml to installation directory"
 
 # Generate manifests
 /usr/local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[Generate kubernetes manifests]"
+run_command "Generate kubernetes manifests"
 
 # Check if the file contains "mastersSchedulable: true"
 if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
   # Replace "mastersSchedulable: true" with "mastersSchedulable: false"
   sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"
-  echo "ok: [Disable the master node from scheduling custom pods]"
+  echo -e "\e[96mINFO\e[0m Disable the master node from scheduling custom pods"
 else
-  echo "ok: [Disable the master node from scheduling custom pods]"
+  echo -e "\e[96mINFO\e[0m Disable the master node from scheduling custom pods"
 fi
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-openshift-config-secret-htpasswd-secret.yaml
@@ -849,7 +985,7 @@ type: Opaque
 data:
   htpasswd: YWRtaW46JDJ5JDA1JDNLdkxTckw0TDhXb3Z4cVk3eGpLRWUxVHg0U21PODZBR3VxSzVteVRDTmVLeG80dmNtaFpxCg==
 EOF
-run_command "[Create htpasswd secret manifests]"
+run_command "Create htpasswd secret manifests"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-clusterrolebinding-cluster-admin-0.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -865,7 +1001,7 @@ subjects:
   kind: User
   name: admin
 EOF
-run_command "[Create cluster-admin clusterrolebinding manifests]"
+run_command "Create cluster-admin clusterrolebinding manifests"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-cluster-oauth.yaml
 apiVersion: config.openshift.io/v1
@@ -881,7 +1017,7 @@ spec:
     name: htpasswd-user
     type: HTPasswd
 EOF
-run_command "[Create oauth htpasswd identityprovider manifests]"
+run_command "Create oauth htpasswd identityprovider manifests"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-image-registry-persistentvolume.yaml
 apiVersion: v1
@@ -898,7 +1034,7 @@ spec:
     server: ${NFS_SERVER_IP}
   persistentVolumeReclaimPolicy: Retain
 EOF
-run_command "[Create image registry persistentvolume manifests]"
+run_command "Create image registry persistentvolume manifests"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-cluster-configs.imageregistry.yaml
 apiVersion: imageregistry.operator.openshift.io/v1
@@ -924,11 +1060,11 @@ spec:
       claim: 
   unsupportedConfigOverrides: null
 EOF
-run_command "[Create imageregistry config manifests]"
+run_command "Create imageregistry config manifests"
 
 # Generate and modify ignition configuration files
 /usr/local/bin/openshift-install create ignition-configs --dir "${INSTALL_DIR}" >/dev/null 2>&1
-run_command "[Create the ignition configuration files]"
+run_command "Create the ignition configuration files"
 
 # Add an empty line after the task
 echo
@@ -947,7 +1083,7 @@ generate_setup_script() {
         bs) IGN_FILE="bootstrap.ign" ;;
         m*) IGN_FILE="master.ign"    ;;
         w*) IGN_FILE="worker.ign"    ;;
-        *)  echo "failed: [Unknown host type for ${HOSTNAME}]" ;;
+        *)  echo -e "\e[31mFAILED\e[0m Unknown host type for ${HOSTNAME}" ;;
     esac
 
 # Create the setup script for the node
@@ -966,9 +1102,9 @@ EOF
 
     # Check if the setup script was successfully created
     if [ -f "${INSTALL_DIR}/${HOSTNAME}" ]; then
-        echo "ok: [Generate setup script: ${INSTALL_DIR}/${HOSTNAME}]"
+        echo -e "\e[96mINFO\e[0m Generate setup script: ${INSTALL_DIR}/${HOSTNAME}"
     else
-        echo "failed: [Generate setup script for ${HOSTNAME}]"
+        echo -e "\e[31mFAILED\e[0m Generate setup script for ${HOSTNAME}"
     fi
 }
 
@@ -983,11 +1119,11 @@ generate_setup_script "w${WORKER03_HOSTNAME: -1}" "${WORKER03_IP}"  # → w3
 
 # Set correct permissions
 chmod a+r ${INSTALL_DIR}/*.ign
-run_command "[Set permissions for ${INSTALL_DIR}/*.ign file]"
+run_command "Set permissions for ${INSTALL_DIR}/*.ign file"
 
 # Make the script executable
 chmod a+rx "${INSTALL_DIR}"/{bs,m*,w*}
-run_command "[Set permissions on ocp install scripts]"
+run_command "Set permissions on ocp install scripts"
 
 # Add an empty line after the task
 echo
@@ -1008,11 +1144,11 @@ for i in {1..3600}; do
   sleep 10
 done 
 EOF
-run_command "[Generate csr approval script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
+run_command "Generate csr approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 
 # Run the CSR auto-approver script
 bash ${INSTALL_DIR}/ocp4cert-approver.sh &
-run_command "[Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.sh]"
+run_command "Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 
 # Add an empty line after the task
 echo
@@ -1024,20 +1160,20 @@ PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 rm -rf ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1 || true
 cp ${INSTALL_DIR}/auth/kubeconfig ${INSTALL_DIR}/auth/kubeconfigbk >/dev/null 2>&1
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
-run_command "[Add kubeconfig to ~/.bash_profile]"
+run_command "Add kubeconfig to ~/.bash_profile"
 
-echo "info: [Default login: use kubeconfig]"
-echo "info: [HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443]"
+echo -e "\e[96mINFO\e[0m Default login: use kubeconfig"
+echo -e "\e[96mINFO\e[0m HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
 
 # Add an empty line after the task
 echo
 
 # Step 15:
 PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
-echo "info: [Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh]"
-echo "info: [Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh]"
-echo "info: [Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh]"
-echo "info: [Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3 |sh]"
-echo "info: [Worker nodes: curl -s http://$BASTION_IP:8080/pre/w1 |sh]"
-echo "info: [Worker nodes: curl -s http://$BASTION_IP:8080/pre/w2 |sh]"
-echo "info: [Worker nodes: curl -s http://$BASTION_IP:8080/pre/w3 |sh]"
+echo -e "\e[96mINFO\e[0m Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh"
+echo -e "\e[96mINFO\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh"
+echo -e "\e[96mINFO\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh"
+echo -e "\e[96mINFO\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3 |sh"
+echo -e "\e[96mINFO\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w1 |sh"
+echo -e "\e[96mINFO\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w2 |sh"
+echo -e "\e[96mINFO\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w3 |sh"
