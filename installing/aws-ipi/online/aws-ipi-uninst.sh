@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export INSTALL_DIR="$HOME/aws-ipi/ocp"
@@ -44,5 +44,5 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "Set up AWS credentials"
 
+echo -e "\e[96mINFO\e[0m Starting the OpenShift cluster uninstallation"
 /usr/local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
-run_command "Uninstalled cluster"
