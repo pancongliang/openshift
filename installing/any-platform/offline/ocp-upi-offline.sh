@@ -471,7 +471,7 @@ mount -t nfs ${NFS_SERVER_IP}:${NFS_DIR} /tmp/nfs-test >/dev/null 2>&1
 run_command "Mount nfs shared directory for testing: /tmp/nfs-test"
 
 # Wait mount the NFS share
-sleep 10
+sleep 5
 
 # Unmount the NFS share
 fuser -km /tmp/nfs-test >/dev/null 2>&1 || true
