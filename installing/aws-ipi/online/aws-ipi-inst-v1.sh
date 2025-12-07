@@ -282,7 +282,7 @@ EOF
 run_command "Create oauth htpasswd identityprovider manifests"
 
 /usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
-run_command "Install OpenShift AWS IPI completed"
+run_command "OpenShift AWS IPI installation completed"
 
 echo -e "\e[96mINFO\e[0m HTPasswd login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443"
 echo -e "\e[96mINFO\e[0m kubeconfig login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig"
