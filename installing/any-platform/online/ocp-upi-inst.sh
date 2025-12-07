@@ -236,6 +236,10 @@ for package in "${packages[@]}"; do
     fi
 done
 
+# Update openssh and openssh-clients
+dnf update openssh openssh-clients -y >/dev/null 2>&1
+run_command "Update openssh and openssh-clients package"
+
 # Add an empty line after the task
 echo
 
