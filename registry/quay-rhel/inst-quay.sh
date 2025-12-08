@@ -296,17 +296,44 @@ podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    registry.redhat.io/quay/quay-rhel8:v3.15.0 >/dev/null 2>&1
 run_command "Deploy the quay registry"
 
-sleep 20
-
 # Checking container status
 containers=("postgresql-quay" "redis" "quay")
+MAX_RETRIES=20
+SLEEP_INTERVAL=5
+progress_started=false
+retry_count=0
 
-for c in "${containers[@]}"; do
-  if podman ps --format "{{.Names}}" | grep -qw "$c"; then
-    echo -e "\e[96mINFO\e[0m Container $c is Running"
-  else
-    echo -e "\e[31mFAILED\e[0m Container $c is Running"
-  fi
+while true; do
+    all_running=true
+
+    for c in "${containers[@]}"; do
+        if ! podman ps --format "{{.Names}}" | grep -qw "$c"; then
+            all_running=false
+        fi
+    done
+
+    if ! $all_running; then
+        if ! $progress_started; then
+            echo -n -e "\e[96mINFO\e[0m Waiting for all containers to be running"
+            progress_started=true
+        fi
+
+        echo -n '.'
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo # 
+            echo -e "\e[31mFAILED\e[0m Some containers are not running after $((MAX_RETRIES * SLEEP_INTERVAL)) seconds"
+            break
+        fi
+    else
+        if $progress_started; then
+            echo 
+        fi
+        echo -e "\e[96mINFO\e[0m All containers are running"
+        break
+    fi
 done
 
 # Generate systemd service file for PostgreSQL
@@ -508,10 +535,9 @@ while true; do
         break
     fi
 done
+
 # Add an empty line after the task
 echo
-
-PRINT_TASK "TASK [Add DNS Record Entries for Mirror Registry]"
 
 # Step 8:
 PRINT_TASK "TASK [Manually create a user]"
@@ -519,6 +545,9 @@ PRINT_TASK "TASK [Manually create a user]"
 echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT"
 echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
 echo -e "\e[96mINFO\e[0m podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u quayadmin -p password"
+
+# Add an empty line after the task
+echo
 
 # Step 9:
 PRINT_TASK "TASK [Add DNS Record Entries for Mirror Registry]"
