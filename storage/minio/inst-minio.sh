@@ -176,7 +176,7 @@ run_command "Configured Minio client alias"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 for BUCKET_NAME in "${BUCKETS[@]}"; do
-    oc exec -n minio "$MINIO_POD" mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
+    oc exec -n minio "$MINIO_POD" -- mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
     run_command "Create bucket $BUCKET_NAME"
 done
 
