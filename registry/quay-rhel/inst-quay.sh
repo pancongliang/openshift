@@ -1,13 +1,12 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export QUAY_HOST_NAME='quay-server.example.com'
-export QUAY_HOST_IP="10.184.134.128"
+export QUAY_HOST_IP="10.184.134.30"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"
-
 export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
 
@@ -25,15 +24,15 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        echo "ok: $1"
+        echo -e "\e[96mINFO\e[0m $1"
     else
-        echo "failed: $1"
+        echo -e "\e[31mFAILED\e[0m $1"
         exit 1
     fi
 }
 
 # Step 1: 
-PRINT_TASK "TASK [Install infrastructure rpm]"
+PRINT_TASK "TASK [Install Infrastructure RPM]"
 
 # List of RPM packages to install
 packages=("podman")
@@ -42,21 +41,21 @@ packages=("podman")
 package_list="${packages[*]}"
 
 # Install all packages at once
-sudo dnf install -y $package_list >/dev/null 2>&1
+echo -e "\e[96mINFO\e[0m Installing RPM package..."
+dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
     rpm -q $package >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo "ok: [Installed $package package]"
+        echo -e "\e[96mINFO\e[0m Install $package package"
     else
-        echo "failed: [Installed $package package]"
+        echo -e "\e[31mFAILED\e[0m Install $package package"
     fi
 done
 
 # Add an empty line after the task
 echo
-
 
 # Step 2:
 PRINT_TASK "TASK [Delete existing duplicate data]"
@@ -66,12 +65,12 @@ remove_container() {
     local container_name="$1"
     if podman container exists "$container_name"; then
         if podman rm -f "$container_name" >/dev/null 2>&1; then
-            echo "ok: [Container $container_name removed]"
+            echo -e "\e[96mINFO\e[0m Container $container_name removed"
         else
-            echo "failed: [Container $container_name removed]"
+            echo -e "\e[31mFAILED\e[0m Container $container_name removed"
         fi
     else
-        echo "skipping: [Container $container_name removed]"
+        echo -e "\e[96mINFO\e[0m No such container: $container_name"
     fi
 }
 
@@ -80,12 +79,12 @@ remove_directory() {
     local dir_path="$1"
     if [ -d "$dir_path" ]; then
         if sudo rm -rf "$dir_path" >/dev/null 2>&1; then
-            echo "ok: [Quay install directory $dir_path removed]"
+            echo -e "\e[96mINFO\e[0m Quay install directory $dir_path removed"
         else
-            echo "failed: [Quay install directory $dir_path removed]"
+            echo -e "\e[31mFAILED\e[0m Quay install directory $dir_path removed"
         fi
     else
-        echo "skipping: [Quay install directory $dir_path removed]"
+        echo -e "\e[96mINFO\e[0m No such install directory: $dir_path"
     fi
 }
 
@@ -99,12 +98,12 @@ remove_directory "$QUAY_INST_DIR"
 CA_CERT="/etc/pki/ca-trust/source/anchors/${QUAY_HOST_NAME}.ca.pem"
 if [ -f "$CA_CERT" ]; then
     if sudo rm -rf "$CA_CERT"; then
-        echo "ok: [CA cert $CA_CERT removed]"
+        echo -e "\e[96mINFO\e[0m CA cert $CA_CERT removed"
     else
-        echo "failed: [CA cert $CA_CERT removed]"
+        echo -e "\e[31mFAILED\e[0m CA cert $CA_CERT removed"
     fi
 else
-    echo "skipping: [CA cert $CA_CERT removed]"
+    echo -e "\e[96mINFO\e[0m No such file: $CA_CERT"
 fi
 
 # Remove systemd service files if they exist
@@ -113,12 +112,12 @@ for service in postgresql-quay redis quay; do
 
     if [ -f "$SERVICE_FILE" ]; then
         if sudo rm -rf "$SERVICE_FILE"; then
-            echo "ok: [Systemd service $SERVICE_FILE removed]"
+            echo -e "\e[96mINFO\e[0m Systemd service $SERVICE_FILE removed"
         else
-            echo "failed: [Systemd service $SERVICE_FILE removed]"
+            echo -e "\e[31mFAILED\e[0m Systemd service $SERVICE_FILE removed"
         fi
     else
-        echo "skipping: [Systemd service $SERVICE_FILE removed]"
+        echo -e "\e[96mINFO\e[0m No such file: $SERVICE_FILE"
     fi
 done
 
@@ -135,14 +134,14 @@ export CERTS_DIR="$QUAY_INST_DIR/config"
 export CA_CN="Test Workspace Signer"
 export OPENSSL_CNF="/etc/pki/tls/openssl.cnf"
 
-# Create a local directory to store the Quay config.yaml and certificates
+# Create a local directory to store the quay config.yaml and certificates
 rm -rf $QUAY_INST_DIR > /dev/null 2>&1
 mkdir -p $QUAY_INST_DIR/config >/dev/null 2>&1
-run_command "[Create a local directory to store the Quay config.yaml and certificates]"
+run_command "Create a local directory to store the quay config.yaml and certificates"
 
 # Generate the root Certificate Authority (CA) key
 openssl genrsa -out ${CERTS_DIR}/rootCA.key 4096 > /dev/null 2>&1
-run_command "[Generate root CA private key]"
+run_command "Generate root CA private key"
 
 # Generate the root CA certificate
 openssl req -x509 \
@@ -156,11 +155,11 @@ openssl req -x509 \
   -extensions SAN \
   -config <(cat ${OPENSSL_CNF} \
       <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature')) > /dev/null 2>&1
-run_command "[Generate root CA self-signed certificate]"
+run_command "Generate root CA self-signed certificate"
 
 # Generate the SSL key
 openssl genrsa -out ${CERTS_DIR}/ssl.key 2048 > /dev/null 2>&1
-run_command "[Generate SSL private key]"
+run_command "Generate SSL private key"
 
 # Generate a certificate signing request (CSR) for the SSL
 openssl req -new -sha256 \
@@ -170,7 +169,7 @@ openssl req -new -sha256 \
     -config <(cat ${OPENSSL_CNF} \
         <(printf "\n[SAN]\nsubjectAltName=DNS:${DOMAIN}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
     -out ${CERTS_DIR}/ssl.csr > /dev/null 2>&1
-run_command "[Generate SSL certificate signing request]"
+run_command "Generate SSL certificate signing request"
 
 # Generate the SSL certificate (CRT)
 openssl x509 \
@@ -182,42 +181,42 @@ openssl x509 \
     -CA ${CERTS_DIR}/rootCA.pem \
     -CAkey ${CERTS_DIR}/rootCA.key \
     -CAcreateserial -out ${CERTS_DIR}/ssl.cert  > /dev/null 2>&1
-run_command "[Generate SSL certificate signed by root CA]"
+run_command "Generate SSL certificate signed by root CA"
 
 sudo chmod 777 -R $QUAY_INST_DIR/config
-run_command "[Change the permissions of $QUAY_INST_DIR/config]"
+run_command "Change the permissions of $QUAY_INST_DIR/config"
 
 # Add an empty line after the task
 echo
 
 # Step 4:
-PRINT_TASK "TASK [Install quay registry]"
+PRINT_TASK "TASK [Install Quay Registry]"
 
 # Add registry entry to /etc/hosts
 if ! grep -q "$QUAY_HOST_NAME" /etc/hosts; then
   echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts > /dev/null
   echo "$QUAY_HOST_IP $QUAY_HOST_NAME" | sudo tee -a /etc/hosts > /dev/null
-  echo "ok: [Add registry entry to /etc/hosts]"
+  echo -e "\e[96mINFO\e[0m Add registry entry to /etc/hosts"
 else
-  echo "skipping: [Registry entry already exists in /etc/hosts]"
+  echo -e "\e[96mINFO\e[0m Registry entry already exists in /etc/hosts"
 fi
 
-# Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
+# Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json 
 rm -rf $XDG_RUNTIME_DIR/containers || true
 mkdir -p $XDG_RUNTIME_DIR/containers || true
 sleep 1
-cat ${PULL_SECRET_FILE} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json
-run_command "[Save the pull-secret file either as $XDG_RUNTIME_DIR/containers/auth.json]"
+cat ${PULL_SECRET_FILE} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json 2>/dev/null
+run_command "Save the pull-secret file either as $XDG_RUNTIME_DIR/containers/auth.json"
 
 # Create a database data directory
 mkdir -p $QUAY_INST_DIR/postgres-quay >/dev/null 2>&1
-run_command "[Create a database data directory]"
+run_command "Create a database data directory"
 
 sleep 5
 
 # Set the appropriate permissions
 setfacl -mu:26:-wx $QUAY_INST_DIR/postgres-quay >/dev/null 2>&1
-run_command "[Set the appropriate permissions]"
+run_command "Set the appropriate permissions"
 
 sleep 5
 
@@ -231,19 +230,19 @@ podman run -d --name postgresql-quay \
   -p 5432:5432 \
   -v $QUAY_INST_DIR/postgres-quay:/var/lib/pgsql/data:Z \
   registry.redhat.io/rhel8/postgresql-13 >/dev/null 2>&1
-run_command "[Start the Postgres container]"
+run_command "Start the Postgres Container"
 
 sleep 10
 
 # Ensure that the Postgres pg_trgm module is installed
 podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres' >/dev/null 2>&1
-run_command "[Ensure that the Postgres pg_trgm module is installed]"
+run_command "Ensure that the Postgres pg_trgm module is installed"
 
 # Start the Redis container
 podman run -d --name redis --restart=always -p 6379:6379 -e REDIS_PASSWORD=strongpassword registry.redhat.io/rhel8/redis-6:1-110 >/dev/null 2>&1
-run_command "[Start the Redis container]"
+run_command "Start the Redis container"
 
-# Create a minimal config.yaml file that is used to deploy the Red Hat Quay container
+# Create a minimal config.yaml file that is used to deploy the quay container
 cat > $QUAY_INST_DIR/config/config.yaml << EOF
 BUILDLOGS_REDIS:
     host: $QUAY_HOST_NAME
@@ -275,27 +274,27 @@ USER_EVENTS_REDIS:
     password: strongpassword
     port: 6379
 EOF
-run_command "[Create a minimal config.yaml file that is used to deploy the Red Hat Quay container]"
+run_command "Create a minimal config.yaml file that is used to deploy the quay container"
 
 # Create a local directory that will store registry images
 mkdir $QUAY_INST_DIR/storage >/dev/null 2>&1
-run_command "[Create a local directory that will store registry images]"
+run_command "Create a local directory that will store registry images"
 
 sleep 5
 
 # Set the directory to store registry images
 setfacl -m u:1001:-wx $QUAY_INST_DIR/storage >/dev/null 2>&1
-run_command "[Set the directory to store registry images]"
+run_command "Set the directory to store registry images"
 
 sleep 5
 
-# Deploy the Red Hat Quay registry 
+# Deploy the quay registry 
 podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    --restart=always \
    -v $QUAY_INST_DIR/config:/conf/stack:Z \
    -v $QUAY_INST_DIR/storage:/datastorage:Z \
    registry.redhat.io/quay/quay-rhel8:v3.15.0 >/dev/null 2>&1
-run_command "[Deploy the Red Hat Quay registry ]"
+run_command "Deploy the quay registry"
 
 sleep 20
 
@@ -304,41 +303,44 @@ containers=("postgresql-quay" "redis" "quay")
 
 for c in "${containers[@]}"; do
   if podman ps --format "{{.Names}}" | grep -qw "$c"; then
-    echo "ok: [Container $c is Running]"
+    echo -e "\e[96mINFO\e[0m Container $c is Running"
   else
-    echo "failed: [Container $c is Running]"
+    echo -e "\e[31mFAILED\e[0m Container $c is Running"
   fi
 done
 
 # Generate systemd service file for PostgreSQL
 podman generate systemd --name postgresql-quay --files --restart-policy=always >/dev/null 2>&1
-run_command "[Generate systemd service file for PostgreSQL]"
+run_command "Generate systemd service file for PostgreSQL"
 
 # Generate systemd service file for Redis
 podman generate systemd --name redis --files --restart-policy=always >/dev/null 2>&1
-run_command "[Generate systemd service file for Redis]"
+run_command "Generate systemd service file for Redis"
 
 # Generate systemd service file for Quay
 podman generate systemd --name quay --files --restart-policy=always >/dev/null 2>&1
-run_command "[Generate systemd service file for Quay]"
+run_command "Generate systemd service file for Quay"
 
 # Move generated files to systemd directory
 sudo mv container-*.service /etc/systemd/system/ >/dev/null 2>&1
-run_command "[Move generated files to systemd directory]"
+run_command "Move generated files to systemd directory"
 
 # Reload systemd to pick up new services
 sudo systemctl daemon-reload >/dev/null 2>&1
-run_command "[Reload systemd to pick up new services]"
+run_command "Reload systemd to pick up new services"
 
 # Enable and start each service
 sudo systemctl enable --now container-postgresql-quay.service >/dev/null 2>&1
-run_command "[Enable and start postgresql service]"
+run_command "Enable and start postgresql service"
 
 sudo systemctl enable --now container-redis.service >/dev/null 2>&1
-run_command "[Enable and start redis service]"
+run_command "Enable and start redis service"
 
 sudo systemctl enable --now container-quay.service >/dev/null 2>&1
-run_command "[Enable and start quay service]"
+run_command "Enable and start quay service"
+
+echo -e "\e[96mINFO\e[0m Installation complete"
+
 # Add an empty line after the task
 echo
 
@@ -347,11 +349,11 @@ PRINT_TASK "TASK [Configuring additional trust stores for image registry access]
 
 # Copy the rootCA certificate to the trusted source
 sudo cp ${QUAY_INST_DIR}/config/rootCA.pem /etc/pki/ca-trust/source/anchors/$QUAY_HOST_NAME.ca.pem
-run_command "[Copy the rootca certificate to the trusted source: /etc/pki/ca-trust/source/anchors/$QUAY_HOST_NAME.ca.pem]"
+run_command "Copy rootCA certificate to trusted anchors"
 
 # Trust the rootCA certificate
 sudo update-ca-trust
-run_command "[Trust the rootCA certificate]"
+run_command "Trust the rootCA certificate"
 
 sleep 5
 
@@ -363,24 +365,23 @@ if [[ -n "$REGISTRY_CAS" ]]; then
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
   oc create configmap registry-config --from-file=${QUAY_HOST_NAME}..8443=/etc/pki/ca-trust/source/anchors/${QUAY_HOST_NAME}.ca.pem -n openshift-config >/dev/null 2>&1
-  run_command "[Create a configmap containing the registry CA certificate: registry-config]"
+  run_command "Create a configmap containing the registry CA certificate: registry-config"
   
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' --type=merge >/dev/null 2>&1
-  run_command "[Trust the registry-config configmap]"
+  run_command "Trust the registry-config configmap"
 else
   # If it doesn't exist, execute the following commands
   oc delete configmap registry-config -n openshift-config >/dev/null 2>&1 || true
   oc delete configmap registry-cas -n openshift-config >/dev/null 2>&1 || true
   oc create configmap registry-cas --from-file=${QUAY_HOST_NAME}..8443=/etc/pki/ca-trust/source/anchors/${QUAY_HOST_NAME}.ca.pem -n openshift-config >/dev/null 2>&1
-  run_command "[Create a configmap containing the registry CA certificate: registry-cas]"
+  run_command "Create a configmap containing the registry CA certificate: registry-cas"
 
   oc patch image.config.openshift.io/cluster --patch '{"spec":{"additionalTrustedCA":{"name":"registry-cas"}}}' --type=merge >/dev/null 2>&1
-  run_command "[Trust the registry-cas configmap]"
+  run_command "Trust the registry-cas configmap"
 fi
 
 # Add an empty line after the task
 echo
-
 
 # Step 6:
 PRINT_TASK "TASK [Update pull-secret]"
@@ -388,7 +389,7 @@ PRINT_TASK "TASK [Update pull-secret]"
 # Export pull-secret
 rm -rf pull-secret
 oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
-run_command "[Export pull-secret]"
+run_command "Export pull-secret"
 
 sleep 5
 
@@ -415,11 +416,11 @@ cat <<EOF > $AUTHFILE
 }
 EOF
 fi
-echo "ok: [Authentication information for quay registry added to $AUTHFILE]"
+echo -e "\e[96mINFO\e[0m Authentication information for quay registry added to $AUTHFILE"
 
 # Update pull-secret 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
-run_command "[Update pull-secret for the cluster]"
+run_command "Update pull-secret for the cluster"
 
 rm -rf tmp-authfile >/dev/null 2>&1
 rm -rf pull-secret >/dev/null 2>&1
@@ -431,7 +432,7 @@ echo
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
-MAX_RETRIES=20
+MAX_RETRIES=30
 SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
@@ -444,7 +445,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for all cluster operators to reach the expected state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for all cluster operators to reach the expected state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -455,16 +456,16 @@ while true; do
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo "]"
-            echo "failed: [Reached max retries, cluster operator may still be initializing]"
+            echo # Add this to force a newline after the message
+            echo -e "\e[31mFAILED\e[0m Reached max retries cluster operator may still be initializing"
             break
         fi
     else
         # Close the progress indicator and print the success message
         if $progress_started; then
-            echo "]"
+            echo # Add this to force a newline after the message
         fi
-        echo "ok: [All cluster operators have reached the expected state]"
+        echo -e "\e[96mINFO\e[0m All cluster operators have reached the expected state"
         break
     fi
 done
@@ -483,7 +484,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for all mcps to reach the expected state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for all MCP to reach the expected state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -494,27 +495,31 @@ while true; do
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo "]"
-            echo "failed: [Reached max retries, mcp may still be initializing]"
+            echo # Add this to force a newline after the message
+            echo -e "\e[31mFAILED\e[0m Reached max retries MCP may still be initializing"
             break
         fi
     else
         # Close the progress indicator and print the success message
         if $progress_started; then
-            echo "]"
+            echo # Add this to force a newline after the message
         fi
-        echo "ok: [All mcp have reached the expected state]"
+        echo -e "\e[96mINFO\e[0m All MCP have reached the expected state"
         break
     fi
 done
-
 # Add an empty line after the task
 echo
 
+PRINT_TASK "TASK [Add DNS Record Entries for Mirror Registry]"
 
 # Step 8:
 PRINT_TASK "TASK [Manually create a user]"
 
-echo "note: [***  Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT  ***]"
-echo "note: [***  You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>  ***]"
-echo "note: [***  podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u quayadmin -p password  ***]"
+echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT"
+echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
+echo -e "\e[96mINFO\e[0m podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u quayadmin -p password"
+
+# Step 9:
+PRINT_TASK "TASK [Add DNS Record Entries for Mirror Registry]"
+echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
