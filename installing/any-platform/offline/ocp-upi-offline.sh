@@ -952,11 +952,12 @@ PRINT_TASK "TASK [Install Mirror Registry]"
 
 # Check if there is an quay-app.service
  if [ -f /etc/systemd/system/quay-pod.service ]; then
-        echo -e "\e[96mINFO\e[0m Mirror registry detected, starting uninstall"
+        echo -e "\e[96mINFO\e[0m Mirror registry detected Starting uninstall"
     if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
         echo -e "\e[96mINFO\e[0m Uninstall the mirror registry"
     else
         echo -e "\e[31mFAILED\e[0m Uninstall the mirror registry"
+        exit 1
     fi
 else
     echo -e "\e[96mINFO\e[0m No mirror registry is running"
