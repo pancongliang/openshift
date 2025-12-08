@@ -62,7 +62,7 @@ PRINT_TASK "TASK [Delete existing duplicate data]"
 
 # Check if there is an quay-app.service
  if [ -f /etc/systemd/system/quay-pod.service ]; then
-    echo -e "\e[96mINFO\e[0m Mirror registry detected Starting uninstall"
+    echo -e "\e[96mINFO\e[0m Mirror registry detected starting uninstall"
     if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
         echo -e "\e[96mINFO\e[0m Uninstall the mirror registry"
     else
@@ -120,7 +120,7 @@ sudo ${REGISTRY_INSTALL_DIR}/mirror-registry install \
      --sqliteStorage ${REGISTRY_INSTALL_DIR}/sqlite-storage \
      --initUser ${REGISTRY_ID} \
      --initPassword ${REGISTRY_PW}
-run_command "Installed mirror registry"
+run_command "Installation complete"
 
 progress_started=false
 while true; do
@@ -139,10 +139,14 @@ while true; do
         echo -n '.'
         sleep 10
     else
-        echo -n -e "\e[96mINFO\e[0m Quay pod is in 'Running' state"
+        if $progress_started; then
+            echo # Add this to force a newline after the message
+        fi
+        echo -e "\e[96mINFO\e[0m Quay pod is in 'Running' state"
         break
     fi
 done
+
 
 # Copy the rootCA certificate to the trusted source
 sudo cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem
@@ -214,42 +218,85 @@ echo
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Check cluster operator status
+MAX_RETRIES=20
+SLEEP_INTERVAL=15
 progress_started=false
+retry_count=0
+
 while true; do
-    operator_status=$(oc get co --no-headers | awk '{print $3, $4, $5}')
+    # Get the status of all cluster operators
+    output=$(oc get co --no-headers | awk '{print $3, $4, $5}')
     
-    if echo "$operator_status" | grep -q -v "True False False"; then
+    # Check cluster operators status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
         if ! $progress_started; then
             echo -n -e "\e[96mINFO\e[0m Waiting for all cluster operators to reach the expected state"
-            progress_started=true  
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 15
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo # Add this to force a newline after the message
+            echo -e "\e[31mFAILED\e[0m Reached max retries cluster operator may still be initializing"
+            break
+        fi
     else
-        echo -n -e "\e[96mINFO\e[0m All cluster operators have reached the expected state"
+        # Close the progress indicator and print the success message
+        if $progress_started; then
+            echo # Add this to force a newline after the message
+        fi
+        echo -e "\e[96mINFO\e[0m All cluster operators have reached the expected state"
         break
     fi
 done
 
 # Check MCP status
+MAX_RETRIES=20
+SLEEP_INTERVAL=15
 progress_started=false
-while true; do
-    mcp_status=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
+retry_count=0
 
-    if echo "$mcp_status" | grep -q -v "True False False"; then
+while true; do
+    # Get the status of all mcp
+    output=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
+    
+    # Check mcp status
+    if echo "$output" | grep -q -v "True False False"; then
+        # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for all mcps to reach the expected state"
-            progress_started=true  
+            echo -n -e "\e[96mINFO\e[0m Waiting for all MCP to reach the expected state"
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
+        # Print progress indicator (dots)
         echo -n '.'
-        sleep 15
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo # Add this to force a newline after the message
+            echo -e "\e[31mFAILED\e[0m Reached max retries MCP may still be initializing"
+            break
+        fi
     else
-        echo -n -e "\e[96mINFO\e[0m All mcp have reached the expected state"
+        # Close the progress indicator and print the success message
+        if $progress_started; then
+            echo # Add this to force a newline after the message
+        fi
+        echo -e "\e[96mINFO\e[0m All MCP have reached the expected state"
         break
     fi
 done
-
 # Add an empty line after the task
 echo
+
+PRINT_TASK "TASK [Add DNS Record Entries for Mirror Registry]"
+
+echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
