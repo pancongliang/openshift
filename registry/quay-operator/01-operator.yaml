@@ -4,8 +4,8 @@ metadata:
   name: quay-operator
   namespace: openshift-operators
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: ${SUB_CHANNEL}
   installPlanApproval: "Manual"
   name: quay-operator
-  source: ${CATALOG_SOURCE_NAME}
+  source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
