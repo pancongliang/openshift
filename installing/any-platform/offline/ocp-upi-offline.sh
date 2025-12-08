@@ -959,7 +959,7 @@ PRINT_TASK "TASK [Install Mirror Registry]"
         echo -e "\e[31mFAILED\e[0m Uninstall the mirror registry"
     fi
 else
-    echo -e "\e[96mINFO\e[0m Uninstall the mirror registry"
+    echo -e "\e[96mINFO\e[0m No mirror registry is running"
 fi
 
 # Delete existing duplicate data
