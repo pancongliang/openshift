@@ -186,5 +186,5 @@ run_command "Add mc cli alias to $HOME/.bashrc"
 
 # Print Minio address and credentials
 echo -e "\e[96mINFO\e[0m Minio Host: $BUCKET_HOST"
-echo -e "\e[96mINFO\e[0m Minio default Id/PW: minioadmin/minioadmin"
+echo -e "\e[96mINFO\e[0m Minio default ID/PW: minioadmin/minioadmin"
 echo -e "\e[33mACTION\e[0m Apply the mc alias by running: source ~/.bashrc"
