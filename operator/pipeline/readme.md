@@ -12,7 +12,7 @@
 ### Install Tekton
 * Installing the Tekton Command
   ```
-  curl -L https://mirror.openshift.com/pub/openshift-v4/clients/pipelines/1.17.0/tkn-linux-amd64.tar.gz | tar -xzf -
+  curl -L https://github.com/tektoncd/cli/releases/download/v0.43.0/tkn_0.43.0_Linux_x86_64.tar.gz | tar -xzf -
   sudo mv tkn /usr/bin/
   ```
   
