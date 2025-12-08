@@ -59,6 +59,7 @@ fi
 echo
 
 # Step 1:
+# Deploying Minio Object Storage
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/inst-minio.sh |sh
 
 # Add an empty line after the task
