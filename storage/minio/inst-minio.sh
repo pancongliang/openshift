@@ -5,7 +5,7 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # Set environment variables
 export STORAGE_SIZE="50Gi"   # Requires default storage class
-export BUCKETS=("loki-bucket" "quay-bucket" "oadp-bucket" "mtc-bucket")
+export BUCKETS=("loki-bucket" "quay-bucket" "oadp-bucket")
 
 # Function to print a task with uniform length
 PRINT_TASK() {
