@@ -161,6 +161,8 @@ while true; do
     fi
 done
 
+echo -e "\e[96mINFO\e[0m Installation complete"
+
 sleep 3
 
 # Get Minio route URL
@@ -174,7 +176,7 @@ run_command "Configured Minio client alias"
 for BUCKET_NAME in "${BUCKETS[@]}"; do
     oc rsh -n minio deployments/minio \
         mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
-    run_command "Created bucket $BUCKET_NAME"
+    run_command "Create bucket $BUCKET_NAME"
 done
 
 grep -qxF "alias mc='oc -n minio exec -it deployment/minio -- mc'" ~/.bashrc || \
