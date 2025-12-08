@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [Line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export STORAGE_SIZE="50Gi"   # Requires default storage class
@@ -21,19 +21,19 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        echo "ok: $1"
+        echo -e "\e[96mINFO\e[0m $1"
     else
-        echo "failed: $1"
+        echo -e "\e[31mFAILED\e[0m $1"
         exit 1
     fi
 }
 
-# Step 1:
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
-# Deploy Minio with the specified YAML template
-echo "info: [Uninstall minio resources...]"
-oc delete project minio >/dev/null 2>&1 || true
+if oc get project minio >/dev/null 2>&1; then
+    echo -e "\e[96mINFO\e[0m Deleting minio project..."
+    oc delete project minio >/dev/null 2>&1
+fi
 oc get pv -o json | jq -r '.items[] | select(.spec.claimRef.namespace=="minio") | .metadata.name' | xargs -r oc delete pv >/dev/null 2>&1 || true
 
 cat << EOF | oc apply -f - >/dev/null 2>&1
@@ -131,7 +131,7 @@ spec:
   port:
     targetPort: 9000
 EOF
-run_command "[Deploying minio object storage]]"
+run_command "Deploying Minio Object Storage"
 
 # Wait for Minio pods to be in 'Running' state
 # Initialize progress_started as false
@@ -144,7 +144,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for pods to be in 'Running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for pods to be in 'Running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -154,9 +154,9 @@ while true; do
     else
         # Close progress indicator only if progress_started is true
         if $progress_started; then
-            echo "]"
+            echo # Add this to force a newline after the message
         fi
-        echo "ok: [Minio pods are in 'Running' state]"
+        echo -e "\e[96mINFO\e[0m Minio pods are in 'Running' state"
         break
     fi
 done
@@ -168,20 +168,20 @@ export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host
 
 # Set Minio client alias
 oc rsh -n minio deployments/minio mc alias set my-minio ${BUCKET_HOST} minioadmin minioadmin > /dev/null
-run_command "[Configured minio client alias]"
+run_command "Configured Minio client alias"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 for BUCKET_NAME in "${BUCKETS[@]}"; do
     oc rsh -n minio deployments/minio \
         mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
-    run_command "[Created bucket $BUCKET_NAME]"
+    run_command "Created bucket $BUCKET_NAME"
 done
 
 grep -qxF "alias mc='oc -n minio exec -it deployment/minio -- mc'" ~/.bashrc || \
 echo "alias mc='oc -n minio exec -it deployment/minio -- mc'" >> ~/.bashrc
-run_command "[Add mc cli alias to $HOME/.bashrc]"
+run_command "Add mc cli alias to $HOME/.bashrc"
 
 # Print Minio address and credentials
-echo "info: [Minio Host: $BUCKET_HOST]"
-echo "info: [Minio default Id/PW: minioadmin/minioadmin]"
-echo "info: [Run source ~/.bashrc to make the mc alias take effect]"
+echo -e "\e[96mINFO\e[0m Minio Host: $BUCKET_HOST"
+echo -e "\e[96mINFO\e[0m Minio default Id/PW: minioadmin/minioadmin"
+echo -e "\e[33mACTION\e[0m Apply the mc alias by running: source ~/.bashrc"
