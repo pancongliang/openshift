@@ -37,10 +37,10 @@ PRINT_TASK "TASK [Uninstall old quay resources]"
 
 # Delete custom resources
 if oc get quayregistry example-registry -n "$NAMESPACE" >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m Deleting quayregistry example-registry..."
+    echo -e "\e[96mINFO\e[0m Deleting QuayRegistry example-registry..."
     oc delete quayregistry example-registry -n "$NAMESPACE" >/dev/null 2>&1
 else
-    echo -e "\e[96mINFO\e[0m quayregistry does not exist"
+    echo -e "\e[96mINFO\e[0m QuayRegistry does not exist"
 fi
 
 oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
