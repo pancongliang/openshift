@@ -258,3 +258,6 @@ EOF
 run_command "Create nfs storage class"
 
 echo -e "\e[96mINFO\e[0m Installation complete"
+
+# Add an empty line after the task
+echo
