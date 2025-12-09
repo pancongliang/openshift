@@ -508,34 +508,40 @@ progress_started=false
 retry_count=0
 
 while true; do
-    # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep -v Completed | awk '{print $3}' || true)
+    # Get the READY column of all pods that are not Completed
+    output=$(oc get po -n $NAMESPACE --no-headers 2>/dev/null | grep -v Completed | awk '{print $2}' || true)
 
-    # Check if any pod is not in the "Running" state
-    if echo "$output" | grep -vq "Running"; then
-        # Print the info message only once
+    # Find pods where the number of ready containers is not equal to total containers
+    not_ready=$(echo "$output" | awk -F/ '$1 != $2')
+
+    if [[ -n "$not_ready" ]]; then
+        # Print info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for openshift-logging pods to be in Running state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            echo -n -e "\e[96mINFO\e[0m Waiting for $NAMESPACE namespace pods to be in Running state"
+            progress_started=true
         fi
-        
-        # Print progress indicator (dots)
+
+        # Print a progress dot
         echo -n '.'
+
+        # Sleep before the next check
         sleep "$SLEEP_INTERVAL"
+
+        # Increment retry counter
         retry_count=$((retry_count + 1))
 
-        # Exit the loop when the maximum number of retries is exceeded
+        # Exit if max retries are exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries openshift-logging pods may still be initializing"
-            exit 1 
+            echo
+            echo -e "\e[31mFAILED\e[0m Reached max retries namespace pods may still be initializing"
+            exit 1
         fi
     else
-        # Close the progress indicator and print the success message
+        # All pods are ready, print success message
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            echo
         fi
-        echo -e "\e[96mINFO\e[0m All openshift-logging pods are in the Running state"
+        echo -e "\e[96mINFO\e[0m All $NAMESPACE namespace pods are in Running state"
         break
     fi
 done
