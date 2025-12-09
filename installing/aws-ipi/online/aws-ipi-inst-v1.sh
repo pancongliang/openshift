@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'printf "\e[31mFAILED\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export OCP_VERSION=4.16.26
@@ -30,9 +30,9 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        echo -e "\e[96mINFO\e[0m $1"
+        printf "\033[96mINFO\033[0m %s\n" "$1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        printf "\033[31mFAILED\033[0m %s\n" "$1"
         exit 1
     fi
 }
@@ -60,10 +60,10 @@ PRINT_TASK "TASK [Install OpenShift Install and Client Tools]"
 
 # Determine the operating system
 OS_TYPE=$(uname -s)
-echo -e "\e[96mINFO\e[0m Client operating system: $OS_TYPE"
+printf "\e[96mINFO\e[0m Client operating system: $OS_TYPE\n"
 
 ARCH=$(uname -m)
-echo -e "\e[96mINFO\e[0m Client architecture: $ARCH"
+printf "\e[96mINFO\e[0m Client architecture: $ARCH\n"
 
 # Handle macOS
 if [ "$OS_TYPE" = "Darwin" ]; then
@@ -77,7 +77,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Installer
-    echo -e "\e[96mINFO\e[0m Downloading the openshift-install tool..."
+    printf "\e[96mINFO\e[0m Downloading the openshift-install tool...\n"
     curl -sL "$download_url" -o "$openshift_install"
     run_command "Download openshift-install"
 
@@ -100,7 +100,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Client
-    echo -e "\e[96mINFO\e[0m Downloading the openshift-client tool..."
+    printf "\e[96mINFO\e[0m Downloading the openshift-client tool...\n"
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift-client"
 
@@ -122,7 +122,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
 # Handle Linux
 elif [ "$OS_TYPE" = "Linux" ]; then
     # Download the OpenShift Installer
-    echo -e "\e[96mINFO\e[0m Downloading the openshift-install tool..."
+    printf "\e[96mINFO\e[0m Downloading the openshift-install tool...\n"
     curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "Download openshift-install tool"
 
@@ -153,7 +153,7 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     fi
 
     # Download the OpenShift client
-    echo -e "\e[96mINFO\e[0m Downloading the openshift-client tool..."
+    printf "\e[96mINFO\e[0m Downloading the openshift-client tool...\n"
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift client tool"
 
@@ -182,9 +182,9 @@ if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; t
     rm -rf ${SSH_KEY_PATH} 
     mkdir -p ${SSH_KEY_PATH}
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    echo -e "\e[96mINFO\e[0m Create ssh-key for accessing node"
+    printf "\e[96mINFO\e[0m Create ssh-key for accessing node\n"
 else
-    echo -e "\e[96mINFO\e[0m Create ssh-key for accessing node"
+    printf "\e[96mINFO\e[0m Create ssh-key for accessing node\n"
 fi
 
 sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
@@ -284,8 +284,8 @@ run_command "Create oauth htpasswd identityprovider manifests"
 /usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "Installation complete"
 
-echo -e "\e[96mINFO\e[0m HTPasswd login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443"
-echo -e "\e[96mINFO\e[0m Kubeconfig login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig"
+printf "\e[96mINFO\e[0m HTPasswd login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443\n"
+printf "\e[96mINFO\e[0m Kubeconfig login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig\n"
 
 # Add an empty line after the task
 echo
