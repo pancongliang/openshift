@@ -51,6 +51,9 @@ oc delete sub cluster-logging -n openshift-operators >/dev/null 2>&1 || true
 oc get csv -n openshift-operators-redhat -o name | grep elasticsearch-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc get csv -n openshift-logging -o name | grep cluster-logging | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-logging >/dev/null 2>&1 || true
 
+oc get ip -n openshift-operators-redhat  --no-headers 2>/dev/null|grep elasticsearch-operator|awk '{print $1}'|xargs -r oc delete ip -n openshift-operators-redhat >/dev/null 2>&1 || true
+oc get ip -n openshift-logging --no-headers 2>/dev/null|grep cluster-logging|awk '{print $1}'|xargs -r oc delete ip -n openshift-logging >/dev/null 2>&1 || true
+
 if oc get ns openshift-logging >/dev/null 2>&1; then
    echo -e "\e[96mINFO\e[0m Delete openshift-logging project..."
    oc delete ns openshift-logging >/dev/null 2>&1 || true
