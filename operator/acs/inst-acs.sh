@@ -133,7 +133,7 @@ pod_name=rhacs-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep rhacs | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
@@ -244,7 +244,6 @@ MAX_RETRIES=60
 SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
-pod_name=stackrox
 
 while true; do
     # Get the status of all pods
@@ -254,7 +253,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name namespace pods to be in Running state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $NAMESPACE namespace pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -266,7 +265,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries, $pod_name namespace pods may still be initializing"
+            echo -e "\e[31mFAILED\e[0m Reached max retries namespace pods may still be initializing"
             exit 1
         fi
     else
@@ -274,7 +273,7 @@ while true; do
         if $progress_started; then
             echo # Add this to force a newline after the message
         fi
-        echo -e "\e[96mINFO\e[0m The $pod_name namespace pods are in Running state"
+        echo -e "\e[96mINFO\e[0m The $NAMESPACE namespace pods are in Running state"
         break
     fi
 done
@@ -377,7 +376,6 @@ MAX_RETRIES=60
 SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
-pod_name=stackrox
 
 while true; do
     # Get the status of all pods
@@ -387,7 +385,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name namespace pods to be in Running state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $NAMESPACE namespace pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -399,7 +397,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries, $pod_name namespace pods may still be initializing"
+            echo -e "\e[31mFAILED\e[0m Reached max retries namespace pods may still be initializing"
             exit 1
         fi
     else
@@ -407,7 +405,7 @@ while true; do
         if $progress_started; then
             echo # Add this to force a newline after the message
         fi
-        echo -e "\e[96mINFO\e[0m All $pod_name namespace pods are in Running state"
+        echo -e "\e[96mINFO\e[0m All $NAMESPACE namespace pods are in Running state"
         break
     fi
 done
