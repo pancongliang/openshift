@@ -600,6 +600,50 @@ oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
 EOF
 )" >/dev/null 2>&1
 run_command "Configuring console logout redirection"
+NAMESPACE=$OPERATOR_NS
+MAX_RETRIES=60
+SLEEP_INTERVAL=5
+progress_started=false
+retry_count=0
+
+while true; do
+    # Get the READY column of all pods that are not Completed
+    output=$(oc get po -n $NAMESPACE --no-headers 2>/dev/null | grep -v Completed | awk '{print $2}' || true)
+
+    # Find pods where the number of ready containers is not equal to total containers
+    not_ready=$(echo "$output" | awk -F/ '$1 != $2')
+
+    if [[ -n "$not_ready" ]]; then
+        # Print info message only once
+        if ! $progress_started; then
+            echo -n -e "\e[96mINFO\e[0m Waiting for $NAMESPACE namespace pods to be in Running state"
+            progress_started=true
+        fi
+
+        # Print a progress dot
+        echo -n '.'
+
+        # Sleep before the next check
+        sleep "$SLEEP_INTERVAL"
+
+        # Increment retry counter
+        retry_count=$((retry_count + 1))
+
+        # Exit if max retries are exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo
+            echo -e "\e[31mFAILED\e[0m Reached max retries namespace pods may still be initializing"
+            exit 1
+        fi
+    else
+        # All pods are ready, print success message
+        if $progress_started; then
+            echo
+        fi
+        echo -e "\e[96mINFO\e[0m All $NAMESPACE namespace pods are in Running state"
+        break
+    fi
+done
 
 
 # Check cluster operator status
