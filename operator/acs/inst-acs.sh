@@ -138,7 +138,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in 'Running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -158,7 +158,7 @@ while true; do
         if $progress_started; then
             echo # Add this to force a newline after the message
         fi
-        echo -e "\e[96mINFO\e[0m The $pod_name pods are in 'Running' state]"
+        echo -e "\e[96mINFO\e[0m The $pod_name pods are in Running state]"
         break
     fi
 done
@@ -254,7 +254,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name namespace pods to be in 'Running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name namespace pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -274,7 +274,7 @@ while true; do
         if $progress_started; then
             echo # Add this to force a newline after the message
         fi
-        echo -e "\e[96mINFO\e[0m All $pod_name namespace pods are in 'Running' state"
+        echo -e "\e[96mINFO\e[0m The $pod_name namespace pods are in Running state"
         break
     fi
 done
@@ -387,7 +387,7 @@ while true; do
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name namespace pods to be in 'Running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name namespace pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -407,7 +407,7 @@ while true; do
         if $progress_started; then
             echo # Add this to force a newline after the message
         fi
-        echo -e "\e[96mINFO\e[0m All $pod_name namespace pods are in 'Running' state"
+        echo -e "\e[96mINFO\e[0m All $pod_name namespace pods are in Running state"
         break
     fi
 done
