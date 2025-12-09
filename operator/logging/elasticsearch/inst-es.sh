@@ -111,7 +111,7 @@ spec:
   name: "elasticsearch-operator"
 
 EOF
-run_command "Install elasticsearch operator"
+run_command "Install the elasticsearch operator"
 
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1
@@ -135,7 +135,7 @@ spec:
   source: $CATALOG_SOURCE
   sourceNamespace: openshift-marketplace
 EOF
-run_command "Install cluster-logging operator"
+run_command "Install the cluster-logging operator"
 
 # Approval IP
 echo -e "\e[96mINFO\e[0m The CSR approval is in progress..."
@@ -244,29 +244,42 @@ sleep 30
 
 # Wait for openshift-logging pods to be in 'Running' state
 NAMESPACE="openshift-logging"
+MAX_RETRIES=60
+SLEEP_INTERVAL=5
 progress_started=false
+retry_count=0
+
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n $NAMESPACE --no-headers |grep -v Completed | awk '{print $3}')
-    
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep -v Completed | awk '{print $3}' || true)
+
     # Check if any pod is not in the "Running" state
     if echo "$output" | grep -vq "Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m waiting for pods to be in Running state"
-            progress_started=true  # Prevent duplicate messages
+            echo -n -e "\e[96mINFO\e[0m Waiting for openshift-logging pods to be in Running state"
+            progress_started=true  # Set to true to prevent duplicate messages
         fi
         
         # Print progress indicator (dots)
         echo -n '.'
-        sleep 10
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit the loop when the maximum number of retries is exceeded
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            echo # Add this to force a newline after the message
+            echo -e "\e[31mFAILED\e[0m Reached max retries openshift-logging pods may still be initializing"
+            exit 1 
+        fi
     else
-        # Close the progress indicator if it was started
+        # Close the progress indicator and print the success message
         if $progress_started; then
             echo # Add this to force a newline after the message
         fi
-
-        echo -e "\e[96mINFO\e[0m All openshift-logging pods are in Running state"
+        echo -e "\e[96mINFO\e[0m All openshift-logging pods are in the Running state"
         break
     fi
 done
+
+echo -e "\e[96mINFO\e[0m Installation complete"
