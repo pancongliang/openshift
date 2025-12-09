@@ -702,3 +702,6 @@ KEYCLOAK_INITIAL_ADMIN_PASSWORD=$(oc -n ${OPERATOR_NS} get secret example-kc-ini
 echo -e "\e[96mINFO\e[0m Keycloak Host -> https://$KEYCLOAK_HOST"
 echo -e "\e[96mINFO\e[0m Keycloak Console -> Username: $KEYCLOAK_INITIAL_ADMIN_USER, Password: $KEYCLOAK_INITIAL_ADMIN_PASSWORD"
 echo -e "\e[96mINFO\e[0m Keycloak Realm User -> Username: $KEYCLOAK_REALM_USER, Password: $KEYCLOAK_REALM_PASSWORD"
+
+# Add an empty line after the task
+echo
