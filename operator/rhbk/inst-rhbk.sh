@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Applying environment variables
 export OPERATOR_NS="keycloak"
@@ -26,33 +26,52 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        echo "ok: $1"
+        echo -e "\e[96mINFO\e[0m $1"
     else
-        echo "failed: $1"
+        echo -e "\e[31mFAILED\e[0m $1"
         exit 1
     fi
 }
 
 # Step 0:
-PRINT_TASK "TASK [Uninstall old rhsso resources]"
+PRINT_TASK "TASK [Delete old RHBK resources]"
 
 # Uninstall first
-echo "info: [Uninstall old rhbk resources...]"
+if oc get keycloakrealmimport example-realm-import -n $OPERATOR_NS >/dev/null 2>&1; then
+   echo -e "\e[96mINFO\e[0m Deleting keycloakrealmimport resources..."
+   oc delete keycloakrealmimport example-realm-import -n $OPERATOR_NS >/dev/null 2>&1 || true
+else
+   echo -e "\e[96mINFO\e[0m The keycloakrealmimport does not exist"
+fi
+
+if oc get keycloak example-kc -n $OPERATOR_NS >/dev/null 2>&1; then
+   echo -e "\e[96mINFO\e[0m Deleting keycloak resources..."
+   oc delete keycloak example-kc -n $OPERATOR_NS >/dev/null 2>&1 || true
+   echo -e "\e[96mINFO\e[0m Deleting rhbk operator..."
+else
+   echo -e "\e[96mINFO\e[0m The keycloak resources does not exist"
+fi
+
 oc adm policy remove-cluster-role-from-user cluster-admin $KEYCLOAK_REALM_USER >/dev/null 2>&1 || true
 oc delete user $KEYCLOAK_REALM_USER >/dev/null 2>&1 || true
 oc delete identity "$(oc get identity -o jsonpath="{.items[?(@.user.name=='${KEYCLOAK_REALM_USER}')].metadata.name}")" >/dev/null 2>&1 || true
 oc delete secret openid-client-secret -n openshift-config >/dev/null 2>&1 || true
 oc delete configmap openid-route-ca -n openshift-config >/dev/null 2>&1 || true
-oc delete keycloakrealmimport example-realm-import  -n $OPERATOR_NS  >/dev/null 2>&1 || true
-oc delete keycloak example-kc -n $OPERATOR_NS  >/dev/null 2>&1 || true
 oc delete secret example-tls-secret -n $OPERATOR_NS  >/dev/null 2>&1 || true
 oc delete secret keycloak-db-secret -n $OPERATOR_NS  >/dev/null 2>&1 || true
 oc delete statefulset postgresql-db -n $OPERATOR_NS  >/dev/null 2>&1 || true
 oc delete svc postgres-db -n $OPERATOR_NS  >/dev/null 2>&1 || true
 oc delete operatorgroup rhbk-operator-group $OPERATOR_NS >/dev/null 2>&1 || true
 oc delete sub rhbk-operator -n $OPERATOR_NS >/dev/null 2>&1 || true
-oc delete csv $(oc get csv -n "$OPERATOR_NS" -o name | grep rhbk-operator | awk -F/ '{print $2}') -n "$OPERATOR_NS" 
-oc delete ns $OPERATOR_NS >/dev/null 2>&1 || true
+oc delete csv $(oc get csv -n "$OPERATOR_NS" -o name | grep rhbk-operator | awk -F/ '{print $2}') -n "$OPERATOR_NS" >/dev/null 2>&1 || true
+
+if oc get ns $OPERATOR_NS >/dev/null 2>&1; then
+   echo -e "\e[96mINFO\e[0m Deleting $OPERATOR_NS project..."
+   oc delete ns $OPERATOR_NS >/dev/null 2>&1 || true
+else
+   echo -e "\e[96mINFO\e[0m The $OPERATOR_NS project does not exist"
+fi
+
 
 # Add an empty line after the task
 echo
@@ -66,7 +85,10 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: ${OPERATOR_NS}
----
+EOF
+run_command "Create a ${OPERATOR_NS} namespace"
+
+cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -88,29 +110,29 @@ spec:
   source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
 EOF
-run_command "[Installing redhat build of keycloak operator...]"
+run_command "Install redhat build of keycloak operator"
 
 # Approve install plan
 echo -e "\e[96mINFO\e[0m The CSR approval is in progress..."
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "Approved the rhbk-operator install plan]"
+run_command "Approved the rhbk-operator install plan"
 
 # Wait for operator pods to be Running
 MAX_RETRIES=180
-SLEEP_INTERVAL=5
+SLEEP_INTERVAL=10
 progress_started=false
 retry_count=0
 pod_name=rhbk-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for $pod_name pods to be in 'Running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -121,21 +143,19 @@ while true; do
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo "]"
-            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
+            echo # Add this to force a newline after the message
+            echo -e "\e[31mFAILED\e[0m Reached max retries $pod_name pods may still be initializing"
             exit 1 
         fi
     else
         # Close the progress indicator and print the success message
         if $progress_started; then
-            echo "]"
+            echo # Add this to force a newline after the message
         fi
-        echo "ok: [All $pod_name pods are in 'Running' state]"
+        echo -e "\e[96mINFO\e[0m The $pod_name pods are in the Running state"
         break
     fi
 done
-
-sleep 10
 
 # Add an empty line after the task
 echo
@@ -199,7 +219,7 @@ spec:
   - port: 5432
     targetPort: 5432
 EOF
-run_command "[Deploy the database instance]"
+run_command "Deploy the database instance"
 
 
 # Wait for PostgreSQL pod to be running
@@ -211,13 +231,13 @@ pod_name=postgresql-db-0
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po $pod_name -n "$OPERATOR_NS" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for $pod_name pods to be in 'Running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -228,16 +248,16 @@ while true; do
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo "]"
-            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
+            echo # Add this to force a newline after the message
+            echo -e "\e[31mFAILED\e[0m Reached max retries $pod_name pods may still be initializing"
             exit 1 
         fi
     else
         # Close the progress indicator and print the success message
         if $progress_started; then
-            echo "]"
+            echo # Add this to force a newline after the message
         fi
-        echo "ok: [All $pod_name pods are in 'Running' state]"
+        echo -e "\e[96mINFO\e[0m The $pod_name pods are in the Running state"
         break
     fi
 done
@@ -254,7 +274,7 @@ stringData:
   username: testuser
 type: Opaque
 EOF
-run_command "[Create a database secret]"
+run_command "Create a database secret"
 
 # Add an empty line after the task
 echo
@@ -270,7 +290,7 @@ rm -rf rootCA.key  rootCA.pem  rootCA.srl  tls.crt  tls.csr  tls.key
 
 # Extract router CA certificate and key
 oc extract secret/router-ca -n openshift-ingress-operator --keys=tls.crt,tls.key >/dev/null 2>&1
-run_command "[Extract router CA certificate and key]"
+run_command "Extract router CA certificate and key"
 
 sleep 1
 
@@ -280,7 +300,7 @@ mv tls.crt rootCA.pem
 
 # Generate the TLS key
 openssl genrsa -out tls.key 2048 > /dev/null 2>&1
-run_command "[Generate TLS private key]"
+run_command "Generate TLS private key"
 
 # Generate a certificate signing request (CSR) for the TLS
 openssl req -new -sha256 \
@@ -290,7 +310,7 @@ openssl req -new -sha256 \
     -config <(cat ${OPENSSL_CNF} \
         <(printf "\n[SAN]\nsubjectAltName=DNS:${KEYCLOAK_HOST}\nbasicConstraints=critical, CA:FALSE\nkeyUsage=digitalSignature, keyEncipherment, keyAgreement, dataEncipherment\nextendedKeyUsage=serverAuth")) \
     -out tls.csr > /dev/null 2>&1
-run_command "[Generate TLS certificate signing request]"
+run_command "Generate TLS certificate signing request"
 
 # Generate the TLS certificate (CRT)
 openssl x509 \
@@ -302,11 +322,11 @@ openssl x509 \
     -CA rootCA.pem \
     -CAkey rootCA.key \
     -CAcreateserial -out tls.crt  > /dev/null 2>&1
-run_command "[Generate TLS certificate signed by root CA]"
+run_command "Generate TLS certificate signed by root CA"
 
 # Create secret for Keycloak TLS certificate
 oc create secret -n ${OPERATOR_NS} tls example-tls-secret --cert=tls.crt --key=tls.key >/dev/null 2>&1
-run_command "[Create a secret containing the keycloak TLS certificate]"
+run_command "Create a secret containing the keycloak TLS certificate"
 
 # Clean temporary files
 rm -rf rootCA.key  rootCA.pem  rootCA.srl  tls.crt  tls.csr  tls.key
@@ -342,7 +362,7 @@ spec:
   hostname:
     hostname: $KEYCLOAK_HOST
 EOF
-run_command "[Create the Keycloak CR]"
+run_command "Create the Keycloak CR"
 
 sleep 3
 
@@ -355,13 +375,13 @@ pod_name=example-kc-0
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po $pod_name -n "$OPERATOR_NS" --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for $pod_name pods to be in 'Running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in 'running' state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -372,16 +392,16 @@ while true; do
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo "]"
-            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
+            echo # Add this to force a newline after the message
+            echo -e "\e[31mFAILED\e[0m Reached max retries $pod_name pods may still be initializing"
             exit 1 
         fi
     else
         # Close the progress indicator and print the success message
         if $progress_started; then
-            echo "]"
+            echo # Add this to force a newline after the message
         fi
-        echo "ok: [All $pod_name pods are in 'Running' state]"
+        echo -e "\e[96mINFO\e[0m The $pod_name pods are in the Running state"
         break
     fi
 done
@@ -395,19 +415,19 @@ PRINT_TASK "TASK [Creating a Realm Import Custom Resource]"
 
 # Get OpenShift OAuth and Console route details
 OAUTH_HOST=$(oc get route oauth-openshift -n openshift-authentication --template='{{.spec.host}}')
-run_command "[OpenShift OAuth host detected: ${OAUTH_HOST}]"
+run_command "OpenShift OAuth host detected: ${OAUTH_HOST}"
 
 CONSOLE_HOST=$(oc get route console -n openshift-console --template='{{.spec.host}}')
-run_command "[OpenShift Console host detected: ${CONSOLE_HOST}]"
+run_command "OpenShift Console host detected: ${CONSOLE_HOST}"
 
 # Create Keycloak client secret
 oc create secret generic keycloak-client-secret --from-literal=client-secret=$(openssl rand -base64 32) -n ${OPERATOR_NS}  >/dev/null 2>&1
-run_command "[Create the Keycloak client secret]"
+run_command "Create the Keycloak client secret"
 
 sleep 3
 
 CLIENT_SECRET=$(oc get -n ${OPERATOR_NS} secret keycloak-client-secret -o jsonpath='{.data.client-secret}' | base64 --decode)
-run_command "[Keycloak client secret detected: ${CLIENT_SECRET}]"
+run_command "Keycloak client secret detected: ${CLIENT_SECRET}"
 
 sleep 1
 
@@ -462,7 +482,7 @@ spec:
         realmRoles:
           - "default-roles-openshift"
 EOF
-run_command "[Create the KeycloakRealmImport]"
+run_command "Create the KeycloakRealmImport"
 
 
 # Waiting for keycloakrealmimports to complete creation
@@ -481,19 +501,19 @@ while true; do
     errors=$(echo "$status" | grep -o "HasErrors=True" || true)
 
     if [[ -n "$done" && -z "$errors" ]]; then
-        [[ $progress_started == true ]] && echo "]"
-        echo "ok: [Realm import '${REALM_IMPORT}' completed]"
+        [[ $progress_started == true ]] && echo
+         echo -e "\e[96mINFO\e[0m Realm import '${REALM_IMPORT}' completed"
         break
     elif [[ -n "$started" ]]; then
         if [[ $progress_started == false ]]; then
-            echo -n "info: [Realm import '${REALM_IMPORT}' in progress"
+            echo -n -e "\e[96mINFO\e[0m Realm import '${REALM_IMPORT}' in progress"
             progress_started=true
         fi
         echo -n '.'
     else
         # Wait until Started=True
         if [[ $progress_started == false ]]; then
-            echo -n "info: [Waiting for Realm import '${REALM_IMPORT}' to start"
+            echo -n -e "\e[96mINFO\e[0m Waiting for Realm import '${REALM_IMPORT}' to start"
             progress_started=true
         fi
         echo -n '.'
@@ -502,8 +522,8 @@ while true; do
     sleep $SLEEP_INTERVAL
     retry_count=$((retry_count + 1))
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        [[ $progress_started == true ]] && echo "]"
-        echo "failed: [Reached max retries, Realm import '${REALM_IMPORT}' not completed]"
+        [[ $progress_started == true ]] && echo
+        echo -e "\e[31mFAILED\e[0m Reached max retries, Realm import '${REALM_IMPORT}' not completed"
         exit 1
     fi
 done
@@ -517,18 +537,18 @@ PRINT_TASK "TASK [Configure Identity Providers]"
 
 # Create a generic secret in OpenShift config namespace using the existing Keycloak client secret
 oc create secret generic openid-client-secret --from-literal=clientSecret=$(oc -n ${OPERATOR_NS} get secret keycloak-client-secret -o jsonpath='{.data.client-secret}' | base64 -d) -n openshift-config >/dev/null 2>&1
-run_command "[Creates a secret that includes the Keycloak client key]"
+run_command "Creates a secret that includes the Keycloak client key"
 
 # Extract the Router CA certificate to a local file
 rm -rf tls.crt >/dev/null 2>&1
 oc extract secrets/router-ca --keys tls.crt -n openshift-ingress-operator --confirm >/dev/null 2>&1
-run_command "[Extract router CA certificate]"
+run_command "Extract router CA certificate"
 
 sleep 1
 
 # Create a ConfigMap containing the Router CA certificate in OpenShift config namespace
 oc create configmap openid-route-ca --from-file=ca.crt=tls.crt -n openshift-config >/dev/null 2>&1
-run_command "[Create a ConfigMap that contains the router's CA certificate]"
+run_command "Create a ConfigMap that contains the router's CA certificate"
 
 # Clean up temporary certificate file
 rm -rf tls.crt >/dev/null 2>&1
@@ -562,50 +582,7 @@ spec:
     type: OpenID
     name: openid
 EOF
-run_command "[Apply identity provider configuration]"
-
-sleep 20
-
-# Wait for OpenShift authentication pods to be in 'Running' state
-MAX_RETRIES=180
-SLEEP_INTERVAL=5
-progress_started=false
-retry_count=0
-pod_name=oauth
-
-while true; do
-    # Get the status of all pods
-    output=$(oc get po -n openshift-authentication --no-headers 2>/dev/null | awk '{print $2, $3}' || true)
-    
-    # Check if any pod is not in the "1/1 Running" state
-    if echo "$output" | grep -vq "1/1 Running"; then
-        # Print the info message only once
-        if ! $progress_started; then
-            echo -n "info: [Waiting for $pod_name pods to be in 'Running' state"
-            progress_started=true  # Set to true to prevent duplicate messages
-        fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
-        sleep "$SLEEP_INTERVAL"
-        retry_count=$((retry_count + 1))
-
-        # Exit the loop when the maximum number of retries is exceeded
-        if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo "]"
-            echo "failed: [Reached max retries, $pod_name pods may still be initializing]"
-            exit
-        fi
-    else
-        # Close the progress indicator and print the success message
-        if $progress_started; then
-            echo "]"
-        fi
-        echo "ok: [All $pod_name pods are in 'Running' state]"
-        break
-    fi
-done
-
+run_command "Apply identity provider configuration"
 
 # Configure OpenShift console logout redirection to Keycloak
 CLIENT_ID=$(oc get keycloakrealmimport -n ${OPERATOR_NS} example-realm-import -o jsonpath='{.spec.realm.clients[0].clientId}')
@@ -622,12 +599,12 @@ oc patch console.config.openshift.io cluster --type merge --patch "$(cat <<EOF
 }
 EOF
 )" >/dev/null 2>&1
-run_command "[Configuring console logout redirection]"
+run_command "Configuring console logout redirection"
 
 
 # Check cluster operator status
-MAX_RETRIES=180
-SLEEP_INTERVAL=5
+MAX_RETRIES=60
+SLEEP_INTERVAL=20
 progress_started=false
 retry_count=0
 
@@ -639,7 +616,7 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n "info: [Waiting for all cluster operators to reach the expected state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for all cluster operators to reach the expected state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -650,23 +627,23 @@ while true; do
 
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo "]"
-            echo "failed: [Reached max retries, cluster operator may still be initializing]"
+            echo # Add this to force a newline after the message
+            echo -e "\e[31mFAILED\e[0m Reached max retries cluster operator may still be initializing"
             break
         fi
     else
         # Close the progress indicator and print the success message
         if $progress_started; then
-            echo "]"
+            echo # Add this to force a newline after the message
         fi
-        echo "ok: [All cluster operators have reached the expected state]"
+        echo -e "\e[96mINFO\e[0m All cluster operators have reached the expected state"
         break
     fi
 done
 
 # Grant cluster-admin privileges to the $KEYCLOAK_REALM_USER account
 oc adm policy add-cluster-role-to-user cluster-admin $KEYCLOAK_REALM_USER >/dev/null 2>&1 || true
-run_command "[Grant cluster-admin privileges to the $KEYCLOAK_REALM_USER account]"
+run_command "Grant cluster-admin privileges to the $KEYCLOAK_REALM_USER account"
 
 # Retrieve Keycloak route
 KEYCLOAK_HOST=$(oc get route -n ${OPERATOR_NS} -l app.kubernetes.io/instance=example-kc -o jsonpath='{.items[0].spec.host}')
@@ -676,6 +653,6 @@ KEYCLOAK_INITIAL_ADMIN_USER=$(oc -n ${OPERATOR_NS} get secret example-kc-initial
 KEYCLOAK_INITIAL_ADMIN_PASSWORD=$(oc -n ${OPERATOR_NS} get secret example-kc-initial-admin -o jsonpath='{.data.password}' | base64 --decode)
 
 # Print variables for verification (optional)
-echo "info: [Keycloak Host -> https://$KEYCLOAK_HOST]"
-echo "info: [Keycloak Console -> Username: $KEYCLOAK_INITIAL_ADMIN_USER, Password: $KEYCLOAK_INITIAL_ADMIN_PASSWORD]"
-echo "info: [Keycloak Realm User -> Username: $KEYCLOAK_REALM_USER, Password: $KEYCLOAK_REALM_PASSWORD]"
+echo -e "\e[96mINFO\e[0m Keycloak Host -> https://$KEYCLOAK_HOST"
+echo -e "\e[96mINFO\e[0m Keycloak Console -> Username: $KEYCLOAK_INITIAL_ADMIN_USER, Password: $KEYCLOAK_INITIAL_ADMIN_PASSWORD"
+echo -e "\e[96mINFO\e[0m Keycloak Realm User -> Username: $KEYCLOAK_REALM_USER, Password: $KEYCLOAK_REALM_PASSWORD"
