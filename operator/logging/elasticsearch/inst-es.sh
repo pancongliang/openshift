@@ -154,7 +154,7 @@ export OPERATOR_NS="openshift-operators-redhat"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "Approved the elasticsearch-operator install plan"
 
-sleep 30
+sleep 60
 
 if [ "$COLLECTOR" == "fluentd" ]; then
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-instance-fluentd.yaml | envsubst | oc apply -f - >/dev/null 2>&1
@@ -176,7 +176,7 @@ while true; do
     if echo "$output" | grep -vq "Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m waiting for pods to be in 'running' state"
+            echo -n -e "\e[96mINFO\e[0m waiting for pods to be in Running state"
             progress_started=true  # Prevent duplicate messages
         fi
         
@@ -189,7 +189,7 @@ while true; do
             echo # Add this to force a newline after the message
         fi
 
-        echo -e "\e[96mINFO\e[0m all openshift-logging pods are in 'running' state"
+        echo -e "\e[96mINFO\e[0m all openshift-logging pods are in Running state"
         break
     fi
 done
