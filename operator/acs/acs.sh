@@ -50,6 +50,7 @@ fi
 
 oc delete subscription rhacs-operator -n rhacs-operator >/dev/null 2>&1 || true
 oc get csv -n rhacs-operator -o name | grep rhacs-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n rhacs-operator >/dev/null 2>&1 || true
+oc get ip -n rhacs-operator --no-headers 2>/dev/null|grep rhacs-operator|awk '{print $1}'|xargs -r oc delete ip -n rhacs-operator >/dev/null 2>&1 || true
 
 if oc get ns $NAMESPACE >/dev/null 2>&1; then
    echo -e "\e[96mINFO\e[0m Deleting rhacs operator..."
