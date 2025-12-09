@@ -552,3 +552,6 @@ echo
 # Step 9:
 PRINT_TASK "TASK [Add DNS Record Entries for Mirror Registry]"
 echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
+
+# Add an empty line after the task
+echo
