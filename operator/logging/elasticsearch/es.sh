@@ -292,3 +292,6 @@ while true; do
 done
 
 echo -e "\e[96mINFO\e[0m Installation complete"
+
+# Add an empty line after the task
+echo
