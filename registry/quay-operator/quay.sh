@@ -435,3 +435,6 @@ echo
 PRINT_TASK "TASK [Manually create a user]"
 echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST"
 echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
+
+# Add an empty line after the task
+echo
