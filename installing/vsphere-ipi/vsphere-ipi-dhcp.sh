@@ -170,7 +170,7 @@ if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; t
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
     echo -e "\e[96mINFO\e[0m Create ssh-key for accessing node"
 else
-    echo -e "\e[96mINFO\e[0m Create ssh-key for accessing node"
+    echo -e "\e[96mINFO\e[0m SSH key already exists skip generating"
 fi
 
 sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
