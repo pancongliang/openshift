@@ -145,13 +145,14 @@ EOF
 run_command "Create a cluster-logging operator"
 
 # Approval IP
+echo -e "\e[96mINFO\e[0m The CSR approval is in progress...
 export OPERATOR_NS="openshift-logging"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "Approve cluster-logging install plan"
+run_command "Approved the cluster-logging install plan"
 
 export OPERATOR_NS="openshift-operators-redhat"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "Approve elasticsearch-operator install plan"
+run_command "Approved the elasticsearch-operator install plan"
 
 sleep 30
 
