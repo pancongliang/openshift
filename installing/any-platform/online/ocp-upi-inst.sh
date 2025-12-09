@@ -1154,6 +1154,38 @@ run_command "Generate csr approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 bash ${INSTALL_DIR}/ocp4cert-approver.sh &
 run_command "Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 
+# Generate check-bootstrap.sh with the actual BOOTSTRAP_IP value
+cat <<EOC > ${INSTALL_DIR}/bootstrap-check.sh
+#!/bin/bash
+CONTAINER="cluster-bootstrap"
+PORTS="6443|22623"
+MAX=30
+SLEEP=10
+ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+
+# Wait for container
+for i in \$(seq 1 \$MAX); do
+    ssh \$ssh_opts core@$BOOTSTRAP_IP sudo podman ps --filter "name=\$CONTAINER" --format "{{.Status}}" | grep -q "^Up" && break
+    [[ \$i -eq \$MAX ]] && echo -e "\e[31mFAILED\e[0m Container '\$CONTAINER' is Not Running" && exit 1
+    sleep \$SLEEP
+done
+echo -e "\e[96mINFO\e[0m Container '\$CONTAINER' is Running"
+
+# Wait for ports
+for i in \$(seq 1 \$MAX); do
+    ssh \$ssh_opts core@$BOOTSTRAP_IP sudo netstat -ntplu | grep -qE "\$PORTS" && break
+    [[ \$i -eq \$MAX ]] && echo -e "\e[31mFAILED\e[0m Ports 6443 and 22623 are not ready" && exit 1
+    sleep \$SLEEP
+done
+
+echo -e "\e[96mINFO\e[0m Ports 6443 and 22623 are now listening"
+echo -e "\e[96mINFO\e[0m You can now install Control Plane & Worker nodes"
+EOC
+run_command "Generate a bootstrap readiness check script: ${INSTALL_DIR}/bootstrap-check.sh"
+
+# Make it executable
+chmod +x ${INSTALL_DIR}/bootstrap-check.sh
+
 # Add an empty line after the task
 echo
 
@@ -1165,14 +1197,15 @@ grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || e
 run_command "Default login: use kubeconfig"
 
 echo -e "\e[96mINFO\e[0m HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
-echo -e "\e[33mACTION\e[0m Please manually run: source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile"
 
 # Add an empty line after the task
 echo
 
 # Step 15:
 PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
+echo -e "\e[33mACTION\e[0m Please manually run: source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile"
 echo -e "\e[33mACTION\e[0m Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh"
+echo -e "\e[33mACTION\e[0m Please manually run: bash ${INSTALL_DIR}/bootstrap-check.sh"
 echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh"
 echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh"
 echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3 |sh"
