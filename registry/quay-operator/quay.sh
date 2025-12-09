@@ -46,7 +46,7 @@ fi
 oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || true
 oc get csv -n openshift-operators -o name | grep quay-operator | awk -F/ '{print $2}'  | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
-oc get ip -n openshift-operators | grep quay-operator | awk -F/ '{print $1}'  | xargs -I {} oc delete ip {} -n openshift-operators >/dev/null 2>&1 || true
+oc get ip -n openshift-operators --no-headers 2>/dev/null|grep quay-operator|awk '{print $1}'|xargs -r oc delete ip -n openshift-operators >/dev/null 2>&1 || true
 
 if oc get ns $NAMESPACE >/dev/null 2>&1; then
    echo -e "\e[96mINFO\e[0m Deleting quay operator..."
