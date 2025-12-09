@@ -228,17 +228,17 @@ MAX_RETRIES=60
 SLEEP_INTERVAL=5
 progress_started=false
 retry_count=0
-pod_name=logging-operator
+pod_name=cluster-logging-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep cluster-logging-operator | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in 'running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -273,13 +273,13 @@ pod_name=loki-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep loki-operator | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
     
     # Check if any pod is not in the "2/2 Running" state
     if echo "$output" | grep -vq "2/2 Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in 'running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -320,7 +320,7 @@ while true; do
     if echo "$output" | grep -vq "Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in 'running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -332,7 +332,7 @@ while true; do
         # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries $pod_name pods may still be initializing"
+            echo -e "\e[31mFAILED\e[0m Reached max retries pods may still be initializing"
             exit 1 
         fi
     else
@@ -340,7 +340,7 @@ while true; do
         if $progress_started; then
             echo # Add this to force a newline after the message
         fi
-        echo -e "\e[96mINFO\e[0m The $pod_name pods are in the Running state"
+        echo -e "\e[96mINFO\e[0m All pods are in the Running state"
         break
     fi
 done
@@ -408,7 +408,7 @@ while true; do
     if echo "$output" | grep -vq "Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for openshift-logging pods to be in 'running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for openshift-logging pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
@@ -515,7 +515,7 @@ while true; do
     if echo "$output" | grep -vq "Running"; then
         # Print the info message only once
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for openshift-logging pods to be in 'running' state"
+            echo -n -e "\e[96mINFO\e[0m Waiting for openshift-logging pods to be in Running state"
             progress_started=true  # Set to true to prevent duplicate messages
         fi
         
