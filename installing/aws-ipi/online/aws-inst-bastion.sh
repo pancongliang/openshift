@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'printf "\e[31mFAILED\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export CLUSTER_NAME="copan"
@@ -25,9 +25,9 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        echo "ok: $1"
+        printf "\033[96mINFO\033[0m %s\n" "$1"
     else
-        echo "failed: $1"
+        printf "\033[31mFAILED\033[0m %s\n" "$1"
         exit 1
     fi
 }
@@ -45,7 +45,7 @@ cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
-run_command "[Set up aws credentials]"
+run_command "Set up aws credentials"
 
 # Add an empty line after the task
 echo
@@ -57,19 +57,19 @@ PRINT_TASK "TASK [Get subnet information]"
 SUBNET_NAME=$(aws --region $REGION ec2 describe-subnets \
     --query "Subnets[?contains(Tags[?Key=='Name'].Value | [0], '$CLUSTER_NAME')].[Tags[?Key=='Name'].Value | [0]] | [0]" \
     --output text)
-run_command "[Get subnet name: $SUBNET_NAME]"
+run_command "Get subnet name: $SUBNET_NAME"
 
 # Get Cluster ID
 CLUSTER_ID=$(echo $SUBNET_NAME | cut -d'-' -f1,2)
-run_command "[Get cluster id: $CLUSTER_ID]"
+run_command "Get cluster id: $CLUSTER_ID"
 
 # Get availability zone
 AVAILABILITY_ZONE=$(echo $SUBNET_NAME | awk -F'-' '{print $(NF-2)"-"$(NF-1)"-"$NF}')
-run_command "[Get availability zone: $AVAILABILITY_ZONE]"
+run_command "Get availability zone: $AVAILABILITY_ZONE"
 
 # Get Public Subnet ID
 PUBLIC_SUBNET_ID=$(aws --region $REGION ec2 describe-subnets --filters Name=tag:Name,Values=$CLUSTER_ID-subnet-public-$AVAILABILITY_ZONE | jq -r '.Subnets[].SubnetId')
-run_command "[Get public subnet id: $PUBLIC_SUBNET_ID]"
+run_command "Get public subnet id: $PUBLIC_SUBNET_ID"
 
 # Add an empty line after the task
 echo
@@ -80,32 +80,32 @@ PRINT_TASK "TASK [Create Security Group]"
 
 # Get vpn name and vpc id
 VPC_NAME=$(aws --region "$REGION" ec2 describe-vpcs --filters "Name=tag:Name,Values=$CLUSTER_ID*" --query "Vpcs[].Tags[?Key=='Name'].Value | [0]" --output text)
-run_command "[Get vpc name: $VPC_NAME]"
+run_command "Get vpc name: $VPC_NAME"
 
 VPC_ID=$(aws --region "$REGION" ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[].VpcId" --output text)
-run_command "[Get vpc id: $VPC_ID]"
+run_command "Get vpc id: $VPC_ID"
 
 # Create security group and get security group ID
 SECURITY_GROUP_NAME="$CLUSTER_ID-sg"
 SECURITY_GROUP_DESCRIPTION="External SSH and all internal traffic"
 SECURITY_GROUP_ID=$(aws --region $REGION ec2 create-security-group --group-name "$SECURITY_GROUP_NAME" --description "$SECURITY_GROUP_DESCRIPTION" --vpc-id $VPC_ID --output text)
-run_command "[Create security group and get security group ID: $SECURITY_GROUP_ID]"
+run_command "Create security group and get security group ID: $SECURITY_GROUP_ID"
 
 # Add tag to security group
 aws --region $REGION ec2 create-tags --resources $SECURITY_GROUP_ID --tags Key=Name,Value=$SECURITY_GROUP_NAME > /dev/null
-run_command "[Add tag to security group: $SECURITY_GROUP_NAME]"
+run_command "Add tag to security group: $SECURITY_GROUP_NAME"
 
 # Add inbound rule - SSH
 aws --region $REGION ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
-run_command "[Add inbound rule - ssh]"
+run_command "Add inbound rule - ssh"
 
 # Add inbound rule - All traffic
 aws --region $REGION ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol all --port -1 --cidr 0.0.0.0/0 > /dev/null
-run_command "[Add inbound rule - all traffic]"
+run_command "Add inbound rule - all traffic"
 
 # Add outbound rule - All traffic
 aws --region $REGION ec2 describe-security-groups --group-ids $SECURITY_GROUP_ID | grep -A 5 "IpPermissionsEgress" > /dev/null
-run_command "[Default existing outbound rule - all traffic]"
+run_command "Default existing outbound rule - all traffic"
 
 # Add an empty line after the task
 echo
@@ -118,14 +118,14 @@ export KEY_PAIR_NAME="$CLUSTER_ID-bastion-key"
 rm -rf $HOME/.ssh/$KEY_PAIR_NAME.pem > /dev/null
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME > /dev/null
 aws --region $REGION ec2 create-key-pair --key-name $KEY_PAIR_NAME --query 'KeyMaterial' --output text > $HOME/.ssh/$KEY_PAIR_NAME.pem
-run_command "[Create and download the key pair file: $HOME/.ssh/$KEY_PAIR_NAME.pem]"
+run_command "Create and download the key pair file: $HOME/.ssh/$KEY_PAIR_NAME.pem"
 
 # Retrieves the latest RHEL AMI ID that matches the specified name pattern
 AMI_ID=$(aws --region $REGION ec2 describe-images \
     --filters "Name=name,Values=RHEL-9.3.0_HVM-*-x86_64-49-Hourly2-GP3" \
     --query "sort_by(Images, &CreationDate)[-1].ImageId" \
     --output text)
-run_command "[Retrieves the latest rhel9 ami id that matches the specified name pattern: $AMI_ID]"
+run_command "Retrieves the latest rhel9 ami id that matches the specified name pattern: $AMI_ID"
 
 # Create bastion ec2 instance
 INSTANCE_NAME="$CLUSTER_ID-bastion"
@@ -141,14 +141,14 @@ INSTANCE_ID=$(aws --region $REGION ec2 run-instances \
     --query "Instances[0].InstanceId" \
     --output text
 )
-run_command "[Create bastion ec2 instance: $INSTANCE_NAME]"
+run_command "Create bastion ec2 instance: $INSTANCE_NAME"
 
 # Wait for instance to be in running state
 aws --region $REGION ec2 wait instance-status-ok --instance-ids $INSTANCE_ID > /dev/null
-run_command "[Wait for $INSTANCE_ID instance to pass the status check]"
+run_command "Wait for $INSTANCE_ID instance to pass the status check"
 
 aws --region $REGION ec2 wait instance-running --instance-ids $INSTANCE_ID > /dev/null
-run_command "[Wait for $INSTANCE_ID instance to be in running state]"
+run_command "Wait for $INSTANCE_ID instance to be in running state"
 
 # Add an empty line after the task
 echo
