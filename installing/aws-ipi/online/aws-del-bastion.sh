@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
+trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export CLUSTER_NAME="copan"
@@ -23,9 +23,9 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        echo "ok: $1"
+        printf "\033[96mINFO\033[0m %s\n" "$1"
     else
-        echo "failed: $1"
+        printf "\033[31mFAILED\033[0m %s\n" "$1"
         exit 1
     fi
 }
@@ -43,7 +43,7 @@ cli_pager=
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
-run_command "[Set up aws credentials]"
+run_command "Set up aws credentials"
 
 # https://docs.aws.amazon.com/vpc/latest/userguide/delete-vpc.html#delete-vpc-cli
 
@@ -57,16 +57,16 @@ PRINT_TASK "TASK [Delete EC2 Instance]"
 SUBNET_NAME=$(aws --region $REGION ec2 describe-subnets \
     --query "Subnets[?contains(Tags[?Key=='Name'].Value | [0], '$CLUSTER_NAME')].[Tags[?Key=='Name'].Value | [0]] | [0]" \
     --output text)
-run_command "[Get subnet name: $SUBNET_NAME]"
+run_command "Get subnet name: $SUBNET_NAME"
 
 # Get Cluster ID
 CLUSTER_ID=$(echo $SUBNET_NAME | cut -d'-' -f1,2)
-run_command "[Get Cluster ID: $CLUSTER_ID]"
+run_command "Get Cluster ID: $CLUSTER_ID"
 
 INSTANCE_NAME="$CLUSTER_ID-bastion"
 INSTANCE_ID=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Name,Values=$INSTANCE_NAME" --query "Reservations[].Instances[].InstanceId" --output text)
 aws --region $REGION ec2 terminate-instances --instance-ids $INSTANCE_ID > /dev/null
-run_command "[Terminating instance: $INSTANCE_NAME]"
+run_command "Terminating instance: $INSTANCE_NAME"
 
 # Wait for deletion to complete
 aws --region $REGION ec2 wait instance-terminated --instance-ids $INSTANCE_ID
@@ -83,7 +83,7 @@ export KEY_PAIR_NAME="$CLUSTER_ID-bastion-key"
 rm -rf $HOME/.ssh/$KEY_PAIR_NAME.pem  > /dev/null
 rm -rf ocp-bastion.sh > /dev/null
 aws --region $REGION ec2 delete-key-pair --key-name $KEY_PAIR_NAME > /dev/null
-run_command "[Delete key pair: $KEY_PAIR_NAME]"
+run_command "Delete key pair: $KEY_PAIR_NAME"
 
 # Add an empty line after the task
 echo
@@ -94,7 +94,7 @@ PRINT_TASK "TASK [Delete Security Group]"
 SECURITY_GROUP_NAME="$CLUSTER_ID-sg"
 SECURITY_GROUP_ID=$(aws --region $REGION ec2 describe-security-groups --filters "Name=tag:Name,Values=$SECURITY_GROUP_NAME" --query "SecurityGroups[].GroupId" --output text)
 aws --region $REGION ec2 delete-security-group --group-id $SECURITY_GROUP_ID > /dev/null
-run_command "[Delete security group: $SECURITY_GROUP_NAME]"
+run_command "Delete security group: $SECURITY_GROUP_NAME"
 
 # Add an empty line after the task
 echo
