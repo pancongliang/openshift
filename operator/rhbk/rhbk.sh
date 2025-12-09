@@ -64,6 +64,8 @@ oc delete svc postgres-db -n $OPERATOR_NS  >/dev/null 2>&1 || true
 oc delete operatorgroup rhbk-operator-group $OPERATOR_NS >/dev/null 2>&1 || true
 oc delete sub rhbk-operator -n $OPERATOR_NS >/dev/null 2>&1 || true
 oc delete csv $(oc get csv -n "$OPERATOR_NS" -o name | grep rhbk-operator | awk -F/ '{print $2}') -n "$OPERATOR_NS" >/dev/null 2>&1 || true
+oc get ip -n $OPERATOR_NS --no-headers 2>/dev/null|grep rhbk-operator|awk '{print $1}'|xargs -r oc delete ip -n $OPERATOR_NS >/dev/null 2>&1 || true
+
 
 if oc get ns $OPERATOR_NS >/dev/null 2>&1; then
    echo -e "\e[96mINFO\e[0m Deleting $OPERATOR_NS project..."
