@@ -65,7 +65,11 @@ oc delete sub cluster-observability-operator -n openshift-cluster-observability-
 
 oc get csv -n openshift-operators-redhat -o name | grep loki-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc get csv -n openshift-logging -o name | grep cluster-logging | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-logging >/dev/null 2>&1 || true
-oc get csv -n openshift-operators -o name | grep cluster-observability-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
+oc get csv -n openshift-cluster-observability-operator -o name | grep cluster-observability-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-cluster-observability-operator >/dev/null 2>&1 || true
+
+oc get ip -n openshift-operators-redhat  --no-headers 2>/dev/null|grep loki-operator|awk '{print $1}'|xargs -r oc delete ip -n openshift-operators-redhat >/dev/null 2>&1 || true
+oc get ip -n openshift-logging --no-headers 2>/dev/null|grep cluster-logging|awk '{print $1}'|xargs -r oc delete ip -n openshift-logging >/dev/null 2>&1 || true
+oc get ip -n openshift-cluster-observability-operator  --no-headers 2>/dev/null|grep observability|awk '{print $1}'|xargs -r oc delete ip -n openshift-cluster-observability-operator >/dev/null 2>&1 || true
 
 oc delete operatorgroups openshift-operators-redhat -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete operatorgroups cluster-observability-operator -n cluster-observability-operator >/dev/null 2>&1 || true
