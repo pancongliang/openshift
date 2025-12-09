@@ -312,6 +312,8 @@ else
     fi
 fi
 
+sleep 20
+
 # Creating resources by using the init bundle
 sudo rm -rf cluster_init_bundle.yaml
 
