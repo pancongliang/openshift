@@ -7,6 +7,7 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 export SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
 export DEFAULT_STORAGE_CLASS=managed-nfs-storage
+export NAMESPACE="stackrox"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -33,16 +34,16 @@ run_command() {
 PRINT_TASK "TASK [Delete old acs resources]"
 
 # Delete custom resources
-if oc get securedcluster stackrox-secured-cluster-services -n stackrox >/dev/null 2>&1; then
+if oc get securedcluster stackrox-secured-cluster-services -n $NAMESPACE >/dev/null 2>&1; then
     echo -e "\e[96mINFO\e[0m Deleting securedcluster stackrox-secured-cluster-services..."
-    oc delete securedcluster stackrox-secured-cluster-services -n stackrox >/dev/null 2>&1 || true
+    oc delete securedcluster stackrox-secured-cluster-services -n $NAMESPACE >/dev/null 2>&1 || true
 else
     echo -e "\e[96mINFO\e[0m Securedcluster does not exist"
 fi
 
-if oc get central stackrox-central-services -n stackrox >/dev/null 2>&1; then
+if oc get central stackrox-central-services -n $NAMESPACE >/dev/null 2>&1; then
     echo -e "\e[96mINFO\e[0m Deleting central stackrox-central-services..."
-    oc delete central stackrox-central-services -n stackrox >/dev/null 2>&1 || true
+    oc delete central stackrox-central-services -n $NAMESPACE >/dev/null 2>&1 || true
 else
     echo -e "\e[96mINFO\e[0m Central does not exist"
 fi
@@ -50,12 +51,12 @@ fi
 oc delete subscription rhacs-operator -n rhacs-operator >/dev/null 2>&1 || true
 oc get csv -n rhacs-operator -o name | grep rhacs-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n rhacs-operator >/dev/null 2>&1 || true
 
-if oc get ns stackrox >/dev/null 2>&1; then
+if oc get ns $NAMESPACE >/dev/null 2>&1; then
    echo -e "\e[96mINFO\e[0m Deleting rhacs operator..."
-   echo -e "\e[96mINFO\e[0m Deleting stackrox project..."
-   oc delete ns stackrox >/dev/null 2>&1 || true
+   echo -e "\e[96mINFO\e[0m Deleting $NAMESPACE project..."
+   oc delete ns $NAMESPACE >/dev/null 2>&1 || true
 else
-   echo -e "\e[96mINFO\e[0m The stackrox project does not exist"
+   echo -e "\e[96mINFO\e[0m The $NAMESPACE project does not exist"
 fi
 
 if oc get ns rhacs-operator >/dev/null 2>&1; then
@@ -124,7 +125,6 @@ run_command "Approved the rhacs-operator install plan"
 sleep 10
 
 # Wait for rhacs-operator pods to be in 'Running' state
-NAMESPACE="rhacs-operator"
 MAX_RETRIES=60
 SLEEP_INTERVAL=2
 progress_started=false
@@ -133,7 +133,7 @@ pod_name=rhacs-operator
 
 while true; do
     # Get the status of all pods
-    output=$(oc get po -n "$NAMESPACE" --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
+    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
     # Check if any pod is not in the "1/1 Running" state
     if echo "$output" | grep -vq "1/1 Running"; then
         # Print the info message only once
@@ -168,9 +168,9 @@ cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: stackrox
+  name: $NAMESPACE
 EOF
-run_command "Create a stackrox namespace"
+run_command "Create a $NAMESPACE namespace"
 
 # Create a Central
 cat << EOF | oc apply -f - >/dev/null 2>&1
@@ -178,7 +178,7 @@ apiVersion: platform.stackrox.io/v1alpha1
 kind: Central
 metadata:
   name: stackrox-central-services
-  namespace: stackrox
+  namespace: $NAMESPACE
 spec:
   monitoring:
     openshift:
@@ -239,41 +239,46 @@ run_command "Create a central instance"
 sleep 30
 
 # Wait for stackrox pods to be in 'Running' state
-NAMESPACE="stackrox"
 MAX_RETRIES=60
 SLEEP_INTERVAL=15
 progress_started=false
 retry_count=0
 
 while true; do
-    # Get the status of all pods
-    output=$(oc get po -n $NAMESPACE --no-headers 2>/dev/null |grep -v Completed | awk '{print $2, $3}' || true)
-    
-    # Check if any pod is not in the "1/1 Running" state
-    if echo "$output" | grep -vq "1/1 Running"; then
-        # Print the info message only once
+    # Get the READY column of all pods that are not Completed
+    output=$(oc get po -n $NAMESPACE --no-headers 2>/dev/null | grep -v Completed | awk '{print $2}' || true)
+
+    # Find pods where the number of ready containers is not equal to total containers
+    not_ready=$(echo "$output" | awk -F/ '$1 != $2')
+
+    if [[ -n "$not_ready" ]]; then
+        # Print info message only once
         if ! $progress_started; then
             echo -n -e "\e[96mINFO\e[0m Waiting for $NAMESPACE namespace pods to be in Running state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            progress_started=true
         fi
-        
-        # Print progress indicator (dots)
+
+        # Print a progress dot
         echo -n '.'
+
+        # Sleep before the next check
         sleep "$SLEEP_INTERVAL"
+
+        # Increment retry counter
         retry_count=$((retry_count + 1))
 
-        # Exit the loop when the maximum number of retries is exceeded
+        # Exit if max retries are exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # Add this to force a newline after the message
+            echo
             echo -e "\e[31mFAILED\e[0m Reached max retries namespace pods may still be initializing"
             exit 1
         fi
     else
-        # Close the progress indicator and print the success message
+        # All pods are ready, print success message
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            echo
         fi
-        echo -e "\e[96mINFO\e[0m The $NAMESPACE namespace pods are in Running state"
+        echo -e "\e[96mINFO\e[0m All $NAMESPACE namespace pods are in Running state"
         break
     fi
 done
@@ -310,11 +315,11 @@ fi
 # Creating resources by using the init bundle
 sudo rm -rf cluster_init_bundle.yaml
 
-export ROX_CENTRAL_ADDRESS=$(oc get route central -n stackrox -o jsonpath='{.spec.host}'):443
+export ROX_CENTRAL_ADDRESS=$(oc get route central -n $NAMESPACE -o jsonpath='{.spec.host}'):443
 
 sleep 1
 
-export ROX_CENTRAL_ADMIN_PASS=$(oc -n stackrox get secret central-htpasswd -o go-template='{{index .data "password" | base64decode}}')
+export ROX_CENTRAL_ADMIN_PASS=$(oc -n $NAMESPACE get secret central-htpasswd -o go-template='{{index .data "password" | base64decode}}')
 
 sleep 1
 
@@ -322,7 +327,7 @@ roxctl -e "${ROX_CENTRAL_ADDRESS}" -p "${ROX_CENTRAL_ADMIN_PASS}" central init-b
 
 sleep 1
 
-oc apply -f cluster_init_bundle.yaml -n stackrox >/dev/null 2>&1
+oc apply -f cluster_init_bundle.yaml -n $NAMESPACE >/dev/null 2>&1
 run_command "Creating resources by using the init bundle"
 
 sudo rm -rf cluster_init_bundle.yaml
@@ -335,7 +340,7 @@ apiVersion: platform.stackrox.io/v1alpha1
 kind: SecuredCluster
 metadata:
   name: stackrox-secured-cluster-services
-  namespace: stackrox
+  namespace: $NAMESPACE
 spec:
   admissionControl:
     bypass: BreakGlassAnnotation
@@ -371,7 +376,6 @@ run_command "Create a secured cluster..."
 sleep 30
 
 # Wait for stackrox pods to be in 'Running' state
-NAMESPACE="stackrox"
 MAX_RETRIES=60
 SLEEP_INTERVAL=5
 progress_started=false
@@ -422,8 +426,8 @@ echo
 # Step 6:
 PRINT_TASK "TASK [Login cluster information]"
 
-ACS_CONSOLE=$(oc get route central -n stackrox -o jsonpath='{"https://"}{.spec.host}{"\n"}')
-ACS_PW=$(oc get secret central-htpasswd -n stackrox -o jsonpath='{.data.password}' | base64 -d)
+ACS_CONSOLE=$(oc get route central -n $NAMESPACE -o jsonpath='{"https://"}{.spec.host}{"\n"}')
+ACS_PW=$(oc get secret central-htpasswd -n $NAMESPACE -o jsonpath='{.data.password}' | base64 -d)
 
 echo -e "\e[96mINFO\e[0m ACS console: $ACS_CONSOLE"
 echo -e "\e[96mINFO\e[0m ACS user id: admin  pw: $ACS_PW"
