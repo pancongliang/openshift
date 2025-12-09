@@ -116,9 +116,10 @@ run_command "Installing rhacs operator..."
 sleep 30
 
 # Approval IP
+echo -e "\e[96mINFO\e[0m The CSR approval is in progress...
 export OPERATOR_NS="rhacs-operator"
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "Approve rhacs-operator install plan"
+run_command "Approved the rhacs-operator install plan"
 
 sleep 10
 
