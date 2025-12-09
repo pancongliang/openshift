@@ -30,7 +30,7 @@ run_command() {
 }
 
 # Step 0:
-PRINT_TASK "TASK [Uninstall old acs resources]"
+PRINT_TASK "TASK [Delete old acs resources]"
 
 # Delete custom resources
 if oc get securedcluster stackrox-secured-cluster-services -n stackrox >/dev/null 2>&1; then
