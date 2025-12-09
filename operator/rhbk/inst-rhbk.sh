@@ -91,7 +91,7 @@ EOF
 run_command "[Installing redhat build of keycloak operator...]"
 
 # Approve install plan
-echo -e "\e[96mINFO\e[0m The CSR approval is in progress...
+echo -e "\e[96mINFO\e[0m The CSR approval is in progress..."
 curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
 run_command "Approved the rhbk-operator install plan]"
 
