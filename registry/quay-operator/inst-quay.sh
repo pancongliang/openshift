@@ -125,7 +125,7 @@ while true; do
         if $progress_started; then
             echo # Add this to force a newline after the message
         fi
-        echo -e "\e[96mINFO\e[0m All $pod_name pods are in 'Running' state"
+        echo -e "\e[96mINFO\e[0m All $pod_name pods are in the Running state"
         break
     fi
 done
@@ -236,7 +236,7 @@ while true; do
         if $progress_started; then
             echo # Add this to force a newline after the message
         fi
-        echo -e "\e[96mINFO\e[0m All $NAMESPACE namespace pods are in 'Running' state"
+        echo -e "\e[96mINFO\e[0m All $NAMESPACE namespace pods are in the Running state"
         break
     fi
 done
