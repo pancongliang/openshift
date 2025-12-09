@@ -110,7 +110,7 @@ spec:
   source: ${CATALOG_SOURCE}
   sourceNamespace: openshift-marketplace
 EOF
-run_command "Install redhat build of keycloak operator"
+run_command "Install the redhat build of keycloak operator"
 
 # Approve install plan
 echo -e "\e[96mINFO\e[0m The CSR approval is in progress..."
