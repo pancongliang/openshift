@@ -4,18 +4,13 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export QUAY_VERSION='v3.15.2'
+export QUAY_VERSION='v3.15.2'               # Quay version: v3.12.12  v3.13.8   v3.14.5   v3.15.2
+export MIRRORING_WORKER='v3.15.1'           # Mirroring-Worker version: v3.12.8  v3.13.7  v3.14.4  v3.15.1
 export QUAY_HOST_NAME='quay-server.example.com'
 export QUAY_HOST_IP="10.184.134.30"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"
 export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
-
-# Quay version:
-# registry.redhat.io/quay/quay-rhel8:v3.12.12
-# registry.redhat.io/quay/quay-rhel8:v3.13.8
-# registry.redhat.io/quay/quay-rhel8:v3.14.5
-# registry.redhat.io/quay/quay-rhel8:v3.15.2
 
 
 # Function to print a task with uniform length
@@ -75,6 +70,7 @@ remove_directory() {
 remove_container "postgresql-quay"
 remove_container "quay"
 remove_container "redis"
+remove_container "mirroring-worker"
 remove_directory "$QUAY_INST_DIR"
 
 # Remove CA certificate if it exists
@@ -306,8 +302,17 @@ podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    registry.redhat.io/quay/quay-rhel8:$QUAY_VERSION >/dev/null 2>&1
 run_command "Deploy the quay registry"
 
+sleep 5
+
+# Deploy the mirroring-worker
+QUAY=/opt/quay-inst/
+podman run -d --name mirroring-worker \
+  -v $QUAY_INST_DIR/config:/conf/stack:Z \
+  -v ${QUAY_INST_DIR}/config/rootCA.pem:/etc/pki/ca-trust/source/anchors/ca.crt:Z \
+  registry.redhat.io/quay/quay-rhel8:$MIRRORING_WORKER repomirror
+
 # Checking container status
-containers=("postgresql-quay" "redis" "quay")
+containers=("postgresql-quay" "redis" "quay" "mirroring-worker")
 MAX_RETRIES=20
 SLEEP_INTERVAL=5
 progress_started=false
@@ -358,6 +363,10 @@ run_command "Generate systemd service file for Redis"
 podman generate systemd --name quay --files --restart-policy=always >/dev/null 2>&1
 run_command "Generate systemd service file for Quay"
 
+# Generate systemd service file for Mirroring-Worker
+podman generate systemd --name mirroring-worker --files --restart-policy=always
+run_command "Generate systemd service file for Mirroring-Worker"
+
 # Move generated files to systemd directory
 sudo mv container-*.service /etc/systemd/system/ >/dev/null 2>&1
 run_command "Move generated files to systemd directory"
@@ -375,6 +384,9 @@ run_command "Enable and start redis service"
 
 sudo systemctl enable --now container-quay.service >/dev/null 2>&1
 run_command "Enable and start quay service"
+
+sudo systemctl enable --now container-quay.service >/dev/null 2>&1
+run_command "Enable and start mirroring-worker service"
 
 echo -e "\e[96mINFO\e[0m Installation complete"
 
