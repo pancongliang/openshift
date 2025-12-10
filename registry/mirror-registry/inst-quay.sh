@@ -31,7 +31,30 @@ run_command() {
     fi
 }
 
-# Step 1: 
+# Step 1:
+PRINT_TASK "TASK [Delete existing duplicate data]"
+
+# Check if there is an quay-app.service
+ if [ -f /etc/systemd/system/quay-pod.service ]; then
+    echo -e "\e[96mINFO\e[0m Mirror registry detected starting uninstall"
+    if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
+        echo -e "\e[96mINFO\e[0m Uninstall the mirror registry"
+    else
+        echo -e "\e[31mFAILED\e[0m Uninstall the mirror registry"
+        exit 1 
+    fi
+else
+    echo -e "\e[96mINFO\e[0m No mirror registry is running"
+fi
+
+# Delete existing duplicate data
+rm -rf "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem" >/dev/null 2>&1
+rm -rf "${REGISTRY_INSTALL_DIR}" >/dev/null 2>&1
+
+# Add an empty line after the task
+echo
+
+# Step 2: 
 PRINT_TASK "TASK [Install Infrastructure RPM]"
 
 # List of RPM packages to install
@@ -53,29 +76,6 @@ for package in "${packages[@]}"; do
         echo -e "\e[31mFAILED\e[0m Install $package package"
     fi
 done
-
-# Add an empty line after the task
-echo
-
-# Step 2:
-PRINT_TASK "TASK [Delete existing duplicate data]"
-
-# Check if there is an quay-app.service
- if [ -f /etc/systemd/system/quay-pod.service ]; then
-    echo -e "\e[96mINFO\e[0m Mirror registry detected starting uninstall"
-    if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
-        echo -e "\e[96mINFO\e[0m Uninstall the mirror registry"
-    else
-        echo -e "\e[31mFAILED\e[0m Uninstall the mirror registry"
-        exit 1 
-    fi
-else
-    echo -e "\e[96mINFO\e[0m No mirror registry is running"
-fi
-
-# Delete existing duplicate data
-rm -rf "/etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem" >/dev/null 2>&1
-rm -rf "${REGISTRY_INSTALL_DIR}" >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
