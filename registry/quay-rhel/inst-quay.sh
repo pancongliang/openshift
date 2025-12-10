@@ -4,11 +4,19 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
+export QUAY_VERSION='v3.15.2'
 export QUAY_HOST_NAME='quay-server.example.com'
 export QUAY_HOST_IP="10.184.134.30"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"
 export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
+
+# Quay version:
+# registry.redhat.io/quay/quay-rhel8:v3.12.12
+# registry.redhat.io/quay/quay-rhel8:v3.13.8
+# registry.redhat.io/quay/quay-rhel8:v3.14.5
+# registry.redhat.io/quay/quay-rhel8:v3.15.2
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -293,7 +301,7 @@ podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    --restart=always \
    -v $QUAY_INST_DIR/config:/conf/stack:Z \
    -v $QUAY_INST_DIR/storage:/datastorage:Z \
-   registry.redhat.io/quay/quay-rhel8:v3.15.0 >/dev/null 2>&1
+   registry.redhat.io/quay/quay-rhel8:$QUAY_VERSION >/dev/null 2>&1
 run_command "Deploy the quay registry"
 
 # Checking container status
