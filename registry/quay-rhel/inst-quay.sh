@@ -39,33 +39,8 @@ run_command() {
     fi
 }
 
-# Step 1: 
-PRINT_TASK "TASK [Install Infrastructure RPM]"
 
-# List of RPM packages to install
-packages=("podman")
-
-# Convert the array to a space-separated string
-package_list="${packages[*]}"
-
-# Install all packages at once
-echo -e "\e[96mINFO\e[0m Installing RPM package..."
-dnf install -y $package_list >/dev/null 2>&1
-
-# Check if each package was installed successfully
-for package in "${packages[@]}"; do
-    rpm -q $package >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        echo -e "\e[96mINFO\e[0m Install $package package"
-    else
-        echo -e "\e[31mFAILED\e[0m Install $package package"
-    fi
-done
-
-# Add an empty line after the task
-echo
-
-# Step 2:
+# Step 1:
 PRINT_TASK "TASK [Delete existing duplicate data]"
 
 # Function to remove a container with formatted output
@@ -126,6 +101,32 @@ for service in postgresql-quay redis quay; do
         fi
     else
         echo -e "\e[96mINFO\e[0m No such file: $SERVICE_FILE"
+    fi
+done
+
+# Add an empty line after the task
+echo
+
+# Step 2: 
+PRINT_TASK "TASK [Install Infrastructure RPM]"
+
+# List of RPM packages to install
+packages=("podman")
+
+# Convert the array to a space-separated string
+package_list="${packages[*]}"
+
+# Install all packages at once
+echo -e "\e[96mINFO\e[0m Installing RPM package..."
+dnf install -y $package_list >/dev/null 2>&1
+
+# Check if each package was installed successfully
+for package in "${packages[@]}"; do
+    rpm -q $package >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo -e "\e[96mINFO\e[0m Install $package package"
+    else
+        echo -e "\e[31mFAILED\e[0m Install $package package"
     fi
 done
 
