@@ -385,7 +385,7 @@ run_command "Enable and start redis service"
 sudo systemctl enable --now container-quay.service >/dev/null 2>&1
 run_command "Enable and start quay service"
 
-sudo systemctl enable --now container-quay.service >/dev/null 2>&1
+sudo systemctl enable --now container-mirroring-worker.service >/dev/null 2>&1
 run_command "Enable and start mirroring-worker service"
 
 echo -e "\e[96mINFO\e[0m Installation complete"
