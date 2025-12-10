@@ -86,7 +86,7 @@ else
 fi
 
 # Remove systemd service files if they exist
-for service in postgresql-quay redis quay; do
+for service in postgresql-quay redis quay mirroring-worker; do
     SERVICE_FILE="/etc/systemd/system/container-${service}.service"
 
     if [ -f "$SERVICE_FILE" ]; then
