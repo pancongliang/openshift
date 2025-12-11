@@ -9,6 +9,7 @@ export REGISTRY_HOST_IP="10.184.134.30"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
 export REGISTRY_INSTALL_DIR="/opt/quay-install"
+export OCP_TRUSTED_CA="True"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -167,6 +168,13 @@ run_command "Login registry https://${REGISTRY_HOSTNAME}:8443"
 # Add an empty line after the task
 echo
 
+if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
+    echo -e "\e[96mINFO\e[0m Quay console: https://${REGISTRY_HOSTNAME}:8443"
+    echo -e "\e[96mINFO\e[0m podman login ${REGISTRY_HOSTNAME}:8443 -u $REGISTRY_ID -p $REGISTRY_PW"
+    echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
+    exit 0
+fi
+
 # Step 4:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
@@ -294,9 +302,20 @@ while true; do
         break
     fi
 done
+
 # Add an empty line after the task
 echo
 
+# Step 7:
+PRINT_TASK "TASK [Quay Login Guide]"
+
+echo -e "\e[96mINFO\e[0m Quay console: https://${REGISTRY_HOSTNAME}:8443"
+echo -e "\e[96mINFO\e[0m CLI: podman login ${REGISTRY_HOSTNAME}:8443 -u $REGISTRY_ID -p $REGISTRY_PW"
+
+# Add an empty line after the task
+echo
+
+# Step 8:
 PRINT_TASK "TASK [Add DNS Record Entries for Mirror Registry]"
 
 echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
