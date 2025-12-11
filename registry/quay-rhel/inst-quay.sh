@@ -388,6 +388,14 @@ run_command "Enable and start quay service"
 sudo systemctl enable --now container-mirroring-worker.service >/dev/null 2>&1
 run_command "Enable and start mirroring-worker service"
 
+# Copy the rootCA certificate to the trusted source
+sudo cp ${QUAY_INST_DIR}/config/rootCA.pem /etc/pki/ca-trust/source/anchors/$QUAY_HOST_NAME.ca.pem
+run_command "Copy rootCA certificate to trusted anchors"
+
+# Trust the rootCA certificate
+sudo update-ca-trust
+run_command "Trust the rootCA certificate"
+
 echo -e "\e[96mINFO\e[0m Installation complete"
 
 # Add an empty line after the task
@@ -402,16 +410,6 @@ fi
 
 # Step 5:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
-
-# Copy the rootCA certificate to the trusted source
-sudo cp ${QUAY_INST_DIR}/config/rootCA.pem /etc/pki/ca-trust/source/anchors/$QUAY_HOST_NAME.ca.pem
-run_command "Copy rootCA certificate to trusted anchors"
-
-# Trust the rootCA certificate
-sudo update-ca-trust
-run_command "Trust the rootCA certificate"
-
-sleep 5
 
 # Check if the registry-cas field exists
 REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas') >/dev/null 2>&1 || true
