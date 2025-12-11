@@ -352,22 +352,23 @@ while true; do
 done
 
 # Generate systemd service file for PostgreSQL
-podman generate systemd --name postgresql-quay --files --restart-policy=always >/dev/null 2>&1
+CREATE_SYSTEMD_FILES=$(podman generate systemd --name postgresql-quay --files --restart-policy=always >/dev/null 2>&1)
 run_command "Generate systemd service file for PostgreSQL"
 
 # Generate systemd service file for Redis
-podman generate systemd --name redis --files --restart-policy=always >/dev/null 2>&1
+CREATE_SYSTEMD_FILES=$(podman generate systemd --name redis --files --restart-policy=always >/dev/null 2>&1)
 run_command "Generate systemd service file for Redis"
 
 # Generate systemd service file for Quay
-CREATE_SYSTEMD=podman generate systemd --name quay --files --restart-policy=always >/dev/null 2>&1
+CREATE_SYSTEMD_FILES=$(podman generate systemd --name quay --files --restart-policy=always >/dev/null 2>&1)
 run_command "Generate systemd service file for Quay"
 
 # Generate systemd service file for Mirroring-Worker
-podman generate systemd --name mirroring-worker --files --restart-policy=always
+CREATE_SYSTEMD_FILES=$(podman generate systemd --name mirroring-worker --files --restart-policy=always >/dev/null 2>&1)
 run_command "Generate systemd service file for Mirroring-Worker"
 
 # Move generated files to systemd directory
+sudo rm -rf container-*.service
 sudo mv container-*.service /etc/systemd/system/ >/dev/null 2>&1
 run_command "Move generated files to systemd directory"
 
