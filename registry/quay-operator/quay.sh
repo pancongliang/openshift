@@ -10,6 +10,7 @@ export STORAGE_SIZE="50Gi"
 export NAMESPACE="quay-enterprise"
 export OPERATOR_NS=openshift-operators
 export CATALOG_SOURCE=redhat-operators
+export OCP_TRUSTED_CA="True"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -251,6 +252,12 @@ done
 
 # Add an empty line after the task
 echo
+
+if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
+    echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST"
+    echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
+    exit 0
+fi
 
 # Step 3:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
