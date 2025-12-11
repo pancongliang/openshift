@@ -11,7 +11,7 @@ export QUAY_HOST_IP="10.184.134.30"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"
 export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
-
+export OCP_TRUSTED_CA="True"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -206,13 +206,6 @@ else
   echo -e "\e[96mINFO\e[0m Registry entry already exists in /etc/hosts"
 fi
 
-# Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json 
-rm -rf $XDG_RUNTIME_DIR/containers || true
-mkdir -p $XDG_RUNTIME_DIR/containers || true
-sleep 1
-cat ${PULL_SECRET_FILE} | jq . > ${XDG_RUNTIME_DIR}/containers/auth.json 2>/dev/null
-run_command "Save the pull-secret file either as $XDG_RUNTIME_DIR/containers/auth.json"
-
 # Create a database data directory
 mkdir -p $QUAY_INST_DIR/postgres-quay >/dev/null 2>&1
 run_command "Create a database data directory"
@@ -233,6 +226,7 @@ podman run -d --name postgresql-quay \
   -e POSTGRESQL_DATABASE=quay \
   -e POSTGRESQL_ADMIN_PASSWORD=adminpass \
   -p 5432:5432 \
+  --authfile $PULL_SECRET_FILE \
   -v $QUAY_INST_DIR/postgres-quay:/var/lib/pgsql/data:Z \
   registry.redhat.io/rhel8/postgresql-13 >/dev/null 2>&1
 run_command "Start the Postgres Container"
@@ -244,10 +238,14 @@ podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXIS
 run_command "Ensure that the Postgres pg_trgm module is installed"
 
 # Start the Redis container
-podman run -d --name redis --restart=always -p 6379:6379 -e REDIS_PASSWORD=strongpassword registry.redhat.io/rhel8/redis-6:1-110 >/dev/null 2>&1
+podman run -d --name redis --restart=always \
+  -p 6379:6379 \
+  -e REDIS_PASSWORD=strongpassword \
+  --authfile $PULL_SECRET_FILE \
+  registry.redhat.io/rhel8/redis-6:1-110 >/dev/null 2>&1
 run_command "Start the Redis container"
 
-# Create a minimal config.yaml file that is used to deploy the quay container
+# Create a minimal config.yaml file for deploying Quay
 cat > $QUAY_INST_DIR/config/config.yaml << EOF
 BUILDLOGS_REDIS:
     host: $QUAY_HOST_NAME
@@ -280,7 +278,7 @@ USER_EVENTS_REDIS:
     password: strongpassword
     port: 6379
 EOF
-run_command "Create a minimal config.yaml file that is used to deploy the quay container"
+run_command "Create a minimal config.yaml file for deploying Quay"
 
 # Create a local directory that will store registry images
 mkdir $QUAY_INST_DIR/storage >/dev/null 2>&1
@@ -299,17 +297,19 @@ podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    --restart=always \
    -v $QUAY_INST_DIR/config:/conf/stack:Z \
    -v $QUAY_INST_DIR/storage:/datastorage:Z \
+   --authfile $PULL_SECRET_FILE \
    registry.redhat.io/quay/quay-rhel8:$QUAY_VERSION >/dev/null 2>&1
-run_command "Deploy the quay registry"
+run_command "Deploy the Quay registry container"
 
 sleep 5
 
 # Deploy the mirroring-worker
-QUAY=/opt/quay-inst/
 podman run -d --name mirroring-worker \
   -v $QUAY_INST_DIR/config:/conf/stack:Z \
   -v ${QUAY_INST_DIR}/config/rootCA.pem:/etc/pki/ca-trust/source/anchors/ca.crt:Z \
+  --authfile $PULL_SECRET_FILE \
   registry.redhat.io/quay/quay-rhel8:$MIRRORING_WORKER repomirror
+run_command "Deploy the Mirroring Worker container"
 
 # Checking container status
 containers=("postgresql-quay" "redis" "quay" "mirroring-worker")
@@ -392,6 +392,13 @@ echo -e "\e[96mINFO\e[0m Installation complete"
 
 # Add an empty line after the task
 echo
+
+if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
+    echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT"
+    echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
+    echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
+    exit 0
+fi
 
 # Step 5:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
