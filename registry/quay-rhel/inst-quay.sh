@@ -396,7 +396,7 @@ echo
 if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
     echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT"
     echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
-    echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
+    echo -e "\e[96mINFO\e[0m podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u quayadmin -p password"
     exit 0
 fi
 
