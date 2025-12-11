@@ -148,7 +148,6 @@ while true; do
     fi
 done
 
-
 # Copy the rootCA certificate to the trusted source
 sudo cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem
 run_command "Copy rootCA certificate to trusted anchors"
