@@ -293,12 +293,12 @@ run_command "Set the directory to store registry images"
 sleep 5
 
 # Deploy the quay registry 
-podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
+RUN_CONTAINER=$(podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    --restart=always \
    -v $QUAY_INST_DIR/config:/conf/stack:Z \
    -v $QUAY_INST_DIR/storage:/datastorage:Z \
    --authfile $PULL_SECRET_FILE \
-   registry.redhat.io/quay/quay-rhel8:$QUAY_VERSION >/dev/null 2>&1
+   registry.redhat.io/quay/quay-rhel8:$QUAY_VERSION)
 run_command "Deploy the Quay registry container"
 
 sleep 5
@@ -308,7 +308,7 @@ podman run -d --name mirroring-worker \
   -v $QUAY_INST_DIR/config:/conf/stack:Z \
   -v ${QUAY_INST_DIR}/config/rootCA.pem:/etc/pki/ca-trust/source/anchors/ca.crt:Z \
   --authfile $PULL_SECRET_FILE \
-  registry.redhat.io/quay/quay-rhel8:$MIRRORING_WORKER repomirror
+  registry.redhat.io/quay/quay-rhel8:$MIRRORING_WORKER repomirror >/dev/null 2>&1
 run_command "Deploy the Mirroring Worker container"
 
 # Checking container status
@@ -360,7 +360,7 @@ podman generate systemd --name redis --files --restart-policy=always >/dev/null 
 run_command "Generate systemd service file for Redis"
 
 # Generate systemd service file for Quay
-podman generate systemd --name quay --files --restart-policy=always >/dev/null 2>&1
+CREATE_SYSTEMD=podman generate systemd --name quay --files --restart-policy=always >/dev/null 2>&1
 run_command "Generate systemd service file for Quay"
 
 # Generate systemd service file for Mirroring-Worker
