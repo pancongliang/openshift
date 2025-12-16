@@ -7,7 +7,7 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 export LOGGING_SUB_CHANNEL="stable-6.1"
 export LOKI_SUB_CHANNEL="stable-6.1"
 export OBSERVABILITY_SUB_CHANNEL="stable"
-export STORAGE_CLASS="managed-nfs-storage"
+export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 export CATALOG_SOURCE=redhat-operators
 
@@ -395,7 +395,7 @@ spec:
     secret:
       name: logging-loki-s3
       type: s3
-  storageClassName: ${STORAGE_CLASS}
+  storageClassName: ${DEFAULT_STORAGE_CLASS}
   tenants:
     mode: openshift-logging
 EOF
