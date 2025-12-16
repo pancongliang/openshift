@@ -64,7 +64,7 @@ echo
 # Deploying Minio Object Storage
 
 # Check if the Minio Pod exists and is running.
-MINIO_POD=$(oc get pod -n "minio" -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+MINIO_POD=$(oc get pod -n "minio" -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
 
 if [[ -n "$MINIO_POD" ]]; then
     POD_STATUS=$(oc get pod "$MINIO_POD" -n "minio" -o jsonpath='{.status.phase}')
@@ -74,13 +74,13 @@ fi
 
 # Check if the bucket exists
 BUCKET_NAME="quay-bucket"
-export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
+export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}' 2>/dev/null || true)
 
 BUCKET_EXISTS=false
 if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]]; then
-    oc exec -n "minio" "$MINIO_POD" -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin >/dev/null 2>&1
-    if oc exec -n "minio" "$MINIO_POD" -- mc ls my-minio | grep -q "$BUCKET_NAME"; then
-        BUCKET_EXISTS=true
+    oc exec -n "minio" "$MINIO_POD" -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin >/dev/null 2>&1 || true
+    if oc exec -n "minio" "$MINIO_POD" -- mc ls my-minio 2>/dev/null | grep -q "$BUCKET_NAME"; then
+       BUCKET_EXISTS=true
     fi
 fi
 
