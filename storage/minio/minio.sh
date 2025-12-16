@@ -170,20 +170,20 @@ export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host
 
 # Set Minio client alias
 # MINIO_POD=$(oc get pod -n minio -l app=minio -o jsonpath='{.items[0].metadata.name}')
-# oc exec -n minio "$MINIO_POD" -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin > /dev/null
-oc exec -n minio deploy/minio -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin > /dev/null
+# oc exec -n minio "$MINIO_POD" -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin >/dev/null 2>&1
+oc exec -n minio deploy/minio -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin >/dev/null 2>&1
 run_command "Configured Minio client alias"
 
 # Create buckets for Loki, Quay, OADP, and MTC
 for BUCKET_NAME in "${BUCKETS[@]}"; do
-    oc exec -n minio deploy/minio -- mc --no-color mb my-minio/$BUCKET_NAME > /dev/null
+    oc exec -n minio deploy/minio -- mc --no-color mb my-minio/$BUCKET_NAME >/dev/null 2>&1
     run_command "Create bucket $BUCKET_NAME"
 done
 
-grep -qxF "alias mc='oc -n minio exec deploy/minio -- mc'" ~/.bashrc || echo "alias mc='oc -n minio exec deploy/minio -- mc'" >> ~/.bashrc
+grep -qxF "alias mc='oc -n minio exec deploy/minio -- mc'" ~/.bashrc || echo "alias mc='oc -n minio exec deploy/minio -- mc'" >> $HOME/.bashrc
 run_command "Add mc cli alias to $HOME/.bashrc"
 
 # Print Minio address and credentials
 echo -e "\e[96mINFO\e[0m Minio Host: $BUCKET_HOST"
 echo -e "\e[96mINFO\e[0m Minio default ID/PW: minioadmin/minioadmin"
-echo -e "\e[96mINFO\e[0m Apply the mc alias by running: source ~/.bashrc"
+echo -e "\e[96mINFO\e[0m Apply the mc alias by running: source $HOME/.bashrc"
