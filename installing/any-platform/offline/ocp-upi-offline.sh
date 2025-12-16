@@ -1378,14 +1378,19 @@ echo
 
 # Step 16:
 PRINT_TASK "TASK [Mirror the OpenShift release image, boot from RHCOS ISO, and install the cluster]"
-echo -e "\e[33mACTION\e[0m Mirror release image: bash ${INSTALL_DIR}/mirror-img.sh"
-echo -e "\e[33mACTION\e[0m Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh"
-echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh"
-echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh"
-echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3 |sh"
-echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w1 |sh"
-echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w2 |sh"
-echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w3 |sh"
+
+echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME mirror release image:       → bash ${INSTALL_DIR}/mirror-img.sh"
+echo -e "\e[33mACTION\e[0m $BOOTSTRAP_HOSTNAME node installation steps:  → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/bs | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME load shell environment:     → source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
+echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME check bootstrap status:     → bash ${INSTALL_DIR}/bootstrap-check.sh"
+echo -e "\e[33mACTION\e[0m $MASTER01_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $MASTER02_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $MASTER03_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $WORKER01_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $WORKER02_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $WORKER03_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_HOSTNAME: -1} | sh   → reboot"
+
+
 
 # Add an empty line after the task
 echo
