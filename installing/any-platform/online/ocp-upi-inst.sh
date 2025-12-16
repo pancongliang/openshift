@@ -1192,7 +1192,7 @@ echo
 # Step 14:
 PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 
-# Backup and configure kubeconfig
+# Load shell environment
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
 run_command "Default login: use kubeconfig"
 
