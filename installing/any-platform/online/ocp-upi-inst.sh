@@ -1203,15 +1203,54 @@ echo
 
 # Step 15:
 PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
-echo -e "\e[33mACTION\e[0m Please manually run: source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile"
-echo -e "\e[33mACTION\e[0m Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh"
-echo -e "\e[33mACTION\e[0m Please manually run: bash ${INSTALL_DIR}/bootstrap-check.sh"
-echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh"
-echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh"
-echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3 |sh"
-echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w1 |sh"
-echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w2 |sh"
-echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w3 |sh"
+
+echo -e "\e[33mACTION\e[0m $BOOTSTRAP_HOSTNAME node installation steps:  → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/bs | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME load shell environment:     → source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
+echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME check bootstrap status:     → bash ${INSTALL_DIR}/bootstrap-check.sh"
+echo -e "\e[33mACTION\e[0m $MASTER01_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $MASTER02_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $MASTER03_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $WORKER01_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $WORKER02_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_HOSTNAME: -1} | sh   → reboot"
+echo -e "\e[33mACTION\e[0m $WORKER03_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_HOSTNAME: -1} | sh   → reboot"
+
+
+#echo -e "\e[33mACTION\e[0m $BOOTSTRAP_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN (Bootstrap) node installation steps:"
+#echo -e "       → Boot the node using the RHCOS ISO"
+#echo -e "       → Run: curl -s http://$BASTION_IP:8080/pre/bs | sh"
+#echo -e "       → Reboot the node"
+#
+#echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME (Check bootstrap machine status):"
+#echo -e "       → Run: bash ${INSTALL_DIR}/bootstrap-check.sh"
+#
+#CONTROL_PLANES=("$MASTER01_HOSTNAME" "$MASTER02_HOSTNAME" "$MASTER03_HOSTNAME")
+#for node in "${CONTROL_PLANES[@]}"; do
+#    idx="${node: -1}"
+#    echo -e "\e[33mACTION\e[0m $node.$CLUSTER_NAME.$BASE_DOMAIN (Control Plane) node installation steps:"
+#    echo -e "       → Boot the node using the RHCOS ISO"
+#    echo -e "       → Run: curl -s http://$BASTION_IP:8080/pre/m${idx} | sh"
+#    echo -e "       → Reboot the node"
+#done
+#
+#WORKERS=("$WORKER01_HOSTNAME" "$WORKER02_HOSTNAME" "$WORKER03_HOSTNAME")
+#for node in "${WORKERS[@]}"; do
+#    idx="${node: -1}"
+#    echo -e "\e[33mACTION\e[0m $node.$CLUSTER_NAME.$BASE_DOMAIN (Worker) node installation steps:"
+#    echo -e "       → Boot the node using the RHCOS ISO"
+#    echo -e "       → Run: curl -s http://$BASTION_IP:8080/pre/w${idx} | sh"
+#    echo -e "       → Reboot the node"
+#done
+
+
+#echo -e "\e[33mACTION\e[0m Please manually run: source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile"
+#echo -e "\e[33mACTION\e[0m Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh"
+#echo -e "\e[33mACTION\e[0m Please manually run: bash ${INSTALL_DIR}/bootstrap-check.sh"
+#echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh"
+#echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh"
+#echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3 |sh"
+#echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w1 |sh"
+#echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w2 |sh"
+#echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w3 |sh"
 
 # Add an empty line after the task
 echo
