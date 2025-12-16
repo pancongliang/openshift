@@ -169,9 +169,9 @@ sleep 3
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
 
 # Set Minio client alias
-MINIO_POD=$(oc get pod -n minio -l app=minio -o jsonpath='{.items[0].metadata.name}')
+# MINIO_POD=$(oc get pod -n minio -l app=minio -o jsonpath='{.items[0].metadata.name}')
 # oc exec -n minio "$MINIO_POD" -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin > /dev/null
-# oc exec -n minio deploy/minio -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin > /dev/null
+oc exec -n minio deploy/minio -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin > /dev/null
 run_command "Configured Minio client alias"
 
 # Create buckets for Loki, Quay, OADP, and MTC
@@ -180,8 +180,7 @@ for BUCKET_NAME in "${BUCKETS[@]}"; do
     run_command "Create bucket $BUCKET_NAME"
 done
 
-grep -qxF "alias mc='oc -n minio exec -it deployment/minio -- mc'" ~/.bashrc || \
-echo "alias mc='oc -n minio exec deploy/minio -- mc'" >> ~/.bashrc
+grep -qxF "alias mc='oc -n minio exec deploy/minio -- mc'" ~/.bashrc || echo "alias mc='oc -n minio exec deploy/minio -- mc'" >> ~/.bashrc
 run_command "Add mc cli alias to $HOME/.bashrc"
 
 # Print Minio address and credentials
