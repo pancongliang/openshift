@@ -1220,6 +1220,9 @@ echo -e "\e[33mACTION\e[0m $WORKER03_HOSTNAME node installation steps:   → Boo
 #echo -e "       → Run: curl -s http://$BASTION_IP:8080/pre/bs | sh"
 #echo -e "       → Reboot the node"
 #
+#echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME (Load shell environment):"
+#echo -e "       → Run: source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
+#
 #echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME (Check bootstrap machine status):"
 #echo -e "       → Run: bash ${INSTALL_DIR}/bootstrap-check.sh"
 #
@@ -1240,7 +1243,6 @@ echo -e "\e[33mACTION\e[0m $WORKER03_HOSTNAME node installation steps:   → Boo
 #    echo -e "       → Run: curl -s http://$BASTION_IP:8080/pre/w${idx} | sh"
 #    echo -e "       → Reboot the node"
 #done
-
 
 #echo -e "\e[33mACTION\e[0m Please manually run: source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile"
 #echo -e "\e[33mACTION\e[0m Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh"
