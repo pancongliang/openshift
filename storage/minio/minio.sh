@@ -3,8 +3,8 @@
 set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
-# Set environment variables
-export STORAGE_SIZE="50Gi"   # Requires default storage class
+# [REQUIRED] Default StorageClass must exist
+export PVC_SIZE="50Gi"
 export BUCKETS=("loki-bucket" "quay-bucket" "oadp-bucket")
 
 # Function to print a task with uniform length
@@ -83,7 +83,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: ${STORAGE_SIZE}
+      storage: ${PVC_SIZE_DEFAULT_SC}
 ---
 apiVersion: v1
 kind: Service
