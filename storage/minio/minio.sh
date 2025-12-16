@@ -83,7 +83,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: ${PVC_SIZE_DEFAULT_SC}
+      storage: ${PVC_SIZE}
 ---
 apiVersion: v1
 kind: Service
