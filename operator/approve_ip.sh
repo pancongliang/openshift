@@ -18,10 +18,10 @@ while true; do
         
         # Close the progress indicator if it was started
         if [[ "$progress_started" == true ]]; then
-            echo "]"
+            echo # "]" # Add this to force a newline after the message
         fi
 
-        echo "ok: [Approved install plan: $NAME in namespace $OPERATOR_NS]"
+        echo "ok: Approved install plan: $NAME in namespace $OPERATOR_NS"
         break
     fi
     
@@ -29,15 +29,15 @@ while true; do
     RETRY_COUNT=$((RETRY_COUNT + 1))
     if [[ $RETRY_COUNT -ge $MAX_RETRIES ]]; then
         if [[ "$progress_started" == true ]]; then
-            echo "]"
+            echo # "]" # Add this to force a newline after the message
         fi
-        echo "failed: [Max retries reached. no unapproved install plans found in $OPERATOR_NS]"
+        echo "failed: Max retries reached. no unapproved install plans found in $OPERATOR_NS"
         break
     fi
     
     # Print progress indicator every 6 seconds
     if [[ "$progress_started" == false ]]; then
-        echo -n "info: [Waiting for unapproved install plans in namespace $OPERATOR_NS"
+        echo -n "info: Waiting for unapproved install plans in namespace $OPERATOR_NS"
         progress_started=true
     fi
 
