@@ -1,5 +1,5 @@
 # Set the maximum number of retries
-MAX_RETRIES=20
+MAX_RETRIES=30
 RETRY_COUNT=0
 progress_started=false
 
