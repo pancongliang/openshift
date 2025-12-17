@@ -235,9 +235,9 @@ spec:
       overrides:
         replicas: 1
 EOF
-run_command "Create a quay registry"
+run_command "Creating a quay registry..."
 
-sleep 10
+sleep 30
 
 # Wait for $namespace namespace pods to be in 'Running' state
 MAX_RETRIES=300   # Maximum number of retries
