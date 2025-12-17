@@ -1558,7 +1558,7 @@ PRINT_TASK "TASK [Mirror the OpenShift release image, boot from RHCOS ISO, and i
 # Set column width
 COL_WIDTH=35
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME mirror ocp release image:" "bash ${INSTALL_DIR}/mirror-img.sh"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME mirror ocp release image:" "Open a new terminal → bash ${INSTALL_DIR}/mirror-img.sh"
 
 printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
 printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
