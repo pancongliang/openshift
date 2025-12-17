@@ -1129,12 +1129,10 @@ run_command "Set permissions on ocp install scripts"
 echo
 
 # Step 13:
-PRINT_TASK "TASK [Generate CSR Approval Scripts]"
-
-# If the file exists, delete it
-rm -rf "${INSTALL_DIR}/approve-csr.sh" >/dev/null 2>&1
+PRINT_TASK "TASK [Generate CSR and Bootstrap/Cluster Monitoring Scripts]"
 
 # Generate approve csr script file]
+rm -rf "${INSTALL_DIR}/approve-csr.sh" >/dev/null 2>&1
 cat << EOF > "${INSTALL_DIR}/ocp4cert-approver.sh"
 #!/bin/bash
 source 01-set-params.sh >/dev/null 2>&1
@@ -1146,14 +1144,12 @@ done
 EOF
 run_command "Generate csr approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 
-# Make it executable
-chmod +x ${INSTALL_DIR}/ocp4cert-approver.sh 
-
 # Run the CSR auto-approver script
 bash ${INSTALL_DIR}/ocp4cert-approver.sh &
 run_command "Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 
-# Generate check-bootstrap.sh with the actual BOOTSTRAP_IP value
+# Generated script to monitor bootstrap readiness
+rm -rf ${INSTALL_DIR}/check-bootstrap.sh >/dev/null 2>&1
 cat <<EOC > ${INSTALL_DIR}/check-bootstrap.sh
 #!/bin/bash
 CONTAINER="cluster-bootstrap"
@@ -1209,6 +1205,8 @@ run_command "Generated script to monitor bootstrap readiness: ${INSTALL_DIR}/che
 # Make it executable
 chmod +x ${INSTALL_DIR}/check-bootstrap.sh
 
+# Generated script to monitor cluster readiness
+rm -rf ${INSTALL_DIR}/check-cluster.sh >/dev/null 2>&1
 cat <<EOF > ${INSTALL_DIR}/check-cluster.sh
 #!/bin/bash
 NODES=("$MASTER01_HOSTNAME" "$MASTER02_HOSTNAME" "$MASTER03_HOSTNAME" "$WORKER01_HOSTNAME" "$WORKER02_HOSTNAME" "$WORKER03_HOSTNAME")
@@ -1342,16 +1340,22 @@ echo
 # Step 15:
 PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
 
-echo -e "\e[33mACTION\e[0m $BOOTSTRAP_HOSTNAME node installation steps: → Boot RHCOS ISO  → curl -s http://$BASTION_IP:8080/pre/bs | sh   → reboot"
-echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME load shell environment:    → source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
-echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME check bootstrap status:    → bash ${INSTALL_DIR}/check-bootstrap.sh"
-echo -e "\e[33mACTION\e[0m $MASTER01_HOSTNAME node installation steps:  → Boot RHCOS ISO  → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_HOSTNAME: -1} | sh  → reboot"
-echo -e "\e[33mACTION\e[0m $MASTER02_HOSTNAME node installation steps:  → Boot RHCOS ISO  → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_HOSTNAME: -1} | sh  → reboot"
-echo -e "\e[33mACTION\e[0m $MASTER03_HOSTNAME node installation steps:  → Boot RHCOS ISO  → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_HOSTNAME: -1} | sh  → reboot"
-echo -e "\e[33mACTION\e[0m $WORKER01_HOSTNAME node installation steps:  → Boot RHCOS ISO  → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_HOSTNAME: -1} | sh  → reboot"
-echo -e "\e[33mACTION\e[0m $WORKER02_HOSTNAME node installation steps:  → Boot RHCOS ISO  → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_HOSTNAME: -1} | sh  → reboot"
-echo -e "\e[33mACTION\e[0m $WORKER03_HOSTNAME node installation steps:  → Boot RHCOS ISO  → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_HOSTNAME: -1} | sh  → reboot"
-echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME check installation status: → source ${INSTALL_DIR}/check-cluster.sh"
+# Set column width
+COL_WIDTH=35
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
+
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
+
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER01_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER02_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER03_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_HOSTNAME: -1} | sh → reboot"
+
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER01_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER02_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER03_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_HOSTNAME: -1} | sh → reboot"
+
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME check installation status:" "source ${INSTALL_DIR}/check-cluster.sh"
 
 #echo -e "\e[33mACTION\e[0m $BOOTSTRAP_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN (Bootstrap) node installation steps:"
 #echo -e "       → Boot the node using the RHCOS ISO"
