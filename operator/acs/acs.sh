@@ -137,18 +137,13 @@ pod_name=rhacs-operator
 
 while true; do
     # Get the status of all pods in the pod_name project
-    PODS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2, $3}' || true)
-    
-    # Check if all pods are in "1/1 Running" state
-    ALL_READY=true
-    while read -r READY STATUS; do
-        if [[ "$READY $STATUS" != "1/1 Running" ]]; then
-            ALL_READY=false
-            break
-        fi
-    done <<< "$PODS"
+    PODS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
 
-    if $ALL_READY; then
+    # Find pods where the number of ready containers is not equal to total containers
+    not_ready=$(echo "$PODS" | awk -F/ '$1 != $2')
+
+    if [[ -z "$not_ready" ]]; then
+        # All pods are ready
         if $progress_started; then
             printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
