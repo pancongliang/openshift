@@ -8,7 +8,6 @@ export SUB_CHANNEL="stable-3.14"
 export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 export NAMESPACE="quay-enterprise"
-export OPERATOR_NS=openshift-operators
 export CATALOG_SOURCE=redhat-operators
 export OCP_TRUSTED_CA="True"
 
@@ -99,6 +98,7 @@ echo
 PRINT_TASK "TASK [Deploying Quay Operator]"
 
 # Create a Subscription
+export OPERATOR_NS=openshift-operators
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -121,43 +121,49 @@ run_command "Approved the quay operator install plan"
 
 sleep 10
 
-# Wait for quay-operator pods to be in 'Running' state
-MAX_RETRIES=60
-SLEEP_INTERVAL=2
-progress_started=false
+# Wait for $pod_name pods to be in Running state
+MAX_RETRIES=90    # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
+project=$OPERATOR_NS
 pod_name=quay-operator
 
 while true; do
-    # Get the status of all pods
-    output=$(oc get po -n "$OPERATOR_NS" --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2, $3}' || true)
-    
-    # Check if any pod is not in the "1/1 Running" state
-    if echo "$output" | grep -vq "1/1 Running"; then
-        # Print the info message only once
-        if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $pod_name pods to be in 'Running' state"
-            progress_started=true  # Set to true to prevent duplicate messages
+    # Get the status of all pods in the pod_name project
+    PODS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
+
+    # Find pods where the number of ready containers is not equal to total containers
+    not_ready=$(echo "$PODS" | awk -F/ '$1 != $2')
+
+    if [[ -z "$not_ready" ]]; then
+        # All pods are ready
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
+        else
+            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
         fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
+        break
+    else
+        CHAR=${SPINNER[$((retry_count % 4))]}
+        if ! $progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
+        fi
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
-        # Exit the loop when the maximum number of retries is exceeded
+        # Exit if maximum retries reached
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries $pod_name pods may still be initializing"
-            exit 1 
+            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
+            exit 1
         fi
-    else
-        # Close the progress indicator and print the success message
-        if $progress_started; then
-            echo # Add this to force a newline after the message
-        fi
-        echo -e "\e[96mINFO\e[0m All $pod_name pods are in the Running state"
-        break
     fi
 done
 
@@ -233,48 +239,49 @@ run_command "Create a quay registry"
 
 sleep 10
 
-# Wait for quay pods to be in 'Running' state
-MAX_RETRIES=60
-SLEEP_INTERVAL=10
-progress_started=false
+# Wait for $namespace namespace pods to be in 'Running' state
+MAX_RETRIES=300   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
+namespace=$NAMESPACE
 
 while true; do
-    # Get the READY column of all pods that are not Completed
-    output=$(oc get po -n $NAMESPACE --no-headers 2>/dev/null | grep -v Completed | awk '{print $2}' || true)
+    # Get READY column of all pods that are not Completed
+    PODS=$(oc -n "$namespace" get po --no-headers 2>/dev/null | grep -v Completed | awk '{print $2}' || true)
 
     # Find pods where the number of ready containers is not equal to total containers
-    not_ready=$(echo "$output" | awk -F/ '$1 != $2')
+    not_ready=$(echo "$PODS" | awk -F/ '$1 != $2')
 
-    if [[ -n "$not_ready" ]]; then
-        # Print info message only once
+    if [[ -z "$not_ready" ]]; then
+        # All pods are ready
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                   "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
+        else
+            echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+        fi
+        break
+    else
+        CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for $NAMESPACE namespace pods to be in Running state"
+            printf "\e[96mINFO\e[0m Waiting for %s namespace pods to be Running... %s" "$namespace" "$CHAR"
             progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for %s namespace pods to be Running... %s" "$namespace" "$CHAR"
         fi
 
-        # Print a progress dot
-        echo -n '.'
-
-        # Sleep before the next check
         sleep "$SLEEP_INTERVAL"
-
-        # Increment retry counter
         retry_count=$((retry_count + 1))
 
-        # Exit if max retries are exceeded
+        # Exit if maximum retries reached
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo
-            echo -e "\e[31mFAILED\e[0m Reached max retries namespace pods may still be initializing"
+            printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
+                   "$namespace" $((LINE_WIDTH - ${#namespace} - 31)) ""
             exit 1
         fi
-    else
-        # All pods are ready, print success message
-        if $progress_started; then
-            echo
-        fi
-        echo -e "\e[96mINFO\e[0m All $NAMESPACE namespace pods are in Running state"
-        break
     fi
 done
 
@@ -385,80 +392,76 @@ echo
 # Step 5:
 PRINT_TASK "TASK [Checking the cluster status]"
 
-# Check cluster operator status
-MAX_RETRIES=30
-SLEEP_INTERVAL=20
-progress_started=false
+# Wait for all cluster operators
+MAX_RETRIES=150   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
 
 while true; do
-    # Get the status of all cluster operators
-    output=$(oc get co --no-headers | awk '{print $3, $4, $5}')
-    
-    # Check cluster operators status
+    output=$(/usr/local/bin/oc get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+
     if echo "$output" | grep -q -v "True False False"; then
-        # Print the info message only once
+        CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for all cluster operators to reach the expected state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
         fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
+
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
-        # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries cluster operator may still be initializing"
-            break
+            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
+            exit 1
         fi
     else
-        # Close the progress indicator and print the success message
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+        else
+            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         fi
-        echo -e "\e[96mINFO\e[0m All cluster operators have reached the expected state"
         break
     fi
 done
 
-# Check MCP status
-MAX_RETRIES=20
-SLEEP_INTERVAL=15
-progress_started=false
+# Wait for all MCPs
+MAX_RETRIES=150   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
 
 while true; do
-    # Get the status of all mcp
-    output=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
-    
-    # Check mcp status
+    output=$(/usr/local/bin/oc get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+
     if echo "$output" | grep -q -v "True False False"; then
-        # Print the info message only once
+        CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for all MCP to reach the expected state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            printf "\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "$CHAR"
         fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
+
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
-        # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries MCP may still be initializing"
-            break
+            printf "\r\e[31mFAILED\e[0m MCPs not Ready%*s\n" $((LINE_WIDTH - 20)) ""
+            exit 1
         fi
     else
-        # Close the progress indicator and print the success message
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            printf "\r\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+        else
+            printf "\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         fi
-        echo -e "\e[96mINFO\e[0m All MCP have reached the expected state"
         break
     fi
 done
