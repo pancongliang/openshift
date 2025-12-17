@@ -123,30 +123,50 @@ sudo ${REGISTRY_INSTALL_DIR}/mirror-registry install \
      --initPassword ${REGISTRY_PW}
 run_command "Installation complete"
 
+# Configuration
+MAX_RETRIES=100        # Maximum number of retries
+SLEEP_INTERVAL=2       # Sleep interval in seconds
+SPINNER=('/' '-' '\' '|')
+LINE_WIDTH=120         # Not strictly used, placeholder for potential formatting
+
 progress_started=false
+retry_count=0
+
 while true; do
     # Get the status of all pods
     output=$(sudo podman pod ps | awk 'NR>1' | grep -P '(?=.*\bquay-pod\b)(?=.*\bRunning\b)(?=.*\b3\b)')
-    
-    # Check if the pod is not in the "Running" state
-    if [ -z "$output" ]; then
-        # Print the info message only once
-        if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for quay pod to be in 'Running' state"
-            progress_started=true  # Set to true to prevent duplicate messages
-        fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
-        sleep 10
-    else
+
+    CHAR=${SPINNER[$((retry_count % 4))]}
+
+    if [ -n "$output" ]; then
+        # Pod is running
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            printf "\n"  # Ensure newline after spinner line
         fi
         echo -e "\e[96mINFO\e[0m Quay pod is in 'Running' state"
         break
+    else
+        # Pod not yet running, show spinner
+        if ! $progress_started; then
+            progress_started=true
+        fi
+        # Display spinner on same line
+        printf "\r\e[96mINFO\e[0m Waiting for quay pod to be in 'Running' state %s" "$CHAR"
+        tput el  # Clear to end of line
+    fi
+
+    sleep $SLEEP_INTERVAL
+    retry_count=$((retry_count + 1))
+
+    # Exit if max retries exceeded
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r"   # Move to line start
+        tput el       # Clear line
+        echo -e "\e[31mFAILED\e[0m Quay pod did not reach 'Running' state after $MAX_RETRIES retries"
+        exit 1
     fi
 done
+
 
 # Copy the rootCA certificate to the trusted source
 sudo cp ${REGISTRY_INSTALL_DIR}/quay-rootCA/rootCA.pem /etc/pki/ca-trust/source/anchors/${REGISTRY_HOSTNAME}.ca.pem
@@ -224,80 +244,76 @@ echo
 # Step 6:
 PRINT_TASK "TASK [Checking the cluster status]"
 
-# Check cluster operator status
-MAX_RETRIES=20
-SLEEP_INTERVAL=15
-progress_started=false
+# Wait for all cluster operators
+MAX_RETRIES=150   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
 
 while true; do
-    # Get the status of all cluster operators
-    output=$(oc get co --no-headers | awk '{print $3, $4, $5}')
-    
-    # Check cluster operators status
+    output=$(/usr/local/bin/oc get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+
     if echo "$output" | grep -q -v "True False False"; then
-        # Print the info message only once
+        CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for all cluster operators to reach the expected state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
         fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
+
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
-        # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries cluster operator may still be initializing"
-            break
+            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
+            exit 1
         fi
     else
-        # Close the progress indicator and print the success message
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+        else
+            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         fi
-        echo -e "\e[96mINFO\e[0m All cluster operators have reached the expected state"
         break
     fi
 done
 
-# Check MCP status
-MAX_RETRIES=20
-SLEEP_INTERVAL=15
-progress_started=false
+# Wait for all MCPs
+MAX_RETRIES=150   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
 
 while true; do
-    # Get the status of all mcp
-    output=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
-    
-    # Check mcp status
+    output=$(/usr/local/bin/oc get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+
     if echo "$output" | grep -q -v "True False False"; then
-        # Print the info message only once
+        CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for all MCP to reach the expected state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            printf "\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "$CHAR"
         fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
+
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
-        # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries MCP may still be initializing"
-            break
+            printf "\r\e[31mFAILED\e[0m MCPs not Ready%*s\n" $((LINE_WIDTH - 20)) ""
+            exit 1
         fi
     else
-        # Close the progress indicator and print the success message
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            printf "\r\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+        else
+            printf "\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         fi
-        echo -e "\e[96mINFO\e[0m All MCP have reached the expected state"
         break
     fi
 done
