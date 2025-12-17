@@ -142,8 +142,10 @@ progress_started=false
 NAMESPACE=minio
 pod_name=minio
 
-# Wait for Minio pods to be in Running state
+# Capitalize first letter of pod name
 PodName="$(tr '[:lower:]' '[:upper:]' <<< "${pod_name:0:1}")${pod_name:1}"
+
+# Wait for Minio pods to be in Running state
 while true; do
     # Get the status of all pods in the minio namespace
     PODS=$(oc -n $NAMESPACE get po --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
