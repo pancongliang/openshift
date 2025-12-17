@@ -1355,53 +1355,54 @@ run_command "Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.
 rm -rf ${INSTALL_DIR}/check-bootstrap.sh >/dev/null 2>&1
 cat <<EOC > ${INSTALL_DIR}/check-bootstrap.sh
 #!/bin/bash
+MAX_RETRIES=300       # Maximum number of retries
+SLEEP_INTERVAL=3      # Sleep interval in seconds
+LINE_WIDTH=120        # Control line width
+SPINNER=('/' '-' '\' '|')
+ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
 CONTAINER="cluster-bootstrap"
 PORTS="6443|22623"
-MAX=300
-SLEEP=3
-ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
-SPINNER=('/' '-' '\' '|')
 
 # Wait for container
-for i in \$(seq 1 \$MAX); do
+for i in \$(seq 1 \$MAX_RETRIES); do
     printf "\r\e[96mINFO\e[0m Checking container '%s'... %s" "\$CONTAINER" "\${SPINNER[\$((i % 4))]}"
-    
+
     CONTAINER_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo podman ps --filter "name=\$CONTAINER" --format "{{.Status}}" 2>/dev/null | tr -d '\r\n')
-    
+
     if [[ "\$CONTAINER_STATUS" == Up* ]]; then
-        printf "\r\e[96mINFO\e[0m Container '%s' is Running      \n" "\$CONTAINER"
+        printf "\r\e[96mINFO\e[0m Container '%s' is Running%*s\n" "\$CONTAINER" \$((LINE_WIDTH - \${#CONTAINER} - 20)) ""
         break
     fi
-    
-    if [[ \$i -eq \$MAX ]]; then
-        echo -e "\n\e[31mFAILED\e[0m Container '\$CONTAINER' is Not Running"
+
+    if [[ \$i -eq \$MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m Container '%s' is Not Running%*s\n" "\$CONTAINER" \$((LINE_WIDTH - \${#CONTAINER} - 25)) ""
         exit 1
     fi
-    
-    sleep \$SLEEP
+
+    sleep \$SLEEP_INTERVAL
 done
 
 # Wait for ports
-for i in \$(seq 1 \$MAX); do
+for i in \$(seq 1 \$MAX_RETRIES); do
     printf "\r\e[96mINFO\e[0m Checking ports 6443 and 22623... %s" "\${SPINNER[\$((i % 4))]}"
-    
+
     PORT_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo netstat -ntplu 2>/dev/null | tr -d '\r\n')
-    
+
     if echo "\$PORT_STATUS" | grep -qE "\$PORTS"; then
-        printf "\r\e[96mINFO\e[0m Ports 6443 and 22623 are now listening      \n"
+        printf "\r\e[96mINFO\e[0m Ports 6443 and 22623 are now listening%*s\n" \$((LINE_WIDTH - 35)) ""
         break
     fi
-    
-    if [[ \$i -eq \$MAX ]]; then
-        echo -e "\n\e[31mFAILED\e[0m Ports 6443 and 22623 are not ready"
+
+    if [[ \$i -eq \$MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m Ports 6443 and 22623 are not ready%*s\n" \$((LINE_WIDTH - 30)) ""
         exit 1
     fi
-    
-    sleep \$SLEEP
+
+    sleep \$SLEEP_INTERVAL
 done
 
 # Final message
-echo -e "\e[96mINFO\e[0m You can now install Control Plane & Worker nodes"
+printf "\e[96mINFO\e[0m You can now install Control Plane & Worker nodes%*s\n" \$((LINE_WIDTH - 50)) ""
 EOC
 run_command "Generated script to monitor bootstrap readiness: ${INSTALL_DIR}/check-bootstrap.sh"
 
@@ -1412,14 +1413,15 @@ chmod +x ${INSTALL_DIR}/check-bootstrap.sh
 rm -rf ${INSTALL_DIR}/check-cluster.sh >/dev/null 2>&1
 cat <<EOF > ${INSTALL_DIR}/check-cluster.sh
 #!/bin/bash
+# Wait for nodes to be Ready
 NODES=("$MASTER01_HOSTNAME" "$MASTER02_HOSTNAME" "$MASTER03_HOSTNAME" "$WORKER01_HOSTNAME" "$WORKER02_HOSTNAME" "$WORKER03_HOSTNAME")
-MAX_RETRIES=1200
-SLEEP_INTERVAL=3
+MAX_RETRIES=1800  # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
 SPINNER=('/' '-' '\' '|')
 retry_count=0
 progress_started=false
 
-# Wait for nodes to be Ready
 while true; do
     NOT_READY_NODES=()
     for NODE in "\${NODES[@]}"; do
@@ -1432,7 +1434,7 @@ while true; do
 
     if [ \${#NOT_READY_NODES[@]} -eq 0 ]; then
         if \$progress_started; then
-            printf "\r\e[96mINFO\e[0m All nodes are Ready                                         \n"
+            printf "\r\e[96mINFO\e[0m All nodes are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         else
             echo -e "\e[96mINFO\e[0m All nodes are Ready"
         fi
@@ -1445,23 +1447,28 @@ while true; do
         else
             printf "\r\e[96mINFO\e[0m Waiting for all nodes to be Ready... %s" "\$CHAR"
         fi
+
         sleep "\$SLEEP_INTERVAL"
         retry_count=\$((retry_count + 1))
-        
+
         if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
-            # printf "\r\e[31mFAILED\e[0m Nodes not Ready: %s                               \n"  "\${NOT_READY_NODES[*]}"
-            printf "\r\e[31mFAILED\e[0m Nodes not Ready                                   \n"
+            printf "\r\e[31mFAILED\e[0m Nodes not Ready%*s\n" \$((LINE_WIDTH - 17)) ""
             exit 1
         fi
     fi
 done
 
 # Wait for all cluster operators
-progress_started=false
+MAX_RETRIES=1800  # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
+
 while true; do
     output=\$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print \$3, \$4, \$5}')
-    
+
     if echo "\$output" | grep -q -v "True False False"; then
         CHAR=\${SPINNER[\$((retry_count % 4))]}
         if ! \$progress_started; then
@@ -1470,30 +1477,35 @@ while true; do
         else
             printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "\$CHAR"
         fi
-        
+
         sleep "\$SLEEP_INTERVAL"
         retry_count=\$((retry_count + 1))
-        
+
         if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready                          \n"
+            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" \$((LINE_WIDTH - 31)) ""
             exit 1
         fi
     else
         if \$progress_started; then
-            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready                          \n"
+            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" \$((LINE_WIDTH - 32)) ""
         else
-            echo -e "\e[96mINFO\e[0m All Cluster Operators are Ready"
+            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" \$((LINE_WIDTH - 32)) ""
         fi
         break
     fi
 done
 
 # Wait for all MCPs
-progress_started=false
+MAX_RETRIES=1800  # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
+
 while true; do
     output=\$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print \$3, \$4, \$5}')
-    
+
     if echo "\$output" | grep -q -v "True False False"; then
         CHAR=\${SPINNER[\$((retry_count % 4))]}
         if ! \$progress_started; then
@@ -1502,19 +1514,19 @@ while true; do
         else
             printf "\r\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "\$CHAR"
         fi
-        
+
         sleep "\$SLEEP_INTERVAL"
         retry_count=\$((retry_count + 1))
-        
+
         if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m MCPs not Ready                     \n"
+            printf "\r\e[31mFAILED\e[0m MCPs not Ready%*s\n" \$((LINE_WIDTH - 20)) ""
             exit 1
         fi
     else
         if \$progress_started; then
-            printf "\r\e[96mINFO\e[0m All MCPs are Ready                     \n"
+            printf "\r\e[96mINFO\e[0m All MCPs are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         else
-            echo -e "\e[96mINFO\e[0m All MCPs are Ready"
+            printf "\e[96mINFO\e[0m All MCPs are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         fi
         break
     fi
