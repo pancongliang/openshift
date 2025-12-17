@@ -214,33 +214,53 @@ spec:
 EOF
 run_command "Deploy nfs-client-provisioner pod"
 
-# Wait for nfs-client-provisioner pods to be in 'Running' state
-# Initialize progress_started as false
+
+# Wait for $pod_name pods to be in Running state
+MAX_RETRIES=150   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
+retry_count=0
 progress_started=false
+project=${NAMESPACE}
+pod_name=nfs-client-provisioner
+
 while true; do
-    # Get the status of all pods
-    output=$(oc get po -n ${NAMESPACE} --no-headers | awk '{print $2, $3}')
-    
-    # Check if any pod is not in the "1/1 Running" state
-    if echo "$output" | grep -vq "1/1 Running"; then
-        # Print the info message only once
-        if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for pods to be in 'Running' state"
-            progress_started=true  # Set to true to prevent duplicate messages
-        fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
-        sleep 2
-    else
-        # Close progress indicator only if progress_started is true
+    # Get the status of all pods in the pod_name project
+    PODS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
+
+    # Find pods where the number of ready containers is not equal to total containers
+    not_ready=$(echo "$PODS" | awk -F/ '$1 != $2')
+
+    if [[ -z "$not_ready" ]]; then
+        # All pods are ready
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
+        else
+            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
         fi
-        echo -e "\e[96mINFO\e[0m The nfs-client-provisioner pods are in a 'Running' state"
         break
+    else
+        CHAR=${SPINNER[$((retry_count % 4))]}
+        if ! $progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
+        fi
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit if maximum retries reached
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
+            exit 1
+        fi
     fi
 done
+
 
 # storage class
 cat << EOF | oc apply -f - >/dev/null 2>&1
