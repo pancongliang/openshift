@@ -30,8 +30,8 @@ export MASTER03_HOSTNAME="master03"
 export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
 export WORKER03_HOSTNAME="worker03"
-export BASTION_IP="10.184.134.30"
-export BOOTSTRAP_IP="10.184.134.118"
+export BASTION_IP="10.184.134.77"                      # API_VIPS and INGRESS_VIPS
+export BOOTSTRAP_IP="10.184.134.229"
 export MASTER01_IP="10.184.134.79"
 export MASTER02_IP="10.184.134.150"
 export MASTER03_IP="10.184.134.243"
@@ -62,11 +62,9 @@ export NSLOOKUP_TEST_PUBLIC_DOMAIN="redhat.com"
 # Do not change the following parameters
 export LOCAL_DNS_IP="$BASTION_IP"
 export API_VIPS="$BASTION_IP"
+export API_INT_VIPS="$BASTION_IP"
+export MCS_VIPS="$BASTION_IP"
 export INGRESS_VIPS="$BASTION_IP"
-export MCS_VIPS="$API_VIPS"
-export API_IP="$API_VIPS"
-export API_INT_IP="$API_VIPS"
-export APPS_IP="$INGRESS_VIPS"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -140,9 +138,7 @@ check_all_variables() {
     check_variable "NFS_DIR"
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "LOCAL_DNS_IP"
-    check_variable "API_IP"
-    check_variable "API_INT_IP"
-    check_variable "APPS_IP"
+    check_variable "API_INT_VIPS"
     check_variable "API_VIPS"
     check_variable "MCS_VIPS"
     check_variable "INGRESS_VIPS"
@@ -522,11 +518,11 @@ cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 ns1     IN      A       ${LOCAL_DNS_IP}
 ;
 ; The api identifies the IP of load balancer.
-$(printf "%-35s IN  A      %s\n" "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
-$(printf "%-35s IN  A      %s\n" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
+$(printf "%-35s IN  A      %s\n" "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_VIPS}")
+$(printf "%-35s IN  A      %s\n" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_VIPS}")
 ;
 ; The wildcard also identifies the load balancer.
-$(printf "%-35s IN  A      %s\n" "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
+$(printf "%-35s IN  A      %s\n" "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${INGRESS_VIPS}")
 ;
 ; Create entries for the master hosts.
 $(printf "%-35s IN  A      %s\n" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
@@ -566,8 +562,8 @@ cat << EOF > "/var/named/${REVERSE_ZONE_FILE}"
 ; with a trailing dot.
 ;
 ; The api identifies the IP of load balancer.
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_IP")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_IP")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_VIPS")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_VIPS")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the master hosts.
 $(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER01_IP")" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
@@ -639,7 +635,7 @@ hostnames=(
     "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${API_IP}"
+    "${API_VIPS}"
     "${MASTER01_IP}"
     "${MASTER02_IP}"
     "${MASTER03_IP}"
@@ -1159,26 +1155,50 @@ cat <<EOC > ${INSTALL_DIR}/bootstrap-check.sh
 #!/bin/bash
 CONTAINER="cluster-bootstrap"
 PORTS="6443|22623"
-MAX=30
-SLEEP=10
+MAX=450
+SLEEP=2
 ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+SPINNER=('/' '-' '\' '|')
 
 # Wait for container
 for i in \$(seq 1 \$MAX); do
-    ssh \$ssh_opts core@$BOOTSTRAP_IP sudo podman ps --filter "name=\$CONTAINER" --format "{{.Status}}" | grep -q "^Up" && break
-    [[ \$i -eq \$MAX ]] && echo -e "\e[31mFAILED\e[0m Container '\$CONTAINER' is Not Running" && exit 1
+    printf "\r\e[96mINFO\e[0m Checking container '%s'... %s" "\$CONTAINER" "\${SPINNER[\$((i % 4))]}"
+    
+    CONTAINER_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo podman ps --filter "name=\$CONTAINER" --format "{{.Status}}" 2>/dev/null | tr -d '\r\n')
+    
+    if [[ "\$CONTAINER_STATUS" == Up* ]]; then
+        printf "\r\e[96mINFO\e[0m Container '%s' is Running      \n" "\$CONTAINER"
+        break
+    fi
+    
+    if [[ \$i -eq \$MAX ]]; then
+        echo -e "\n\e[31mFAILED\e[0m Container '\$CONTAINER' is Not Running"
+        exit 1
+    fi
+    
     sleep \$SLEEP
 done
-echo -e "\e[96mINFO\e[0m Container '\$CONTAINER' is Running"
 
 # Wait for ports
 for i in \$(seq 1 \$MAX); do
-    ssh \$ssh_opts core@$BOOTSTRAP_IP sudo netstat -ntplu | grep -qE "\$PORTS" && break
-    [[ \$i -eq \$MAX ]] && echo -e "\e[31mFAILED\e[0m Ports 6443 and 22623 are not ready" && exit 1
+    printf "\r\e[96mINFO\e[0m Checking ports 6443 and 22623... %s" "\${SPINNER[\$((i % 4))]}"
+    
+    PORT_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo netstat -ntplu 2>/dev/null | tr -d '\r\n')
+    
+    if echo "\$PORT_STATUS" | grep -qE "\$PORTS"; then
+        printf "\r\e[96mINFO\e[0m Ports 6443 and 22623 are now listening      \n"
+        break
+    fi
+    
+    if [[ \$i -eq \$MAX ]]; then
+        echo -e "\n\e[31mFAILED\e[0m Ports 6443 and 22623 are not ready"
+        exit 1
+    fi
+    
     sleep \$SLEEP
 done
 
-echo -e "\e[96mINFO\e[0m Ports 6443 and 22623 are now listening"
+# Final message
 echo -e "\e[96mINFO\e[0m You can now install Control Plane & Worker nodes"
 EOC
 run_command "Generate a bootstrap readiness check script: ${INSTALL_DIR}/bootstrap-check.sh"
