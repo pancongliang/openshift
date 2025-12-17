@@ -392,43 +392,6 @@ echo
 # Step 5:
 PRINT_TASK "TASK [Checking the cluster status]"
 
-# Wait for all cluster operators
-MAX_RETRIES=150   # Maximum number of retries
-SLEEP_INTERVAL=2  # Sleep interval in seconds
-LINE_WIDTH=120    # Control line width
-SPINNER=('/' '-' '\' '|')
-retry_count=0
-progress_started=false
-
-while true; do
-    output=$(/usr/local/bin/oc get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
-
-    if echo "$output" | grep -q -v "True False False"; then
-        CHAR=${SPINNER[$((retry_count % 4))]}
-        if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
-            progress_started=true
-        else
-            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
-        fi
-
-        sleep "$SLEEP_INTERVAL"
-        retry_count=$((retry_count + 1))
-
-        if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
-            exit 1
-        fi
-    else
-        if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
-        else
-            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
-        fi
-        break
-    fi
-done
-
 # Wait for all MCPs
 MAX_RETRIES=150   # Maximum number of retries
 SLEEP_INTERVAL=2  # Sleep interval in seconds
@@ -461,6 +424,43 @@ while true; do
             printf "\r\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         else
             printf "\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+        fi
+        break
+    fi
+done
+
+# Wait for all cluster operators
+MAX_RETRIES=150   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
+retry_count=0
+progress_started=false
+
+while true; do
+    output=$(/usr/local/bin/oc get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+
+    if echo "$output" | grep -q -v "True False False"; then
+        CHAR=${SPINNER[$((retry_count % 4))]}
+        if ! $progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+        fi
+
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
+            exit 1
+        fi
+    else
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+        else
+            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         fi
         break
     fi
