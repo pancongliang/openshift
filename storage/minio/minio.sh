@@ -133,13 +133,6 @@ spec:
 EOF
 run_command "Deploying Minio Object Storage"
 
-# Wait for Minio pods to be in 'Running' state
-MAX_RETRIES=60   # Maximum number of retries
-SLEEP_INTERVAL=2  # Sleep interval in seconds
-SPINNER=('/' '-' '\' '|')
-retry_count=0
-progress_started=false
-
 # Wait for Minio pods to be in Running state
 MAX_RETRIES=60    # Maximum number of retries
 SLEEP_INTERVAL=2  # Sleep interval in seconds
