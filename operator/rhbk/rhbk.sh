@@ -379,13 +379,6 @@ run_command "Create the Keycloak CR"
 
 sleep 3
 
-# Wait for Keycloak pod to be running
-MAX_RETRIES=180
-SLEEP_INTERVAL=5
-progress_started=false
-retry_count=0
-pod_name=example-kc-0
-
 # Wait for $pod_name pods to be in Running state
 MAX_RETRIES=500   # Maximum number of retries
 SLEEP_INTERVAL=2  # Sleep interval in seconds
@@ -512,44 +505,55 @@ run_command "Create the KeycloakRealmImport"
 
 
 # Waiting for keycloakrealmimports to complete creation
-MAX_RETRIES=150   # Maximum number of retries
-SLEEP_INTERVAL=2  # Sleep interval in seconds
-LINE_WIDTH=120    # Control line width
+MAX_RETRIES=150      # Maximum number of retries
+SLEEP_INTERVAL=2     # Sleep interval in seconds
+LINE_WIDTH=$(tput cols)  # Terminal line width
+done_printed="no"        # Ensure the completion message is printed only once
 retry_count=0
-progress_started=false
 SPINNER=('/' '-' '\' '|')
 REALM_IMPORT="example-realm-import"
 
+# Loop to wait for Realm Import completion
 while true; do
-    # Get the status conditions of the KeycloakRealmImport
+    # Get the current status of the KeycloakRealmImport
     status=$(oc get keycloakrealmimports/${REALM_IMPORT} -n ${OPERATOR_NS} \
         -o go-template='{{range .status.conditions}}{{.type}}={{.status}} {{end}}' 2>/dev/null || true)
+    
     started=$(echo "$status" | grep -o "Started=True" || true)
     done_status=$(echo "$status" | grep -o "Done=True" || true)
     errors=$(echo "$status" | grep -o "HasErrors=True" || true)
     CHAR=${SPINNER[$((retry_count % 4))]}
 
     if [[ -n "$done_status" && -z "$errors" ]]; then
-        # Completed: overwrite line and move cursor to next line
-        printf "\r\e[96mINFO\e[0m Realm import '%s' completed\n" "$REALM_IMPORT"
+        # Realm Import completed without errors
+        if [[ "$done_printed" == "no" ]]; then
+            MSG="Realm import '$REALM_IMPORT' completed"
+            printf "\r\e[96mINFO\e[0m %s" "$MSG"
+            tput el
+            printf "\n"
+            done_printed="yes"
+        fi
         break
     elif [[ -n "$started" ]]; then
-        # In progress: show spinner right after the message
-        printf "\r\e[96mINFO\e[0m Realm import '%s' in progress... %s" "$REALM_IMPORT" "$CHAR"
-        progress_started=true
+        # Realm Import in progress
+        MSG="Realm import '$REALM_IMPORT' in progress... $CHAR"
+        printf "\r\e[96mINFO\e[0m %s" "$MSG"
+        tput el
     else
-        # Waiting to start: show waiting message with spinner
-        printf "\r\e[96mINFO\e[0m Waiting for Realm import '%s' to start... %s" "$REALM_IMPORT" "$CHAR"
-        progress_started=true
+        # Realm Import not started yet
+        MSG="Waiting for Realm import '$REALM_IMPORT' to start... $CHAR"
+        printf "\r\e[96mINFO\e[0m %s" "$MSG"
+        tput el
     fi
 
-    # Wait before next check
     sleep $SLEEP_INTERVAL
     retry_count=$((retry_count + 1))
 
-    # Exit if max retries reached
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m Reached max retries, Realm import '%s' not completed\n" "$REALM_IMPORT"
+        MSG="Reached max retries, Realm import '$REALM_IMPORT' not completed"
+        printf "\r\e[31mFAILED\e[0m %s" "$MSG"
+        tput el
+        printf "\n"
         exit 1
     fi
 done
@@ -564,34 +568,39 @@ progress_started=false
 namespace=$OPERATOR_NS
 
 while true; do
-    # Get the status conditions of the KeycloakRealmImport
-    status=$(oc get keycloakrealmimports/${REALM_IMPORT} -n ${OPERATOR_NS} \
-        -o go-template='{{range .status.conditions}}{{.type}}={{.status}} {{end}}' 2>/dev/null || true)
-    started=$(echo "$status" | grep -o "Started=True" || true)
-    done_status=$(echo "$status" | grep -o "Done=True" || true)
-    errors=$(echo "$status" | grep -o "HasErrors=True" || true)
-    CHAR=${SPINNER[$((retry_count % 4))]}
+    # Get READY column of all pods that are not Completed
+    PODS=$(oc -n "$namespace" get po --no-headers 2>/dev/null | grep -v Completed | awk '{print $2}' || true)
 
-    if [[ -n "$done_status" && -z "$errors" ]]; then
-        # Completed: clear the line, print completed message, move cursor to next line
-        printf "\r\033[K\e[96mINFO\e[0m Realm import '%s' completed\n" "$REALM_IMPORT"
+    # Find pods where the number of ready containers is not equal to total containers
+    not_ready=$(echo "$PODS" | awk -F/ '$1 != $2')
+
+    if [[ -z "$not_ready" ]]; then
+        # All pods are ready
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                   "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
+        else
+            echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+        fi
         break
-    elif [[ -n "$started" ]]; then
-        # In progress: show spinner after message, same line
-        printf "\r\e[96mINFO\e[0m Realm import '%s' in progress... %s" "$REALM_IMPORT" "$CHAR"
     else
-        # Waiting to start: show waiting message with spinner
-        printf "\r\e[96mINFO\e[0m Waiting for Realm import '%s' to start... %s" "$REALM_IMPORT" "$CHAR"
-    fi
+        CHAR=${SPINNER[$((retry_count % 4))]}
+        if ! $progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for %s namespace pods to be Running... %s" "$namespace" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for %s namespace pods to be Running... %s" "$namespace" "$CHAR"
+        fi
 
-    # Wait before next check
-    sleep $SLEEP_INTERVAL
-    retry_count=$((retry_count + 1))
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
 
-    # Exit if max retries reached
-    if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\033[K\e[31mFAILED\e[0m Reached max retries, Realm import '%s' not completed\n" "$REALM_IMPORT"
-        exit 1
+        # Exit if maximum retries reached
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
+                   "$namespace" $((LINE_WIDTH - ${#namespace} - 31)) ""
+            exit 1
+        fi
     fi
 done
 
