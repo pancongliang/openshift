@@ -313,45 +313,51 @@ run_command "Deploy the Mirroring Worker container"
 
 # Checking container status
 containers=("postgresql-quay" "redis" "quay" "mirroring-worker")
-MAX_RETRIES=20
-SLEEP_INTERVAL=5
+MAX_RETRIES=100
+SLEEP_INTERVAL=2
+SPINNER=('/' '-' '\' '|')
 progress_started=false
 retry_count=0
 
 while true; do
     all_running=true
-
     for c in "${containers[@]}"; do
         if ! podman ps --format "{{.Names}}" | grep -qw "$c"; then
             all_running=false
+            break
         fi
     done
 
-    if ! $all_running; then
+    CHAR=${SPINNER[$((retry_count % 4))]}
+
+    if $all_running; then
+        # Overwrite spinner line and print final message
+        printf "\r"
+        tput el
+        echo -e "\e[96mINFO\e[0m All containers are running"
+        break
+    else
+        # Spinner display
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for all containers to be running"
             progress_started=true
         fi
+        printf "\r\e[96mINFO\e[0m Waiting for all containers to be running %s" "$CHAR"
+        tput el
 
-        echo -n '.'
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # 
-            echo -e "\e[31mFAILED\e[0m Some containers are not running after $((MAX_RETRIES * SLEEP_INTERVAL)) seconds"
-            break
+            printf "\r"
+            tput el
+            echo -e "\e[31mFAILED\e[0m Some containers are not running"
+            exit 1
         fi
-    else
-        if $progress_started; then
-            echo 
-        fi
-        echo -e "\e[96mINFO\e[0m All containers are running"
-        break
     fi
 done
 
 # Generate systemd service file for PostgreSQL
+sudo rm -rf container-*.service
 CREATE_SYSTEMD_FILES=$(podman generate systemd --name postgresql-quay --files --restart-policy=always >/dev/null 2>&1)
 run_command "Generate systemd service file for PostgreSQL"
 
@@ -368,7 +374,6 @@ CREATE_SYSTEMD_FILES=$(podman generate systemd --name mirroring-worker --files -
 run_command "Generate systemd service file for Mirroring-Worker"
 
 # Move generated files to systemd directory
-sudo rm -rf container-*.service
 sudo mv container-*.service /etc/systemd/system/ >/dev/null 2>&1
 run_command "Move generated files to systemd directory"
 
@@ -486,80 +491,77 @@ echo
 # Step 7:
 PRINT_TASK "TASK [Checking the cluster status]"
 
-# Check cluster operator status
-MAX_RETRIES=30
-SLEEP_INTERVAL=15
-progress_started=false
+
+# Wait for all cluster operators
+MAX_RETRIES=150   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
 
 while true; do
-    # Get the status of all cluster operators
-    output=$(oc get co --no-headers | awk '{print $3, $4, $5}')
-    
-    # Check cluster operators status
+    output=$(/usr/local/bin/oc get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+
     if echo "$output" | grep -q -v "True False False"; then
-        # Print the info message only once
+        CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for all cluster operators to reach the expected state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
         fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
+
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
-        # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries cluster operator may still be initializing"
-            break
+            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
+            exit 1
         fi
     else
-        # Close the progress indicator and print the success message
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+        else
+            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         fi
-        echo -e "\e[96mINFO\e[0m All cluster operators have reached the expected state"
         break
     fi
 done
 
-# Check MCP status
-MAX_RETRIES=20
-SLEEP_INTERVAL=15
-progress_started=false
+# Wait for all MCPs
+MAX_RETRIES=150   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
+SPINNER=('/' '-' '\' '|')
 retry_count=0
+progress_started=false
 
 while true; do
-    # Get the status of all mcp
-    output=$(oc get mcp --no-headers | awk '{print $3, $4, $5}')
-    
-    # Check mcp status
+    output=$(/usr/local/bin/oc get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+
     if echo "$output" | grep -q -v "True False False"; then
-        # Print the info message only once
+        CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for all MCP to reach the expected state"
-            progress_started=true  # Set to true to prevent duplicate messages
+            printf "\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "$CHAR"
         fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
+
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
-        # Exit the loop when the maximum number of retries is exceeded
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            echo # Add this to force a newline after the message
-            echo -e "\e[31mFAILED\e[0m Reached max retries MCP may still be initializing"
-            break
+            printf "\r\e[31mFAILED\e[0m MCPs not Ready%*s\n" $((LINE_WIDTH - 20)) ""
+            exit 1
         fi
     else
-        # Close the progress indicator and print the success message
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            printf "\r\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+        else
+            printf "\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         fi
-        echo -e "\e[96mINFO\e[0m All MCP have reached the expected state"
         break
     fi
 done
@@ -571,8 +573,8 @@ echo
 PRINT_TASK "TASK [Manually create a user]"
 
 echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT"
-echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
 echo -e "\e[96mINFO\e[0m CLI: podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u quayadmin -p password"
+echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
 
 # Add an empty line after the task
 echo
