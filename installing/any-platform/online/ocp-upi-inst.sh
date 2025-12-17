@@ -1146,17 +1146,20 @@ done
 EOF
 run_command "Generate csr approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 
+# Make it executable
+chmod +x ${INSTALL_DIR}/ocp4cert-approver.sh 
+
 # Run the CSR auto-approver script
 bash ${INSTALL_DIR}/ocp4cert-approver.sh &
 run_command "Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
 
 # Generate check-bootstrap.sh with the actual BOOTSTRAP_IP value
-cat <<EOC > ${INSTALL_DIR}/bootstrap-check.sh
+cat <<EOC > ${INSTALL_DIR}/check-bootstrap.sh
 #!/bin/bash
 CONTAINER="cluster-bootstrap"
 PORTS="6443|22623"
-MAX=450
-SLEEP=2
+MAX=300
+SLEEP=3
 ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
 SPINNER=('/' '-' '\' '|')
 
@@ -1201,10 +1204,125 @@ done
 # Final message
 echo -e "\e[96mINFO\e[0m You can now install Control Plane & Worker nodes"
 EOC
-run_command "Generate a bootstrap readiness check script: ${INSTALL_DIR}/bootstrap-check.sh"
+run_command "Generated script to monitor bootstrap readiness: ${INSTALL_DIR}/check-bootstrap.sh"
 
 # Make it executable
-chmod +x ${INSTALL_DIR}/bootstrap-check.sh
+chmod +x ${INSTALL_DIR}/check-bootstrap.sh
+
+cat <<EOF > ${INSTALL_DIR}/check-cluster.sh
+#!/bin/bash
+NODES=("$MASTER01_HOSTNAME" "$MASTER02_HOSTNAME" "$MASTER03_HOSTNAME" "$WORKER01_HOSTNAME" "$WORKER02_HOSTNAME" "$WORKER03_HOSTNAME")
+MAX_RETRIES=1200
+SLEEP_INTERVAL=3
+SPINNER=('/' '-' '\' '|')
+retry_count=0
+progress_started=false
+
+# Wait for nodes to be Ready
+while true; do
+    NOT_READY_NODES=()
+    for NODE in "\${NODES[@]}"; do
+        FULLNAME="\${NODE}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+        STATUS=\$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get node "\$FULLNAME" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)
+        if [[ "\$STATUS" != "True" ]]; then
+            NOT_READY_NODES+=("\$FULLNAME")
+        fi
+    done
+
+    if [ \${#NOT_READY_NODES[@]} -eq 0 ]; then
+        if \$progress_started; then
+            printf "\r\e[96mINFO\e[0m All nodes are Ready                                         \n"
+        else
+            echo -e "\e[96mINFO\e[0m All nodes are Ready"
+        fi
+        break
+    else
+        CHAR=\${SPINNER[\$((retry_count % 4))]}
+        if ! \$progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for all nodes to be Ready... %s" "\$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all nodes to be Ready... %s" "\$CHAR"
+        fi
+        sleep "\$SLEEP_INTERVAL"
+        retry_count=\$((retry_count + 1))
+        
+        if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
+            # printf "\r\e[31mFAILED\e[0m Nodes not Ready: %s                               \n"  "\${NOT_READY_NODES[*]}"
+            printf "\r\e[31mFAILED\e[0m Nodes not Ready                                   \n"
+            exit 1
+        fi
+    fi
+done
+
+# Wait for all cluster operators
+progress_started=false
+retry_count=0
+while true; do
+    output=\$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print \$3, \$4, \$5}')
+    
+    if echo "\$output" | grep -q -v "True False False"; then
+        CHAR=\${SPINNER[\$((retry_count % 4))]}
+        if ! \$progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "\$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "\$CHAR"
+        fi
+        
+        sleep "\$SLEEP_INTERVAL"
+        retry_count=\$((retry_count + 1))
+        
+        if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
+            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready                          \n"
+            exit 1
+        fi
+    else
+        if \$progress_started; then
+            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready                          \n"
+        else
+            echo -e "\e[96mINFO\e[0m All Cluster Operators are Ready"
+        fi
+        break
+    fi
+done
+
+# Wait for all MCPs
+progress_started=false
+retry_count=0
+while true; do
+    output=\$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print \$3, \$4, \$5}')
+    
+    if echo "\$output" | grep -q -v "True False False"; then
+        CHAR=\${SPINNER[\$((retry_count % 4))]}
+        if ! \$progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "\$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "\$CHAR"
+        fi
+        
+        sleep "\$SLEEP_INTERVAL"
+        retry_count=\$((retry_count + 1))
+        
+        if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
+            printf "\r\e[31mFAILED\e[0m MCPs not Ready                     \n"
+            exit 1
+        fi
+    else
+        if \$progress_started; then
+            printf "\r\e[96mINFO\e[0m All MCPs are Ready                     \n"
+        else
+            echo -e "\e[96mINFO\e[0m All MCPs are Ready"
+        fi
+        break
+    fi
+done
+EOF
+run_command "Generated script to monitor cluster readiness: ${INSTALL_DIR}/check-cluster.sh"
+
+# Make it executable
+chmod +x ${INSTALL_DIR}/check-cluster.sh
 
 # Add an empty line after the task
 echo
@@ -1226,14 +1344,14 @@ PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
 
 echo -e "\e[33mACTION\e[0m $BOOTSTRAP_HOSTNAME node installation steps:  → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/bs | sh   → reboot"
 echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME load shell environment:     → source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
-echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME check bootstrap status:     → bash ${INSTALL_DIR}/bootstrap-check.sh"
+echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME check bootstrap status:     → bash ${INSTALL_DIR}/check-bootstrap.sh"
 echo -e "\e[33mACTION\e[0m $MASTER01_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_HOSTNAME: -1} | sh   → reboot"
 echo -e "\e[33mACTION\e[0m $MASTER02_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_HOSTNAME: -1} | sh   → reboot"
 echo -e "\e[33mACTION\e[0m $MASTER03_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_HOSTNAME: -1} | sh   → reboot"
 echo -e "\e[33mACTION\e[0m $WORKER01_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_HOSTNAME: -1} | sh   → reboot"
 echo -e "\e[33mACTION\e[0m $WORKER02_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_HOSTNAME: -1} | sh   → reboot"
 echo -e "\e[33mACTION\e[0m $WORKER03_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_HOSTNAME: -1} | sh   → reboot"
-
+echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME check installation status:  → source ${INSTALL_DIR}/check-cluster.sh"
 
 #echo -e "\e[33mACTION\e[0m $BOOTSTRAP_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN (Bootstrap) node installation steps:"
 #echo -e "       → Boot the node using the RHCOS ISO"
@@ -1263,16 +1381,6 @@ echo -e "\e[33mACTION\e[0m $WORKER03_HOSTNAME node installation steps:   → Boo
 #    echo -e "       → Run: curl -s http://$BASTION_IP:8080/pre/w${idx} | sh"
 #    echo -e "       → Reboot the node"
 #done
-
-#echo -e "\e[33mACTION\e[0m Please manually run: source /etc/bash_completion.d/oc_completion && source $HOME/.bash_profile"
-#echo -e "\e[33mACTION\e[0m Bootstrap node: curl -s http://$BASTION_IP:8080/pre/bs |sh"
-#echo -e "\e[33mACTION\e[0m Please manually run: bash ${INSTALL_DIR}/bootstrap-check.sh"
-#echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m1 |sh"
-#echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m2 |sh"
-#echo -e "\e[33mACTION\e[0m Control Plane nodes: curl -s http://$BASTION_IP:8080/pre/m3 |sh"
-#echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w1 |sh"
-#echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w2 |sh"
-#echo -e "\e[33mACTION\e[0m Worker nodes: curl -s http://$BASTION_IP:8080/pre/w3 |sh"
 
 # Add an empty line after the task
 echo
