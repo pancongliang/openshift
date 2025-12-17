@@ -134,34 +134,61 @@ EOF
 run_command "Deploying Minio Object Storage"
 
 # Wait for Minio pods to be in 'Running' state
-# Initialize progress_started as false
+MAX_RETRIES=60   # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+SPINNER=('/' '-' '\' '|')
+retry_count=0
 progress_started=false
+
+# Wait for Minio pods to be in Running state
+MAX_RETRIES=60    # Maximum number of retries
+SLEEP_INTERVAL=2  # Sleep interval in seconds
+SPINNER=('/' '-' '\' '|')
+retry_count=0
+progress_started=false
+NAMESPACE=minio
+pod_name=minio
+
+# Wait for Minio pods to be in Running state
+PodName="$(tr '[:lower:]' '[:upper:]' <<< "${pod_name:0:1}")${pod_name:1}"
 while true; do
-    # Get the status of all pods
-    output=$(oc get po -n minio --no-headers | awk '{print $2, $3}')
+    # Get the status of all pods in the minio namespace
+    PODS=$(oc -n $NAMESPACE get po --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
     
-    # Check if any pod is not in the "1/1 Running" state
-    if echo "$output" | grep -vq "1/1 Running"; then
-        # Print the info message only once
-        if ! $progress_started; then
-            echo -n -e "\e[96mINFO\e[0m Waiting for pods to be in 'Running' state"
-            progress_started=true  # Set to true to prevent duplicate messages
+    # Check if all pods are in "1/1 Running" state
+    ALL_READY=true
+    while read -r READY STATUS; do
+        if [[ "$READY $STATUS" != "1/1 Running" ]]; then
+            ALL_READY=false
+            break
         fi
-        
-        # Print progress indicator (dots)
-        echo -n '.'
-        sleep 2
-    else
-        # Close progress indicator only if progress_started is true
+    done <<< "$PODS"
+
+    if $ALL_READY; then
         if $progress_started; then
-            echo # Add this to force a newline after the message
+            printf "\r\e[96mINFO\e[0m $PodName pods are Running                                  \n"
+        else
+            echo -e "\e[96mINFO\e[0m $PodName pods are Running"
         fi
-        echo -e "\e[96mINFO\e[0m Minio pods are in 'Running' state"
         break
+    else
+        CHAR=${SPINNER[$((retry_count % 4))]}
+        if ! $progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for $PodName pods to be Running... %s" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for $PodName pods to be Running... %s" "$CHAR"
+        fi
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        # Exit if maximum retries reached
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            printf "\r\e[31mFAILED\e[0m $PodName pods not Running                                  \n"
+            exit 1
+        fi
     fi
 done
-
-echo -e "\e[96mINFO\e[0m Installation complete"
 
 sleep 3
 
