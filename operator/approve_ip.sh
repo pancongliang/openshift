@@ -1,5 +1,5 @@
 # Set the maximum number of retries
-MAX_RETRIES=30
+MAX_RETRIES=120
 RETRY_COUNT=0
 progress_started=false
 
@@ -42,5 +42,5 @@ while true; do
     fi
 
     echo -n '.'
-    sleep 6
+    sleep 2
 done
