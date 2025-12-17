@@ -1,6 +1,6 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-# set -euo pipefail
+set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Specify the OpenShift release version
@@ -69,11 +69,9 @@ export OCP_RELEASE_CHANNEL="$(echo $OCP_VERSION | cut -d. -f1,2)"
 # Do not change the following parameters
 export LOCAL_DNS_IP="$BASTION_IP"
 export API_VIPS="$BASTION_IP"
+export API_INT_VIPS="$BASTION_IP"
+export MCS_VIPS="$BASTION_IP"
 export INGRESS_VIPS="$BASTION_IP"
-export MCS_VIPS="$API_VIPS"
-export API_IP="$API_VIPS"
-export API_INT_IP="$API_VIPS"
-export APPS_IP="$INGRESS_VIPS"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -154,9 +152,7 @@ check_all_variables() {
     check_variable "IMAGE_REGISTRY_PV"
     check_variable "LOCAL_DNS_IP"
     check_variable "REGISTRY_IP"
-    check_variable "API_IP"
-    check_variable "API_INT_IP"
-    check_variable "APPS_IP"
+    check_variable "API_INT_VIPS"
     check_variable "API_VIPS"
     check_variable "MCS_VIPS"
     check_variable "INGRESS_VIPS"
@@ -180,10 +176,6 @@ fi
 
 # Add an empty line after the task
 echo
-
-# Enable strict mode for robust error handling and log failures with line number.
-set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Step 2:
 PRINT_TASK "TASK [Configure Hostname and Time Zone]"
@@ -565,11 +557,11 @@ cat << EOF > "/var/named/${FORWARD_ZONE_FILE}"
 ns1     IN      A       ${LOCAL_DNS_IP}
 ;
 ; The api identifies the IP of load balancer.
-$(printf "%-35s IN  A      %s\n" "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_IP}")
-$(printf "%-35s IN  A      %s\n" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_IP}")
+$(printf "%-35s IN  A      %s\n" "api.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_VIPS}")
+$(printf "%-35s IN  A      %s\n" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${API_INT_VIPS}")
 ;
 ; The wildcard also identifies the load balancer.
-$(printf "%-35s IN  A      %s\n" "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${APPS_IP}")
+$(printf "%-35s IN  A      %s\n" "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${INGRESS_VIPS}")
 ;
 ; Create entries for the master hosts.
 $(printf "%-35s IN  A      %s\n" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
@@ -612,8 +604,8 @@ cat << EOF > "/var/named/${REVERSE_ZONE_FILE}"
 ; with a trailing dot.
 ;
 ; The api identifies the IP of load balancer.
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_IP")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_IP")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_VIPS")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_VIPS")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the master hosts.
 $(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER01_IP")" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
@@ -685,7 +677,7 @@ hostnames=(
     "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${API_IP}"
+    "${API_VIPS}"
     "${MASTER01_IP}"
     "${MASTER02_IP}"
     "${MASTER03_IP}"
@@ -1270,28 +1262,10 @@ run_command "Set permissions on ocp install scripts"
 echo
 
 # Step 14:
-PRINT_TASK "TASK [Generate scripts for CSR approval and OpenShift image mirroring]"
-
-# If the file exists, delete it
-rm -rf "${INSTALL_DIR}/approve-csr.sh" >/dev/null 2>&1
-
-# Generate approve csr script file]
-cat << EOF > "${INSTALL_DIR}/ocp4cert-approver.sh"
-#!/bin/bash
-source 01-set-params.sh >/dev/null 2>&1
-export PATH="/usr/local/bin:$PATH"
-for i in {1..3600}; do 
-  oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' 2>/dev/null | xargs --no-run-if-empty oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm certificate approve >/dev/null 2>&1
-  sleep 10
-done 
-EOF
-run_command "Generate csr approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
-
-# Run the CSR auto-approver script
-bash ${INSTALL_DIR}/ocp4cert-approver.sh &
-run_command "Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
+PRINT_TASK "TASK [Generate Mirror, CSR, and Bootstrap/Cluster Monitoring Scripts]"
 
 # Create script to mirror the OpenShift image
+rm -rf ${INSTALL_DIR}/mirror-img.sh >/dev/null 2>&1
 cat << EOF > ${INSTALL_DIR}/mirror-img.sh
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
@@ -1360,6 +1334,197 @@ rm -rf oc-mirror-workspace
 EOF
 run_command "Generate ocp image mirroring script: ${INSTALL_DIR}/mirror-img.sh"
 
+# Generate approve csr script file]
+rm -rf "${INSTALL_DIR}/approve-csr.sh" >/dev/null 2>&1
+cat << EOF > "${INSTALL_DIR}/ocp4cert-approver.sh"
+#!/bin/bash
+source 01-set-params.sh >/dev/null 2>&1
+export PATH="/usr/local/bin:$PATH"
+for i in {1..3600}; do 
+  oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' 2>/dev/null | xargs --no-run-if-empty oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig adm certificate approve >/dev/null 2>&1
+  sleep 10
+done 
+EOF
+run_command "Generate csr approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
+
+# Run the CSR auto-approver script
+bash ${INSTALL_DIR}/ocp4cert-approver.sh &
+run_command "Execute csr auto approval script: ${INSTALL_DIR}/ocp4cert-approver.sh"
+
+# Generated script to monitor bootstrap readiness
+rm -rf ${INSTALL_DIR}/check-bootstrap.sh >/dev/null 2>&1
+cat <<EOC > ${INSTALL_DIR}/check-bootstrap.sh
+#!/bin/bash
+CONTAINER="cluster-bootstrap"
+PORTS="6443|22623"
+MAX=300
+SLEEP=3
+ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+SPINNER=('/' '-' '\' '|')
+
+# Wait for container
+for i in \$(seq 1 \$MAX); do
+    printf "\r\e[96mINFO\e[0m Checking container '%s'... %s" "\$CONTAINER" "\${SPINNER[\$((i % 4))]}"
+    
+    CONTAINER_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo podman ps --filter "name=\$CONTAINER" --format "{{.Status}}" 2>/dev/null | tr -d '\r\n')
+    
+    if [[ "\$CONTAINER_STATUS" == Up* ]]; then
+        printf "\r\e[96mINFO\e[0m Container '%s' is Running      \n" "\$CONTAINER"
+        break
+    fi
+    
+    if [[ \$i -eq \$MAX ]]; then
+        echo -e "\n\e[31mFAILED\e[0m Container '\$CONTAINER' is Not Running"
+        exit 1
+    fi
+    
+    sleep \$SLEEP
+done
+
+# Wait for ports
+for i in \$(seq 1 \$MAX); do
+    printf "\r\e[96mINFO\e[0m Checking ports 6443 and 22623... %s" "\${SPINNER[\$((i % 4))]}"
+    
+    PORT_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo netstat -ntplu 2>/dev/null | tr -d '\r\n')
+    
+    if echo "\$PORT_STATUS" | grep -qE "\$PORTS"; then
+        printf "\r\e[96mINFO\e[0m Ports 6443 and 22623 are now listening      \n"
+        break
+    fi
+    
+    if [[ \$i -eq \$MAX ]]; then
+        echo -e "\n\e[31mFAILED\e[0m Ports 6443 and 22623 are not ready"
+        exit 1
+    fi
+    
+    sleep \$SLEEP
+done
+
+# Final message
+echo -e "\e[96mINFO\e[0m You can now install Control Plane & Worker nodes"
+EOC
+run_command "Generated script to monitor bootstrap readiness: ${INSTALL_DIR}/check-bootstrap.sh"
+
+# Make it executable
+chmod +x ${INSTALL_DIR}/check-bootstrap.sh
+
+# Generated script to monitor cluster readiness
+rm -rf ${INSTALL_DIR}/check-cluster.sh >/dev/null 2>&1
+cat <<EOF > ${INSTALL_DIR}/check-cluster.sh
+#!/bin/bash
+NODES=("$MASTER01_HOSTNAME" "$MASTER02_HOSTNAME" "$MASTER03_HOSTNAME" "$WORKER01_HOSTNAME" "$WORKER02_HOSTNAME" "$WORKER03_HOSTNAME")
+MAX_RETRIES=1200
+SLEEP_INTERVAL=3
+SPINNER=('/' '-' '\' '|')
+retry_count=0
+progress_started=false
+
+# Wait for nodes to be Ready
+while true; do
+    NOT_READY_NODES=()
+    for NODE in "\${NODES[@]}"; do
+        FULLNAME="\${NODE}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+        STATUS=\$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get node "\$FULLNAME" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)
+        if [[ "\$STATUS" != "True" ]]; then
+            NOT_READY_NODES+=("\$FULLNAME")
+        fi
+    done
+
+    if [ \${#NOT_READY_NODES[@]} -eq 0 ]; then
+        if \$progress_started; then
+            printf "\r\e[96mINFO\e[0m All nodes are Ready                                         \n"
+        else
+            echo -e "\e[96mINFO\e[0m All nodes are Ready"
+        fi
+        break
+    else
+        CHAR=\${SPINNER[\$((retry_count % 4))]}
+        if ! \$progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for all nodes to be Ready... %s" "\$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all nodes to be Ready... %s" "\$CHAR"
+        fi
+        sleep "\$SLEEP_INTERVAL"
+        retry_count=\$((retry_count + 1))
+        
+        if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
+            # printf "\r\e[31mFAILED\e[0m Nodes not Ready: %s                               \n"  "\${NOT_READY_NODES[*]}"
+            printf "\r\e[31mFAILED\e[0m Nodes not Ready                                   \n"
+            exit 1
+        fi
+    fi
+done
+
+# Wait for all cluster operators
+progress_started=false
+retry_count=0
+while true; do
+    output=\$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get co --no-headers 2>/dev/null | awk '{print \$3, \$4, \$5}')
+    
+    if echo "\$output" | grep -q -v "True False False"; then
+        CHAR=\${SPINNER[\$((retry_count % 4))]}
+        if ! \$progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "\$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "\$CHAR"
+        fi
+        
+        sleep "\$SLEEP_INTERVAL"
+        retry_count=\$((retry_count + 1))
+        
+        if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
+            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready                          \n"
+            exit 1
+        fi
+    else
+        if \$progress_started; then
+            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready                          \n"
+        else
+            echo -e "\e[96mINFO\e[0m All Cluster Operators are Ready"
+        fi
+        break
+    fi
+done
+
+# Wait for all MCPs
+progress_started=false
+retry_count=0
+while true; do
+    output=\$(/usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get mcp --no-headers 2>/dev/null | awk '{print \$3, \$4, \$5}')
+    
+    if echo "\$output" | grep -q -v "True False False"; then
+        CHAR=\${SPINNER[\$((retry_count % 4))]}
+        if ! \$progress_started; then
+            printf "\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "\$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "\$CHAR"
+        fi
+        
+        sleep "\$SLEEP_INTERVAL"
+        retry_count=\$((retry_count + 1))
+        
+        if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
+            printf "\r\e[31mFAILED\e[0m MCPs not Ready                     \n"
+            exit 1
+        fi
+    else
+        if \$progress_started; then
+            printf "\r\e[96mINFO\e[0m All MCPs are Ready                     \n"
+        else
+            echo -e "\e[96mINFO\e[0m All MCPs are Ready"
+        fi
+        break
+    fi
+done
+EOF
+run_command "Generated script to monitor cluster readiness: ${INSTALL_DIR}/check-cluster.sh"
+
+# Make it executable
+chmod +x ${INSTALL_DIR}/check-cluster.sh
+
 # Add an empty line after the task
 echo
 
@@ -1378,18 +1543,24 @@ echo
 # Step 16:
 PRINT_TASK "TASK [Mirror the OpenShift release image, boot from RHCOS ISO, and install the cluster]"
 
-echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME mirror release image:       → bash ${INSTALL_DIR}/mirror-img.sh"
-echo -e "\e[33mACTION\e[0m $BOOTSTRAP_HOSTNAME node installation steps:  → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/bs | sh   → reboot"
-echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME load shell environment:     → source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
-echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME check bootstrap status:     → bash ${INSTALL_DIR}/bootstrap-check.sh"
-echo -e "\e[33mACTION\e[0m $MASTER01_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_HOSTNAME: -1} | sh   → reboot"
-echo -e "\e[33mACTION\e[0m $MASTER02_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_HOSTNAME: -1} | sh   → reboot"
-echo -e "\e[33mACTION\e[0m $MASTER03_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_HOSTNAME: -1} | sh   → reboot"
-echo -e "\e[33mACTION\e[0m $WORKER01_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_HOSTNAME: -1} | sh   → reboot"
-echo -e "\e[33mACTION\e[0m $WORKER02_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_HOSTNAME: -1} | sh   → reboot"
-echo -e "\e[33mACTION\e[0m $WORKER03_HOSTNAME node installation steps:   → Boot RHCOS ISO   → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_HOSTNAME: -1} | sh   → reboot"
+# Set column width
+COL_WIDTH=35
 
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME mirror ocp release image:" "→ bash ${INSTALL_DIR}/mirror-img.sh"
 
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
+
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER01_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER02_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER03_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_HOSTNAME: -1} | sh → reboot"
+
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER01_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER02_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER03_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_HOSTNAME: -1} | sh → reboot"
+
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME check installation status:" "source ${INSTALL_DIR}/check-cluster.sh"
 
 # Add an empty line after the task
 echo
