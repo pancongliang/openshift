@@ -136,50 +136,44 @@ run_command "Deploying Minio Object Storage"
 # Wait for $pod_name pods to be in Running state
 MAX_RETRIES=60    # Maximum number of retries
 SLEEP_INTERVAL=2  # Sleep interval in seconds
+LINE_WIDTH=120    # Control line width
 SPINNER=('/' '-' '\' '|')
 retry_count=0
 progress_started=false
 project=minio
 pod_name=minio
 
-# Capitalize first letter of pod name
-PodName="$(tr '[:lower:]' '[:upper:]' <<< "${pod_name:0:1}")${pod_name:1}"
-
-# Wait for $pod_name pods to be in Running state
 while true; do
     # Get the status of all pods in the pod_name project
-    PODS=$(oc -n $project get po --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
-    
-    # Check if all pods are in "1/1 Running" state
-    ALL_READY=true
-    while read -r READY STATUS; do
-        if [[ "$READY $STATUS" != "1/1 Running" ]]; then
-            ALL_READY=false
-            break
-        fi
-    done <<< "$PODS"
+    PODS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
 
-    if $ALL_READY; then
+    # Find pods where the number of ready containers is not equal to total containers
+    not_ready=$(echo "$PODS" | awk -F/ '$1 != $2')
+
+    if [[ -z "$not_ready" ]]; then
+        # All pods are ready
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m $PodName pods are Running                                  \n"
+            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m $PodName pods are Running"
+            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
         fi
         break
     else
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for $PodName pods to be Running... %s" "$CHAR"
+            printf "\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for $PodName pods to be Running... %s" "$CHAR"
+            printf "\r\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
         fi
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
         # Exit if maximum retries reached
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m $PodName pods not Running                                  \n"
+            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
     fi
