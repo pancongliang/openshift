@@ -185,7 +185,7 @@ while true; do
     fi
 done
 
-sleep 3
+sleep 5
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
