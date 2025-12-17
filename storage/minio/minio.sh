@@ -133,22 +133,22 @@ spec:
 EOF
 run_command "Deploying Minio Object Storage"
 
-# Wait for Minio pods to be in Running state
+# Wait for $pod_name pods to be in Running state
 MAX_RETRIES=60    # Maximum number of retries
 SLEEP_INTERVAL=2  # Sleep interval in seconds
 SPINNER=('/' '-' '\' '|')
 retry_count=0
 progress_started=false
-NAMESPACE=minio
+project=minio
 pod_name=minio
 
 # Capitalize first letter of pod name
 PodName="$(tr '[:lower:]' '[:upper:]' <<< "${pod_name:0:1}")${pod_name:1}"
 
-# Wait for Minio pods to be in Running state
+# Wait for $pod_name pods to be in Running state
 while true; do
-    # Get the status of all pods in the minio namespace
-    PODS=$(oc -n $NAMESPACE get po --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
+    # Get the status of all pods in the pod_name project
+    PODS=$(oc -n $project get po --no-headers 2>/dev/null |grep $pod_name | awk '{print $2, $3}' || true)
     
     # Check if all pods are in "1/1 Running" state
     ALL_READY=true
