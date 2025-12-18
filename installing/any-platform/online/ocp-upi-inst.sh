@@ -37,7 +37,7 @@ export MASTER02_IP="10.184.134.127"
 export MASTER03_IP="10.184.134.50"
 export WORKER01_IP="10.184.134.80"
 export WORKER02_IP="10.184.134.111"
-export WORKER03_IP="10.184.134.112"
+export WORKER03_IP="10.184.134.121"
 
 
 # More options — no changes required!
