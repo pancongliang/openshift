@@ -182,15 +182,15 @@ run_command "Delete the tar package: pause.tar postgres.tar quay.tar redis.tar"
 sudo podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}:8443 >/dev/null 2>&1
 run_command "Login registry https://${REGISTRY_HOSTNAME}:8443"
 
-# Add an empty line after the task
-echo
-
 if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
-    echo -e "\e[96mINFO\e[0m Quay console: https://${REGISTRY_HOSTNAME}:8443"
+    echo -e "\e[96mINFO\e[0m Quay Console: https://${REGISTRY_HOSTNAME}:8443"
     echo -e "\e[96mINFO\e[0m podman login ${REGISTRY_HOSTNAME}:8443 -u $REGISTRY_ID -p $REGISTRY_PW"
     echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
     exit 0
 fi
+
+# Add an empty line after the task
+echo
 
 # Step 4:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
