@@ -30,14 +30,14 @@ export MASTER03_HOSTNAME="master03"
 export WORKER01_HOSTNAME="worker01"
 export WORKER02_HOSTNAME="worker02"
 export WORKER03_HOSTNAME="worker03"
-export BASTION_IP="10.184.134.77"                      # API_VIPS and INGRESS_VIPS
-export BOOTSTRAP_IP="10.184.134.229"
-export MASTER01_IP="10.184.134.79"
-export MASTER02_IP="10.184.134.150"
-export MASTER03_IP="10.184.134.243"
-export WORKER01_IP="10.184.134.239"
-export WORKER02_IP="10.184.134.136"
-export WORKER03_IP="10.184.134.236"
+export BASTION_IP="10.184.134.30"                      # API_VIPS and INGRESS_VIPS
+export BOOTSTRAP_IP="10.184.134.122"
+export MASTER01_IP="10.184.134.102"
+export MASTER02_IP="10.184.134.127"
+export MASTER03_IP="10.184.134.50"
+export WORKER01_IP="10.184.134.80"
+export WORKER02_IP="10.184.134.111"
+export WORKER03_IP="10.184.134.112"
 
 
 # More options — no changes required!
