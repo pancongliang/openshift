@@ -499,25 +499,25 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "$CHAR"
+            printf "\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "$CHAR"
+            printf "\r\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
         fi
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
         # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m MCPs not Ready%*s\n" $((LINE_WIDTH - 20)) ""
+            printf "\r\e[31mFAILED\e[0m MachineConfigPools not Ready%*s\n" $((LINE_WIDTH - 20)) ""
             exit 1
         fi
     else
         # All MCPs are Ready
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+            printf "\r\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         else
-            printf "\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+            printf "\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         fi
         break
     fi
