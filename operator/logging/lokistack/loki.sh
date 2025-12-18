@@ -265,30 +265,54 @@ project=openshift-logging
 pod_name=cluster-logging-operator
 
 while true; do
-    # Get pod Ready counts, e.g. 1/1 0/1
-    PODS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
+    # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
+    # Using '|| true' to prevent script exit if grep finds no matches
+    RAW_STATUS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
 
-    # Check pods: if not exist or not fully ready → not_ready
-    not_ready=$( [[ -z "$PODS" ]] && echo true || echo "$PODS" | awk -F/ '$1 != $2' )
+    # 2. Logic to determine if pods are ready
+    if [[ -z "$RAW_STATUS" ]]; then
+        # If RAW_STATUS is empty, it means no pods were found
+        is_ready=false
+    else
+        # Check if any pod has 'ready' count not equal to 'total' count
+        not_ready_count=$(echo "$RAW_STATUS" | awk -F/ '$1 != $2' | wc -l)
+        if [[ $not_ready_count -eq 0 ]]; then
+            is_ready=true
+        else
+            is_ready=false
+        fi
+    fi
 
-    if [[ -z "$not_ready" ]]; then
-        # All pods ready → success
-        printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
-               "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
+    # 3. Handle UI output and loop control
+    if $is_ready; then
+        # Successfully running
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
+        else
+            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+        fi
         break
     else
-        # Spinner animation while waiting
+        # Still waiting or pod not found yet
         CHAR=${SPINNER[$((retry_count % 4))]}
-        printf "\r\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
-        progress_started=true
-        
-        # Wait before retry
-        sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
+        # Provide different messages if pods are missing vs. starting
+        MSG="Waiting for $pod_name pods to be Running..."
+        [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
-        # Exit if maximum retries reached
+        if ! $progress_started; then
+            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        fi
+
+        # 4. Retry management
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r\e[31mFAILED\e[0m The %s pods timed out%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -306,30 +330,54 @@ project=openshift-operators-redhat
 pod_name=loki-operator
 
 while true; do
-    # Get pod Ready counts, e.g. 1/1 0/1
-    PODS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
+    # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
+    # Using '|| true' to prevent script exit if grep finds no matches
+    RAW_STATUS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
 
-    # Check pods: if not exist or not fully ready → not_ready
-    not_ready=$( [[ -z "$PODS" ]] && echo true || echo "$PODS" | awk -F/ '$1 != $2' )
+    # 2. Logic to determine if pods are ready
+    if [[ -z "$RAW_STATUS" ]]; then
+        # If RAW_STATUS is empty, it means no pods were found
+        is_ready=false
+    else
+        # Check if any pod has 'ready' count not equal to 'total' count
+        not_ready_count=$(echo "$RAW_STATUS" | awk -F/ '$1 != $2' | wc -l)
+        if [[ $not_ready_count -eq 0 ]]; then
+            is_ready=true
+        else
+            is_ready=false
+        fi
+    fi
 
-    if [[ -z "$not_ready" ]]; then
-        # All pods ready → success
-        printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
-               "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
+    # 3. Handle UI output and loop control
+    if $is_ready; then
+        # Successfully running
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
+        else
+            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+        fi
         break
     else
-        # Spinner animation while waiting
+        # Still waiting or pod not found yet
         CHAR=${SPINNER[$((retry_count % 4))]}
-        printf "\r\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
-        progress_started=true
-        
-        # Wait before retry
-        sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
+        # Provide different messages if pods are missing vs. starting
+        MSG="Waiting for $pod_name pods to be Running..."
+        [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
-        # Exit if maximum retries reached
+        if ! $progress_started; then
+            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        fi
+
+        # 4. Retry management
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r\e[31mFAILED\e[0m The %s pods timed out%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -346,33 +394,48 @@ progress_started=false
 namespace=openshift-cluster-observability-operator
 
 while true; do
-    # Get READY column of all pods that are not Completed
-    PODS=$(oc -n "$namespace" get po --no-headers 2>/dev/null | grep -v Completed | awk '{print $2}' || true)
+    # 1. Get the READY column for all pods, excluding Completed ones
+    POD_STATUS_LIST=$(oc -n "$namespace" get po --no-headers 2>/dev/null | grep -v "Completed" | awk '{print $2}' || true)
 
-    # One-liner: if no pods exist → not_ready=true, else check Ready/Total
-    not_ready=$( [[ -z "$PODS" ]] && echo true || awk -F/ '$1 != $2' <<< "$PODS" )
-
-    if [[ -z "$not_ready" ]]; then
-        # All pods ready → print success
-        printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
-               "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
-        break
-    else
-        # Spinner animation while waiting
-        CHAR=${SPINNER[$((retry_count % 4))]}
-        printf "\r\e[96mINFO\e[0m Waiting for %s namespace pods to be Running... %s" "$namespace" "$CHAR"
-        progress_started=true
-
-        # Wait before next check
-        sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
-
-        # Exit if max retries reached
-        if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
-                   "$namespace" $((LINE_WIDTH - ${#namespace} - 31)) ""
-            exit 1
+    # 2. Check if any pods exist and if they are all ready
+    if [[ -n "$POD_STATUS_LIST" ]]; then
+        # Check for pods where Ready count (left) is not equal to Total count (right)
+        not_ready_exists=$(echo "$POD_STATUS_LIST" | awk -F/ '$1 != $2')
+        
+        if [[ -z "$not_ready_exists" ]]; then
+            # SUCCESS: Pods exist AND all of them are ready
+            if $progress_started; then
+                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                       "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
+            else
+                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+            fi
+            break
         fi
+    fi
+
+    # 3. If we reach here, either no pods exist yet or some are not ready
+    CHAR=${SPINNER[$((retry_count % 4))]}
+    
+    # Define feedback message based on whether pods are missing or starting
+    MSG="Waiting for $namespace namespace pods to be Running..."
+    [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
+
+    if ! $progress_started; then
+        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        progress_started=true
+    else
+        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+    fi
+
+    # 4. Handle timeout and retry
+    sleep "$SLEEP_INTERVAL"
+    retry_count=$((retry_count + 1))
+
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m The %s namespace pods failed to start within timeout%*s\n" \
+               "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
+        exit 1
     fi
 done
 
@@ -434,33 +497,48 @@ progress_started=false
 namespace=openshift-logging
 
 while true; do
-    # Get READY column of all pods that are not Completed
-    PODS=$(oc -n "$namespace" get po --no-headers 2>/dev/null | grep -v Completed | awk '{print $2}' || true)
+    # 1. Get the READY column for all pods, excluding Completed ones
+    POD_STATUS_LIST=$(oc -n "$namespace" get po --no-headers 2>/dev/null | grep -v "Completed" | awk '{print $2}' || true)
 
-    # One-liner: if no pods exist → not_ready=true, else check Ready/Total
-    not_ready=$( [[ -z "$PODS" ]] && echo true || awk -F/ '$1 != $2' <<< "$PODS" )
-
-    if [[ -z "$not_ready" ]]; then
-        # All pods ready → print success
-        printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
-               "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
-        break
-    else
-        # Spinner animation while waiting
-        CHAR=${SPINNER[$((retry_count % 4))]}
-        printf "\r\e[96mINFO\e[0m Waiting for %s namespace pods to be Running... %s" "$namespace" "$CHAR"
-        progress_started=true
-
-        # Wait before next check
-        sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
-
-        # Exit if max retries reached
-        if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
-                   "$namespace" $((LINE_WIDTH - ${#namespace} - 31)) ""
-            exit 1
+    # 2. Check if any pods exist and if they are all ready
+    if [[ -n "$POD_STATUS_LIST" ]]; then
+        # Check for pods where Ready count (left) is not equal to Total count (right)
+        not_ready_exists=$(echo "$POD_STATUS_LIST" | awk -F/ '$1 != $2')
+        
+        if [[ -z "$not_ready_exists" ]]; then
+            # SUCCESS: Pods exist AND all of them are ready
+            if $progress_started; then
+                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                       "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
+            else
+                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+            fi
+            break
         fi
+    fi
+
+    # 3. If we reach here, either no pods exist yet or some are not ready
+    CHAR=${SPINNER[$((retry_count % 4))]}
+    
+    # Define feedback message based on whether pods are missing or starting
+    MSG="Waiting for $namespace namespace pods to be Running..."
+    [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
+
+    if ! $progress_started; then
+        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        progress_started=true
+    else
+        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+    fi
+
+    # 4. Handle timeout and retry
+    sleep "$SLEEP_INTERVAL"
+    retry_count=$((retry_count + 1))
+
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m The %s namespace pods failed to start within timeout%*s\n" \
+               "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
+        exit 1
     fi
 done
 
@@ -541,33 +619,48 @@ progress_started=false
 namespace=openshift-logging
 
 while true; do
-    # Get READY column of all pods that are not Completed
-    PODS=$(oc -n "$namespace" get po --no-headers 2>/dev/null | grep -v Completed | awk '{print $2}' || true)
+    # 1. Get the READY column for all pods, excluding Completed ones
+    POD_STATUS_LIST=$(oc -n "$namespace" get po --no-headers 2>/dev/null | grep -v "Completed" | awk '{print $2}' || true)
 
-    # One-liner: if no pods exist → not_ready=true, else check Ready/Total
-    not_ready=$( [[ -z "$PODS" ]] && echo true || awk -F/ '$1 != $2' <<< "$PODS" )
-
-    if [[ -z "$not_ready" ]]; then
-        # All pods ready → print success
-        printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
-               "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
-        break
-    else
-        # Spinner animation while waiting
-        CHAR=${SPINNER[$((retry_count % 4))]}
-        printf "\r\e[96mINFO\e[0m Waiting for %s namespace pods to be Running... %s" "$namespace" "$CHAR"
-        progress_started=true
-
-        # Wait before next check
-        sleep "$SLEEP_INTERVAL"
-        ((retry_count++))
-
-        # Exit if max retries reached
-        if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
-                   "$namespace" $((LINE_WIDTH - ${#namespace} - 31)) ""
-            exit 1
+    # 2. Check if any pods exist and if they are all ready
+    if [[ -n "$POD_STATUS_LIST" ]]; then
+        # Check for pods where Ready count (left) is not equal to Total count (right)
+        not_ready_exists=$(echo "$POD_STATUS_LIST" | awk -F/ '$1 != $2')
+        
+        if [[ -z "$not_ready_exists" ]]; then
+            # SUCCESS: Pods exist AND all of them are ready
+            if $progress_started; then
+                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                       "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
+            else
+                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+            fi
+            break
         fi
+    fi
+
+    # 3. If we reach here, either no pods exist yet or some are not ready
+    CHAR=${SPINNER[$((retry_count % 4))]}
+    
+    # Define feedback message based on whether pods are missing or starting
+    MSG="Waiting for $namespace namespace pods to be Running..."
+    [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
+
+    if ! $progress_started; then
+        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        progress_started=true
+    else
+        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+    fi
+
+    # 4. Handle timeout and retry
+    sleep "$SLEEP_INTERVAL"
+    retry_count=$((retry_count + 1))
+
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m The %s namespace pods failed to start within timeout%*s\n" \
+               "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
+        exit 1
     fi
 done
 
