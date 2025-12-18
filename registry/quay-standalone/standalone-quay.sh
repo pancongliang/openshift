@@ -405,6 +405,8 @@ run_command "Trust the rootCA certificate"
 
 echo -e "\e[96mINFO\e[0m Installation complete"
 
+# Check the environment variable OCP_TRUSTED_CA: continue if "true", exit if otherwise
+
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
     echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
