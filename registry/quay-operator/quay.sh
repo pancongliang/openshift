@@ -9,7 +9,7 @@ export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 export NAMESPACE="quay-enterprise"
 export CATALOG_SOURCE=redhat-operators
-export OCP_TRUSTED_CA="true"
+export OCP_TRUSTED_CA="true"       # true or false
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -372,6 +372,10 @@ while true; do
     fi
 done
 
+# Get the Quay route host for the given namespace and store in QUAY_HOST
+export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}') >/dev/null 2>&1
+
+# Check the environment variable OCP_TRUSTED_CA: continue if "true", exit if otherwise
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST"
     echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
@@ -406,6 +410,7 @@ sleep 10
 # Create a configmap containing the CA certificate
 export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}') >/dev/null 2>&1
 
+# Get the Quay route host for the given namespace and store in QUAY_HOST
 REGISTRY_CAS=$(oc get image.config.openshift.io/cluster -o yaml | grep -o 'registry-cas') >/dev/null 2>&1 || true
 
 if [[ -n "$REGISTRY_CAS" ]]; then
