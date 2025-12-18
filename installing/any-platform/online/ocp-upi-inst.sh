@@ -1237,26 +1237,26 @@ while true; do
     if [ \${#NOT_READY_NODES[@]} -eq 0 ]; then
         if \$progress_started; then
             # Overwrite spinner line and print success message
-            printf "\r\e[96mINFO\e[0m All cluster nodes are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
+            printf "\r\e[96mINFO\e[0m All Cluster Nodes are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         else
-            echo -e "\e[96mINFO\e[0m All cluster nodes are Ready"
+            echo -e "\e[96mINFO\e[0m All Cluster Nodes are Ready"
         fi
         break
     else
         # Spinner logic to show progress while waiting
         CHAR=\${SPINNER[\$((retry_count % 4))]}
         if ! \$progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all nodes to be Ready... %s" "\$CHAR"
+            printf "\e[96mINFO\e[0m Waiting for all Cluster Nodes to be Ready... %s" "\$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all nodes to be Ready... %s" "\$CHAR"
+            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Nodes to be Ready... %s" "\$CHAR"
         fi
         # Sleep between retries and increment retry counter
         sleep "\$SLEEP_INTERVAL"
         retry_count=\$((retry_count + 1))
         # Timeout handling: exit if max retries exceeded
         if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Cluster nodes not Ready%*s\n" \$((LINE_WIDTH - 17)) ""
+            printf "\r\e[31mFAILED\e[0m Cluster Nodes not Ready%*s\n" \$((LINE_WIDTH - 17)) ""
             exit 1
         fi
     fi
