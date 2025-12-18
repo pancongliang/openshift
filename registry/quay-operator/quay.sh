@@ -176,7 +176,7 @@ while true; do
         printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
-    sleep 1
+    sleep "$SLEEP_INTERVAL"
 done
 
 sleep 10
