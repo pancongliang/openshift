@@ -175,25 +175,7 @@ while true; do
         printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
-    sleep 1
-done
-
-sleep 5
-
-# Stage 2: Quickly approve all remaining unapproved InstallPlans
-while true; do
-    # Get all unapproved InstallPlans; if none exist, exit the loop
-    INSTALLPLAN=$(oc get installplan -n "$OPERATOR_NS" -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}' 2>/dev/null || true)
-    if [[ -z "$INSTALLPLAN" ]]; then
-        break
-    fi
-    # Loop through and approve each InstallPlan
-    for NAME in $INSTALLPLAN; do
-        oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
-    done
-    # Slight delay to avoid excessive polling
-    sleep 1
+    sleep "$SLEEP_INTERVAL"
 done
 
 # Wait for $pod_name pods to be in Running state
