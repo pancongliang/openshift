@@ -201,6 +201,7 @@ sleep 5
 
 # Get Minio route URL
 export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
+export MINIO_CONSOLE=$(oc get route minio-console -n minio -o jsonpath='http://{.spec.host}')
 
 # Set Minio client alias
 # MINIO_POD=$(oc get pod -n minio -l app=minio -o jsonpath='{.items[0].metadata.name}')
@@ -219,5 +220,5 @@ run_command "Add mc cli alias to $HOME/.bashrc"
 
 # Print Minio address and credentials
 echo -e "\e[96mINFO\e[0m Minio Host: $BUCKET_HOST"
+echo -e "\e[96mINFO\e[0m Minio Console: $MINIO_CONSOLE"
 echo -e "\e[96mINFO\e[0m Minio default ID/PW: minioadmin/minioadmin"
-echo -e "\e[96mINFO\e[0m Apply the mc alias by running: source $HOME/.bashrc"
