@@ -311,13 +311,14 @@ podman run -d --name mirroring-worker \
   registry.redhat.io/quay/quay-rhel8:$MIRRORING_WORKER repomirror >/dev/null 2>&1
 run_command "Deploy the Mirroring Worker container"
 
-# Checking container status
-containers=("postgresql-quay" "redis" "quay" "mirroring-worker")
-MAX_RETRIES=100
-SLEEP_INTERVAL=2
-SPINNER=('/' '-' '\' '|')
-progress_started=false
-retry_count=0
+
+# Wait for container to be in Running state
+containers=("postgresql-quay" "redis" "quay" "mirroring-worker")   # container name
+MAX_RETRIES=100               # Maximum number of retries
+SLEEP_INTERVAL=2              # Sleep interval in seconds
+SPINNER=('/' '-' '\' '|')     # Spinner animation characters
+retry_count=0                 # Number of status check attempts
+progress_started=false        # Tracks whether the spinner/progress line has been started
 
 while true; do
     all_running=true
@@ -404,15 +405,15 @@ run_command "Trust the rootCA certificate"
 
 echo -e "\e[96mINFO\e[0m Installation complete"
 
-# Add an empty line after the task
-echo
-
 if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
-    echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT"
-    echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
+    echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
+    echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
     echo -e "\e[96mINFO\e[0m podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u quayadmin -p password"
     exit 0
 fi
+
+# Add an empty line after the task
+echo
 
 # Step 5:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
@@ -491,18 +492,18 @@ echo
 # Step 7:
 PRINT_TASK "TASK [Checking the cluster status]"
 
-
-# Wait for all MCPs
-MAX_RETRIES=150   # Maximum number of retries
-SLEEP_INTERVAL=2  # Sleep interval in seconds
-LINE_WIDTH=120    # Control line width
-SPINNER=('/' '-' '\' '|')
-retry_count=0
-progress_started=false
+# Wait for all MachineConfigPools (MCPs) to be Ready
+MAX_RETRIES=150              # Maximum number of retries
+SLEEP_INTERVAL=2             # Sleep interval in seconds
+LINE_WIDTH=120               # Control line width
+SPINNER=('/' '-' '\' '|')    # Spinner animation characters
+retry_count=0                # Number of status check attempts
+progress_started=false       # Tracks whether the spinner/progress line has been started
 
 while true; do
+    # Get MCP statuses: Ready, Updated, Degraded
     output=$(/usr/local/bin/oc get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
-
+    # If any MCP is not Ready/Updated/Degraded as expected
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
@@ -514,12 +515,13 @@ while true; do
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
-
+        # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             printf "\r\e[31mFAILED\e[0m MCPs not Ready%*s\n" $((LINE_WIDTH - 20)) ""
             exit 1
         fi
     else
+        # All MCPs are Ready
         if $progress_started; then
             printf "\r\e[96mINFO\e[0m All MCPs are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         else
@@ -529,17 +531,18 @@ while true; do
     fi
 done
 
-# Wait for all cluster operators
-MAX_RETRIES=150   # Maximum number of retries
-SLEEP_INTERVAL=2  # Sleep interval in seconds
-LINE_WIDTH=120    # Control line width
-SPINNER=('/' '-' '\' '|')
-retry_count=0
-progress_started=false
+# Wait for all Cluster Operators (COs) to be Ready
+MAX_RETRIES=150              # Maximum number of retries
+SLEEP_INTERVAL=2             # Sleep interval in seconds
+LINE_WIDTH=120               # Control line width
+SPINNER=('/' '-' '\' '|')    # Spinner animation characters
+retry_count=0                # Number of status check attempts
+progress_started=false       # Tracks whether the spinner/progress line has been started
 
 while true; do
+    # Get Cluster Operator statuses: Available, Progressing, Degraded
     output=$(/usr/local/bin/oc get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
-
+    # If any CO is not Available/Progressing/Degraded as expected
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
@@ -551,12 +554,13 @@ while true; do
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
-
+        # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
             exit 1
         fi
     else
+        # All Cluster Operators are Ready
         if $progress_started; then
             printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         else
@@ -572,9 +576,9 @@ echo
 # Step 8:
 PRINT_TASK "TASK [Manually create a user]"
 
-echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST_NAME:$QUAY_PORT"
+echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
 echo -e "\e[96mINFO\e[0m CLI: podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u quayadmin -p password"
-echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
+echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
 
 # Add an empty line after the task
 echo
