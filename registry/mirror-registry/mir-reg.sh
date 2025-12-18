@@ -185,7 +185,7 @@ run_command "Login registry https://${REGISTRY_HOSTNAME}:8443"
 # Check the environment variable OCP_TRUSTED_CA: continue if "true", exit if otherwise
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo -e "\e[96mINFO\e[0m Quay Console: https://${REGISTRY_HOSTNAME}:8443"
-    echo -e "\e[96mINFO\e[0m podman login ${REGISTRY_HOSTNAME}:8443 -u $REGISTRY_ID -p $REGISTRY_PW"
+    echo -e "\e[96mINFO\e[0m CLI: podman login ${REGISTRY_HOSTNAME}:8443 -u $REGISTRY_ID -p $REGISTRY_PW"
     echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
     exit 0
 fi
