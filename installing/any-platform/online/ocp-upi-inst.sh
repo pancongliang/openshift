@@ -1277,10 +1277,10 @@ while true; do
     if echo "\$output" | grep -q -v "True False False"; then
         CHAR=\${SPINNER[\$((retry_count % 4))]}
         if ! \$progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "\$CHAR"
+            printf "\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "\$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all MCPs to be Ready... %s" "\$CHAR"
+            printf "\r\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "\$CHAR"
         fi
 
         sleep "\$SLEEP_INTERVAL"
