@@ -9,7 +9,7 @@ export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 export NAMESPACE="quay-enterprise"
 export CATALOG_SOURCE=redhat-operators
-export OCP_TRUSTED_CA="True"
+export OCP_TRUSTED_CA="true"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -372,7 +372,7 @@ while true; do
     fi
 done
 
-if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
+if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST"
     echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
     exit 0
