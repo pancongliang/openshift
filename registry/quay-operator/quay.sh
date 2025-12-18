@@ -372,14 +372,14 @@ while true; do
     fi
 done
 
-# Add an empty line after the task
-echo
-
 if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
-    echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST"
-    echo -e "\e[33mACTION\e[0m You need to create a user in the quay console with an id of <quayadmin> and a pw of <password>"
+    echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST"
+    echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
     exit 0
 fi
+
+# Add an empty line after the task
+echo
 
 # Step 3:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
