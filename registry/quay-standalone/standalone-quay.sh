@@ -11,7 +11,7 @@ export QUAY_HOST_IP="10.184.134.30"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"
 export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
-export OCP_TRUSTED_CA="true"    # true or false
+export OCP_TRUSTED_CA="true"                # true or false
 
 # Function to print a task with uniform length
 PRINT_TASK() {
