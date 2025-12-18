@@ -115,7 +115,7 @@ spec:
 EOF
 run_command "Installing rhacs operator..."
 
-# Approval install plan
+# Automatically approve install plans in the $OPERATOR_NS namespace
 MAX_RETRIES=150    # Maximum number of retries
 SLEEP_INTERVAL=2   # Sleep interval in seconds
 LINE_WIDTH=120     # Control line width
