@@ -372,6 +372,7 @@ while true; do
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
     fi
+done
 
 sleep 15
 
