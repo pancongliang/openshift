@@ -142,14 +142,13 @@ run_command "Install the cluster-logging operator"
 
 # Automatically approve install plans in the $OPERATOR_NS namespace
 # Stage 1: Wait for the first unapproved InstallPlan to appear and approve it
-MAX_RETRIES=150    # Maximum number of retries
-SLEEP_INTERVAL=2   # Sleep interval in seconds
-LINE_WIDTH=120     # Control line width
-SPINNER=('/' '-' '\' '|')
-RETRY_COUNT=0
-progress_started=false
+MAX_RETRIES=150               # Maximum number of retries
+SLEEP_INTERVAL=2              # Sleep interval in seconds
+LINE_WIDTH=120                # Control line width
+SPINNER=('/' '-' '\' '|')     # Spinner animation characters
+retry_count=0                 # Number of status check attempts
+progress_started=false        # Tracks whether the spinner/progress line has been started
 OPERATOR_NS="openshift-logging"
-
 
 MSG="Waiting for unapproved install plans in namespace $OPERATOR_NS"
 while true; do
@@ -168,7 +167,7 @@ while true; do
     fi
 
     # Spinner logic
-    CHAR=${SPINNER[$((RETRY_COUNT % ${#SPINNER[@]}))]}
+    CHAR=${SPINNER[$((retry_count % ${#SPINNER[@]}))]}
     if ! $progress_started; then
         printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
         progress_started=true
@@ -178,10 +177,10 @@ while true; do
 
     # Sleep and increment retry count
     sleep "$SLEEP_INTERVAL"
-    RETRY_COUNT=$((RETRY_COUNT + 1))
+    retry_count=$((retry_count + 1))
 
     # Timeout handling
-    if [[ $RETRY_COUNT -ge $MAX_RETRIES ]]; then
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
         printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
@@ -203,19 +202,18 @@ while true; do
         printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
-    sleep 3
+    sleep 1
 done
 
 # Automatically approve install plans in the $OPERATOR_NS namespace
 # Stage 1: Wait for the first unapproved InstallPlan to appear and approve it
-MAX_RETRIES=150    # Maximum number of retries
-SLEEP_INTERVAL=2   # Sleep interval in seconds
-LINE_WIDTH=120     # Control line width
-SPINNER=('/' '-' '\' '|')
-RETRY_COUNT=0
-progress_started=false
+MAX_RETRIES=150               # Maximum number of retries
+SLEEP_INTERVAL=2              # Sleep interval in seconds
+LINE_WIDTH=120                # Control line width
+SPINNER=('/' '-' '\' '|')     # Spinner animation characters
+retry_count=0                 # Number of status check attempts
+progress_started=false        # Tracks whether the spinner/progress line has been started
 OPERATOR_NS="openshift-operators-redhat"
-
 
 MSG="Waiting for unapproved install plans in namespace $OPERATOR_NS"
 while true; do
@@ -234,7 +232,7 @@ while true; do
     fi
 
     # Spinner logic
-    CHAR=${SPINNER[$((RETRY_COUNT % ${#SPINNER[@]}))]}
+    CHAR=${SPINNER[$((retry_count % ${#SPINNER[@]}))]}
     if ! $progress_started; then
         printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
         progress_started=true
@@ -244,10 +242,10 @@ while true; do
 
     # Sleep and increment retry count
     sleep "$SLEEP_INTERVAL"
-    RETRY_COUNT=$((RETRY_COUNT + 1))
+    retry_count=$((retry_count + 1))
 
     # Timeout handling
-    if [[ $RETRY_COUNT -ge $MAX_RETRIES ]]; then
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
         printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
@@ -269,16 +267,16 @@ while true; do
         printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
-    sleep 3
+    sleep 1
 done
 
 # Wait for $pod_name pods to be in Running state
-MAX_RETRIES=150    # Maximum number of retries
-SLEEP_INTERVAL=2   # Sleep interval in seconds
-LINE_WIDTH=120     # Control line width
-SPINNER=('/' '-' '\' '|')
-retry_count=0
-progress_started=false
+MAX_RETRIES=150               # Maximum number of retries
+SLEEP_INTERVAL=2              # Sleep interval in seconds
+LINE_WIDTH=120                # Control line width
+SPINNER=('/' '-' '\' '|')     # Spinner animation characters
+retry_count=0                 # Number of status check attempts
+progress_started=false        # Tracks whether the spinner/progress line has been started
 project=openshift-logging
 pod_name=cluster-logging-operator
 
@@ -337,12 +335,12 @@ while true; do
 done
 
 # Wait for $pod_name pods to be in Running state
-MAX_RETRIES=150    # Maximum number of retries
-SLEEP_INTERVAL=2   # Sleep interval in seconds
-LINE_WIDTH=120     # Control line width
-SPINNER=('/' '-' '\' '|')
-retry_count=0
-progress_started=false
+MAX_RETRIES=150               # Maximum number of retries
+SLEEP_INTERVAL=2              # Sleep interval in seconds
+LINE_WIDTH=120                # Control line width
+SPINNER=('/' '-' '\' '|')     # Spinner animation characters
+retry_count=0                 # Number of status check attempts
+progress_started=false        # Tracks whether the spinner/progress line has been started
 project=openshift-operators-redhat
 pod_name=elasticsearch-operator
 
@@ -412,12 +410,12 @@ fi
 sleep 30
 
 # Wait for $namespace namespace pods to be in 'Running' state
-MAX_RETRIES=150    # Maximum number of retries
-SLEEP_INTERVAL=2   # Sleep interval in seconds
-LINE_WIDTH=120     # Control line width
-SPINNER=('/' '-' '\' '|')
-retry_count=0
-progress_started=false
+MAX_RETRIES=150              # Maximum number of retries
+SLEEP_INTERVAL=2             # Sleep interval in seconds
+LINE_WIDTH=120               # Control line width
+SPINNER=('/' '-' '\' '|')    # Spinner animation characters
+retry_count=0                # Number of status check attempts
+progress_started=false       # Tracks whether the spinner/progress line has been started
 namespace=openshift-logging
 
 while true; do
