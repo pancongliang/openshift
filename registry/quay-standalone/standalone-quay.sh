@@ -409,7 +409,6 @@ run_command "Trust the rootCA certificate"
 echo -e "\e[96mINFO\e[0m Installation complete"
 
 # Check the environment variable OCP_TRUSTED_CA: continue if "true", exit if otherwise
-
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
     echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
@@ -453,14 +452,14 @@ echo
 PRINT_TASK "TASK [Update pull-secret]"
 
 # Export pull-secret
-rm -rf pull-secret
-oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
+rm -rf tmp-pull-secret
+oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > tmp-pull-secret
 run_command "Export pull-secret"
 
 sleep 5
 
 # Update pull-secret file
-export AUTHFILE="pull-secret"
+export AUTHFILE="tmp-pull-secret"
 
 # Base64 encode the username:password
 AUTH=cXVheWFkbWluOnBhc3N3b3Jk
@@ -485,11 +484,11 @@ fi
 echo -e "\e[96mINFO\e[0m Authentication information for quay registry added to $AUTHFILE"
 
 # Update pull-secret 
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=tmp-pull-secret >/dev/null 2>&1
 run_command "Update pull-secret for the cluster"
 
 rm -rf tmp-authfile >/dev/null 2>&1
-rm -rf pull-secret >/dev/null 2>&1
+rm -rf tmp-pull-secret >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
