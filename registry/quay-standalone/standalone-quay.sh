@@ -11,7 +11,7 @@ export QUAY_HOST_IP="10.184.134.30"
 export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"
 export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
-export OCP_TRUSTED_CA="True"
+export OCP_TRUSTED_CA="true"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -405,7 +405,7 @@ run_command "Trust the rootCA certificate"
 
 echo -e "\e[96mINFO\e[0m Installation complete"
 
-if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
+if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
     echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
     echo -e "\e[96mINFO\e[0m podman login --tls-verify=false $QUAY_HOST_NAME:$QUAY_PORT -u quayadmin -p password"
