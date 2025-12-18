@@ -266,7 +266,6 @@ pod_name=cluster-logging-operator
 
 while true; do
     # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
-    # Using '|| true' to prevent script exit if grep finds no matches
     RAW_STATUS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
 
     # 2. Logic to determine if pods are ready
@@ -331,7 +330,6 @@ pod_name=loki-operator
 
 while true; do
     # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
-    # Using '|| true' to prevent script exit if grep finds no matches
     RAW_STATUS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
 
     # 2. Logic to determine if pods are ready
