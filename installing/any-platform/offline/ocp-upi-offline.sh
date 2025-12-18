@@ -1583,7 +1583,7 @@ printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER01_HOSTNAME node ins
 printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER02_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_HOSTNAME: -1} | sh → reboot"
 printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER03_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_HOSTNAME: -1} | sh → reboot"
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME check installation status:" "source ${INSTALL_DIR}/check-cluster.sh"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
 
 # Add an empty line after the task
 echo
