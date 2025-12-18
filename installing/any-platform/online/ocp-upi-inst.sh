@@ -1237,9 +1237,9 @@ while true; do
     if [ \${#NOT_READY_NODES[@]} -eq 0 ]; then
         if \$progress_started; then
             # Overwrite spinner line and print success message
-            printf "\r\e[96mINFO\e[0m All nodes are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
+            printf "\r\e[96mINFO\e[0m All cluster nodes are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         else
-            echo -e "\e[96mINFO\e[0m All nodes are Ready"
+            echo -e "\e[96mINFO\e[0m All cluster nodes are Ready"
         fi
         break
     else
@@ -1256,7 +1256,7 @@ while true; do
         retry_count=\$((retry_count + 1))
         # Timeout handling: exit if max retries exceeded
         if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Nodes not Ready%*s\n" \$((LINE_WIDTH - 17)) ""
+            printf "\r\e[31mFAILED\e[0m Cluster nodes not Ready%*s\n" \$((LINE_WIDTH - 17)) ""
             exit 1
         fi
     fi
@@ -1287,15 +1287,15 @@ while true; do
         retry_count=\$((retry_count + 1))
         # Timeout handling
         if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m MCPs not Ready%*s\n" \$((LINE_WIDTH - 20)) ""
+            printf "\r\e[31mFAILED\e[0m MachineConfigPools not Ready%*s\n" \$((LINE_WIDTH - 20)) ""
             exit 1
         fi
     else
         # All MCPs are Ready    
         if \$progress_started; then
-            printf "\r\e[96mINFO\e[0m All MCPs are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
+            printf "\r\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         else
-            printf "\e[96mINFO\e[0m All MCPs are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
+            printf "\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         fi
         break
     fi
