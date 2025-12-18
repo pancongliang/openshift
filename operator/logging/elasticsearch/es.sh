@@ -4,8 +4,7 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export COLLECTOR="fluentd"
-#export COLLECTOR="vector"
+export COLLECTOR="fluentd"    # vector or fluentd
 export LOGGING_SUB_CHANNEL="stable"
 export ES_SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
