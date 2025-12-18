@@ -9,7 +9,7 @@ export REGISTRY_HOST_IP="10.184.134.30"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
 export REGISTRY_INSTALL_DIR="/opt/quay-install"
-export OCP_TRUSTED_CA="True"
+export OCP_TRUSTED_CA="true"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -182,7 +182,7 @@ run_command "Delete the tar package: pause.tar postgres.tar quay.tar redis.tar"
 sudo podman login -u ${REGISTRY_ID} -p ${REGISTRY_PW} https://${REGISTRY_HOSTNAME}:8443 >/dev/null 2>&1
 run_command "Login registry https://${REGISTRY_HOSTNAME}:8443"
 
-if [[ "$OCP_TRUSTED_CA" != "True" ]]; then
+if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo -e "\e[96mINFO\e[0m Quay Console: https://${REGISTRY_HOSTNAME}:8443"
     echo -e "\e[96mINFO\e[0m podman login ${REGISTRY_HOSTNAME}:8443 -u $REGISTRY_ID -p $REGISTRY_PW"
     echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
