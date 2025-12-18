@@ -4,6 +4,7 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # [REQUIRED] Default StorageClass must exist
+# NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
 export PVC_SIZE="50Gi"
 export BUCKETS=("loki-bucket" "quay-bucket" "oadp-bucket")
 
