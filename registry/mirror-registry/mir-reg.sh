@@ -225,24 +225,23 @@ echo
 # Step 5:
 PRINT_TASK "TASK [Update the global pull-secret]"
 
-sudo rm -rf pull-secret >/dev/null 2>&1
-oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > pull-secret
+sudo rm -rf tmp-pull-secret >/dev/null 2>&1
+oc get secret/pull-secret -n openshift-config --output="jsonpath={.data.\.dockerconfigjson}" | base64 -d > tmp-pull-secret
 run_command  "Export pull-secret file"
 
-podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile pull-secret ${REGISTRY_HOSTNAME}:8443 >/dev/null 2>&1
+podman login -u $REGISTRY_ID -p $REGISTRY_PW --authfile tmp-pull-secret ${REGISTRY_HOSTNAME}:8443 >/dev/null 2>&1
 run_command  "Authentication identity information to the pull-secret file"
 
-oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret >/dev/null 2>&1
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=tmp-pull-secret >/dev/null 2>&1
 run_command  "Update pull-secret for the cluster"
 
-sudo rm -rf pull-secret >/dev/null 2>&1
+sudo rm -rf tmp-pull-secret >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
 
 # Step 6:
 PRINT_TASK "TASK [Checking the cluster status]"
-
 
 # Wait for all MachineConfigPools (MCPs) to be Ready
 MAX_RETRIES=150              # Maximum number of retries
