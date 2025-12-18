@@ -85,7 +85,7 @@ fi
 
 # Determine whether to perform deployment
 if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]] && [[ "$BUCKET_EXISTS" == true ]]; then
-    PRINT_TASK "TASK [Deploying Quay Operator]"
+    PRINT_TASK "TASK [Deploying Minio Object Storage]"
     echo -e "\e[96mINFO\e[0m Minio already exists and bucket exists, skipping deployment"
 else
     curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio.sh | sh
