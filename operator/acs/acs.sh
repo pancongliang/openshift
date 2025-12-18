@@ -535,7 +535,7 @@ ACS_CONSOLE=$(oc get route central -n $NAMESPACE -o jsonpath='{"https://"}{.spec
 ACS_PW=$(oc get secret central-htpasswd -n $NAMESPACE -o jsonpath='{.data.password}' | base64 -d)
 
 echo -e "\e[96mINFO\e[0m ACS console: $ACS_CONSOLE"
-echo -e "\e[96mINFO\e[0m ACS user id: admin  pw: $ACS_PW"
+echo -e "\e[96mINFO\e[0m ACS user ID: admin  PW: $ACS_PW"
 
 # Add an empty line after the task
 echo
