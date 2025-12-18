@@ -139,14 +139,96 @@ EOF
 run_command "Install the cluster-logging operator"
 
 # Approval IP
-echo -e "\e[96mINFO\e[0m The CSR approval is in progress..."
-export OPERATOR_NS="openshift-logging"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "Approved the cluster-logging install plan"
+MAX_RETRIES=150    # Maximum number of retries
+SLEEP_INTERVAL=2   # Sleep interval in seconds
+LINE_WIDTH=120     # Control line width
+SPINNER=('/' '-' '\' '|')
+RETRY_COUNT=0
+progress_started=false
+OPERATOR_NS="openshift-logging"
+
+MSG="Waiting for unapproved install plans in namespace $OPERATOR_NS"
+while true; do
+    # Get unapproved InstallPlans
+    INSTALLPLAN=$(oc get installplan -n "$OPERATOR_NS" -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}' 2>/dev/null || true)
+
+    if [[ -n "$INSTALLPLAN" ]]; then
+        NAME=$(echo "$INSTALLPLAN" | awk '{print $1}')
+        oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
+
+        # Overwrite previous INFO line with final approved message
+        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s%*s\n" \
+               "$NAME" "$OPERATOR_NS" $((LINE_WIDTH - ${#NAME} - ${#OPERATOR_NS} - 34)) ""
+
+        break
+    fi
+
+    # Spinner logic
+    CHAR=${SPINNER[$((RETRY_COUNT % ${#SPINNER[@]}))]}
+    if ! $progress_started; then
+        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        progress_started=true
+    else
+        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+    fi
+
+    # Sleep and increment retry count
+    sleep "$SLEEP_INTERVAL"
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+
+    # Timeout handling
+    if [[ $RETRY_COUNT -ge $MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
+               "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
+        break
+    fi
+done
 
 export OPERATOR_NS="openshift-operators-redhat"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash >/dev/null 2>&1
-run_command "Approved the elasticsearch-operator install plan"
+MAX_RETRIES=150    # Maximum number of retries
+SLEEP_INTERVAL=2   # Sleep interval in seconds
+LINE_WIDTH=120     # Control line width
+SPINNER=('/' '-' '\' '|')
+RETRY_COUNT=0
+progress_started=false
+OPERATOR_NS="openshift-operators-redhat"
+
+MSG="Waiting for unapproved install plans in namespace $OPERATOR_NS"
+while true; do
+    # Get unapproved InstallPlans
+    INSTALLPLAN=$(oc get installplan -n "$OPERATOR_NS" -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}' 2>/dev/null || true)
+
+    if [[ -n "$INSTALLPLAN" ]]; then
+        NAME=$(echo "$INSTALLPLAN" | awk '{print $1}')
+        oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
+
+        # Overwrite previous INFO line with final approved message
+        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s%*s\n" \
+               "$NAME" "$OPERATOR_NS" $((LINE_WIDTH - ${#NAME} - ${#OPERATOR_NS} - 34)) ""
+
+        break
+    fi
+
+    # Spinner logic
+    CHAR=${SPINNER[$((RETRY_COUNT % ${#SPINNER[@]}))]}
+    if ! $progress_started; then
+        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        progress_started=true
+    else
+        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+    fi
+
+    # Sleep and increment retry count
+    sleep "$SLEEP_INTERVAL"
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+
+    # Timeout handling
+    if [[ $RETRY_COUNT -ge $MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
+               "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
+        break
+    fi
+done
 
 # Wait for $pod_name pods to be in Running state
 MAX_RETRIES=150    # Maximum number of retries
@@ -160,7 +242,6 @@ pod_name=cluster-logging-operator
 
 while true; do
     # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
-    # Using '|| true' to prevent script exit if grep finds no matches
     RAW_STATUS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
 
     # 2. Logic to determine if pods are ready
@@ -206,7 +287,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods timed out%*s\n" \
+            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -225,7 +306,6 @@ pod_name=elasticsearch-operator
 
 while true; do
     # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
-    # Using '|| true' to prevent script exit if grep finds no matches
     RAW_STATUS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
 
     # 2. Logic to determine if pods are ready
@@ -271,13 +351,12 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods timed out%*s\n" \
+            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
     fi
 done
-
 sleep 10
 
 if [ "$COLLECTOR" == "fluentd" ]; then
@@ -339,7 +418,7 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods failed to start within timeout%*s\n" \
+        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
