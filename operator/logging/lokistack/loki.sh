@@ -4,8 +4,8 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export LOGGING_SUB_CHANNEL="stable-6.1"
-export LOKI_SUB_CHANNEL="stable-6.1"
+export LOGGING_SUB_CHANNEL="stable-6.3"
+export LOKI_SUB_CHANNEL="stable-6.3"
 export OBSERVABILITY_SUB_CHANNEL="stable"
 export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
