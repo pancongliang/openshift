@@ -182,7 +182,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods timed out%*s\n" \
+            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -313,7 +313,7 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods failed to start within timeout%*s\n" \
+        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
@@ -462,7 +462,7 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods failed to start within timeout%*s\n" \
+        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
