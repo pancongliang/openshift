@@ -104,7 +104,7 @@ done
 echo
 
 # Step 2: 
-PRINT_TASK "TASK [Install Infrastructure RPM]"
+PRINT_TASK "TASK [Install infrastructure RPM]"
 
 # List of RPM packages to install
 packages=("podman")
