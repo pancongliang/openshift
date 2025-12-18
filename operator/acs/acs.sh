@@ -116,6 +116,7 @@ EOF
 run_command "Installing rhacs operator..."
 
 # Automatically approve install plans in the $OPERATOR_NS namespace
+# Stage 1: Wait for the first unapproved InstallPlan to appear and approve it
 MAX_RETRIES=150    # Maximum number of retries
 SLEEP_INTERVAL=2   # Sleep interval in seconds
 LINE_WIDTH=120     # Control line width
@@ -159,6 +160,24 @@ while true; do
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
     fi
+done
+
+sleep 5
+
+# Stage 2: Quickly approve all remaining unapproved InstallPlans
+while true; do
+    # Get all unapproved InstallPlans; if none exist, exit the loop
+    INSTALLPLAN=$(oc get installplan -n "$OPERATOR_NS" -o=jsonpath='{.items[?(@.spec.approved==false)].metadata.name}' 2>/dev/null || true)
+    if [[ -z "$INSTALLPLAN" ]]; then
+        break
+    fi
+    # Loop through and approve each InstallPlan
+    for NAME in $INSTALLPLAN; do
+        oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
+        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
+    done
+    # Slight delay to avoid excessive polling
+    sleep 1
 done
 
 sleep 10
