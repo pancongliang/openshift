@@ -197,6 +197,9 @@ echo
 # Step 4:
 PRINT_TASK "TASK [Install Quay Registry]"
 
+cat $PULL_SECRET_FILE >/dev/null 2>&1
+run_command "Verify existence of $PULL_SECRET_FILE file"
+
 # Add registry entry to /etc/hosts
 if ! grep -q "$QUAY_HOST_NAME" /etc/hosts; then
   echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts > /dev/null
