@@ -134,24 +134,36 @@ EOF
 run_command "Deploying Minio Object Storage"
 
 # Wait for $pod_name pods to be in Running state
-MAX_RETRIES=60    # Maximum number of retries
-SLEEP_INTERVAL=2  # Sleep interval in seconds
-LINE_WIDTH=120    # Control line width
-SPINNER=('/' '-' '\' '|')
-retry_count=0
-progress_started=false
+MAX_RETRIES=60                # Maximum number of retries
+SLEEP_INTERVAL=2              # Sleep interval in seconds
+LINE_WIDTH=120                # Control line width
+SPINNER=('/' '-' '\' '|')     # Spinner animation characters
+retry_count=0                 # Number of status check attempts
+progress_started=false        # Tracks whether the spinner/progress line has been started
 project=minio
 pod_name=minio
 
 while true; do
-    # Get the status of all pods in the pod_name project
-    PODS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
+    # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
+    RAW_STATUS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
 
-    # Find pods where the number of ready containers is not equal to total containers
-    not_ready=$(echo "$PODS" | awk -F/ '$1 != $2')
+    # 2. Logic to determine if pods are ready
+    if [[ -z "$RAW_STATUS" ]]; then
+        # If RAW_STATUS is empty, it means no pods were found
+        is_ready=false
+    else
+        # Check if any pod has 'ready' count not equal to 'total' count
+        not_ready_count=$(echo "$RAW_STATUS" | awk -F/ '$1 != $2' | wc -l)
+        if [[ $not_ready_count -eq 0 ]]; then
+            is_ready=true
+        else
+            is_ready=false
+        fi
+    fi
 
-    if [[ -z "$not_ready" ]]; then
-        # All pods are ready
+    # 3. Handle UI output and loop control
+    if $is_ready; then
+        # Successfully running
         if $progress_started; then
             printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
@@ -160,17 +172,23 @@ while true; do
         fi
         break
     else
+        # Still waiting or pod not found yet
         CHAR=${SPINNER[$((retry_count % 4))]}
+        # Provide different messages if pods are missing vs. starting
+        MSG="Waiting for $pod_name pods to be Running..."
+        [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
+
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
+            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for %s pods to be Running... %s" "$pod_name" "$CHAR"
+            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
         fi
+
+        # 4. Retry management
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
 
-        # Exit if maximum retries reached
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
