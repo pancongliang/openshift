@@ -52,6 +52,8 @@ oc get csv -n openshift-logging -o name | grep cluster-logging | awk -F/ '{print
 oc get ip -n openshift-operators-redhat  --no-headers 2>/dev/null|grep elasticsearch-operator|awk '{print $1}'|xargs -r oc delete ip -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc get ip -n openshift-logging --no-headers 2>/dev/null|grep cluster-logging|awk '{print $1}'|xargs -r oc delete ip -n openshift-logging >/dev/null 2>&1 || true
 
+oc delete operatorgroups --all -n openshift-operators-redhat >/dev/null 2>&1 || true
+
 if oc get ns openshift-logging >/dev/null 2>&1; then
    echo -e "\e[96mINFO\e[0m Delete openshift-logging project..."
    oc delete ns openshift-logging >/dev/null 2>&1 || true
@@ -138,7 +140,7 @@ spec:
 EOF
 run_command "Install the cluster-logging operator"
 
-# Approval IP
+# Automatically approve install plans in the $OPERATOR_NS namespace
 MAX_RETRIES=150    # Maximum number of retries
 SLEEP_INTERVAL=2   # Sleep interval in seconds
 LINE_WIDTH=120     # Control line width
@@ -184,7 +186,7 @@ while true; do
     fi
 done
 
-export OPERATOR_NS="openshift-operators-redhat"
+# Automatically approve install plans in the $OPERATOR_NS namespace
 MAX_RETRIES=150    # Maximum number of retries
 SLEEP_INTERVAL=2   # Sleep interval in seconds
 LINE_WIDTH=120     # Control line width
