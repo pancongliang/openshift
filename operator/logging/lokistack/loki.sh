@@ -71,7 +71,7 @@ oc get ip -n openshift-operators-redhat  --no-headers 2>/dev/null|grep loki-oper
 oc get ip -n openshift-logging --no-headers 2>/dev/null|grep cluster-logging|awk '{print $1}'|xargs -r oc delete ip -n openshift-logging >/dev/null 2>&1 || true
 oc get ip -n openshift-cluster-observability-operator  --no-headers 2>/dev/null|grep observability|awk '{print $1}'|xargs -r oc delete ip -n openshift-cluster-observability-operator >/dev/null 2>&1 || true
 
-oc delete operatorgroups openshift-operators-redhat -n openshift-operators-redhat >/dev/null 2>&1 || true
+oc delete operatorgroups --all -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete operatorgroups cluster-observability-operator -n cluster-observability-operator >/dev/null 2>&1 || true
 oc delete operatorgroups cluster-logging -n openshift-logging >/dev/null 2>&1 || true
 
@@ -236,7 +236,7 @@ spec:
 EOF
 run_command "Install the cluster-observability-operator"
 
-# Approval IP
+# Automatically approve install plans in the $OPERATOR_NS namespace
 MAX_RETRIES=150    # Maximum number of retries
 SLEEP_INTERVAL=2   # Sleep interval in seconds
 LINE_WIDTH=120     # Control line width
@@ -282,6 +282,7 @@ while true; do
     fi
 done
 
+# Automatically approve install plans in the $OPERATOR_NS namespace
 MAX_RETRIES=150    # Maximum number of retries
 SLEEP_INTERVAL=2   # Sleep interval in seconds
 LINE_WIDTH=120     # Control line width
@@ -327,6 +328,7 @@ while true; do
     fi
 done
 
+# Automatically approve install plans in the $OPERATOR_NS namespace
 MAX_RETRIES=150    # Maximum number of retries
 SLEEP_INTERVAL=2   # Sleep interval in seconds
 LINE_WIDTH=120     # Control line width
