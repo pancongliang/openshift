@@ -9,8 +9,9 @@ export LOKI_SUB_CHANNEL="stable-6.2"
 export OBSERVABILITY_SUB_CHANNEL="stable"
 export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
-export CATALOG_SOURCE=redhat-operators
 export LOKI_SIZING=1x.demo              # 1x.demo / 1x.pico [6.1+ only]/ 1x.extra-small / 1x.small / 1x.medium
+export CATALOG_SOURCE=redhat-operators
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
