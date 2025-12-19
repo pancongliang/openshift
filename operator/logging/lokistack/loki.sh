@@ -4,12 +4,13 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export LOGGING_SUB_CHANNEL="stable-6.3"
-export LOKI_SUB_CHANNEL="stable-6.3"
+export LOGGING_SUB_CHANNEL="stable-6.2"
+export LOKI_SUB_CHANNEL="stable-6.2"
 export OBSERVABILITY_SUB_CHANNEL="stable"
 export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 export CATALOG_SOURCE=redhat-operators
+export LOKI_SIZING=1x.demo              # 1x.demo / 1x.pico [6.1+ only]/ 1x.extra-small / 1x.small / 1x.medium
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -648,7 +649,7 @@ metadata:
   namespace: openshift-logging
 spec:
   managementState: Managed
-  size: 1x.demo
+  size: ${LOKI_SIZING}
   storage:
     schemas:
     - effectiveDate: '2024-10-01'
