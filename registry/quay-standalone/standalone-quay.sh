@@ -410,9 +410,54 @@ run_command "Copy rootCA certificate to trusted anchors"
 sudo update-ca-trust
 run_command "Trust the rootCA certificate"
 
-curl -X POST -k https://$QUAY_HOST_NAME:$QUAY_PORT/api/v1/user/initialize \
+# Maximum number of retries and sleep interval
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
+LINE_WIDTH=120                 # Width for progress line formatting
+SPINNER=('/' '-' '\' '|')      # Spinner animation characters
+retry_count=0
+progress_started=false
+
+while true; do
+    # Attempt to access the Quay user initialize API
+    HTTP_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" \
+                "https://$QUAY_HOST_NAME:$QUAY_PORT/api/v1/user/initialize" || true)
+
+    # If HTTP code is 2xx/3xx/4xx, the API is considered available
+    if [[ "$HTTP_CODE" =~ ^2|3|4$ ]]; then
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m Quay API is available%*s\n" $((LINE_WIDTH - 22)) ""
+        else
+            echo -e "\e[96mINFO\e[0m Quay API is available"
+        fi
+        break
+    fi
+
+    # Display progress spinner while waiting
+    CHAR=${SPINNER[$((retry_count % 4))]}
+    MSG="Waiting for Quay API to be available..."
+    if ! $progress_started; then
+        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        progress_started=true
+    else
+        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+    fi
+
+    # Sleep for the defined interval and increment retry count
+    sleep "$SLEEP_INTERVAL"
+    retry_count=$((retry_count + 1))
+
+    # Timeout handling
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m Quay API did not become available%*s\n" $((LINE_WIDTH - 36)) ""
+        exit 1
+    fi
+done
+
+# Using the API to create the first user
+curl -X POST -k "https://$QUAY_HOST_NAME:$QUAY_PORT/api/v1/user/initialize" \
   -H 'Content-Type: application/json' \
-  --data "{ \"username\": \"$REGISTRY_ID\", \"password\": \"$REGISTRY_PW\", \"email\": \"test@example.com\", \"access_token\": true }" >/dev/null 2>&1
+  --data '{"username":"'"$REGISTRY_ID"'","password":"'"$REGISTRY_PW"'","email":"test@example.com","access_token":true}' >/dev/null 2>&1
 run_command "Using the API to create the first user"
 
 echo -e "\e[96mINFO\e[0m Installation complete"
