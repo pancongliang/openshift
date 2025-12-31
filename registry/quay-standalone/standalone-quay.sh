@@ -421,6 +421,7 @@ echo -e "\e[96mINFO\e[0m Installation complete"
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
     echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
+    echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
     exit 0
 fi
 
@@ -586,7 +587,7 @@ done
 echo
 
 # Step 8:
-PRINT_TASK "TASK [Manually create a user]"
+PRINT_TASK "TASK [Quay login information]"
 
 echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
 echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
