@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export QUAY_VERSION='v3.16.0'               # Quay version: v3.12.12  v3.13.8   v3.14.5   v3.15.2   v3.16.0
+export QUAY_VERSION='v3.15.2'               # Quay version: v3.12.12  v3.13.8   v3.14.5   v3.15.2
 export MIRRORING_WORKER='v3.15.1'           # Mirroring-Worker version: v3.12.8  v3.13.7  v3.14.4  v3.15.1
 export QUAY_HOST_NAME='quay-server.example.com'
 export QUAY_HOST_IP="10.184.134.30"
@@ -13,7 +13,7 @@ export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
 export REGISTRY_ID="quayadmin"
 export REGISTRY_PW="password"
-export OCP_TRUSTED_CA="true"                # true or false
+export OCP_TRUSTED_CA="false"                # true or false
 
 
 # Function to print a task with uniform length
@@ -277,6 +277,7 @@ TESTING: false
 SERVER_HOSTNAME: $QUAY_HOST_NAME:$QUAY_PORT
 PREFERRED_URL_SCHEME: https
 SETUP_COMPLETE: true
+FEATURE_USER_INITIALIZE: true
 SUPER_USERS:
   - $REGISTRY_ID
 USER_EVENTS_REDIS:
@@ -409,12 +410,12 @@ run_command "Copy rootCA certificate to trusted anchors"
 sudo update-ca-trust
 run_command "Trust the rootCA certificate"
 
-echo -e "\e[96mINFO\e[0m Installation complete"
-
-curl -X POST -k https://quay-server.example.com:9443/api/v1/user/initialize \
-  --header 'Content-Type: application/json' \
-  --data '{ "username": "$REGISTRY_ID", "password": "$REGISTRY_PW", "email": "test@example.com", "access_token": true}' >/dev/null 2>&1
+curl -X POST -k https://$QUAY_HOST_NAME:$QUAY_PORT/api/v1/user/initialize \
+  -H 'Content-Type: application/json' \
+  --data "{ \"username\": \"$REGISTRY_ID\", \"password\": \"$REGISTRY_PW\", \"email\": \"test@example.com\", \"access_token\": true }" >/dev/null 2>&1
 run_command "Using the API to create the first user"
+
+echo -e "\e[96mINFO\e[0m Installation complete"
 
 # Check the environment variable OCP_TRUSTED_CA: continue if "true", exit if otherwise
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
