@@ -13,7 +13,7 @@ export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
 export REGISTRY_ID="quayadmin"
 export REGISTRY_PW="password"
-export OCP_TRUSTED_CA="false"                # true or false
+export OCP_TRUSTED_CA="true"                # true or false
 
 
 # Function to print a task with uniform length
@@ -466,7 +466,7 @@ echo -e "\e[96mINFO\e[0m Installation complete"
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
     echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
-    echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
+    echo -e "\e[33mACTION\e[0m Add DNS Records for Standalone Quay to Allow OCP Access"
     exit 0
 fi
 
