@@ -301,7 +301,7 @@ RUN_CONTAINER=$(podman run -d -p 8090:8080 -p $QUAY_PORT:8443 --name=quay \
    -v $QUAY_INST_DIR/config:/conf/stack:Z \
    -v $QUAY_INST_DIR/storage:/datastorage:Z \
    --authfile $PULL_SECRET_FILE \
-   registry.redhat.io/quay/quay-rhel8:$QUAY_VERSION)
+   registry.redhat.io/quay/quay-rhel8:$QUAY_VERSION) >/dev/null 2>&1
 run_command "Deploy the Quay registry container"
 
 sleep 5
