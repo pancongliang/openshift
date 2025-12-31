@@ -9,7 +9,9 @@ export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
 export STORAGE_SIZE="50Gi"
 export NAMESPACE="quay-enterprise"
 export CATALOG_SOURCE=redhat-operators
-export OCP_TRUSTED_CA="true"       # true or false
+export REGISTRY_ID="quayadmin"
+export REGISTRY_PW="password"
+export OCP_TRUSTED_CA="fasle"       # true or false
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -272,7 +274,7 @@ DISTRIBUTED_STORAGE_PREFERENCE:
     - default
 FEATURE_USER_INITIALIZE: true
 SUPER_USERS:
-    - quayadmin
+    - $REGISTRY_ID
 DEFAULT_TAG_EXPIRATION: 1m
 TAG_EXPIRATION_OPTIONS:
     - 1m
@@ -376,10 +378,62 @@ done
 # Get the Quay route host for the given namespace and store in QUAY_HOST
 export QUAY_HOST=$(oc get route example-registry-quay -n $NAMESPACE --template='{{.spec.host}}') >/dev/null 2>&1
 
+# Maximum number of retries and sleep interval
+MAX_RETRIES=60
+SLEEP_INTERVAL=2
+LINE_WIDTH=120                 # Width for progress line formatting
+SPINNER=('/' '-' '\' '|')      # Spinner animation characters
+retry_count=0
+progress_started=false
+
+while true; do
+    # Attempt to access the Quay user initialize API
+    HTTP_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" \
+                "https://$QUAY_HOST/api/v1/user/initialize" || true)
+
+    # If HTTP code is 2xx/3xx/4xx, the API is considered available
+    if [[ "$HTTP_CODE" =~ ^2|3|4$ ]]; then
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m Quay API is available%*s\n" $((LINE_WIDTH - 22)) ""
+        else
+            echo -e "\e[96mINFO\e[0m Quay API is available"
+        fi
+        break
+    fi
+
+    # Display progress spinner while waiting
+    CHAR=${SPINNER[$((retry_count % 4))]}
+    MSG="Waiting for Quay API to be available..."
+    if ! $progress_started; then
+        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        progress_started=true
+    else
+        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+    fi
+
+    # Sleep for the defined interval and increment retry count
+    sleep "$SLEEP_INTERVAL"
+    retry_count=$((retry_count + 1))
+
+    # Timeout handling
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m Quay API did not become available%*s\n" $((LINE_WIDTH - 36)) ""
+        exit 1
+    fi
+done
+
+# Using the API to create the first user
+curl -X POST -k "https://$QUAY_HOST/api/v1/user/initialize" \
+  -H 'Content-Type: application/json' \
+  --data '{"username":"'"$REGISTRY_ID"'","password":"'"$REGISTRY_PW"'","email":"test@example.com","access_token":true}' >/dev/null 2>&1
+run_command "Using the API to create the first user"
+
 # Check the environment variable OCP_TRUSTED_CA: continue if "true", exit if otherwise
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
+    echo 
+    PRINT_TASK "TASK [Quay login information]"
     echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST"
-    echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
+    echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
     exit 0
 fi
 
@@ -567,9 +621,9 @@ done
 echo
 
 # Step 6:
-PRINT_TASK "TASK [Manually create a user]"
+PRINT_TASK "TASK [Quay login information]"
 echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST"
-echo -e "\e[33mACTION\e[0m Create a user in the Quay console with the ID <quayadmin> and password <password>"
+echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
 
 # Add an empty line after the task
 echo
