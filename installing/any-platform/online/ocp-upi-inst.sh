@@ -1380,34 +1380,5 @@ printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER03_HOSTNAME node ins
 
 printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
 
-#echo -e "\e[33mACTION\e[0m $BOOTSTRAP_HOSTNAME.$CLUSTER_NAME.$BASE_DOMAIN (Bootstrap) node installation steps:"
-#echo -e "       → Boot the node using the RHCOS ISO"
-#echo -e "       → Run: curl -s http://$BASTION_IP:8080/pre/bs | sh"
-#echo -e "       → Reboot the node"
-#
-#echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME (Load shell environment):"
-#echo -e "       → Run: source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
-#
-#echo -e "\e[33mACTION\e[0m $BASTION_HOSTNAME (Check bootstrap machine status):"
-#echo -e "       → Run: bash ${INSTALL_DIR}/bootstrap-check.sh"
-#
-#CONTROL_PLANES=("$MASTER01_HOSTNAME" "$MASTER02_HOSTNAME" "$MASTER03_HOSTNAME")
-#for node in "${CONTROL_PLANES[@]}"; do
-#    idx="${node: -1}"
-#    echo -e "\e[33mACTION\e[0m $node.$CLUSTER_NAME.$BASE_DOMAIN (Control Plane) node installation steps:"
-#    echo -e "       → Boot the node using the RHCOS ISO"
-#    echo -e "       → Run: curl -s http://$BASTION_IP:8080/pre/m${idx} | sh"
-#    echo -e "       → Reboot the node"
-#done
-#
-#WORKERS=("$WORKER01_HOSTNAME" "$WORKER02_HOSTNAME" "$WORKER03_HOSTNAME")
-#for node in "${WORKERS[@]}"; do
-#    idx="${node: -1}"
-#    echo -e "\e[33mACTION\e[0m $node.$CLUSTER_NAME.$BASE_DOMAIN (Worker) node installation steps:"
-#    echo -e "       → Boot the node using the RHCOS ISO"
-#    echo -e "       → Run: curl -s http://$BASTION_IP:8080/pre/w${idx} | sh"
-#    echo -e "       → Reboot the node"
-#done
-
 # Add an empty line after the task
 echo
