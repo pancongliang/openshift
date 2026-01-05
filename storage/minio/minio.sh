@@ -3,13 +3,11 @@
 set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
-# [REQUIRED] Default StorageClass must exist
-# NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
+# Default storage class name
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
-export STORAGE_SIZE="50Gi"
-
-# Set environment variables
 export PVC_SIZE="50Gi"
+
+# Name of the bucket to be created
 export BUCKETS=("loki-bucket" "quay-bucket" "oadp-bucket")
 
 # Function to print a task with uniform length
