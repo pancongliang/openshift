@@ -5,7 +5,7 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # Set environment variables
 export SUB_CHANNEL="stable-3.14"
-export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
+export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[0].metadata.name}')
 export STORAGE_SIZE="50Gi"
 export NAMESPACE="quay-enterprise"
 export CATALOG_SOURCE=redhat-operators
@@ -246,6 +246,33 @@ while true; do
         fi
     fi
 done
+
+# Integrating an existing PostgreSQL database
+# oc new-project postgresql
+# oc new-app registry.redhat.io/rhel8/postgresql-13 \
+#   --name=postgresql-quay \
+#   -e POSTGRESQL_USER=quayuser \
+#   -e POSTGRESQL_PASSWORD=quaypass \
+#   -e POSTGRESQL_DATABASE=quay \
+#   -e POSTGRESQL_ADMIN_PASSWORD=adminpass
+# 
+# export STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[0].metadata.name}')
+# 
+# oc set volumes deployment/postgresql-quay \
+#   --add --name postgresql-data \
+#   --type pvc \
+#   --claim-class $STORAGE_CLASS \
+#   --claim-mode rwo \
+#   --claim-size 5Gi \
+#   --mount-path /var/lib/pgsql/data \
+#   --claim-name postgresql-persistent-pvc
+# 
+# oc exec -n postgresql deployment/postgresql-quay -- bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'
+# vim config.yaml 
+# DB_URI: postgresql://quayuser:quaypass@postgresql-quay.postgresql.svc:5432/quay
+# vim QuayRegistry
+#    - kind: postgres
+#      managed: false
 
 # Create a namespace
 oc new-project $NAMESPACE >/dev/null 2>&1
