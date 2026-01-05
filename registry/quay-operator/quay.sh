@@ -325,7 +325,7 @@ DEFAULT_TAG_EXPIRATION: 1m
 TAG_EXPIRATION_OPTIONS:
     - 1m
 #DB_URI: postgresql://quayuser:quaypass@postgresql-quay.postgresql.svc:5432/quay
-#DB_URI="postgresql://quayuser:quaypass@${DB_ROUTE_HOST}:5432/quay"
+#DB_URI="postgresql://quayuser:quaypass@${PG_HOST}:5432/quay"
 EOF
 run_command "Create a quay config file"
 
