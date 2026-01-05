@@ -6,8 +6,8 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 # Set environment variables
 export SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
-export DEFAULT_STORAGE_CLASS=managed-nfs-storage
 export NAMESPACE="stackrox"
+export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 
 # Function to print a task with uniform length
 PRINT_TASK() {
