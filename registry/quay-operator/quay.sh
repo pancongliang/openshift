@@ -5,13 +5,14 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # Set environment variables
 export SUB_CHANNEL="stable-3.14"
-export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[0].metadata.name}')
+export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 export STORAGE_SIZE="50Gi"
 export NAMESPACE="quay-enterprise"
 export CATALOG_SOURCE=redhat-operators
 export REGISTRY_ID="quayadmin"
 export REGISTRY_PW="password"
 export OCP_TRUSTED_CA="fasle"       # true or false
+
 
 # Function to print a task with uniform length
 PRINT_TASK() {
