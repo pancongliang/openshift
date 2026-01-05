@@ -237,6 +237,51 @@ podman run -d --name postgresql-quay \
   registry.redhat.io/rhel8/postgresql-13 >/dev/null 2>&1
 run_command "Start the Postgres Container"
 
+# Wait for container to be in Running state
+containers=("postgresql-quay")   # container name
+MAX_RETRIES=100               # Maximum number of retries
+SLEEP_INTERVAL=2              # Sleep interval in seconds
+SPINNER=('/' '-' '\' '|')     # Spinner animation characters
+retry_count=0                 # Number of status check attempts
+progress_started=false        # Tracks whether the spinner/progress line has been started
+
+while true; do
+    all_running=true
+    for c in "${containers[@]}"; do
+        if ! podman ps --format "{{.Names}}" | grep -qw "$c"; then
+            all_running=false
+            break
+        fi
+    done
+
+    CHAR=${SPINNER[$((retry_count % 4))]}
+
+    if $all_running; then
+        # Overwrite spinner line and print final message
+        printf "\r"
+        tput el
+        echo -e "\e[96mINFO\e[0m All containers are running"
+        break
+    else
+        # Spinner display
+        if ! $progress_started; then
+            progress_started=true
+        fi
+        printf "\r\e[96mINFO\e[0m Waiting for all containers to be running %s" "$CHAR"
+        tput el
+
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            printf "\r"
+            tput el
+            echo -e "\e[31mFAILED\e[0m Some containers are not running"
+            exit 1
+        fi
+    fi
+done
+
 sleep 10
 
 # Ensure that the Postgres pg_trgm module is installed
