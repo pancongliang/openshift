@@ -5,12 +5,14 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # [REQUIRED] Default StorageClass must exist
 # NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
+export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
+export STORAGE_SIZE="50Gi"
+
 # Set environment variables
 export LOGGING_SUB_CHANNEL="stable-6.2"
 export LOKI_SUB_CHANNEL="stable-6.2"
 export OBSERVABILITY_SUB_CHANNEL="stable"
 export LOKI_SIZING=1x.demo              # 1x.demo / 1x.pico [6.1+ only]/ 1x.extra-small / 1x.small / 1x.medium
-export STORAGE_SIZE="50Gi"
 export CATALOG_SOURCE=redhat-operators
 
 
