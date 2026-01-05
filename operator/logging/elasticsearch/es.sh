@@ -8,7 +8,7 @@ export COLLECTOR="fluentd"    # vector or fluentd
 export LOGGING_SUB_CHANNEL="stable"
 export ES_SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
-export STORAGE_CLASS="managed-nfs-storage"
+export STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[0].metadata.name}')
 
 # Function to print a task with uniform length
 PRINT_TASK() {
