@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export SUB_CHANNEL="stable-3.14"
+export SUB_CHANNEL="stable-3.15"
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 export STORAGE_SIZE="50Gi"
 export NAMESPACE="quay-enterprise"
@@ -63,6 +63,21 @@ fi
 echo
 
 # Step 1:
+PRINT_TASK "TASK [Check the default storage class]"
+
+# Check if Default StorageClass exists
+DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
+if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
+    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
+    exit 1
+else
+    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+fi
+
+# Add an empty line after the task
+echo
+
+# Step 2:
 # Deploying Minio Object Storage
 
 # Check if the Minio Pod exists and is running.
@@ -97,7 +112,7 @@ fi
 # Add an empty line after the task
 echo
 
-# Step 2:
+# Step 3:
 PRINT_TASK "TASK [Deploying Quay Operator]"
 
 # Create a Subscription
@@ -468,7 +483,7 @@ fi
 # Add an empty line after the task
 echo
 
-# Step 3:
+# Step 4:
 PRINT_TASK "TASK [Configuring additional trust stores for image registry access]"
 
 # Export the router-ca certificate
@@ -519,7 +534,7 @@ fi
 # Add an empty line after the task
 echo
 
-# Step 4:
+# Step 5:
 PRINT_TASK "TASK [Update pull-secret]"
 
 # Export pull-secret
@@ -564,7 +579,7 @@ rm -rf tmp-pull-secret >/dev/null 2>&1
 # Add an empty line after the task
 echo
 
-# Step 5:
+# Step 6:
 PRINT_TASK "TASK [Checking the cluster status]"
 
 # Wait for all MachineConfigPools (MCPs) to be Ready
@@ -648,7 +663,7 @@ done
 # Add an empty line after the task
 echo
 
-# Step 6:
+# Step 7:
 PRINT_TASK "TASK [Quay login information]"
 echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST"
 echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
