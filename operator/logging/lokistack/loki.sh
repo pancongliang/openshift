@@ -3,13 +3,12 @@
 set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
-# [REQUIRED] Default StorageClass must exist
-# NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
 # Set environment variables
 export LOGGING_SUB_CHANNEL="stable-6.2"
 export LOKI_SUB_CHANNEL="stable-6.2"
 export OBSERVABILITY_SUB_CHANNEL="stable"
 export LOKI_SIZING=1x.demo              # 1x.demo / 1x.pico [6.1+ only]/ 1x.extra-small / 1x.small / 1x.medium
+export STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[0].metadata.name}')
 export STORAGE_SIZE="50Gi"
 export CATALOG_SOURCE=redhat-operators
 
@@ -131,15 +130,6 @@ echo
 
 # Step 2:
 PRINT_TASK "TASK [Install OpenShift Logging]"
-
-# Check if Default StorageClass exists
-DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
-if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
-    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
-    exit 1
-else
-    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
-fi
 
 # Create a namespace
 cat << EOF | oc apply -f - >/dev/null 2>&1
@@ -668,7 +658,7 @@ spec:
     secret:
       name: logging-loki-s3
       type: s3
-  storageClassName: ${DEFAULT_STORAGE_CLASS}
+  storageClassName: ${STORAGE_CLASS}
   tenants:
     mode: openshift-logging
 EOF
