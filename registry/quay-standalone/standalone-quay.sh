@@ -241,7 +241,7 @@ sleep 10
 
 # Ensure that the Postgres pg_trgm module is installed
 podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres' >/dev/null 2>&1
-run_command "Ensure that the Postgres pg_trgm module is installed"
+run_command "Enable pg_trgm module in quay postgres"
 
 # Start the Redis container
 podman run -d --name redis --restart=always \
