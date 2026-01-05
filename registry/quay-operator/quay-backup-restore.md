@@ -29,6 +29,7 @@ podman push $QUAY_HOST/quayadmin/hello-world-nginx:v1.0 --tls-verify=false
 
 #### Red Hat Quay configuration backup 
 ~~~
+mkdir -p $HOME/quay-backup/
 QUAY_REGISTRY=$(oc get quayregistry -n $QUAY_NAMESPACE -o jsonpath='{.items[0].metadata.name}')
 
 oc get quayregistry $QUAY_REGISTRY -n $QUAY_NAMESPACE -o json \
@@ -93,6 +94,7 @@ oc wait quayregistry $QUAY_REGISTRY --for=condition=Available=true -n $QUAY_NAME
 
 #### Restoring Red Hat Quay and its configuration from a backup
 ~~~
+OLD_QUAY_NAMESPACE=$QUAY_NAMESPACE
 oc delete ns $OLD_QUAY_NAMESPACE
 
 QUAY_NAMESPACE=quay-enterprise-restore
