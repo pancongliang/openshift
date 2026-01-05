@@ -266,32 +266,30 @@ while true; do
     fi
 done
 
-# Integrating an existing PostgreSQL database
-# oc new-project postgresql
-# oc new-app registry.redhat.io/rhel8/postgresql-13 \
-#   --name=postgresql-quay \
-#   -e POSTGRESQL_USER=quayuser \
-#   -e POSTGRESQL_PASSWORD=quaypass \
-#   -e POSTGRESQL_DATABASE=quay \
-#   -e POSTGRESQL_ADMIN_PASSWORD=adminpass
+## Integrating an existing PostgreSQL database
+#oc new-project postgresql
+#oc -n postgresql new-app registry.redhat.io/rhel8/postgresql-13 \
+#  --name=postgresql-quay \
+#  -e POSTGRESQL_USER=quayuser \
+#  -e POSTGRESQL_PASSWORD=quaypass \
+#  -e POSTGRESQL_DATABASE=quay \
+#  -e POSTGRESQL_ADMIN_PASSWORD=adminpass
+#run_command "Ceate the Postgres pod"
 # 
-# export STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[0].metadata.name}')
-# 
-# oc set volumes deployment/postgresql-quay \
-#   --add --name postgresql-data \
-#   --type pvc \
-#   --claim-class $STORAGE_CLASS \
-#   --claim-mode rwo \
-#   --claim-size 5Gi \
-#   --mount-path /var/lib/pgsql/data \
-#   --claim-name postgresql-persistent-pvc
-# 
-# oc exec -n postgresql deployment/postgresql-quay -- bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'
-# vim config.yaml 
-# DB_URI: postgresql://quayuser:quaypass@postgresql-quay.postgresql.svc:5432/quay
-# vim QuayRegistry
-#    - kind: postgres
-#      managed: false
+#oc -n postgresql set volumes deployment/postgresql-quay \
+#  --add --name postgresql-data \
+#  --type pvc \
+#  --claim-mode rwo \
+#  --claim-size 5Gi \
+#  --mount-path /var/lib/pgsql/data \
+#  --claim-name postgresql-persistent-pvc
+#run_command "Create a persistent volume for a Postgres pod"
+#
+#oc -n postgresql expose svc postgresql-quay
+#PG_HOST=$(oc get route postgresql-quay -n postgresql -o jsonpath='{.spec.host}')
+#sleep 15
+#oc exec -n postgresql deployment/postgresql-quay -- bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'
+#run_command "Enable pg_trgm module in postgresql-quay"
 
 # Create a namespace
 oc new-project $NAMESPACE >/dev/null 2>&1
@@ -324,6 +322,8 @@ SUPER_USERS:
 DEFAULT_TAG_EXPIRATION: 1m
 TAG_EXPIRATION_OPTIONS:
     - 1m
+#DB_URI: postgresql://quayuser:quaypass@postgresql-quay.postgresql.svc:5432/quay
+#DB_URI="postgresql://quayuser:quaypass@${DB_ROUTE_HOST}:5432/quay"
 EOF
 run_command "Create a quay config file"
 
@@ -361,6 +361,8 @@ spec:
       managed: true
       overrides:
         replicas: 1
+#    - kind: postgres
+#      managed: false
 EOF
 run_command "Creating a quay registry..."
 
