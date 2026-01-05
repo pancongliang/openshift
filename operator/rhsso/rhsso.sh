@@ -3,7 +3,8 @@
 set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
-# Need a default storageclass
+# [REQUIRED] Default StorageClass must exist
+# NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
 
 # Applying environment variables
 export KEYCLOAK_REALM_USER=rhadmin
@@ -67,6 +68,15 @@ echo
 
 # Step 1:
 PRINT_TASK "TASK [Deploying Single Sign-On Operator]"
+
+# Check if Default StorageClass exists
+DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
+if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
+    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
+    exit 1
+else
+    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+fi
 
 # Create a Namespace
 cat << EOF | oc create -f - >/dev/null 2>&1
