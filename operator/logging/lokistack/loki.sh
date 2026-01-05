@@ -96,7 +96,7 @@ fi
 echo
 
 # Step 1:
-PRINT_TASK "TASK [Check if Default StorageClass exists]"
+PRINT_TASK "TASK [Check the default storage class]"
 
 # Check if Default StorageClass exists
 DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
