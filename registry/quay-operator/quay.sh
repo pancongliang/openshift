@@ -3,10 +3,13 @@
 set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
-# Set environment variables
-export SUB_CHANNEL="stable-3.15"
+# [REQUIRED] Default StorageClass must exist
+# NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 export STORAGE_SIZE="50Gi"
+
+# Set environment variables
+export SUB_CHANNEL="stable-3.15"
 export NAMESPACE="quay-enterprise"
 export CATALOG_SOURCE=redhat-operators
 export REGISTRY_ID="quayadmin"
