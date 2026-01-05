@@ -5,7 +5,6 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # [REQUIRED] Default StorageClass must exist
 # NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
-
 # Applying environment variables
 export KEYCLOAK_REALM_USER=rhadmin
 export KEYCLOAK_REALM_PASSWORD=redhat
@@ -67,7 +66,7 @@ fi
 echo
 
 # Step 1:
-PRINT_TASK "TASK [Deploying Single Sign-On Operator]"
+PRINT_TASK "TASK [Check the default storage class]"
 
 # Check if Default StorageClass exists
 DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
@@ -77,6 +76,12 @@ if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
 else
     echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
 fi
+
+# Add an empty line after the task
+echo
+
+# Step 2:
+PRINT_TASK "TASK [Deploying Single Sign-On Operator]"
 
 # Create a Namespace
 cat << EOF | oc create -f - >/dev/null 2>&1
