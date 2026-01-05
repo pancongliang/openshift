@@ -290,6 +290,8 @@ done
 #sleep 15
 #oc exec -n postgresql deployment/postgresql-quay -- bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'
 #run_command "Enable pg_trgm module in postgresql-quay"
+## Backup postgresql
+## oc exec -n postgresql deployment/postgresql-quay -- /usr/bin/pg_dump -C quay  > backup.sql
 
 # Create a namespace
 oc new-project $NAMESPACE >/dev/null 2>&1
