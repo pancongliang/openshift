@@ -8,8 +8,7 @@ export SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
 export NAMESPACE="stackrox"
 
-# [REQUIRED] Default StorageClass must exist
-# NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
+# Default storage class name
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 
 # Function to print a task with uniform length
