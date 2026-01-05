@@ -324,7 +324,6 @@ SUPER_USERS:
 DEFAULT_TAG_EXPIRATION: 1m
 TAG_EXPIRATION_OPTIONS:
     - 1m
-DB_URI: postgresql://quayuser:quaypass@postgresql-quay.postgresql.svc:5432/quay
 EOF
 run_command "Create a quay config file"
 
@@ -362,8 +361,6 @@ spec:
       managed: true
       overrides:
         replicas: 1
-    - kind: postgres
-      managed: false
 EOF
 run_command "Creating a quay registry..."
 
