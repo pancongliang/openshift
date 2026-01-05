@@ -7,6 +7,9 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 export SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
 export NAMESPACE="stackrox"
+
+# [REQUIRED] Default StorageClass must exist
+# NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 
 # Function to print a task with uniform length
@@ -73,6 +76,21 @@ sleep 5
 echo
 
 # Step 1:
+PRINT_TASK "TASK [Check the default storage class]"
+
+# Check if Default StorageClass exists
+DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
+if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
+    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
+    exit 1
+else
+    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+fi
+
+# Add an empty line after the task
+echo
+
+# Step 2:
 PRINT_TASK "TASK [Install RHACS Operator]"
 
 # Create a namespace
@@ -528,7 +546,7 @@ done
 # Add an empty line after the task
 echo
 
-# Step 6:
+# Step 3:
 PRINT_TASK "TASK [Login cluster information]"
 
 ACS_CONSOLE=$(oc get route central -n $NAMESPACE -o jsonpath='{"https://"}{.spec.host}{"\n"}')
