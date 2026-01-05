@@ -31,12 +31,25 @@ run_command() {
 
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
+# Delete minio project
 if oc get project minio >/dev/null 2>&1; then
     echo -e "\e[96mINFO\e[0m Deleting minio project..."
     oc delete project minio >/dev/null 2>&1
 fi
+
+# Delete minio pv 
 oc get pv -o json | jq -r '.items[] | select(.spec.claimRef.namespace=="minio") | .metadata.name' | xargs -r oc delete pv >/dev/null 2>&1 || true
 
+# Check if Default StorageClass exists
+DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
+if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
+    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
+    exit 1
+else
+    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+fi
+
+# Deploy minio resources
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Namespace
