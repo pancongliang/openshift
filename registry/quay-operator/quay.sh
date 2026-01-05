@@ -5,7 +5,6 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # Default storage class name
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
-export STORAGE_SIZE="50Gi"
 
 # Set environment variables
 export SUB_CHANNEL="stable-3.15"
