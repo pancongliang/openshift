@@ -20,7 +20,9 @@ podman login -u='quayadmin+admin' -p='N06EBN5D3RO4KL8FKEZI51T5IAVX7SN1CILWCAU1GY
 podman login -u quayadmin -p password $QUAY_HOST --tls-verify=false
 
 podman pull quay.io/redhattraining/hello-world-nginx:v1.0
-podman tag quay.io/redhattraining/hello-world-nginx:v1.0 $QUAY_HOST/quayadmin/hello-world-nginx:v1.0 --tls-verify=false
+podman tag quay.io/redhattraining/hello-world-nginx:v1.0 $QUAY_HOST/quayadmin/hello-world-nginx:v1.0
+
+podman push $QUAY_HOST/quayadmin/hello-world-nginx:v1.0 --tls-verify=false
 ~~~
 
 ### Backing up Red Hat Quay 
