@@ -123,6 +123,8 @@ cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
+  labels:
+    operators.coreos.com/quay-operator.openshift-operators: ""
   name: quay-operator
   namespace: openshift-operators
 spec:
