@@ -267,16 +267,16 @@ while true; do
 done
 
 ## Integrating an existing PostgreSQL database
-#oc new-project postgresql
-#oc -n postgresql new-app registry.redhat.io/rhel8/postgresql-13 \
-#  --name=postgresql-quay \
+#oc new-project quay-postgresql
+#oc -n quay-postgresql new-app registry.redhat.io/rhel8/postgresql-13 \
+#  --name=quay-postgresql \
 #  -e POSTGRESQL_USER=quayuser \
 #  -e POSTGRESQL_PASSWORD=quaypass \
 #  -e POSTGRESQL_DATABASE=quay \
 #  -e POSTGRESQL_ADMIN_PASSWORD=adminpass
 #run_command "Ceate the Postgres pod"
 # 
-#oc -n postgresql set volumes deployment/postgresql-quay \
+#oc -n quay-postgresql set volumes deployment/quay-postgresql \
 #  --add --name postgresql-data \
 #  --type pvc \
 #  --claim-mode rwo \
@@ -285,13 +285,30 @@ done
 #  --claim-name postgresql-persistent-pvc
 #run_command "Create a persistent volume for a Postgres pod"
 #
-#oc -n postgresql expose svc postgresql-quay
-#PG_HOST=$(oc get route postgresql-quay -n postgresql -o jsonpath='{.spec.host}')
+#oc -n quay-postgresql expose svc quay-postgresql
+#PG_HOST=$(oc get route quay-postgresql -n quay-postgresql -o jsonpath='{.spec.host}')
 #sleep 15
-#oc exec -n postgresql deployment/postgresql-quay -- bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'
-#run_command "Enable pg_trgm module in postgresql-quay"
+#oc exec -n quay-postgresql deployment/quay-postgresql -- bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'
+#run_command "Enable pg_trgm module in quay-postgresql"
 ## Backup postgresql
-## oc exec -n postgresql deployment/postgresql-quay -- /usr/bin/pg_dump -C quay  > backup.sql
+## oc exec -n quay-postgresql deployment/quay-postgresql -- /usr/bin/pg_dump -C quay  > backup.sql
+# 
+# or
+#export QUAY_INST_DIR="/opt/quay-inst"
+#mkdir -p $QUAY_INST_DIR/postgres-quay
+#setfacl -mu:26:-wx $QUAY_INST_DIR/postgres-quay 
+#podman run -d --name quay-postgresql \
+#  --restart=always \
+#  -e POSTGRESQL_USER=quayuser \
+#  -e POSTGRESQL_PASSWORD=quaypass \
+#  -e POSTGRESQL_DATABASE=quay \
+#  -e POSTGRESQL_ADMIN_PASSWORD=adminpass \
+#  -p 5432:5432 \
+#  -v $QUAY_INST_DIR/postgres-quay:/var/lib/pgsql/data:Z \
+#  registry.redhat.io/rhel8/postgresql-13 
+#sleep 15
+#podman exec -it quay-postgresql /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres' 
+#HOST_IP=xxx
 
 # Create a namespace
 oc new-project $NAMESPACE >/dev/null 2>&1
@@ -324,10 +341,14 @@ SUPER_USERS:
 DEFAULT_TAG_EXPIRATION: 1m
 TAG_EXPIRATION_OPTIONS:
     - 1m
-#DB_URI: postgresql://quayuser:quaypass@postgresql-quay.postgresql.svc:5432/quay
-#DB_URI="postgresql://quayuser:quaypass@${PG_HOST}:5432/quay"
+#DB_URI: postgresql://quayuser:quaypass@quay-postgresql.quay-postgresql.svc:5432/quay
 EOF
 run_command "Create a quay config file"
+
+# If using an external PostgreSQL instance, add the DB_URI to the config.yaml file in the following format.
+#DB_URI: postgresql://quayuser:quaypass@${PG_HOST}:5432/quay
+#DB_URI: postgresql://quayuser:quaypass@${HOST_IP}:5432/quay
+
 
 sleep 10
 
