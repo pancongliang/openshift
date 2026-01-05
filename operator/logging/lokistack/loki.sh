@@ -7,9 +7,9 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 export LOGGING_SUB_CHANNEL="stable-6.2"
 export LOKI_SUB_CHANNEL="stable-6.2"
 export OBSERVABILITY_SUB_CHANNEL="stable"
-export DEFAULT_STORAGE_CLASS="managed-nfs-storage"
-export STORAGE_SIZE="50Gi"
 export LOKI_SIZING=1x.demo              # 1x.demo / 1x.pico [6.1+ only]/ 1x.extra-small / 1x.small / 1x.medium
+export STORAGE_SIZE="50Gi"
+export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 export CATALOG_SOURCE=redhat-operators
 
 
