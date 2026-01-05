@@ -308,6 +308,9 @@ done
 #  registry.redhat.io/rhel8/postgresql-13 
 #sleep 15
 #podman exec -it quay-postgresql /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres' 
+#podman generate systemd --name quay-postgresql --files --restart-policy=always
+#mv container-*.service /etc/systemd/system/
+#systemctl enable --now container-quay-postgresql.service
 #HOST_IP=xxx
 
 # Create a namespace
