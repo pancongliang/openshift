@@ -107,6 +107,9 @@ else
     echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
 fi
 
+# Add an empty line after the task
+echo
+
 # Step 2:
 # Deploying Minio Object Storage
 # Check if the Minio Pod exists and is running.
