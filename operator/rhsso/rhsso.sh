@@ -5,7 +5,9 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # [REQUIRED] Default StorageClass must exist
 # NFS Storage Class: https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/nfs-sc/nfs-sc.sh
-# Applying environment variables
+export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
+
+# Set environment variables
 export KEYCLOAK_REALM_USER=rhadmin
 export KEYCLOAK_REALM_PASSWORD=redhat
 export OPERATOR_NS="rhsso"
