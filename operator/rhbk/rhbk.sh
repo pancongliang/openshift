@@ -10,7 +10,7 @@ export CATALOG_SOURCE=redhat-operators
 export KEYCLOAK_HOST="keycloak.apps.ocp.example.com"
 export KEYCLOAK_REALM_USER=rhadmin
 export KEYCLOAK_REALM_PASSWORD=redhat
-export STORAGE_CLASS="managed-nfs-storage"
+export STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[0].metadata.name}')
 
 # Function to print a task with uniform length
 PRINT_TASK() {
