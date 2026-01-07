@@ -4,11 +4,11 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Define the device pattern to search for
-export DEVICE_PATTERN="sd*"        # If used for ODF, the capacity must be at least 100GB
+export DEVICE_PATTERN="sd*"          # If used for ODF, the capacity must be at least 100GB
 export LOCAL_DISK_SIZE="100Gi"       # At least 100GB of disk space
 export ODF_CHANNEL_NAME="stable-4.16"
 export CATALOG_SOURCE_NAME="redhat-operators"
-export ODF_INSTALL="true"          # true or false
+export ODF_INSTALL="true"            # true or false
 
 # Function to print a task with uniform length
 PRINT_TASK() {
