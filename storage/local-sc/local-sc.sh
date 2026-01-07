@@ -5,7 +5,6 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # Define the device pattern to search for
 export DEVICE_PATTERN="sd*"
-export CHANNEL_NAME="stable"
 export CATALOG_SOURCE_NAME="redhat-operators"
 
 # Function to print a task with uniform length
@@ -228,7 +227,7 @@ metadata:
   name: local-storage-operator
   namespace: openshift-local-storage
 spec:
-  channel: ${CHANNEL_NAME}
+  channel: stable
   installPlanApproval: "Manual"
   source: ${CATALOG_SOURCE_NAME}
   name: local-storage-operator
