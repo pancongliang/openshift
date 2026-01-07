@@ -195,7 +195,6 @@ rm -rf "$OUTPUT_ENV_FILE"
 # Add an empty line after the task
 echo
 
-
 # Step 2:
 PRINT_TASK "TASK [Deploying Local Storage Operator]"
 
