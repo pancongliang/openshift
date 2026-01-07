@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set environment variables
-export INSTALL_DIR="$HOME/ocp-inst/ocp"
+export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
 
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
