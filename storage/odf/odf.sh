@@ -334,7 +334,6 @@ echo
 # Step 1:
 PRINT_TASK "TASK [Automating discovery for local storage devices]"
 
-# ===============================================
 # Define the output environment file name
 OUTPUT_ENV_FILE="generated_vars.env"
 
@@ -430,7 +429,6 @@ rm -rf "$OUTPUT_ENV_FILE"
 
 # Add an empty line after the task
 echo
-
 
 # Step 2:
 PRINT_TASK "TASK [Deploying Local Storage Operator]"
@@ -716,7 +714,6 @@ done
 # Add an empty line after the task
 echo
 
-
 # Check the environment variable ODF_INSTALL: continue if "true", exit if otherwise
 if [[ "$ODF_INSTALL" != "true" ]]; then
     exit 0
@@ -891,7 +888,6 @@ done
 # Add the local-storage tag to the worker node
 oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} cluster.ocs.openshift.io/openshift-storage='' >/dev/null 2>&1 
 run_command "Add the ocs tag to the worker node"
-
 
 oc create -f - <<EOF >/dev/null 2>&1 
 apiVersion: ocs.openshift.io/v1
