@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Define the device pattern to search for
-DEVICE_PATTERN="sd*"
+export DEVICE_PATTERN="sd*"
 export CHANNEL_NAME="stable"
 export CATALOG_SOURCE_NAME="redhat-operators"
 
