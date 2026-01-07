@@ -4,7 +4,8 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Define the device pattern to search for
-export DEVICE_PATTERN="sd*"          # If used for ODF, the capacity must be at least 100GB
+# Ensure the OCP cluster has at least three worker nodes, each with at least one 100GB disk.
+export DEVICE_PATTERN="sd*"          # Disk wildcard name
 export LOCAL_DISK_SIZE="100Gi"       # At least 100GB of disk space
 export ODF_CHANNEL_NAME="stable-4.16"
 export CATALOG_SOURCE_NAME="redhat-operators"
