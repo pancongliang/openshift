@@ -36,25 +36,25 @@ PRINT_TASK "TASK [Delete old Local Storage Operator resources]"
 (oc get localvolume -n openshift-local-storage -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | xargs -r -I {} oc patch localvolume {} -n openshift-local-storage --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null) >/dev/null 2>&1 || true
 oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {} >/dev/null 2>&1 || true
 
-if oc get sc local-sc >/dev/null 2>&1; then
+if oc get sc local-sc >/dev/null 2>&1 || true; then
    echo -e "\e[96mINFO\e[0m Deleting local-sc storageclasse..."
    oc delete sc local-sc >/dev/null 2>&1 || true
-else
-   echo -e "\e[96mINFO\e[0m The local-sc storageclasse does not exist"
+#else
+#  echo -e "\e[96mINFO\e[0m The local-sc storageclasse does not exist"
 fi
 
-if oc get sub local-storage-operator -n openshift-local-storage >/dev/null 2>&1; then
+if oc get sub local-storage-operator -n openshift-local-storage >/dev/null 2>&1 || true; then
    echo -e "\e[96mINFO\e[0m Deleting local-storage-operator subscription..."
    oc delete sub local-storage-operator -n openshift-local-storage >/dev/null 2>&1 || true
-else
-   echo -e "\e[96mINFO\e[0m The local-storage-operator subscription does not exist"
+#else
+#   echo -e "\e[96mINFO\e[0m The local-storage-operator subscription does not exist"
 fi
 
-if oc get ns openshift-local-storage >/dev/null 2>&1; then
+if oc get ns openshift-local-storage >/dev/null 2>&1 || true; then
    echo -e "\e[96mINFO\e[0m Deleting openshift-local-storage namespace..."
    oc delete ns openshift-local-storage >/dev/null 2>&1 || true
-else
-   echo -e "\e[96mINFO\e[0m The openshift-local-storage namespace does not exist"
+#else
+#   echo -e "\e[96mINFO\e[0m The openshift-local-storage namespace does not exist"
 fi
 
 # Clean up local storage (Only prints if files were deleted)
@@ -476,6 +476,8 @@ while read pv status; do
     echo -e "$INFO_MSG $pv status: $status"
   fi
 done
+
+echo -e "\e[96mINFO\e[0m Installation complete"
 
 # Add an empty line after the task
 echo
