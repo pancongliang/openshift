@@ -29,7 +29,6 @@ run_command() {
     fi
 }
 
-
 # Step 0:
 PRINT_TASK "TASK [Delete old Local Storage Operator resources]"
 
@@ -396,7 +395,6 @@ $(for v in $(compgen -A variable | grep -E '^DEVICE_PATH_[0-9]+$' | sort -V); do
 done)
 EOF
 run_command "Create the local volume resource"
-
 
 sleep 10
 
