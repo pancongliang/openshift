@@ -127,7 +127,7 @@
 - Wiping unused disk from a Node
   ```
   #!/bin/bash
-  for Hostname in $(oc get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
+  for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
       ssh -qT -o StrictHostKeyChecking=no core@$Hostname \
           "for disk in \$(lsblk -dnlo NAME,TYPE | awk '\$2==\"disk\"{print \$1}'); do
               lsblk /dev/\$disk | grep -q '/boot\|/var\|/ \|part' || 
