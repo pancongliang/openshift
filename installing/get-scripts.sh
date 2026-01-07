@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-BASE="$HOME/ocp"
+BASE="$HOME/scripts"
 
 info() {
     echo -e "\e[96mINFO\e[0m $1"
