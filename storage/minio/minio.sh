@@ -271,6 +271,8 @@ else
     echo -e "\e[96mINFO\e[0m Namespace ${BUCKET_NAMESPACE}already exists"
 fi
 
+# Object storage secret minio-credentials created in ${BUCKET_NAMESPACE}
+oc delete -n ${BUCKET_NAMESPACE} secret minio-credentials >/dev/null 2>&1 || true
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Secret
