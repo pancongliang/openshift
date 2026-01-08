@@ -997,6 +997,24 @@ if [[ "$CREATE_OBC_AND_CREDENTIALS" != "true" ]]; then
     exit 0
 fi
 
+# Check if namespace exists; if not, create it
+if ! oc get namespace "${OBC_NAMESPACE}" >/dev/null 2>&1; then
+    cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${OBC_NAMESPACE}
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  annotations:
+    openshift.io/node-selector: ""
+spec: {}
+EOF
+    echo -e "\e[96mINFO\e[0m Namespace ${OBC_NAMESPACE} created"
+else
+    echo -e "\e[96mINFO\e[0m Namespace ${OBC_NAMESPACE} already exists"
+fi
+
 # Create an ObjectBucketClaim named ${OBC_NAME}
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: objectbucket.io/v1alpha1
@@ -1019,6 +1037,52 @@ spec:
 EOF
 run_command "Create an ObjectBucketClaim named ${OBC_NAME}"
 
+# Waiting for configmap to be created
+MAX_RETRIES=180              # Maximum number of retries
+SLEEP_INTERVAL=5             # Sleep interval in seconds
+SPINNER=('/' '-' '\' '|')    # Spinner animation characters
+retry_count=0                # Number of status check attempts
+progress_started=false       # Tracks whether the spinner/progress line has been started
+CONFIGMAP_NAME=${OBC_NAME}
+NAMESPACE=${OBC_NAMESPACE}
+
+# Loop to wait for the configmap creation
+while true; do
+    # Check if the configmap exists
+    configmap_exists=$(oc get configmap -n "$NAMESPACE" "$CONFIGMAP_NAME" --no-headers 2>/dev/null || true)
+    
+    CHAR=${SPINNER[$((retry_count % 4))]}
+
+    if [ -n "$configmap_exists" ]; then
+        # Overwrite the spinner line before printing the final message
+        printf "\r"    # Move cursor to the beginning of the line
+        tput el        # Clear the entire line
+        echo -e "\e[96mINFO\e[0m The configmap '$CONFIGMAP_NAME' has been created"
+        break
+    else
+        # Print the waiting message only once
+        if ! $progress_started; then
+            progress_started=true
+        fi
+
+        # Display spinner on the same line
+        printf "\r\e[96mINFO\e[0m Waiting for configmap '%s' to be created %s" "$CONFIGMAP_NAME" "$CHAR"
+        tput el  # Clear to the end of the line
+    fi
+
+    sleep "$SLEEP_INTERVAL"
+    retry_count=$((retry_count + 1))
+
+    # Exit when max retries reached
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r"  # Move to the beginning of the line
+        tput el      # Clear the entire line
+        echo -e "\e[31mFAILED\e[0m Reached max retries, configmap '$CONFIGMAP_NAME' was not created"
+        exit 1
+    fi
+done
+
+
 # Get bucket properties from the associated ConfigMap
 export BUCKET_HOST=$(oc get -n ${OBC_NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
 export BUCKET_NAME=$(oc get -n ${OBC_NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
@@ -1033,7 +1097,7 @@ oc create -n ${OBC_NAMESPACE} secret generic ${OBC_NAME}-credentials \
    --from-literal=access_key_id="${ACCESS_KEY_ID}" \
    --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
    --from-literal=bucketnames="${BUCKET_NAME}" \
-   --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
+   --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}" >/dev/null 2>&1
 run_command "Object storage secret '${OBC_NAME}-credentials' created in ${OBC_NAMESPACE}"
 
 # Check if a StorageClass named ocs-storagecluster-ceph-rbd exists
