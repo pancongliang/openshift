@@ -12,7 +12,6 @@ export CATALOG_SOURCE=redhat-operators
 export NAMESPACE="quay-enterprise"
 export REGISTRY_ID="quayadmin"
 export REGISTRY_PW="password"
-export OBJECTSTORAGE_MANAGED="false"     # MCG/ODF object storage: true, otherwise false
 export OCP_TRUSTED_CA="fasle"            # OCP trust Quay: true, otherwise false
 
 
@@ -373,7 +372,7 @@ spec:
   configBundleSecret: quay-config
   components:
     - kind: objectstorage
-      managed: ${OBJECTSTORAGE_MANAGED}
+      managed: false
     - kind: horizontalpodautoscaler
       managed: false
     - kind: quay
