@@ -153,6 +153,16 @@ if api_exists storagesystem; then
     fi
 fi
 
+# ODF storagesystem
+for res in $(oc get storagesystems.odf.openshift.io -n openshift-storage -o name); do
+  oc patch $res -n openshift-storage -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+done
+
+# CSI addons nodes
+for res in $(oc get csiaddonsnodes.csiaddons.openshift.io -n openshift-storage -o name); do
+  oc patch $res -n openshift-storage -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+done
+
 # Delete StorageClusters
 if api_exists storageclusters; then
     if oc get storageclusters -n openshift-storage >/dev/null 2>&1; then
@@ -174,14 +184,6 @@ for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{
         fi
     "
 done
-
-# Delete project
-if oc get project openshift-storage >/dev/null 2>&1; then
-    echo -e "$INFO_MSG Deleting project openshift-storage..."
-    timeout 5s oc delete project openshift-storage >/dev/null 2>&1 || true
-else
-    echo -e "$INFO_MSG Project openshift-storage does not exist"
-fi
 
 # Delete NooBaa and Ceph CRs individually
 for cr in bucketclasses.noobaa.io noobaas.noobaa.io cephclusters.ceph.rook.io cephfilesystems.ceph.rook.io cephblockpools.ceph.rook.io cephobjectstores.ceph.rook.io; do
@@ -240,6 +242,16 @@ if oc get sub odf-operator -n openshift-storage >/dev/null 2>&1 || true; then
 else
     echo -e "$INFO_MSG odf-operator subscription does not exist"
 fi
+
+# Delete project
+if oc get project openshift-storage >/dev/null 2>&1; then
+    echo -e "$INFO_MSG Deleting project openshift-storage..."
+    timeout 5s oc delete project openshift-storage >/dev/null 2>&1 || true
+else
+    echo -e "$INFO_MSG Project openshift-storage does not exist"
+fi
+
+sleep 15
 
 # Check if namespace exists
 NAMESPACE="openshift-storage"
