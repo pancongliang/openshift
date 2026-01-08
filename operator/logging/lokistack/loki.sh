@@ -14,6 +14,7 @@ export OBSERVABILITY_SUB_CHANNEL="stable"
 export CATALOG_SOURCE="redhat-operators"
 
 # Option 1:  If ODF is not installed, automatically create MinIO (default StorageClass required).
+# oc patch storageclass <SC_NAME> -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 
 # Option 2:  If ODF is installed, create the OBC and credentials.
