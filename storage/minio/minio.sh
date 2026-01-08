@@ -253,6 +253,24 @@ fi
 # create object storage secret credentials
 export MINIO_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
 
+# Check if namespace exists; if not, create it
+if ! oc get namespace "${BUCKET_NAMESPACE}" >/dev/null 2>&1; then
+    cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${BUCKET_NAMESPACE}
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  annotations:
+    openshift.io/node-selector: ""
+spec: {}
+EOF
+    echo -e "\e[96mINFO\e[0m Namespace ${BUCKET_NAMESPACE} created"
+else
+    echo -e "\e[96mINFO\e[0m Namespace ${BUCKET_NAMESPACE}already exists"
+fi
+
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Secret
