@@ -1078,9 +1078,16 @@ else
     echo -e "\e[96mINFO\e[0m Namespace ${OBC_NAMESPACE} already exists"
 fi
 
-oc delete -n ${OBC_NAMESPACE} configmap ${OBC_NAME} >/dev/null 2>&1 || true
-oc delete -n ${OBC_NAMESPACE} ObjectBucketClaim ${OBC_NAME} >/dev/null 2>&1 || true
 # Create an ObjectBucketClaim named ${OBC_NAME}
+oc patch objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+oc delete objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+
+oc patch objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+oc delete objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+
+oc patch cm ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+oc delete cm ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
