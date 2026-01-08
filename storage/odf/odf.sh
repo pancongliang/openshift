@@ -94,18 +94,18 @@ force_delete_resource() {
     fi
 
     # 2. If normal deletion fails, remove finalizers to unstick the resource
-    echo -e "$INFO_MSG Removing finalizers from $type $namespace/$name"
+    # echo -e "$INFO_MSG Removing finalizers from $type $namespace/$name"
     oc patch $type $name -n $namespace --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' >/dev/null 2>&1 || true
 
     # 3. Force delete the resource immediately
-    echo -e "$INFO_MSG Force deleting $type $namespace/$name"
+    # echo -e "$INFO_MSG Force deleting $type $namespace/$name"
     timeout 3s oc delete $type $name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
 }
 
 echo -e "$INFO_MSG Starting OCS cleanup process..."
 
 # Process PVCs 
-echo -e "$INFO_MSG Checking for OCS-related PVCs..."
+# echo -e "$INFO_MSG Checking for OCS-related PVCs..."
 # Get all PVCs and filter by StorageClass name containing OCS keywords, excluding system-critical DB/BS PVCs
 PVC_LIST=$(oc get pvc --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,SC:.spec.storageClassName --no-headers 2>/dev/null | \
            awk -v kw="$OCS_KEYWORDS" -v db="$NOOBAA_DB_PVC" -v bs="$NOOBAA_BACKINGSTORE_PVC" \
@@ -115,12 +115,12 @@ if [ -n "$PVC_LIST" ]; then
     while read -r ns name; do
         force_delete_resource "pvc" "$ns" "$name"
     done <<< "$PVC_LIST"
-else
-    echo -e "$INFO_MSG No OCS PVCs found."
+#else
+#    echo -e "$INFO_MSG No OCS PVCs found."
 fi
 
 # Process OBCs (Object Bucket Claims)
-echo -e "$INFO_MSG Checking for OCS-related OBCs..."
+# echo -e "$INFO_MSG Checking for OCS-related OBCs..."
 # Check if OBC API exists before processing
 if oc get obc --all-namespaces >/dev/null 2>&1; then
     # Get all OBCs and filter by StorageClass keywords (handles cases like openshift-storage.noobaa.io)
@@ -131,11 +131,11 @@ if oc get obc --all-namespaces >/dev/null 2>&1; then
         while read -r ns name; do
             force_delete_resource "obc" "$ns" "$name"
         done <<< "$OBC_LIST"
-    else
-        echo -e "$INFO_MSG No OCS OBCs found."
+#    else
+#        echo -e "$INFO_MSG No OCS OBCs found."
     fi
-else
-    echo -e "$INFO_MSG OBC API not present or no OBCs exist."
+#else
+#    echo -e "$INFO_MSG OBC API not present or no OBCs exist."
 fi
 
 # Delete all resources in the namespace
@@ -186,7 +186,6 @@ done
 
 oc patch ns "$NAMESPACE" --type=merge -p '{"spec":{"finalizers":null}}' >/dev/null 2>&1 || true
 timeout 2s oc delete ns "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
-
 
 # Delete StorageClasses individually
 for sc in ocs-storagecluster-ceph-rbd ocs-storagecluster-ceph-rbd-virtualization ocs-storagecluster-ceph-rgw ocs-storagecluster-cephfs openshift-storage.noobaa.io; do
@@ -264,45 +263,40 @@ oc patch cm rook-ceph-mon-endpoints -n openshift-storage -p '{"metadata":{"final
 
 timeout 2s oc delete pods --all -n openshift-storage --force --grace-period=0 >/dev/null 2>&1 || true
 
-for pvc in $(oc get pvc -n openshift-storage -o name); do
-    oc patch "$pvc" -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge2 >/dev/null 2>&1 || true
-    timeout 2s oc delete "$pvc" -n openshift-storage --force --grace-period=02 >/dev/null 2>&1 || true
-done
-
 oc patch ns "$NAMESPACE" --type=merge -p '{"spec":{"finalizers":null}}' >/dev/null 2>&1 || true
 timeout 2s oc delete ns "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
 
 # Check if namespace exists
-NAMESPACE="openshift-storage"
-if oc get namespace "$NAMESPACE" >/dev/null 2>&1; then
-    # Start oc proxy in background silently
-    sleep 10
-    pkill -f "oc proxy" >/dev/null 2>&1 || true
-    oc proxy >/dev/null 2>&1 &
-
-    # Wait briefly for proxy to start
-    sleep 1
-
-    # Remove finalizers and save to temp file silently
-    oc get namespace "$NAMESPACE" -o json | jq '.spec = {"finalizers":[]}' > temp.json >/dev/null 2>&1 || true
-
-    # Send the updated namespace spec to Kubernetes API silently
-    curl -k -s -H "Content-Type: application/json" \
-         -X PUT --data-binary @temp.json \
-         "http://127.0.0.1:8001/api/v1/namespaces/${NAMESPACE}/finalize" >/dev/null 2>&1 || true
-
-    # Kill background oc proxy process silently
-    pkill -f "oc proxy" >/dev/null 2>&1 || true
-
-    # Remove temp file silently
-    rm -f temp.json >/dev/null 2>&1 || true
-
-    # Wait for namespace to be deleted and then show message
-    while oc get namespace "$NAMESPACE" >/dev/null 2>&1; do
-        sleep 1
-    done
-    echo -e "\e[96mINFO\e[0m Namespace '$NAMESPACE' terminated and deleted successfully"
-fi
+#NAMESPACE="openshift-storage"
+#if oc get namespace "$NAMESPACE" >/dev/null 2>&1; then
+#    # Start oc proxy in background silently
+#    sleep 10
+#    pkill -f "oc proxy" >/dev/null 2>&1 || true
+#    oc proxy >/dev/null 2>&1 &
+#
+#    # Wait briefly for proxy to start
+#    sleep 1
+#
+#    # Remove finalizers and save to temp file silently
+#    oc get namespace "$NAMESPACE" -o json | jq '.spec = {"finalizers":[]}' > temp.json >/dev/null 2>&1 || true
+#
+#    # Send the updated namespace spec to Kubernetes API silently
+#    curl -k -s -H "Content-Type: application/json" \
+#         -X PUT --data-binary @temp.json \
+#         "http://127.0.0.1:8001/api/v1/namespaces/${NAMESPACE}/finalize" >/dev/null 2>&1 || true
+#
+#    # Kill background oc proxy process silently
+#    pkill -f "oc proxy" >/dev/null 2>&1 || true
+#
+#    # Remove temp file silently
+#    rm -f temp.json >/dev/null 2>&1 || true
+#
+#    # Wait for namespace to be deleted and then show message
+#    while oc get namespace "$NAMESPACE" >/dev/null 2>&1; do
+#        sleep 1
+#    done
+#    echo -e "\e[96mINFO\e[0m Namespace '$NAMESPACE' terminated and deleted successfully"
+#fi
 
 # Delete crd
 for crd in \
