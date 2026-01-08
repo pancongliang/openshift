@@ -3,17 +3,25 @@
 set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
-# Default storage class name
-export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
+# LokiStack environment variables
 export STORAGE_SIZE="50Gi"
+export LOKI_SIZING="1x.demo"                     # 1x.demo / 1x.pico [6.1+ only]/ 1x.extra-small / 1x.small / 1x.medium
 
-# Set environment variables
+# Operator environment variables
 export LOGGING_SUB_CHANNEL="stable-6.2"
 export LOKI_SUB_CHANNEL="stable-6.2"
 export OBSERVABILITY_SUB_CHANNEL="stable"
-export LOKI_SIZING=1x.demo              # 1x.demo / 1x.pico [6.1+ only]/ 1x.extra-small / 1x.small / 1x.medium
-export CATALOG_SOURCE=redhat-operators
+export CATALOG_SOURCE="redhat-operators"
 
+# Option 1:  If ODF is not installed, automatically create MinIO (default StorageClass required).
+export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
+
+# Option 2:  If ODF is installed, create the OBC and credentials.
+export ODF_CREATE_OBC_AND_CREDENTIALS="true"                 # If there is MCG/ODF object storage: true, otherwise false
+export OBC_STORAGECLASS_S3="openshift-storage.noobaa.io"     # openshift-storage.noobaa.io or ocs-storagecluster-ceph-rgw
+export ODF_STORAGECLASS="ocs-storagecluster-ceph-rbd"        # ocs-storagecluster-ceph-rbd or ocs-storagecluster-cephfs
+export OBC_NAMESPACE="openshift-logging" 
+export OBC_NAME="loki"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -62,7 +70,6 @@ else
 fi
 
 echo -e "\e[96mINFO\e[0m Deleting operator..."
-oc delete secret loki-bucket-credentials -n openshift-logging >/dev/null 2>&1 || true
 oc delete sub loki-operator -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete sub cluster-logging -n openshift-operators >/dev/null 2>&1 || true
 oc delete sub cluster-observability-operator -n openshift-cluster-observability-operator >/dev/null 2>&1 || true
@@ -78,6 +85,23 @@ oc get ip -n openshift-cluster-observability-operator  --no-headers 2>/dev/null|
 oc delete operatorgroups --all -n openshift-operators-redhat >/dev/null 2>&1 || true
 oc delete operatorgroups cluster-observability-operator -n cluster-observability-operator >/dev/null 2>&1 || true
 oc delete operatorgroups cluster-logging -n openshift-logging >/dev/null 2>&1 || true
+
+timeout 2s oc delete pvc --all -n openshift-logging >/dev/null 2>&1 || true 
+
+timeout 2s oc delete secret loki-bucket-credentials -n openshift-logging >/dev/null 2>&1 || true
+oc patch secret loki-bucket-credentials -n openshift-logging -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete secret loki -n openshift-logging >/dev/null 2>&1 || true
+oc patch secret loki -n openshift-logging -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete cm ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch cm ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
 
 if oc get ns openshift-logging >/dev/null 2>&1; then
    echo -e "\e[96mINFO\e[0m Deleting openshift-logging project..."
@@ -97,59 +121,59 @@ fi
 echo
 
 # Step 1:
-PRINT_TASK "TASK [Check the default storage class]"
+# If ODF does not exist, a default StorageClass is required (for MinIO).
+if [ "$ODF_CREATE_OBC_AND_CREDENTIALS" = "false" ]; then
+    DEFAULT_STORAGE_CLASS=$(oc get sc \
+      -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 
-# Check if Default StorageClass exists
-DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
-if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
-    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
-    exit 1
-else
-    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
-fi
-
-# Add an empty line after the task
-echo
-
-# Step 2:
-# Deploying Minio Object Storage
-# Check if the Minio Pod exists and is running.
-MINIO_POD=$(oc get pod -n "minio" -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-
-if [[ -n "$MINIO_POD" ]]; then
-    POD_STATUS=$(oc get pod "$MINIO_POD" -n "minio" -o jsonpath='{.status.phase}')
-else
-    POD_STATUS=""
-fi
-
-# Check if the bucket exists
-BUCKET_NAME="loki-bucket"
-export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}' 2>/dev/null || true)
-
-BUCKET_EXISTS=false
-if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]]; then
-    oc exec -n "minio" "$MINIO_POD" -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin >/dev/null 2>&1 || true
-    if oc exec -n "minio" "$MINIO_POD" -- mc ls my-minio 2>/dev/null | grep -q "$BUCKET_NAME"; then
-       BUCKET_EXISTS=true
+    if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
+        PRINT_TASK "TASK [Check the default storage class]"
+        echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
+        exit 1
+    else
+        PRINT_TASK "TASK [Check the default storage class]"
+        echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+        # Add an empty line after the task
+        echo
     fi
 fi
 
-# Determine whether to perform deployment
-if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]] && [[ "$BUCKET_EXISTS" == true ]]; then
-    PRINT_TASK "TASK [Deploying Minio Object Storage]"
-    echo -e "\e[96mINFO\e[0m Minio already exists and bucket exists, skipping deployment"
-else
-    curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio.sh | sh
-fi
+# Step 2:
+# Deploying Object Storage
+# Only run this block if ODF_CREATE_OBC_AND_CREDENTIALS is false
+if [[ "$ODF_CREATE_OBC_AND_CREDENTIALS" == "false" ]]; then
 
-# Add an empty line after the task
-echo
+    # Check if the MinIO Pod exists and is running
+    MINIO_POD=$(oc get pod -n "minio" -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
 
-# Step 3:
-PRINT_TASK "TASK [Install OpenShift Logging]"
+    if [[ -n "$MINIO_POD" ]]; then
+        POD_STATUS=$(oc get pod "$MINIO_POD" -n "minio" -o jsonpath='{.status.phase}')
+    else
+        POD_STATUS=""
+    fi
 
-# Create a namespace
-cat << EOF | oc apply -f - >/dev/null 2>&1
+    # Check if the bucket exists
+    export BUCKET_NAME="loki-bucket"
+    export MINIO_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}' 2>/dev/null)
+
+    BUCKET_EXISTS=false
+    if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]]; then
+        oc exec -n "minio" "$MINIO_POD" -- mc alias set my-minio "${MINIO_HOST}" minioadmin minioadmin >/dev/null 2>&1 || true
+        if oc exec -n "minio" "$MINIO_POD" -- mc ls my-minio 2>/dev/null | grep -q "$BUCKET_NAME"; then
+           BUCKET_EXISTS=true
+        fi
+    fi
+
+    # Deploy MinIO if necessary
+    if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]] && [[ "$BUCKET_EXISTS" == true ]]; then
+        PRINT_TASK "TASK [Deploying Minio Object Storage]"
+        echo -e "\e[96mINFO\e[0m MinIO already exists and bucket exists, skipping deployment"
+    else
+        curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio.sh | sh
+    fi
+
+    # Create a namespace
+    cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -159,8 +183,134 @@ metadata:
   labels:
     openshift.io/cluster-monitoring: "true"
 EOF
-run_command "Create a openshift-logging namespace"
+    run_command "Create a openshift-logging namespace"
 
+    # Create object storage secret credentials
+    export ACCESS_KEY_ID="minioadmin"
+    export ACCESS_KEY_SECRET="minioadmin"
+    export BUCKET_NAME="loki-bucket"
+    export MINIO_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}' 2>/dev/null)
+    cat <<EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${BUCKET_NAME}-minio-credentials
+  namespace: openshift-logging
+stringData:
+  access_key_id: ${ACCESS_KEY_ID}
+  access_key_secret: ${ACCESS_KEY_SECRET}
+  bucketnames: ${BUCKET_NAME}
+  endpoint: ${MINIO_HOST}
+  region: minio
+EOF
+    run_command "Create object storage secret ${BUCKET_NAME}-minio-credentials in openshift-logging namespace"
+fi
+
+# Only run this block if ODF_CREATE_OBC_AND_CREDENTIALS is true
+export OBC_NAMESPACE="openshift-logging" 
+export OBC_NAME="loki"
+
+if [[ "$ODF_CREATE_OBC_AND_CREDENTIALS" == "true" ]]; then
+    PRINT_TASK "TASK [Create ObjectBucketClaim and object storage credentials]"
+    # Create a namespace
+    cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-logging
+  annotations:
+    openshift.io/node-selector: ""
+  labels:
+    openshift.io/cluster-monitoring: "true"
+EOF
+    run_command "Create a openshift-logging namespace"
+    
+    # Create ObjectBucketClaim
+    cat <<EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  finalizers:
+  - objectbucket.io/finalizer
+  labels:
+    app: noobaa
+    bucket-provisioner: openshift-storage.noobaa.io-obc
+    noobaa-domain: openshift-storage.noobaa.io
+  name: ${OBC_NAME}
+  namespace: ${OBC_NAMESPACE}
+spec:
+  additionalConfig:
+    bucketclass: noobaa-default-bucket-class
+  generateBucketName: ${OBC_NAME}
+  objectBucketName: obc-${OBC_NAMESPACE}-${OBC_NAME}
+  storageClassName: ${OBC_STORAGECLASS_S3}
+EOF
+    run_command "Create an ObjectBucketClaim named ${OBC_NAME} in ${OBC_NAMESPACE} namespace"
+
+    # Wait for ConfigMap to exist
+    MAX_RETRIES=180
+    SLEEP_INTERVAL=5
+    SPINNER=('/' '-' '\' '|')
+    retry_count=0
+    progress_started=false
+    CONFIGMAP_NAME=${OBC_NAME}
+    NAMESPACE=${OBC_NAMESPACE}
+
+    while true; do
+        configmap_exists=$(oc get configmap -n "$NAMESPACE" "$CONFIGMAP_NAME" --no-headers 2>/dev/null || true)
+        CHAR=${SPINNER[$((retry_count % 4))]}
+
+        if [[ -n "$configmap_exists" ]]; then
+            printf "\r"; tput el
+            echo -e "\e[96mINFO\e[0m The configmap '$CONFIGMAP_NAME' has been created"
+            break
+        else
+            printf "\r\e[96mINFO\e[0m Waiting for configmap '%s' %s" "$CONFIGMAP_NAME" "$CHAR"
+            tput el
+        fi
+
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            printf "\r"; tput el
+            echo -e "\e[31mFAILED\e[0m Reached max retries, configmap '$CONFIGMAP_NAME' not created"
+            exit 1
+        fi
+    done
+
+    # Extract bucket info from ConfigMap
+    export BUCKET_HOST=$(oc get -n ${OBC_NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
+    export BUCKET_NAME=$(oc get -n ${OBC_NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
+    export BUCKET_PORT=$(oc get -n ${OBC_NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
+
+    # Extract access credentials from Secret
+    export ACCESS_KEY_ID=$(oc get -n ${OBC_NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+    export ACCESS_KEY_SECRET=$(oc get -n ${OBC_NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+
+    # Create Kubernetes Secret for Object Storage
+    cat <<EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${OBC_NAME}-obc-credentials
+  namespace: ${OBC_NAMESPACE}
+stringData:
+  access_key_id: ${ACCESS_KEY_ID}
+  access_key_secret: ${ACCESS_KEY_SECRET}
+  bucketnames: ${BUCKET_NAME}
+  endpoint: "https://${BUCKET_HOST}:${BUCKET_PORT}"
+  region: minio
+EOF
+    run_command "Create object storage secret ${OBC_NAME}-obc-credentials in ${OBC_NAMESPACE} namespace"
+fi
+
+# Add an empty line after the task
+echo
+
+# Step 3:
+PRINT_TASK "TASK [Install OpenShift Logging]"
+
+# Install OpenShift Logging
 cat << EOF | oc apply -f - >/dev/null 2>&1 || true
 apiVersion: v1
 kind: Namespace
@@ -635,31 +785,12 @@ while true; do
     fi
 done
 
-# create object storage secret credentials
-export MINIO_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
-export ACCESS_KEY_ID="minioadmin"
-export ACCESS_KEY_SECRET="minioadmin"
-export BUCKET_NAME="quay-bucket"
-
-cat << EOF | oc apply -f - >/dev/null 2>&1
-apiVersion: v1
-kind: Secret
-metadata:
-  name: logging-loki-s3
-  namespace: openshift-logging
-stringData:
-  access_key_id: ${ACCESS_KEY_ID}
-  access_key_secret: ${ACCESS_KEY_SECRET}
-  bucketnames: ${BUCKET_NAME}
-  endpoint: ${MINIO_HOST}
-  region: minio
-EOF
-run_command "Create object storage secret credentials"
-
 sleep 5
 
 # Create loki stack instance
-cat << EOF | oc apply -f - >/dev/null 2>&1
+if [[ "$ODF_CREATE_OBC_AND_CREDENTIALS" == "false" ]]; then
+    # MinIO (HTTP, no TLS)
+    cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: loki.grafana.com/v1
 kind: LokiStack
 metadata:
@@ -673,13 +804,42 @@ spec:
     - effectiveDate: '2024-10-01'
       version: v13
     secret:
-      name: logging-loki-s3
+      name: ${BUCKET_NAME}-minio-credentials
       type: s3
   storageClassName: ${DEFAULT_STORAGE_CLASS}
   tenants:
     mode: openshift-logging
 EOF
-run_command "Create loki stack instance"
+
+    run_command "Create LokiStack instance (MinIO)"
+
+else
+    # ODF / NooBaa (HTTPS + Service CA)
+    cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: logging-loki
+  namespace: openshift-logging
+spec:
+  managementState: Managed
+  size: ${LOKI_SIZING}
+  storage:
+    schemas:
+    - effectiveDate: '2024-10-01'
+      version: v13
+    secret:
+      name: ${OBC_NAME}-obc-credentials
+      type: s3
+    tls:
+      caName: openshift-service-ca.crt
+  storageClassName: ${ODF_STORAGECLASS}
+  tenants:
+    mode: openshift-logging
+EOF
+    run_command "Create LokiStack instance"
+fi
+
 
 sleep 25
 
