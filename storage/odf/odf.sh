@@ -710,9 +710,9 @@ run_command "Check if a StorageClass named local-sc exists"
 oc get pv -o jsonpath='{range .items[?(@.spec.local)]}{.metadata.name}{" "}{.status.phase}{"\n"}{end}' | \
 while read pv status; do
   if [[ "$status" != "Available" && "$status" != "Bound" ]]; then
-    echo -e "$FAIL_MSG $pv status: $status"
+    echo -e "$FAIL_MSG PV $pv status: $status"
   else
-    echo -e "$INFO_MSG $pv status: $status"
+    echo -e "$INFO_MSG PV $pv status: $status"
   fi
 done
 
