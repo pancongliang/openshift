@@ -277,7 +277,7 @@ cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: v1
 kind: Secret
 metadata:
-  name: minio-credentials
+  name: ${BUCKET_NAME}-minio-credentials
   namespace: ${BUCKET_NAMESPACE}
 stringData:
   access_key_id: minioadmin
@@ -286,4 +286,4 @@ stringData:
   endpoint: ${MINIO_HOST}
   region: minio
 EOF
-run_command "Object storage secret minio-credentials created in ${BUCKET_NAMESPACE}"
+run_command "Create object storage secret ${BUCKET_NAME}-minio-credentials in ${BUCKET_NAMESPACE} namespace"
