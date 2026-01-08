@@ -8,11 +8,12 @@ export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annot
 
 # Set environment variables
 export SUB_CHANNEL="stable-3.15"
-export NAMESPACE="quay-enterprise"
 export CATALOG_SOURCE=redhat-operators
+export NAMESPACE="quay-enterprise"
 export REGISTRY_ID="quayadmin"
 export REGISTRY_PW="password"
-export OCP_TRUSTED_CA="fasle"       # true or false
+export OBJECTSTORAGE_MANAGED="false"     # MCG/ODF object storage: true, otherwise false
+export OCP_TRUSTED_CA="fasle"            # OCP trust Quay: true, otherwise false
 
 
 # Function to print a task with uniform length
@@ -372,7 +373,7 @@ spec:
   configBundleSecret: quay-config
   components:
     - kind: objectstorage
-      managed: false
+      managed: ${OBJECTSTORAGE_MANAGED}
     - kind: horizontalpodautoscaler
       managed: false
     - kind: quay
@@ -387,8 +388,8 @@ spec:
       managed: true
       overrides:
         replicas: 1
-#    - kind: postgres
-#      managed: false
+    - kind: postgres
+      managed: true
 EOF
 run_command "Creating a quay registry..."
 
