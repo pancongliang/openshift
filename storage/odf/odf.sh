@@ -1015,6 +1015,8 @@ else
     echo -e "\e[96mINFO\e[0m Namespace ${OBC_NAMESPACE} already exists"
 fi
 
+oc delete -n ${OBC_NAMESPACE} configmap ${OBC_NAME} >/dev/null 2>&1 || true
+oc delete -n ${OBC_NAMESPACE} ObjectBucketClaim ${OBC_NAME} >/dev/null 2>&1 || true
 # Create an ObjectBucketClaim named ${OBC_NAME}
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: objectbucket.io/v1alpha1
@@ -1093,6 +1095,7 @@ export ACCESS_KEY_ID=$(oc get -n ${OBC_NAMESPACE} secret ${OBC_NAME} -o jsonpath
 export SECRET_ACCESS_KEY=$(oc get -n ${OBC_NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
 
 # Create the ObjectBucketClaim resource
+oc delete -n ${OBC_NAMESPACE} secret ${OBC_NAME}-credentials >/dev/null 2>&1 || true
 oc create -n ${OBC_NAMESPACE} secret generic ${OBC_NAME}-credentials \
    --from-literal=access_key_id="${ACCESS_KEY_ID}" \
    --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
