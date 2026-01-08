@@ -252,7 +252,7 @@ if oc get namespace "$NAMESPACE" >/dev/null 2>&1; then
     sleep 1
 
     # Remove finalizers and save to temp file silently
-    oc get namespace "$NAMESPACE" -o json | jq '.spec = {"finalizers":[]}' > temp.json 2>/dev/null || true
+    oc get namespace "$NAMESPACE" -o json | jq '.spec = {"finalizers":[]}' > temp.json >/dev/null 2>&1 || true
 
     # Send the updated namespace spec to Kubernetes API silently
     curl -k -s -H "Content-Type: application/json" \
