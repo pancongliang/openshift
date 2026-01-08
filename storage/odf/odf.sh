@@ -12,7 +12,7 @@ export ODF_CHANNEL_NAME="stable-4.16"
 export CATALOG_SOURCE_NAME="redhat-operators"
 
 # Whether to create OBC and its object storage secret
-export CREATE_OBC_AND_CREDENTIALS="true"      # true or false
+export CREATE_OBC_AND_CREDENTIALS="false"      # true or false
 export OBC_NAMESPACE="openshift-logging" 
 export OBC_NAME="loki"
 export OBC_STORAGECLASS_S3="openshift-storage.noobaa.io"      # openshift-storage.noobaa.io or ocs-storagecluster-ceph-rgw
