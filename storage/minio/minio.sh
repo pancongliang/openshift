@@ -10,6 +10,12 @@ export PVC_SIZE="50Gi"
 # Name of the bucket to be created
 export BUCKETS=("loki-bucket" "quay-bucket" "oadp-bucket")
 
+# Whether to create 'minio-credentials' secret
+export CREATE_MINIO_CREDENTIALS="false"  # true or false
+export BUCKET_NAME="loki-bucket"
+export BUCKET_NAMESPACE="openshift-logging"
+
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -238,3 +244,26 @@ run_command "Add mc cli alias to $HOME/.bashrc"
 echo -e "\e[96mINFO\e[0m Minio Host: $BUCKET_HOST"
 echo -e "\e[96mINFO\e[0m Minio Console: $MINIO_CONSOLE"
 echo -e "\e[96mINFO\e[0m Minio default ID/PW: minioadmin/minioadmin"
+
+# Check the environment variable CREATE_MINIO_CREDENTIALS: continue if "true", exit if otherwise
+if [[ "$CREATE_MINIO_CREDENTIALS" != "true" ]]; then
+    exit 0
+fi
+
+# create object storage secret credentials
+export MINIO_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
+
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-credentials
+  namespace: ${BUCKET_NAMESPACE}
+stringData:
+  access_key_id: minioadmin
+  access_key_secret: minioadmin
+  bucketnames: ${BUCKET_NAME}
+  endpoint: ${MINIO_HOST}
+  region: minio
+EOF
+run_command "Object storage secret 'minio-credentials' created in ${BUCKET_NAMESPACE}"
