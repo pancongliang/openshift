@@ -12,9 +12,9 @@ export ODF_CHANNEL_NAME="stable-4.16"
 export CATALOG_SOURCE_NAME="redhat-operators"
 
 # Whether to create OBC and its object storage secret
-export CREATE_OBC_AND_CREDENTIALS="false"      # true or false
-export OBC_NAMESPACE="openshift-logging" 
-export OBC_NAME="loki"
+export CREATE_OBC_AND_CREDENTIALS="true"      # true or false
+export OBC_NAMESPACE="test" 
+export OBC_NAME="test"
 export OBC_STORAGECLASS_S3="openshift-storage.noobaa.io"      # openshift-storage.noobaa.io or ocs-storagecluster-ceph-rgw
 
 # Function to print a task with uniform length
@@ -74,82 +74,69 @@ if api_exists volumesnapshot; then
     fi
 fi
 
-# Delete objectbucket, objectbucketclaim configmap
-oc patch objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
-timeout 2s oc delete objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
-oc patch objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
-timeout 2s oc delete objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
-oc patch cm ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
-timeout 2s oc delete cm ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
-
-# Define OCS provisioners and special PVCs
-RBD_PROVISIONER="openshift-storage.rbd.csi.ceph.com"
-CEPHFS_PROVISIONER="openshift-storage.cephfs.csi.ceph.com"
-NOOBAA_PROVISIONER="openshift-storage.noobaa.io/obc"
-RGW_PROVISIONER="openshift-storage.ceph.rook.io/bucket"
+# Define OCS related Provisioner keywords for matching
+OCS_KEYWORDS="noobaa|ceph|rbd|rook"
 NOOBAA_DB_PVC="noobaa-db"
 NOOBAA_BACKINGSTORE_PVC="noobaa-default-backing-store-noobaa-pvc"
 
-# Get all OCS StorageClasses
-OCS_STORAGECLASSES=$(
-  oc get storageclasses -o name 2>/dev/null | \
-  grep -E "$RBD_PROVISIONER|$CEPHFS_PROVISIONER|$NOOBAA_PROVISIONER|$RGW_PROVISIONER" 2>/dev/null || true | \
-  awk -F'/' '{print $2}' || true
-)
+# Function to force delete resources (clears finalizers and deletes)
+force_delete_resource() {
+    local type=$1
+    local namespace=$2
+    local name=$3
 
-# PVC deletion function
-delete_pvc() {
-    local namespace=$1
-    local pvc_name=$2
-
-    if timeout 1 oc delete pvc/$pvc_name -n $namespace >/dev/null 2>&1 || true; then
-        echo -e "$INFO_MSG PVC $namespace/$pvc_name deleted successfully"
+    echo -e "$INFO_MSG Attempting to delete $type $namespace/$name"
+    
+    # 1. Attempt normal deletion with a 3-second timeout
+    if timeout 3s oc delete $type $name -n $namespace >/dev/null 2>&1; then
+        echo -e "$INFO_MSG $type $namespace/$name deleted successfully"
         return 0
     fi
 
-    echo -e "$INFO_MSG Removing finalizers from PVC $namespace/$pvc_name"
-    oc patch pvc/$pvc_name -n $namespace --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' >/dev/null 2>&1 || true
+    # 2. If normal deletion fails, remove finalizers to unstick the resource
+    echo -e "$INFO_MSG Removing finalizers from $type $namespace/$name"
+    oc patch $type $name -n $namespace --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' >/dev/null 2>&1 || true
 
-    echo -e "$INFO_MSG Force deleting PVC $namespace/$pvc_name"
-    timeout 2s oc delete pvc/$pvc_name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
+    # 3. Force delete the resource immediately
+    echo -e "$INFO_MSG Force deleting $type $namespace/$name"
+    timeout 3s oc delete $type $name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
 }
 
-# Process each StorageClass
-for SC in $OCS_STORAGECLASSES; do
-    echo -e "$INFO_MSG $SC StorageClass PVCs and OBCs"
+echo -e "$INFO_MSG Starting OCS cleanup process..."
 
-    # Delete PVCs
-    PVC_LIST=$(oc get pvc --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,STORAGECLASS:.spec.storageClassName --no-headers 2>/dev/null |
-               awk -v sc="$SC" -v db="$NOOBAA_DB_PVC" -v bs="$NOOBAA_BACKINGSTORE_PVC" '$3==sc && $2!=db && $2!=bs {print $1,$2}')
-    if [ -n "$PVC_LIST" ]; then
-        while read -r namespace pvc_name; do
-            delete_pvc "$namespace" "$pvc_name"
-        done <<< "$PVC_LIST"
-    #else
-    #    echo -e "$INFO_MSG No related PVCs found for StorageClass $SC"
+# Process PVCs 
+echo -e "$INFO_MSG Checking for OCS-related PVCs..."
+# Get all PVCs and filter by StorageClass name containing OCS keywords, excluding system-critical DB/BS PVCs
+PVC_LIST=$(oc get pvc --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,SC:.spec.storageClassName --no-headers 2>/dev/null | \
+           awk -v kw="$OCS_KEYWORDS" -v db="$NOOBAA_DB_PVC" -v bs="$NOOBAA_BACKINGSTORE_PVC" \
+           '$3 ~ kw && $2 != db && $2 != bs {print $1,$2}')
+
+if [ -n "$PVC_LIST" ]; then
+    while read -r ns name; do
+        force_delete_resource "pvc" "$ns" "$name"
+    done <<< "$PVC_LIST"
+else
+    echo -e "$INFO_MSG No OCS PVCs found."
+fi
+
+# Process OBCs (Object Bucket Claims)
+echo -e "$INFO_MSG Checking for OCS-related OBCs..."
+# Check if OBC API exists before processing
+if oc get obc --all-namespaces >/dev/null 2>&1; then
+    # Get all OBCs and filter by StorageClass keywords (handles cases like openshift-storage.noobaa.io)
+    OBC_LIST=$(oc get obc --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,SC:.spec.storageClassName --no-headers 2>/dev/null | \
+               awk -v kw="$OCS_KEYWORDS" '$3 ~ kw || $3 == "" {print $1,$2}')
+
+    if [ -n "$OBC_LIST" ]; then
+        while read -r ns name; do
+            force_delete_resource "obc" "$ns" "$name"
+        done <<< "$OBC_LIST"
+    else
+        echo -e "$INFO_MSG No OCS OBCs found."
     fi
-
-    # Delete OBCs
-    if oc get obc --all-namespaces >/dev/null 2>&1; then
-        OBC_LIST=$(oc get obc --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,STORAGECLASS:.spec.storageClassName --no-headers 2>/dev/null |
-                   awk -v sc="$SC" '$3==sc {print $1,$2}')
-        if [ -n "$OBC_LIST" ]; then
-            while read -r namespace obc_name; do
-                echo -e "$INFO_MSG Deleting OBC $namespace/$obc_name"
-                timeout 1 oc delete obc/$obc_name -n $namespace >/dev/null 2>&1 || {
-                    oc patch obc/$obc_name -n $namespace --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' >/dev/null 2>&1 || true
-                    timeout 2s oc delete obc/$obc_name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
-                }
-            done <<< "$OBC_LIST"
-        #else
-        #    echo -e "$INFO_MSG No related OBCs found for StorageClass $SC"
-        fi
-    #else
-    #    echo -e "$INFO_MSG OBC API not present"
-    fi
-
-    echo
-done
+else
+    echo -e "$INFO_MSG OBC API not present or no OBCs exist."
+fi
 
 # Delete all resources in the namespace
 timeout 2s oc delete secrets --all -n openshift-storage --force >/dev/null 2>&1 || true
@@ -171,23 +158,22 @@ RESOURCES=(
   objectbuckets.objectbucket.io
   csiaddonsnodes.csiaddons.openshift.io
   volumereplications.replication.storage.openshift.io
-  sercret
+  secrets
   configmaps
 )
 
 NAMESPACE="openshift-storage"
 
 for res in "${RESOURCES[@]}"; do
-    if oc api-resources --no-headers -o name | grep -q "^${res}$"; then
-        objs=$(oc get "$res" -n "$NAMESPACE" -o name 2>/dev/null)
-        for obj in $objs; do
-            # Remove finalizers
-            oc patch "$obj" -n "$NAMESPACE" --type=merge -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
-            # Delete resource
-            timeout 2s oc delete "$obj" -n "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
-        done
-    fi
+    objs=$(oc get "$res" -n "$NAMESPACE" -o name 2>/dev/null || true)
+    for obj in $objs; do
+        # Remove finalizers
+        oc patch "$obj" -n "$NAMESPACE" --type=merge -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
+        # Delete resource forcibly
+        oc delete "$obj" -n "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
+    done
 done
+
 oc patch secret rook-ceph-mon -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
 oc patch cm rook-ceph-mon-endpoints -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
 
@@ -257,23 +243,22 @@ RESOURCES=(
   objectbuckets.objectbucket.io
   csiaddonsnodes.csiaddons.openshift.io
   volumereplications.replication.storage.openshift.io
-  sercret
+  secrets
   configmaps
 )
 
 NAMESPACE="openshift-storage"
 
 for res in "${RESOURCES[@]}"; do
-    if oc api-resources --no-headers -o name | grep -q "^${res}$"; then
-        objs=$(oc get "$res" -n "$NAMESPACE" -o name 2>/dev/null)
-        for obj in $objs; do
-            # Remove finalizers
-            oc patch "$obj" -n "$NAMESPACE" --type=merge -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
-            # Delete resource
-            timeout 2s oc delete "$obj" -n "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
-        done
-    fi
+    objs=$(oc get "$res" -n "$NAMESPACE" -o name 2>/dev/null || true)
+    for obj in $objs; do
+        # Remove finalizers
+        oc patch "$obj" -n "$NAMESPACE" --type=merge -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
+        # Delete resource forcibly
+        oc delete "$obj" -n "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
+    done
 done
+
 oc patch secret rook-ceph-mon -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
 oc patch cm rook-ceph-mon-endpoints -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
 
@@ -354,11 +339,8 @@ for crd in \
   volumereplicationclasses.replication.storage.openshift.io \
   volumereplications.replication.storage.openshift.io
 do
-  oc patch crd "$crd" \
-    --type=merge -p '{"metadata":{"finalizers":[]}}' >/dev/null 2>&1 || true
+  oc patch crd "$crd" --type=merge -p '{"metadata":{"finalizers":[]}}' >/dev/null 2>&1 || true
 done
-
-
 
 # Delete local volume and pv, sc
 (oc get localvolumes -n openshift-local-storage -o name 2>/dev/null | xargs -r -I {} oc -n openshift-local-storage delete {} 2>/dev/null) >/dev/null 2>&1 || true
@@ -1086,11 +1068,72 @@ spec:
 EOF
 run_command "Create the StorageCluster resource..."
 
-sleep 30
+sleep 10
+
+# Wait for $namespace namespace pods to be in 'Running' state
+MAX_RETRIES=180              # Maximum number of retries
+SLEEP_INTERVAL=5             # Sleep interval in seconds
+LINE_WIDTH=120               # Control line width
+SPINNER=('/' '-' '\' '|')    # Spinner animation characters
+retry_count=0                # Number of status check attempts
+progress_started=false       # Tracks whether the spinner/progress line has been started
+namespace=openshift-storage
+
+# Main loop
+while true; do
+    # 1. Check Deployments
+    # READY column format: x/y  -> x must equal y
+    DEPLOY_NOT_READY=$(oc -n "$namespace" get deploy --no-headers 2>/dev/null | \
+    awk '{
+        split($2, a, "/");
+        if (a[1] != a[2]) print
+    }' || true)
+
+    # 2. Check DaemonSets
+    # DESIRED == READY
+    DS_NOT_READY=$(oc -n "$namespace" get ds --no-headers 2>/dev/null | \
+    awk '$2 != $4 {print}' || true)
+
+    # 3. Success condition
+    if [[ -z "$DEPLOY_NOT_READY" && -z "$DS_NOT_READY" ]]; then
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m All Deployments and DaemonSets in %s are Ready%*s\n" \
+                   "$namespace" $((LINE_WIDTH - ${#namespace} - 47)) ""
+        else
+            echo -e "\e[96mINFO\e[0m All Deployments and DaemonSets in $namespace are Ready"
+        fi
+        break
+    fi
+
+    # 4. Spinner / progress output
+    CHAR=${SPINNER[$((retry_count % 4))]}
+    MSG="Waiting for Deployments and DaemonSets in $namespace to be Ready..."
+
+    if ! $progress_started; then
+        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        progress_started=true
+    else
+        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+    fi
+
+    # 5. Retry & timeout handling
+    sleep "$SLEEP_INTERVAL"
+    retry_count=$((retry_count + 1))
+
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r\e[31mFAILED\e[0m Deployments or DaemonSets in %s are not Ready%*s\n" \
+               "$namespace" $((LINE_WIDTH - ${#namespace} - 55)) ""
+
+        [[ -n "$DEPLOY_NOT_READY" ]] && echo "$DEPLOY_NOT_READY" || echo "None"
+
+        [[ -n "$DS_NOT_READY" ]] && echo "$DS_NOT_READY" || echo "None"
+        exit 1
+    fi
+done
 
 # Wait for $namespace namespace pods to be in 'Running' state
 MAX_RETRIES=150              # Maximum number of retries
-SLEEP_INTERVAL=15             # Sleep interval in seconds
+SLEEP_INTERVAL=20            # Sleep interval in seconds
 LINE_WIDTH=120               # Control line width
 SPINNER=('/' '-' '\' '|')    # Spinner animation characters
 retry_count=0                # Number of status check attempts
@@ -1143,12 +1186,36 @@ while true; do
     fi
 done
 
-echo -e "\e[96mINFO\e[0m Installation complete"
+echo -e "\e[96mINFO\e[0m Wait until all Pods in the openshift-storage namespace are running"
+
+# Add an empty line after the task
+echo
 
 # Check the environment variable CREATE_OBC_AND_CREDENTIALS: continue if "true", exit if otherwise
 if [[ "$CREATE_OBC_AND_CREDENTIALS" != "true" ]]; then
     exit 0
 fi
+
+# Step 4:
+PRINT_TASK "TASK [Create ObjectBucketClaims and S3 credentials]"
+
+# Delete Secrets, ConfigMaps, ObjectBuckets, and ObjectBucketClaims in the ${OBC_NAMESPACE} namespace
+timeout 2s oc delete pvc --all -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true 
+
+timeout 2s oc delete secret ${OBC_NAME}-obc-credentials -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch secret loki-bucket-credentials -n openshift-logging -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete secret ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch secret loki -n openshift-logging -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete cm ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch cm ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
 
 # Check if namespace exists; if not, create it
 if ! oc get namespace "${OBC_NAMESPACE}" >/dev/null 2>&1; then
@@ -1245,26 +1312,9 @@ export ACCESS_KEY_ID=$(oc get -n ${OBC_NAMESPACE} secret ${OBC_NAME} -o jsonpath
 export SECRET_ACCESS_KEY=$(oc get -n ${OBC_NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
 
 # Create the ObjectBucketClaim resource
-oc delete -n ${OBC_NAMESPACE} secret ${OBC_NAME}-credentials >/dev/null 2>&1 || true
-oc create -n ${OBC_NAMESPACE} secret generic ${OBC_NAME}-credentials \
+oc create -n ${OBC_NAMESPACE} secret generic ${OBC_NAME}-obc-credentials \
    --from-literal=access_key_id="${ACCESS_KEY_ID}" \
    --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
    --from-literal=bucketnames="${BUCKET_NAME}" \
    --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}" >/dev/null 2>&1
 run_command "Object storage secret '${OBC_NAME}-credentials' created in ${OBC_NAMESPACE}"
-
-# Check if a StorageClass named ocs-storagecluster-ceph-rbd exists
-#oc get sc ocs-storagecluster-ceph-rbd >/dev/null 2>&1 
-#run_command "Check if a StorageClass named ocs-storagecluster-ceph-rbd exists"
-
-# Check if a StorageClass named ocs-storagecluster-ceph-rgw exists
-#oc get sc ocs-storagecluster-ceph-rgw >/dev/null 2>&1 
-#run_command "Check if a StorageClass named ocs-storagecluster-ceph-rgw exists"
-
-# Check if a StorageClass named ocs-storagecluster-cephfs exists
-#oc get sc ocs-storagecluster-cephfs >/dev/null 2>&1 
-#run_command "Check if a StorageClass named ocs-storagecluster-cephfs exists"
-
-# Check if a StorageClass named openshift-storage.noobaa.io exists
-#oc get sc openshift-storage.noobaa.io >/dev/null 2>&1 
-#run_command "Check if a StorageClass named openshift-storage.noobaa.io exists"
