@@ -758,7 +758,7 @@ while true; do
         if $all_ok; then
             printf "\r"  # Move to beginning of line
             tput el      # Clear line
-            echo -e "$INFO_MSG All $EXPECTED_PV_COUNT Local PVs are Available/Bound"
+            echo -e "$INFO_MSG All $MIN_PV_COUNT Local PVs are Available/Bound"
             break
         fi
     fi
@@ -767,7 +767,7 @@ while true; do
     if ! $progress_started; then
         progress_started=true
     fi
-    printf "\r$INFO_MSG Waiting for $EXPECTED_PV_COUNT Local PVs to be ready %s" "$CHAR"
+    printf "\r$INFO_MSG Waiting for $MIN_PV_COUNT Local PVs to be ready %s" "$CHAR"
     tput el
 
     sleep "$SLEEP_INTERVAL"
@@ -776,7 +776,7 @@ while true; do
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
         printf "\r"
         tput el
-        echo -e "$FAIL_MSG Timeout waiting for $EXPECTED_PV_COUNT Local PVs"
+        echo -e "$FAIL_MSG Timeout waiting for $MIN_PV_COUNT Local PVs"
         exit 1
     fi
 done
