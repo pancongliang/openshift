@@ -266,4 +266,4 @@ stringData:
   endpoint: ${MINIO_HOST}
   region: minio
 EOF
-run_command "Object storage secret 'minio-credentials' created in ${BUCKET_NAMESPACE}"
+run_command "Object storage secret minio-credentials created in ${BUCKET_NAMESPACE}"
