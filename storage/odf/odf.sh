@@ -6,7 +6,7 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 # Define the device pattern to search for
 # Ensure the OCP cluster has at least three worker nodes, each with at least one 100GB disk.
 export DEVICE_PATTERN="sd*"          # Disk wildcard name
-export LOCAL_DISK_SIZE="100Gi"       # At least 100GB of disk space
+export LOCAL_DISK_SIZE="100Gi"       # At least 100GB of disk space, By default, it will format the non-root disk and reference the second disk (sd*).
 export ODF_CHANNEL_NAME="stable-4.16"
 export CATALOG_SOURCE_NAME="redhat-operators"
 
