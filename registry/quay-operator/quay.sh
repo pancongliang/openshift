@@ -66,7 +66,10 @@ else
    echo -e "\e[96mINFO\e[0m The $NAMESPACE project does not exist"
 fi
 
-oc delete ns quay-postgresql >/dev/null 2>&1 || true
+if oc get ns quay-postgresql >/dev/null 2>&1; then
+   echo -e "\e[96mINFO\e[0m Deleting quay-postgresql project..."
+   oc delete ns quay-postgresql >/dev/null 2>&1 || true
+fi
 
 # Add an empty line after the task
 echo
