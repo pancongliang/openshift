@@ -8,10 +8,11 @@ export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annot
 
 # Set environment variables
 export SUB_CHANNEL="stable-3.15"
-export CATALOG_SOURCE=redhat-operators
+export CATALOG_SOURCE="redhat-operators"
 export NAMESPACE="quay-enterprise"
 export REGISTRY_ID="quayadmin"
 export REGISTRY_PW="password"
+export OBJECTSTORAGE_MANAGED="false"     # If there is MCG/ODF object storage: true, otherwise false
 export OCP_TRUSTED_CA="fasle"            # OCP trust Quay: true, otherwise false
 
 
@@ -51,6 +52,9 @@ oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
 oc delete subscription quay-operator -n openshift-operators >/dev/null 2>&1 || true
 oc get csv -n openshift-operators -o name | grep quay-operator | awk -F/ '{print $2}'  | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
 oc get ip -n openshift-operators --no-headers 2>/dev/null|grep quay-operator|awk '{print $1}'|xargs -r oc delete ip -n openshift-operators >/dev/null 2>&1 || true
+timeout 2s oc delete pod -n $NAMESPACE --all --force >/dev/null 2>&1 || true
+timeout 2s oc delete pvc -n $NAMESPACE --all --force >/dev/null 2>&1 || true
+
 
 if oc get ns $NAMESPACE >/dev/null 2>&1; then
    echo -e "\e[96mINFO\e[0m Deleting quay operator..."
@@ -81,34 +85,39 @@ echo
 # Step 2:
 # Deploying Minio Object Storage
 
-# Check if the Minio Pod exists and is running.
-MINIO_POD=$(oc get pod -n "minio" -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+# Only run this block if OBJECTSTORAGE_MANAGED is false
+if [[ "$OBJECTSTORAGE_MANAGED" == "false" ]]; then
+    # Check if the Minio Pod exists and is running.
+    MINIO_POD=$(oc get pod -n "minio" -l app=minio -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
 
-if [[ -n "$MINIO_POD" ]]; then
-    POD_STATUS=$(oc get pod "$MINIO_POD" -n "minio" -o jsonpath='{.status.phase}')
-else
-    POD_STATUS=""
-fi
-
-# Check if the bucket exists
-BUCKET_NAME="quay-bucket"
-export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}' 2>/dev/null || true)
-
-BUCKET_EXISTS=false
-if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]]; then
-    oc exec -n "minio" "$MINIO_POD" -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin >/dev/null 2>&1 || true
-    if oc exec -n "minio" "$MINIO_POD" -- mc ls my-minio 2>/dev/null | grep -q "$BUCKET_NAME"; then
-       BUCKET_EXISTS=true
+    if [[ -n "$MINIO_POD" ]]; then
+        POD_STATUS=$(oc get pod "$MINIO_POD" -n "minio" -o jsonpath='{.status.phase}')
+    else
+        POD_STATUS=""
     fi
+
+    # Check if the bucket exists
+    BUCKET_NAME="quay-bucket"
+    export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}' 2>/dev/null || true)
+
+    BUCKET_EXISTS=false
+    if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]]; then
+        oc exec -n "minio" "$MINIO_POD" -- mc alias set my-minio "${BUCKET_HOST}" minioadmin minioadmin >/dev/null 2>&1 || true
+        if oc exec -n "minio" "$MINIO_POD" -- mc ls my-minio 2>/dev/null | grep -q "$BUCKET_NAME"; then
+           BUCKET_EXISTS=true
+        fi
+    fi
+
+    # Determine whether to perform deployment
+    if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]] && [[ "$BUCKET_EXISTS" == true ]]; then
+        PRINT_TASK "TASK [Deploying Minio Object Storage]"
+        echo -e "\e[96mINFO\e[0m Minio already exists and bucket exists, skipping deployment"
+    else
+        curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio.sh | sh
+    fi
+
 fi
 
-# Determine whether to perform deployment
-if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]] && [[ "$BUCKET_EXISTS" == true ]]; then
-    PRINT_TASK "TASK [Deploying Minio Object Storage]"
-    echo -e "\e[96mINFO\e[0m Minio already exists and bucket exists, skipping deployment"
-else
-    curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio.sh | sh
-fi
 
 # Add an empty line after the task
 echo
@@ -324,7 +333,19 @@ export BUCKET_NAME="quay-bucket"
 export MINIO_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
 
 # Create a quay config
-cat << EOF > config.yaml
+if [ "$OBJECTSTORAGE_MANAGED" == "true" ]; then
+    cat > config.yaml <<EOF
+FEATURE_USER_INITIALIZE: true
+SUPER_USERS:
+    - $REGISTRY_ID
+DEFAULT_TAG_EXPIRATION: 1m
+TAG_EXPIRATION_OPTIONS:
+    - 1m
+#DB_URI: postgresql://quayuser:quaypass@quay-postgresql.quay-postgresql.svc:5432/quay
+EOF
+
+elif [ "$OBJECTSTORAGE_MANAGED" == "false" ]; then
+    cat > config.yaml <<EOF
 DISTRIBUTED_STORAGE_CONFIG:
   default:
     - RadosGWStorage
@@ -346,6 +367,8 @@ TAG_EXPIRATION_OPTIONS:
     - 1m
 #DB_URI: postgresql://quayuser:quaypass@quay-postgresql.quay-postgresql.svc:5432/quay
 EOF
+
+fi
 run_command "Create a quay config file"
 
 # If using an external PostgreSQL instance, add the DB_URI to the config.yaml file in the following format.
@@ -372,7 +395,7 @@ spec:
   configBundleSecret: quay-config
   components:
     - kind: objectstorage
-      managed: false
+      managed: $OBJECTSTORAGE_MANAGED
     - kind: horizontalpodautoscaler
       managed: false
     - kind: quay
