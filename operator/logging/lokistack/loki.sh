@@ -18,7 +18,7 @@ export CATALOG_SOURCE="redhat-operators"
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 
 # Option 2:  If ODF is installed, create the OBC and credentials.
-export ODF_CREATE_OBC_AND_CREDENTIALS="true"                 # If there is MCG/ODF object storage: true, otherwise false
+export ODF_CREATE_OBC_AND_CREDENTIALS="false"                 # If there is MCG/ODF object storage: true, otherwise false
 export OBC_STORAGECLASS_S3="openshift-storage.noobaa.io"     # openshift-storage.noobaa.io or ocs-storagecluster-ceph-rgw
 export ODF_STORAGECLASS="ocs-storagecluster-ceph-rbd"        # ocs-storagecluster-ceph-rbd or ocs-storagecluster-cephfs
 export OBC_NAMESPACE="openshift-logging" 
