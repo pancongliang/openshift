@@ -74,6 +74,14 @@ if api_exists volumesnapshot; then
     fi
 fi
 
+# Delete objectbucket, objectbucketclaim configmap
+oc patch objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+timeout 2s oc delete objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+timeout 2s oc delete objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+oc patch cm ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+timeout 2s oc delete cm ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
+
 # Define OCS provisioners and special PVCs
 RBD_PROVISIONER="openshift-storage.rbd.csi.ceph.com"
 CEPHFS_PROVISIONER="openshift-storage.cephfs.csi.ceph.com"
@@ -103,7 +111,7 @@ delete_pvc() {
     oc patch pvc/$pvc_name -n $namespace --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' >/dev/null 2>&1 || true
 
     echo -e "$INFO_MSG Force deleting PVC $namespace/$pvc_name"
-    oc delete pvc/$pvc_name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
+    timeout 2s oc delete pvc/$pvc_name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
 }
 
 # Process each StorageClass
@@ -130,7 +138,7 @@ for SC in $OCS_STORAGECLASSES; do
                 echo -e "$INFO_MSG Deleting OBC $namespace/$obc_name"
                 timeout 1 oc delete obc/$obc_name -n $namespace >/dev/null 2>&1 || {
                     oc patch obc/$obc_name -n $namespace --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' >/dev/null 2>&1 || true
-                    oc delete obc/$obc_name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
+                    timeout 2s oc delete obc/$obc_name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
                 }
             done <<< "$OBC_LIST"
         #else
@@ -143,40 +151,71 @@ for SC in $OCS_STORAGECLASSES; do
     echo
 done
 
-# Delete StorageSystem
-if api_exists storagesystem; then
-    if oc get storagesystem -n openshift-storage >/dev/null 2>&1; then
-        echo -e "$INFO_MSG Deleting all StorageSystems..."
-        timeout 5s oc delete storagesystem --all -n openshift-storage >/dev/null 2>&1 || true
-        echo -e "$INFO_MSG Patching StorageSystem finalizers..."
-        oc patch storagesystem ocs-storagecluster-storagesystem -n openshift-storage --type merge -p '{"metadata": {"finalizers": null}}' >/dev/null 2>&1 || true
-    fi
-fi
+# Delete all resources in the namespace
+timeout 2s oc delete secrets --all -n openshift-storage --force >/dev/null 2>&1 || true
 
-# ODF storagesystem
-for res in $(oc get storagesystems.odf.openshift.io -n openshift-storage -o name); do
-  oc patch $res -n openshift-storage -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
+# Delete all resources in the namespace
+RESOURCES=(
+  storagesystems.odf.openshift.io
+  storageclusters.ocs.openshift.io
+  cephclusters.ceph.rook.io
+  cephfilesystems.ceph.rook.io
+  cephblockpools.ceph.rook.io
+  cephobjectstores.ceph.rook.io
+  cephobjectstoreusers.ceph.rook.io
+  cephfilesystemsubvolumegroups.ceph.rook.io
+  noobaas.noobaa.io
+  backingstores.noobaa.io
+  bucketclasses.noobaa.io
+  objectbucketclaims.objectbucket.io
+  objectbuckets.objectbucket.io
+  csiaddonsnodes.csiaddons.openshift.io
+  volumereplications.replication.storage.openshift.io
+  sercret
+  configmaps
+)
+
+NAMESPACE="openshift-storage"
+
+for res in "${RESOURCES[@]}"; do
+    if oc api-resources --no-headers -o name | grep -q "^${res}$"; then
+        objs=$(oc get "$res" -n "$NAMESPACE" -o name 2>/dev/null)
+        for obj in $objs; do
+            # Remove finalizers
+            oc patch "$obj" -n "$NAMESPACE" --type=merge -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
+            # Delete resource
+            timeout 2s oc delete "$obj" -n "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
+        done
+    fi
+done
+oc patch secret rook-ceph-mon -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
+oc patch cm rook-ceph-mon-endpoints -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete pods --all -n openshift-storage --force --grace-period=0 >/dev/null 2>&1 || true
+
+for pvc in $(oc get pvc -n openshift-storage -o name); do
+    oc patch "$pvc" -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge2 >/dev/null 2>&1 || true
+    timeout 2s oc delete "$pvc" -n openshift-storage --force --grace-period=02 >/dev/null 2>&1 || true
 done
 
-# CSI addons nodes
-for res in $(oc get csiaddonsnodes.csiaddons.openshift.io -n openshift-storage -o name); do
-  oc patch $res -n openshift-storage -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
-done
+oc patch ns "$NAMESPACE" --type=merge -p '{"spec":{"finalizers":null}}' >/dev/null 2>&1 || true
+timeout 2s oc delete ns "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
 
-# Delete StorageClusters
-if api_exists storageclusters; then
-    if oc get storageclusters -n openshift-storage >/dev/null 2>&1; then
-        echo -e "$INFO_MSG Deleting all StorageClusters..."
-        timeout 5s oc delete storageclusters --all -n openshift-storage >/dev/null 2>&1 || true
-        echo -e "$INFO_MSG Patching StorageCluster finalizers..."
-        oc patch storageclusters ocs-storagecluster -n openshift-storage --type merge -p '{"metadata": {"finalizers": null}}' >/dev/null 2>&1 || true
+
+# Delete StorageClasses individually
+for sc in ocs-storagecluster-ceph-rbd ocs-storagecluster-ceph-rbd-virtualization ocs-storagecluster-ceph-rgw ocs-storagecluster-cephfs openshift-storage.noobaa.io; do
+    if oc get sc $sc >/dev/null 2>&1 || true; then
+#       echo -e "$INFO_MSG Deleting storageclass $sc..."
+        timeout 2s oc delete sc $sc >/dev/null 2>&1 || true
+#    else
+#        echo -e "$INFO_MSG StorageClass $sc does not exist"
     fi
-fi
+done
 
 # Delete local rook data on worker nodes
 for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
     ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$Hostname "
-        if [ -d /var/lib/rook ] && [ \"\$(ls -A /var/lib/rook 2>/dev/null)\" ]; then
+        if [ -d /var/lib/rook ] && [ \"\$(ls -A /var/lib/rook  >/dev/null 2>&1)\" ]; then
             echo -e \"\e[96mINFO\e[0m $Hostname delete /var/lib/rook files\"
             sudo rm -rf /var/lib/rook
         #else
@@ -185,60 +224,10 @@ for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{
     "
 done
 
-# Delete NooBaa and Ceph CRs individually
-for cr in bucketclasses.noobaa.io noobaas.noobaa.io cephclusters.ceph.rook.io cephfilesystems.ceph.rook.io cephblockpools.ceph.rook.io cephobjectstores.ceph.rook.io; do
-    if api_exists "$cr"; then
-        if oc get "$cr" -n openshift-storage >/dev/null 2>&1; then
-            echo -e "$INFO_MSG Deleting all $cr..."
-            timeout 2s oc delete "$cr" --all -n openshift-storage --force >/dev/null 2>&1 || true
-        fi
-    fi
-done
-
-if oc get pods --all -n openshift-storage >/dev/null 2>&1 || true; then
-#    echo -e "$INFO_MSG Deleting all pods..."
-    timeout 2s oc delete pods --all -n openshift-storage --force --grace-period=0 >/dev/null 2>&1 || true
-#else
-#    echo -e "$INFO_MSG No pods exist"
-fi
-
-if oc get secrets --all -n openshift-storage >/dev/null 2>&1 || true; then
-#    echo -e "$INFO_MSG Deleting all secrets..."
-    timeout 2s oc delete secrets --all -n openshift-storage --force >/dev/null 2>&1 || true
-#else
-#    echo -e "$INFO_MSG No secrets exist"
-fi
-
-# Patch finalizers for key CRs
-# echo -e "$INFO_MSG Patching cephcluster finalizers..."
-oc patch cephclusters.ceph.rook.io ocs-storagecluster-cephcluster -n openshift-storage --type merge -p '{"metadata": {"finalizers": null}}' >/dev/null 2>&1 || true
-
-# echo -e "$INFO_MSG Patching noobaa finalizers..."
-oc patch noobaas.noobaa.io noobaa -n openshift-storage --type merge -p '{"metadata": {"finalizers": null}}' >/dev/null 2>&1 || true
-
-# echo -e "$INFO_MSG Patching bucketclass finalizers..."
-oc patch bucketclasses.noobaa.io noobaa-default-bucket-class -n openshift-storage --type merge -p '{"metadata": {"finalizers": null}}' >/dev/null 2>&1 || true
-
-# echo -e "$INFO_MSG Patching configmap finalizers..."
-oc patch configmap rook-ceph-mon-endpoints -n openshift-storage --type merge -p '{"metadata": {"finalizers": null}}' >/dev/null 2>&1 || true
-
-# echo -e "$INFO_MSG Patching secret finalizers..."
-oc patch secret rook-ceph-mon -n openshift-storage --type merge -p '{"metadata": {"finalizers": null}}' >/dev/null 2>&1 || true
-
-# Delete StorageClasses individually
-for sc in ocs-storagecluster-ceph-rbd ocs-storagecluster-ceph-rbd-virtualization ocs-storagecluster-ceph-rgw ocs-storagecluster-cephfs openshift-storage.noobaa.io; do
-    if oc get sc $sc >/dev/null 2>&1 || true; then
-#        echo -e "$INFO_MSG Deleting storageclass $sc..."
-        oc delete sc $sc >/dev/null 2>&1 || true
-#    else
-#        echo -e "$INFO_MSG StorageClass $sc does not exist"
-    fi
-done
-
 # Delete subscription
 if oc get sub odf-operator -n openshift-storage >/dev/null 2>&1 || true; then
     echo -e "$INFO_MSG Deleting odf-operator subscription..."
-    oc delete sub odf-operator -n openshift-storage >/dev/null 2>&1 || true
+    timeout 2s oc delete sub odf-operator -n openshift-storage >/dev/null 2>&1 || true
 else
     echo -e "$INFO_MSG odf-operator subscription does not exist"
 fi
@@ -250,6 +239,53 @@ if oc get project openshift-storage >/dev/null 2>&1; then
 else
     echo -e "$INFO_MSG Project openshift-storage does not exist"
 fi
+
+# Delete all resources in the namespace
+RESOURCES=(
+  storagesystems.odf.openshift.io
+  storageclusters.ocs.openshift.io
+  cephclusters.ceph.rook.io
+  cephfilesystems.ceph.rook.io
+  cephblockpools.ceph.rook.io
+  cephobjectstores.ceph.rook.io
+  cephobjectstoreusers.ceph.rook.io
+  cephfilesystemsubvolumegroups.ceph.rook.io
+  noobaas.noobaa.io
+  backingstores.noobaa.io
+  bucketclasses.noobaa.io
+  objectbucketclaims.objectbucket.io
+  objectbuckets.objectbucket.io
+  csiaddonsnodes.csiaddons.openshift.io
+  volumereplications.replication.storage.openshift.io
+  sercret
+  configmaps
+)
+
+NAMESPACE="openshift-storage"
+
+for res in "${RESOURCES[@]}"; do
+    if oc api-resources --no-headers -o name | grep -q "^${res}$"; then
+        objs=$(oc get "$res" -n "$NAMESPACE" -o name 2>/dev/null)
+        for obj in $objs; do
+            # Remove finalizers
+            oc patch "$obj" -n "$NAMESPACE" --type=merge -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
+            # Delete resource
+            timeout 2s oc delete "$obj" -n "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
+        done
+    fi
+done
+oc patch secret rook-ceph-mon -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
+oc patch cm rook-ceph-mon-endpoints -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
+
+timeout 2s oc delete pods --all -n openshift-storage --force --grace-period=0 >/dev/null 2>&1 || true
+
+for pvc in $(oc get pvc -n openshift-storage -o name); do
+    oc patch "$pvc" -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge2 >/dev/null 2>&1 || true
+    timeout 2s oc delete "$pvc" -n openshift-storage --force --grace-period=02 >/dev/null 2>&1 || true
+done
+
+oc patch ns "$NAMESPACE" --type=merge -p '{"spec":{"finalizers":null}}' >/dev/null 2>&1 || true
+timeout 2s oc delete ns "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
 
 # Check if namespace exists
 NAMESPACE="openshift-storage"
@@ -282,6 +318,47 @@ if oc get namespace "$NAMESPACE" >/dev/null 2>&1; then
     done
     echo -e "\e[96mINFO\e[0m Namespace '$NAMESPACE' terminated and deleted successfully"
 fi
+
+# Delete crd
+for crd in \
+  backingstores.noobaa.io \
+  bucketclasses.noobaa.io \
+  cephblockpools.ceph.rook.io \
+  cephclusters.ceph.rook.io \
+  cephfilesystems.ceph.rook.io \
+  cephnfses.ceph.rook.io \
+  cephobjectstores.ceph.rook.io \
+  cephobjectstoreusers.ceph.rook.io \
+  noobaas.noobaa.io \
+  ocsinitializations.ocs.openshift.io \
+  storageclusters.ocs.openshift.io \
+  cephclients.ceph.rook.io \
+  cephobjectrealms.ceph.rook.io \
+  cephobjectzonegroups.ceph.rook.io \
+  cephobjectzones.ceph.rook.io \
+  cephrbdmirrors.ceph.rook.io \
+  storagesystems.odf.openshift.io \
+  cephblockpoolradosnamespaces.ceph.rook.io \
+  cephbucketnotifications.ceph.rook.io \
+  cephbuckettopics.ceph.rook.io \
+  cephcosidrivers.ceph.rook.io \
+  cephfilesystemmirrors.ceph.rook.io \
+  cephfilesystemsubvolumegroups.ceph.rook.io \
+  csiaddonsnodes.csiaddons.openshift.io \
+  networkfences.csiaddons.openshift.io \
+  reclaimspacecronjobs.csiaddons.openshift.io \
+  reclaimspacejobs.csiaddons.openshift.io \
+  storageclassrequests.ocs.openshift.io \
+  storageconsumers.ocs.openshift.io \
+  storageprofiles.ocs.openshift.io \
+  volumereplicationclasses.replication.storage.openshift.io \
+  volumereplications.replication.storage.openshift.io
+do
+  oc patch crd "$crd" \
+    --type=merge -p '{"metadata":{"finalizers":[]}}' >/dev/null 2>&1 || true
+done
+
+
 
 # Delete local volume and pv, sc
 (oc get localvolumes -n openshift-local-storage -o name 2>/dev/null | xargs -r -I {} oc -n openshift-local-storage delete {} 2>/dev/null) >/dev/null 2>&1 || true
@@ -316,33 +393,46 @@ for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= \
   ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$Hostname "
     if [ -d /mnt/local-storage ] && [ \"\$(ls -A /mnt/local-storage 2>/dev/null)\" ]; then
       echo -e \"\e[96mINFO\e[0m $Hostname delete /mnt/local-storage files\"
-      sudo rm -rf /mnt/local-storage/*
+      sudo rm -rf /mnt/local-storage
     #else
     #  echo -e \"\e[96mINFO\e[0m $Hostname /mnt/local-storage not exist or empty, skip\"
     fi
   "
 done
 
-# Wiped second attached disk /dev/$disk
-for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
+# Wipe second attached disk on all worker nodes
+for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= \
+  -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
+
   ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$Hostname "
-    # Find the first attached disk that is not the system/root disk
+    # Find the first non-system disk
     disk=\$(lsblk -dnlo NAME,TYPE | awk '\$2==\"disk\" {print \$1}' | while read d; do
-        # Skip system/root disk (with partitions or mounted paths)
-        if ! lsblk /dev/\$d | grep -q '/boot\|/var\|/ \|part'; then
-            echo \$d
-            break
-        fi
+      # Skip system/root disk (mounted or partitioned)
+      if ! lsblk /dev/\$d | grep -Eq '/boot|/var|/ |part'; then
+        echo \$d
+        break
+      fi
     done)
 
     if [ -n \"\$disk\" ]; then
-        sudo wipefs -a /dev/\$disk >/dev/null 2>&1
-        echo -e \"\e[96mINFO\e[0m $Hostname Wiped second attached disk /dev/\$disk\"
+      # Remove filesystem / partition signatures
+      sudo wipefs -fa /dev/\$disk >/dev/null 2>&1
+
+      # Wipe common Ceph metadata locations
+      for gb in 0 1 10 100 1000; do
+        sudo dd if=/dev/zero of=/dev/\$disk bs=1K count=200 seek=\$((gb * 1024**2)) oflag=direct,dsync >/dev/null 2>&1
+      done
+
+      # Discard blocks if supported (SSD / NVMe)
+      sudo blkdiscard /dev/\$disk >/dev/null 2>&1 || true
+
+      echo -e \"\e[96mINFO\e[0m $Hostname Wiped second attached disk /dev/\$disk\"
     #else
-    #    echo -e \"\e[96mINFO\e[0m $Hostname No second attached disk found, skip\"
+    #  echo -e \"\e[96mINFO\e[0m $Hostname No second attached disk found, skip\"
     fi
   "
 done
+
 
 # Add an empty line after the task
 echo
@@ -1079,15 +1169,6 @@ else
 fi
 
 # Create an ObjectBucketClaim named ${OBC_NAME}
-oc patch objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
-oc delete objectbucket obc-${OBC_NAMESPACE}-${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
-
-oc patch objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
-oc delete objectbucketclaim ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
-
-oc patch cm ${OBC_NAME} -n ${OBC_NAMESPACE} -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
-oc delete cm ${OBC_NAME} -n ${OBC_NAMESPACE} >/dev/null 2>&1 || true
-
 cat << EOF | oc apply -f - >/dev/null 2>&1
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
@@ -1153,7 +1234,6 @@ while true; do
         exit 1
     fi
 done
-
 
 # Get bucket properties from the associated ConfigMap
 export BUCKET_HOST=$(oc get -n ${OBC_NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
