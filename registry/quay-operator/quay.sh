@@ -14,6 +14,7 @@ export NAMESPACE="quay-enterprise"
 export REGISTRY_ID="quayadmin"
 export REGISTRY_PW="password"
 export OBJECTSTORAGE_MANAGED="false"     # If there is MCG/ODF object storage: true, otherwise false
+export INTERNAL_POSTGRESQL="true"        # Set to true if PostgreSQL is provisioned by the operator, otherwise false
 export OCP_TRUSTED_CA="fasle"            # OCP trust Quay: true, otherwise false
 
 
@@ -65,6 +66,8 @@ else
    echo -e "\e[96mINFO\e[0m The $NAMESPACE project does not exist"
 fi
 
+oc delete ns quay-postgresql >/dev/null 2>&1 || true
+
 # Add an empty line after the task
 echo
 
@@ -113,15 +116,15 @@ if [[ "$OBJECTSTORAGE_MANAGED" == "false" ]]; then
     if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]] && [[ "$BUCKET_EXISTS" == true ]]; then
         PRINT_TASK "TASK [Deploying Minio Object Storage]"
         echo -e "\e[96mINFO\e[0m Minio already exists and bucket exists, skipping deployment"
+        # Add an empty line after the task
+        echo
     else
         curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio.sh | sh
+        # Add an empty line after the task
+        echo
     fi
 
 fi
-
-
-# Add an empty line after the task
-echo
 
 # Step 3:
 PRINT_TASK "TASK [Deploying Quay Operator]"
@@ -276,30 +279,106 @@ while true; do
     fi
 done
 
-## Integrating an existing PostgreSQL database
-#oc new-project quay-postgresql
-#oc -n quay-postgresql new-app registry.redhat.io/rhel8/postgresql-13 \
-#  --name=quay-postgresql \
-#  -e POSTGRESQL_USER=quayuser \
-#  -e POSTGRESQL_PASSWORD=quaypass \
-#  -e POSTGRESQL_DATABASE=quay \
-#  -e POSTGRESQL_ADMIN_PASSWORD=adminpass
-#run_command "Ceate the Postgres pod"
-# 
-#oc -n quay-postgresql set volumes deployment/quay-postgresql \
-#  --add --name postgresql-data \
-#  --type pvc \
-#  --claim-mode rwo \
-#  --claim-size 5Gi \
-#  --mount-path /var/lib/pgsql/data \
-#  --claim-name postgresql-persistent-pvc
-#run_command "Create a persistent volume for a Postgres pod"
-#
-#oc -n quay-postgresql expose svc quay-postgresql
-#PG_HOST=$(oc get route quay-postgresql -n quay-postgresql -o jsonpath='{.spec.host}')
-#sleep 15
-#oc exec -n quay-postgresql deployment/quay-postgresql -- bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'
-#run_command "Enable pg_trgm module in quay-postgresql"
+# If INTERNAL_POSTGRESQL == "false", create external PostgreSQL
+if [[ "$INTERNAL_POSTGRESQL" == "false" ]]; then
+    # Create namespace for external PostgreSQL
+    oc new-project quay-postgresql >/dev/null 2>&1
+    run_command "Create quay-postgresql namespace"
+
+    # Deploy PostgreSQL
+    oc -n quay-postgresql new-app registry.redhat.io/rhel8/postgresql-13 \
+      --name=quay-postgresql \
+      -e POSTGRESQL_USER=quayuser \
+      -e POSTGRESQL_PASSWORD=quaypass \
+      -e POSTGRESQL_DATABASE=quay \
+      -e POSTGRESQL_ADMIN_PASSWORD=adminpass >/dev/null 2>&1
+    run_command "Create Postgres pod"
+
+    # Add persistent volume
+    oc -n quay-postgresql set volumes deployment/quay-postgresql \
+      --add --name postgresql-data \
+      --type pvc \
+      --claim-mode RWO \
+      --claim-size 5Gi \
+      --mount-path /var/lib/pgsql/data \
+      --claim-name postgresql-pvc >/dev/null 2>&1
+    run_command "Create persistent volume for Postgres pod"
+
+    # Wait for $pod_name pods to be in Running state
+    MAX_RETRIES=90                # Maximum number of retries
+    SLEEP_INTERVAL=2              # Sleep interval in seconds
+    LINE_WIDTH=120                # Control line width
+    SPINNER=('/' '-' '\' '|')     # Spinner animation characters
+    retry_count=0                 # Number of status check attempts
+    progress_started=false        # Tracks whether the spinner/progress line has been started
+    project=quay-postgresql
+    pod_name=quay-postgresql
+    
+    while true; do
+        # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
+        RAW_STATUS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
+    
+        # 2. Logic to determine if pods are ready
+        if [[ -z "$RAW_STATUS" ]]; then
+            # If RAW_STATUS is empty, it means no pods were found
+            is_ready=false
+        else
+            # Check if any pod has 'ready' count not equal to 'total' count
+            not_ready_count=$(echo "$RAW_STATUS" | awk -F/ '$1 != $2' | wc -l)
+            if [[ $not_ready_count -eq 0 ]]; then
+                is_ready=true
+            else
+                is_ready=false
+            fi
+        fi
+    
+        # 3. Handle UI output and loop control
+        if $is_ready; then
+            # Successfully running
+            if $progress_started; then
+                printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+                       "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
+            else
+                echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            fi
+            break
+        else
+            # Still waiting or pod not found yet
+            CHAR=${SPINNER[$((retry_count % 4))]}
+            # Provide different messages if pods are missing vs. starting
+            MSG="Waiting for $pod_name pods to be Running..."
+            [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
+    
+            if ! $progress_started; then
+                printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+                progress_started=true
+            else
+                printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            fi
+    
+            # 4. Retry management
+            sleep "$SLEEP_INTERVAL"
+            retry_count=$((retry_count + 1))
+    
+            if [[ $retry_count -ge $MAX_RETRIES ]]; then
+                printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+                       "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
+                exit 1
+            fi
+        fi
+    done
+
+    # Get PostgreSQL host
+    #oc -n quay-postgresql expose svc quay-postgresql 
+    #PG_HOST=$(oc get route quay-postgresql -n quay-postgresql -o jsonpath='{.spec.host}' 2>/dev/null)
+
+    sleep 30
+
+    # Enable pg_trgm extension
+    oc exec -n quay-postgresql deployment/quay-postgresql -- bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres' >/dev/null 2>&1
+    run_command "Enable pg_trgm module in quay-postgresql"
+fi
+
 ## Backup postgresql
 ## oc exec -n quay-postgresql deployment/quay-postgresql -- /usr/bin/pg_dump -C quay  > backup.sql
 # 
@@ -328,7 +407,9 @@ oc new-project $NAMESPACE >/dev/null 2>&1
 run_command "Create a $NAMESPACE namespace"
 
 # Create a quay config
-# Using minio:
+rm -rf config.yaml
+
+# Using managed object storage
 if [ "$OBJECTSTORAGE_MANAGED" == "true" ]; then
     cat > config.yaml <<EOF
 FEATURE_USER_INITIALIZE: true
@@ -337,15 +418,21 @@ SUPER_USERS:
 DEFAULT_TAG_EXPIRATION: 1m
 TAG_EXPIRATION_OPTIONS:
     - 1m
-#DB_URI: postgresql://quayuser:quaypass@quay-postgresql.quay-postgresql.svc:5432/quay
 EOF
+run_command "Create a quay config file"
 
-# Using minio:
+    # Add DB_URI if insternal_postgresql is false
+    if [ "$INTERNAL_POSTGRESQL" == "false" ]; then
+        echo "DB_URI: postgresql://quayuser:quaypass@quay-postgresql.quay-postgresql.svc:5432/quay" >> config.yaml
+    fi
+
+# Using MinIO
 elif [ "$OBJECTSTORAGE_MANAGED" == "false" ]; then
     export ACCESS_KEY_ID="minioadmin"
     export ACCESS_KEY_SECRET="minioadmin"
     export BUCKET_NAME="quay-bucket"
     export MINIO_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
+    
     cat > config.yaml <<EOF
 DISTRIBUTED_STORAGE_CONFIG:
   default:
@@ -366,11 +453,13 @@ SUPER_USERS:
 DEFAULT_TAG_EXPIRATION: 1m
 TAG_EXPIRATION_OPTIONS:
     - 1m
-#DB_URI: postgresql://quayuser:quaypass@quay-postgresql.quay-postgresql.svc:5432/quay
 EOF
-
-fi
 run_command "Create a quay config file"
+    # Add DB_URI if insternal_postgresql is false
+    if [ "$INTERNAL_POSTGRESQL" == "false" ]; then
+        echo "DB_URI: postgresql://quayuser:quaypass@quay-postgresql.quay-postgresql.svc:5432/quay" >> config.yaml
+    fi
+fi
 
 # If using an external PostgreSQL instance, add the DB_URI to the config.yaml file in the following format.
 #DB_URI: postgresql://quayuser:quaypass@${PG_HOST}:5432/quay
@@ -412,7 +501,7 @@ spec:
       overrides:
         replicas: 1
     - kind: postgres
-      managed: true
+      managed: ${INTERNAL_POSTGRESQL}
 EOF
 run_command "Creating a quay registry..."
 
