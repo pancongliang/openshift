@@ -9,7 +9,12 @@ export DEVICE_PATTERN="sd*"          # Disk wildcard name
 export LOCAL_DISK_SIZE="100Gi"       # At least 100GB of disk space
 export ODF_CHANNEL_NAME="stable-4.16"
 export CATALOG_SOURCE_NAME="redhat-operators"
-export ODF_INSTALL="true"            # true or false
+
+# Whether to create OBC and its object storage secret
+export CREATE_OBC_AND_CREDENTIALS="true"      # true or false
+export OBC_OBC_NAMESPACE="openshift-logging" 
+export OBC_NAME="loki"
+export OBC_STORAGECLASS_S3="openshift-storage.noobaa.io"      # openshift-storage.noobaa.io or ocs-storagecluster-ceph-rgw
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -714,11 +719,6 @@ done
 # Add an empty line after the task
 echo
 
-# Check the environment variable ODF_INSTALL: continue if "true", exit if otherwise
-if [[ "$ODF_INSTALL" != "true" ]]; then
-    exit 0
-fi
-
 # Step 3:
 PRINT_TASK "TASK [Deploying OpenShift Data Foundation]"
 
@@ -991,6 +991,50 @@ while true; do
 done
 
 echo -e "\e[96mINFO\e[0m Installation complete"
+
+# Check the environment variable CREATE_OBC_AND_CREDENTIALS: continue if "true", exit if otherwise
+if [[ "$CREATE_OBC_AND_CREDENTIALS" != "true" ]]; then
+    exit 0
+fi
+
+# Create an ObjectBucketClaim named ${OBC_NAME}
+cat << EOF | oc apply -f - >/dev/null 2>&1
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  finalizers:
+  - objectbucket.io/finalizer
+  labels:
+    app: noobaa
+    bucket-provisioner: openshift-storage.noobaa.io-obc
+    noobaa-domain: openshift-storage.noobaa.io
+  name: ${OBC_NAME}
+  namespace: ${OBC_NAMESPACE}
+spec:
+  additionalConfig:
+    bucketclass: noobaa-default-bucket-class
+  generateBucketName: ${OBC_NAME}
+  objectBucketName: obc-${OBC_NAMESPACE}-${OBC_NAME}
+  storageClassName: ${OBC_STORAGECLASS_S3}
+EOF
+run_command "Create an ObjectBucketClaim named ${OBC_NAME}"
+
+# Get bucket properties from the associated ConfigMap
+export BUCKET_HOST=$(oc get -n ${OBC_NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
+export BUCKET_NAME=$(oc get -n ${OBC_NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
+export BUCKET_PORT=$(oc get -n ${OBC_NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
+
+# Get bucket access key from the associated Secret
+export ACCESS_KEY_ID=$(oc get -n ${OBC_NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+export SECRET_ACCESS_KEY=$(oc get -n ${OBC_NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+
+# Create the ObjectBucketClaim resource
+oc create -n ${OBC_NAMESPACE} secret generic ${OBC_NAME}-credentials \
+   --from-literal=access_key_id="${ACCESS_KEY_ID}" \
+   --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
+   --from-literal=bucketnames="${BUCKET_NAME}" \
+   --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
+run_command "Object storage secret '${OBC_NAME}-credentials' created in ${OBC_NAMESPACE}"
 
 # Check if a StorageClass named ocs-storagecluster-ceph-rbd exists
 #oc get sc ocs-storagecluster-ceph-rbd >/dev/null 2>&1 
