@@ -5,6 +5,7 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # Define the device pattern to search for
 export DEVICE_PATTERN="sd*"
+export SECOND_DISK_NODE_COUNT=0  # Number of nodes with a second disk
 export CATALOG_SOURCE_NAME="redhat-operators"
 
 # Function to print a task with uniform length
@@ -467,13 +468,65 @@ oc get sc local-sc >/dev/null 2>&1
 run_command "Check if a StorageClass named local-sc exists"
 
 # Check Local PV status
-oc get pv -o jsonpath='{range .items[?(@.spec.local)]}{.metadata.name}{" "}{.status.phase}{"\n"}{end}' | \
-while read pv status; do
-  if [[ "$status" != "Available" && "$status" != "Bound" ]]; then
-    echo -e "$FAIL_MSG $pv status: $status"
-  else
-    echo -e "$INFO_MSG $pv status: $status"
-  fi
+#oc get pv -o jsonpath='{range .items[?(@.spec.local)]}{.metadata.name}{" "}{.status.phase}{"\n"}{end}' | \
+#while read pv status; do
+#  if [[ "$status" != "Available" && "$status" != "Bound" ]]; then
+#    echo -e "$FAIL_MSG PV $pv status: $status"
+#  else
+#    echo -e "$INFO_MSG PV $pv status: $status"
+#  fi
+#done
+
+MAX_RETRIES=60                         # Maximum number of retries
+SLEEP_INTERVAL=2                       # Sleep interval in seconds
+SPINNER=('/' '-' '\' '|')              # Spinner animation characters
+retry_count=0                          # Number of status check attempts
+progress_started=false                 # Tracks whether the spinner/progress line has been started
+MIN_PV_COUNT=$SECOND_DISK_NODE_COUNT   # Expected number of Local PVs
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAILED\e[0m"
+
+while true; do
+    # Get Local PVs
+    mapfile -t pv_list < <(oc get pv -o jsonpath='{range .items[?(@.spec.local)]}{.metadata.name}{" "}{.status.phase}{"\n"}{end}')
+    pv_count=${#pv_list[@]}
+
+    CHAR=${SPINNER[$((retry_count % 4))]}
+
+    if [[ $pv_count -ge $MIN_PV_COUNT ]]; then
+        all_ok=true
+        for pv_entry in "${pv_list[@]}"; do
+            pv_name=$(echo "$pv_entry" | awk '{print $1}')
+            pv_status=$(echo "$pv_entry" | awk '{print $2}')
+            if [[ "$pv_status" != "Available" && "$pv_status" != "Bound" ]]; then
+                all_ok=false
+            fi
+        done
+
+        if $all_ok; then
+            printf "\r"  # Move to beginning of line
+            tput el      # Clear line
+            echo -e "$INFO_MSG All $EXPECTED_PV_COUNT Local PVs are Available/Bound"
+            break
+        fi
+    fi
+
+    # Print spinner line
+    if ! $progress_started; then
+        progress_started=true
+    fi
+    printf "\r$INFO_MSG Waiting for $EXPECTED_PV_COUNT Local PVs to be ready %s" "$CHAR"
+    tput el
+
+    sleep "$SLEEP_INTERVAL"
+    retry_count=$((retry_count + 1))
+
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r"
+        tput el
+        echo -e "$FAIL_MSG Timeout waiting for $EXPECTED_PV_COUNT Local PVs"
+        exit 1
+    fi
 done
 
 echo -e "\e[96mINFO\e[0m Installation complete"
