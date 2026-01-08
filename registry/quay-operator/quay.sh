@@ -326,13 +326,8 @@ done
 oc new-project $NAMESPACE >/dev/null 2>&1
 run_command "Create a $NAMESPACE namespace"
 
-# Set environment variables
-export ACCESS_KEY_ID="minioadmin"
-export ACCESS_KEY_SECRET="minioadmin"
-export BUCKET_NAME="quay-bucket"
-export MINIO_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
-
 # Create a quay config
+# Using minio:
 if [ "$OBJECTSTORAGE_MANAGED" == "true" ]; then
     cat > config.yaml <<EOF
 FEATURE_USER_INITIALIZE: true
@@ -344,7 +339,12 @@ TAG_EXPIRATION_OPTIONS:
 #DB_URI: postgresql://quayuser:quaypass@quay-postgresql.quay-postgresql.svc:5432/quay
 EOF
 
+# Using minio:
 elif [ "$OBJECTSTORAGE_MANAGED" == "false" ]; then
+    export ACCESS_KEY_ID="minioadmin"
+    export ACCESS_KEY_SECRET="minioadmin"
+    export BUCKET_NAME="quay-bucket"
+    export MINIO_HOST=$(oc get route minio -n minio -o jsonpath='{.spec.host}')
     cat > config.yaml <<EOF
 DISTRIBUTED_STORAGE_CONFIG:
   default:
