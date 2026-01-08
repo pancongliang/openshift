@@ -251,8 +251,6 @@ else
     echo -e "$INFO_MSG Project openshift-storage does not exist"
 fi
 
-sleep 15
-
 # Check if namespace exists
 NAMESPACE="openshift-storage"
 if oc get namespace "$NAMESPACE" >/dev/null 2>&1; then
