@@ -517,7 +517,7 @@ if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     PRINT_TASK "TASK [Quay login information]"
     echo -e "$INFO_MSG Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
     echo -e "$INFO_MSG Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
-    echo -e "\e[33mACTION\e[0m Add DNS Records for Standalone Quay to Allow OCP Access"
+    echo -e "$ACTION_MSG Add DNS Records for Standalone Quay to Allow OCP Access"
     exit 0
 fi
 
@@ -693,7 +693,7 @@ echo
 
 # Step 9:
 PRINT_TASK "TASK [Add DNS Record Entries for Mirror Registry]"
-echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
+echo -e "$ACTION_MSG Add DNS Records for Mirror Registry to Allow OCP Access"
 
 # Add an empty line after the task
 echo
