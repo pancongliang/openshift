@@ -1,20 +1,19 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'printf "\e[31mFAILED\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
+trap 'printf "\e[31mFAIL\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export OCP_VERSION=4.16.26
-export INSTALL_DIR="$HOME/aws-ipi/ocp"
-export SSH_KEY_PATH="$HOME/.ssh"
-export PULL_SECRET_PATH="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-export CLUSTER_NAME="xxxxxx"
-export BASE_DOMAIN="xxxxxx"
-export REGION="ap-northeast-1"
-export AWS_ACCESS_KEY_ID="xxxxxx"
-export AWS_SECRET_ACCESS_KEY="xxxxxx"
+export PULL_SECRET="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export CLUSTER_NAME="xxxxx"
+export BASE_DOMAIN="xxxxx"
+export AWS_ACCESS_KEY_ID="xxxxx"
+export AWS_SECRET_ACCESS_KEY="xxxxx"
 export WORKER_INSTANCE_TYPE='m6a.2xlarge'           # (m6a.4xlarge vcpu: 16 mem:64 / Bare Metal: c5n.metal)https://aws.amazon.com/cn/ec2/instance-types/m6a/
-
+export REGION="ap-northeast-1"
+export SSH_KEY_PATH="$HOME/.ssh"
+export INSTALL_DIR="$HOME/aws-ipi/ocp"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -32,13 +31,18 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         printf "\033[96mINFO\033[0m %s\n" "$1"
     else
-        printf "\033[31mFAILED\033[0m %s\n" "$1"
+        printf "\033[31mFAIL\033[0m %s\n" "$1"
         exit 1
     fi
 }
 
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+NOTE_MSG="\e[33mNOTE\e[0m"
+
 # Step 1:
-PRINT_TASK "TASK [Set up AWS Credentials]"
+PRINT_TASK "TASK [Set up AWS credentials and verify pull-secret]"
 
 # Create AWS credentials
 rm -rf $HOME/.aws >/dev/null 2>&1 || true
@@ -52,6 +56,10 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "Set up aws credentials"
 
+
+cat $PULL_SECRET >/dev/null 2>&1
+run_command "Verify existence of $PULL_SECRET file"
+
 # Add an empty line after the task
 echo
 
@@ -60,10 +68,10 @@ PRINT_TASK "TASK [Install OpenShift Install and Client Tools]"
 
 # Determine the operating system
 OS_TYPE=$(uname -s)
-printf "\e[96mINFO\e[0m Client operating system: $OS_TYPE\n"
+printf "$INFO_MSG Client operating system: $OS_TYPE\n"
 
 ARCH=$(uname -m)
-printf "\e[96mINFO\e[0m Client architecture: $ARCH\n"
+printf "$INFO_MSG Client architecture: $ARCH\n"
 
 # Handle macOS
 if [ "$OS_TYPE" = "Darwin" ]; then
@@ -77,7 +85,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Installer
-    printf "\e[96mINFO\e[0m Downloading the openshift-install tool...\n"
+    printf "$INFO_MSG Downloading the openshift-install tool...\n"
     curl -sL "$download_url" -o "$openshift_install"
     run_command "Download openshift-install"
 
@@ -100,7 +108,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     fi
 
     # Download, install, and clean up OpenShift Client
-    printf "\e[96mINFO\e[0m Downloading the openshift-client tool...\n"
+    printf "$INFO_MSG Downloading the openshift-client tool...\n"
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift-client"
 
@@ -122,7 +130,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
 # Handle Linux
 elif [ "$OS_TYPE" = "Linux" ]; then
     # Download the OpenShift Installer
-    printf "\e[96mINFO\e[0m Downloading the openshift-install tool...\n"
+    printf "$INFO_MSG Downloading the openshift-install tool...\n"
     curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "Download openshift-install tool"
 
@@ -153,7 +161,7 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     fi
 
     # Download the OpenShift client
-    printf "\e[96mINFO\e[0m Downloading the openshift-client tool...\n"
+    printf "$INFO_MSG Downloading the openshift-client tool...\n"
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift client tool"
 
@@ -182,16 +190,16 @@ if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; t
     rm -rf ${SSH_KEY_PATH} 
     mkdir -p ${SSH_KEY_PATH}
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    printf "\e[96mINFO\e[0m Create ssh-key for accessing node\n"
+    printf "$INFO_MSG Create ssh-key for accessing node\n"
 else
-    printf "\e[96mINFO\e[0m SSH key for accessing the node already exists\n"
+    printf "$INFO_MSG SSH key for accessing the node already exists\n"
 fi
 
 sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
 mkdir -p $INSTALL_DIR >/dev/null 2>&1
 run_command "Create install dir: $INSTALL_DIR"
 
-cat << EOF > $INSTALL_DIR/install-config.yaml 
+cat << EOF > $INSTALL_DIR/install-config.yaml >/dev/null 2>&1
 #additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
@@ -225,7 +233,7 @@ platform:
   aws:
     region: $REGION
 publish: External
-pullSecret: '$(cat $PULL_SECRET_PATH)'
+pullSecret: '$(cat $PULL_SECRET)'
 sshKey: |
   $(cat $SSH_KEY_PATH/id_rsa.pub)
 EOF
@@ -284,8 +292,8 @@ run_command "Create oauth htpasswd identityprovider manifests"
 /usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "Installation complete"
 
-printf "\e[96mINFO\e[0m HTPasswd login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443\n"
-printf "\e[96mINFO\e[0m Kubeconfig login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig\n"
+printf "$INFO_MSG HTPasswd login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443\n"
+printf "$INFO_MSG Kubeconfig login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig\n"
 
 # Add an empty line after the task
 echo
