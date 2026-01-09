@@ -4,21 +4,21 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export OCP_VERSION=4.16.29                              # Only supports installation of version 4.14+
-export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"    # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
+export OCP_VERSION=4.18.20                              # Only supports installation of version 4.14+
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
-export VCENTER_USERNAME="xxxxx"
-export VCENTER_PASSWORD="xxxxx"
+export VCENTER_USERNAME="xxxxxx"
+export VCENTER_PASSWORD="xxxxxx"
+export PULL_SECRET="$HOME/ocp-inst/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
-export MACHINE_NETWORK_CIDR="10.184.134.0/24"
-export MACHINE_NETWORK_STARTIP="41"
-export MACHINE_NETWORK_ENDIP="230"
-export GATEWAY="10.184.134.1"
-export NAMESERVER="10.184.134.30"                      # The nameserver needs to be able to resolve the vCenter URL
-export NETMASK="24"
+export MACHINE_NET_CIDR="10.184.134.0/24"
+export MACHINE_NET_START_IP="41"
+export MACHINE_NET_END_IP="230"
+export MACHINE_NET_GATEWAY="10.184.134.1"
+export MACHINE_NET_DNS="10.184.134.30"                  # The nameserver needs to be able to resolve the vCenter URL
+export MACHINE_NET_PREFIX="24"
 
 export WORKER_REPLICAS="2"
 export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $WORKER_CORES_PER_SOCKET
@@ -42,8 +42,8 @@ export VM_NETWORKS="cee-vlan-1167"
 
 # Automatically find unused IP addresses and assign them to nodes
 CP=(); WK=(); BOOT=""
-ip_prefix=$(echo "$MACHINE_NETWORK_CIDR" | cut -d'.' -f1-3)
-for i in $(seq $MACHINE_NETWORK_STARTIP $MACHINE_NETWORK_ENDIP); do
+ip_prefix=$(echo "$MACHINE_NET_CIDR" | cut -d'.' -f1-3)
+for i in $(seq $MACHINE_NET_START_IP $MACHINE_NET_END_IP); do
     ip="${ip_prefix}.$i"
     ping -c1 -W0.2 $ip &>/dev/null && continue
     [ ${#CP[@]} -lt 3 ] && { CP+=("$ip"); continue; }
@@ -242,7 +242,7 @@ networking:
   - cidr: 10.128.0.0/14
     hostPrefix: 23
   machineNetwork:
-  - cidr: "$MACHINE_NETWORK_CIDR"
+  - cidr: "$MACHINE_NET_CIDR"
   networkType: $NETWORK_TYPE
   serviceNetwork:
   - 172.30.0.0/16
@@ -256,10 +256,10 @@ platform:
     - role: bootstrap
       networkDevice:
         ipAddrs:
-        - ${BOOTSTRAP_IP}/${NETMASK}
-        gateway: ${GATEWAY}
+        - ${BOOTSTRAP_IP}/${MACHINE_NET_PREFIX}
+        gateway: ${MACHINE_NET_GATEWAY}
         nameservers:
-        - ${NAMESERVER}
+        - ${MACHINE_NET_DNS}
 EOF
 run_command "Create initial $INSTALL_DIR/install-config.yaml"
 
@@ -269,10 +269,10 @@ cat << EOF >> $INSTALL_DIR/install-config.yaml
     - role: control-plane
       networkDevice:
         ipAddrs:
-        - ${ip}/${NETMASK}
-        gateway: ${GATEWAY}
+        - ${ip}/${MACHINE_NET_PREFIX}
+        gateway: ${MACHINE_NET_GATEWAY}
         nameservers:
-        - ${NAMESERVER}
+        - ${MACHINE_NET_DNS}
 EOF
 done
 run_command "Append control-plane nodes $INSTALL_DIR/install-config.yaml"
@@ -282,10 +282,10 @@ cat << EOF >> $INSTALL_DIR/install-config.yaml
     - role: compute
       networkDevice:
         ipAddrs:
-        - ${ip}/${NETMASK}
-        gateway: ${GATEWAY}
+        - ${ip}/${MACHINE_NET_PREFIX}
+        gateway: ${MACHINE_NET_GATEWAY}
         nameservers:
-        - ${NAMESERVER}
+        - ${MACHINE_NET_DNS}
 EOF
 done
 run_command "Append compute nodes $INSTALL_DIR/install-config.yaml"
@@ -310,9 +310,9 @@ cat << EOF >> $INSTALL_DIR/install-config.yaml
       password: "$VCENTER_PASSWORD"
       port: 443
       server: $VCENTER
-      user: "$VCENTER_USERNAME"
+      user: "$VCENTER_ID"
 publish: External
-pullSecret: '$(cat $PULL_SECRET_PATH)'
+pullSecret: '$(cat $PULL_SECRET)'
 sshKey: |
   $(cat $SSH_KEY_PATH/id_rsa.pub)
 EOF
