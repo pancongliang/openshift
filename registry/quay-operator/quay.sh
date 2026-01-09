@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Default storage class name
 # oc patch storageclass <SC_NAME> -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
@@ -34,20 +34,25 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
+
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 # Step 0:
 PRINT_TASK "TASK [Uninstall old quay resources]"
 
 # Delete custom resources
 if oc get quayregistry example-registry -n "$NAMESPACE" >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m Deleting QuayRegistry example-registry..."
+    echo -e "$INFO_MSG Deleting QuayRegistry example-registry..."
     oc delete quayregistry example-registry -n "$NAMESPACE" >/dev/null 2>&1
 else
-    echo -e "\e[96mINFO\e[0m QuayRegistry does not exist"
+    echo -e "$INFO_MSG QuayRegistry does not exist"
 fi
 
 oc delete secret quay-config -n $NAMESPACE >/dev/null 2>&1 || true
@@ -59,15 +64,15 @@ timeout 2s oc delete pvc -n $NAMESPACE --all --force >/dev/null 2>&1 || true
 
 
 if oc get ns $NAMESPACE >/dev/null 2>&1; then
-   echo -e "\e[96mINFO\e[0m Deleting quay operator..."
-   echo -e "\e[96mINFO\e[0m Deleting $NAMESPACE project..."
+   echo -e "$INFO_MSG Deleting quay operator..."
+   echo -e "$INFO_MSG Deleting $NAMESPACE project..."
    oc delete ns $NAMESPACE >/dev/null 2>&1
 else
-   echo -e "\e[96mINFO\e[0m The $NAMESPACE project does not exist"
+   echo -e "$INFO_MSG The $NAMESPACE project does not exist"
 fi
 
 if oc get ns quay-postgresql >/dev/null 2>&1; then
-   echo -e "\e[96mINFO\e[0m Deleting quay-postgresql project..."
+   echo -e "$INFO_MSG Deleting quay-postgresql project..."
    oc delete ns quay-postgresql >/dev/null 2>&1 || true
 fi
 
@@ -80,10 +85,10 @@ PRINT_TASK "TASK [Check the default storage class]"
 # Check if Default StorageClass exists
 DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
-    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
+    echo -e "$FAIL_MSG No default StorageClass found!"
     exit 1
 else
-    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+    echo -e "$INFO_MSG Default StorageClass found: $DEFAULT_STORAGE_CLASS"
 fi
 
 # Add an empty line after the task
@@ -118,7 +123,7 @@ if [[ "$OBJECTSTORAGE_MANAGED" == "false" ]]; then
     # Determine whether to perform deployment
     if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]] && [[ "$BUCKET_EXISTS" == true ]]; then
         PRINT_TASK "TASK [Deploying Minio Object Storage]"
-        echo -e "\e[96mINFO\e[0m Minio already exists and bucket exists, skipping deployment"
+        echo -e "$INFO_MSG Minio already exists and bucket exists, skipping deployment"
         # Add an empty line after the task
         echo
     else
@@ -171,7 +176,7 @@ while true; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
 
         # Overwrite previous INFO line with final approved message
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s%*s\n" \
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s%*s\n" \
                "$NAME" "$OPERATOR_NS" $((LINE_WIDTH - ${#NAME} - ${#OPERATOR_NS} - 34)) ""
 
         break
@@ -180,10 +185,10 @@ while true; do
     # Spinner logic
     CHAR=${SPINNER[$((retry_count % ${#SPINNER[@]}))]}
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # Sleep and increment retry count
@@ -192,7 +197,7 @@ while true; do
 
     # Timeout handling
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace has no unapproved install plans%*s\n" \
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
     fi
@@ -210,7 +215,7 @@ while true; do
     # Loop through and approve each InstallPlan
     for NAME in $INSTALLPLAN; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
     sleep "$SLEEP_INTERVAL"
@@ -250,10 +255,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -264,10 +269,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -275,7 +280,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -339,10 +344,10 @@ if [[ "$INTERNAL_POSTGRESQL" == "false" ]]; then
         if $is_ready; then
             # Successfully running
             if $progress_started; then
-                printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+                printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                        "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
             else
-                echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+                echo -e "$INFO_MSG The $pod_name pods are Running"
             fi
             break
         else
@@ -353,10 +358,10 @@ if [[ "$INTERNAL_POSTGRESQL" == "false" ]]; then
             [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
     
             if ! $progress_started; then
-                printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+                printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
                 progress_started=true
             else
-                printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+                printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
             fi
     
             # 4. Retry management
@@ -364,7 +369,7 @@ if [[ "$INTERNAL_POSTGRESQL" == "false" ]]; then
             retry_count=$((retry_count + 1))
     
             if [[ $retry_count -ge $MAX_RETRIES ]]; then
-                printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+                printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                        "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
                 exit 1
             fi
@@ -531,10 +536,10 @@ while true; do
         if [[ -z "$not_ready_exists" ]]; then
             # SUCCESS: Pods exist AND all of them are ready
             if $progress_started; then
-                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                printf "\r$INFO_MSG All %s namespace pods are Running%*s\n" \
                        "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
             else
-                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+                echo -e "$INFO_MSG All $namespace namespace pods are Running"
             fi
             break
         fi
@@ -548,10 +553,10 @@ while true; do
     [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
 
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # 4. Handle timeout and retry
@@ -559,7 +564,7 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
@@ -584,9 +589,9 @@ while true; do
     # If HTTP code is 2xx/3xx/4xx, the API is considered available
     if [[ "$HTTP_CODE" =~ ^2|3|4$ ]]; then
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m Quay API is available%*s\n" $((LINE_WIDTH - 22)) ""
+            printf "\r$INFO_MSG Quay API is available%*s\n" $((LINE_WIDTH - 22)) ""
         else
-            echo -e "\e[96mINFO\e[0m Quay API is available"
+            echo -e "$INFO_MSG Quay API is available"
         fi
         break
     fi
@@ -595,10 +600,10 @@ while true; do
     CHAR=${SPINNER[$((retry_count % 4))]}
     MSG="Waiting for Quay API to be available..."
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # Sleep for the defined interval and increment retry count
@@ -607,7 +612,7 @@ while true; do
 
     # Timeout handling
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m Quay API did not become available%*s\n" $((LINE_WIDTH - 36)) ""
+        printf "\r$FAIL_MSG Quay API did not become available%*s\n" $((LINE_WIDTH - 36)) ""
         exit 1
     fi
 done
@@ -622,8 +627,8 @@ run_command "Using the API to create the first user"
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo 
     PRINT_TASK "TASK [Quay login information]"
-    echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST"
-    echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
+    echo -e "$INFO_MSG Quay Console: https://$QUAY_HOST"
+    echo -e "$INFO_MSG Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
     exit 0
 fi
 
@@ -714,7 +719,7 @@ cat <<EOF > $AUTHFILE
 }
 EOF
 fi
-echo -e "\e[96mINFO\e[0m Authentication information for quay registry added to $AUTHFILE"
+echo -e "$INFO_MSG Authentication information for quay registry added to $AUTHFILE"
 
 # Update pull-secret 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=tmp-pull-secret >/dev/null 2>&1
@@ -744,25 +749,25 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
+            printf "$INFO_MSG Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
+            printf "\r$INFO_MSG Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
         fi
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
         # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m MachineConfigPools not Ready%*s\n" $((LINE_WIDTH - 20)) ""
+            printf "\r$FAIL_MSG MachineConfigPools not Ready%*s\n" $((LINE_WIDTH - 20)) ""
             exit 1
         fi
     else
         # All MCPs are Ready
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+            printf "\r$INFO_MSG All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         else
-            printf "\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+            printf "$INFO_MSG All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         fi
         break
     fi
@@ -783,25 +788,25 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            printf "$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            printf "\r$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
         fi
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
         # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
+            printf "\r$FAIL_MSG Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
             exit 1
         fi
     else
         # All Cluster Operators are Ready
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+            printf "\r$INFO_MSG All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         else
-            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+            printf "$INFO_MSG All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         fi
         break
     fi
@@ -812,8 +817,8 @@ echo
 
 # Step 7:
 PRINT_TASK "TASK [Quay login information]"
-echo -e "\e[96mINFO\e[0m Quay console: https://$QUAY_HOST"
-echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
+echo -e "$INFO_MSG Quay console: https://$QUAY_HOST"
+echo -e "$INFO_MSG Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
 
 # Add an empty line after the task
 echo
