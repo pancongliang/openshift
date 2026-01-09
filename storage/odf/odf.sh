@@ -1,11 +1,11 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Define the device pattern to search for
 # Ensure the OCP cluster has at least three worker nodes, each with at least one 100GB disk.
-export DISK_KNAME_PATTERN="sd[b-z]"
+export DISK_KNAME_PATTERN="sd[a-z]"
 export ODF_DISK_SIZE="100Gi"         # At least 100GB of disk space, By default, it will format the non-root disk and reference the second disk (sd*).
 export ODF_NODES="worker01.ocp.example.com worker02.ocp.example.com worker03.ocp.example.com"
 
@@ -16,7 +16,7 @@ export CATALOG_SOURCE_NAME="redhat-operators"
 # Whether to create OBC and its object storage secret
 export CREATE_OBC_AND_CREDENTIALS="false"                      # true or false
 export OBC_NAMESPACE="test" 
-export OBC_NAME="test"
+export OBC_NAME="obc-example"
 export OBC_STORAGECLASS_S3="openshift-storage.noobaa.io"      # openshift-storage.noobaa.io or ocs-storagecluster-ceph-rgw
 
 # Set the label variable
@@ -40,7 +40,7 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
@@ -48,7 +48,6 @@ run_command() {
 # Define color output variables
 INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
-MSG_WARN="\e[33mWARN\e[0m"
 WARN_MSG="\e[33mWARN\e[0m"
 
 # Step 0:
@@ -90,12 +89,10 @@ force_delete_resource() {
     local type=$1
     local namespace=$2
     local name=$3
-
-    echo -e "$INFO_MSG Attempting to delete $type $namespace/$name"
-    
+   
     # 1. Attempt normal deletion with a 3-second timeout
     if timeout 3s oc delete $type $name -n $namespace >/dev/null 2>&1; then
-        echo -e "$INFO_MSG $type $namespace/$name deleted successfully"
+        echo -e "$INFO_MSG Delete the $type named $name in the $namespace"
         return 0
     fi
 
@@ -107,6 +104,7 @@ force_delete_resource() {
     # 3. Force delete the resource immediately
     # echo -e "$INFO_MSG Force deleting $type $namespace/$name"
     timeout 3s oc delete $type $name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
+    echo -e "$INFO_MSG Delete the $type named $name in the $namespace"
 }
 
 # Process PVCs 
@@ -197,10 +195,10 @@ timeout 2s oc delete sc ocs-storagecluster-ceph-rbd ocs-storagecluster-ceph-rbd-
 for Hostname in $(oc get nodes -l $ODF_NODES_LABEL= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
     ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$Hostname "
         if [ -d /var/lib/rook ] && [ \"\$(ls -A /var/lib/rook  2>/dev/null)\" ]; then
-            echo -e \"\e[96mINFO\e[0m Node $Hostname delete /var/lib/rook files\"
+            echo -e \"$INFO_MSG Node $Hostname delete /var/lib/rook files\"
             sudo rm -rf /var/lib/rook
         #else
-        #    echo -e \"\e[96mINFO\e[0m Node $Hostname /var/lib/rook not exist or empty, skip\"
+        #    echo -e \"$INFO_MSG Node $Hostname /var/lib/rook not exist or empty, skip\"
         fi
     "
 done
@@ -301,7 +299,7 @@ done
 #    while oc get namespace "$NAMESPACE" >/dev/null 2>&1; do
 #        sleep 1
 #    done
-#    echo -e "\e[96mINFO\e[0m Namespace '$NAMESPACE' terminated and deleted successfully"
+#    echo -e "$INFO_MSG Namespace '$NAMESPACE' terminated and deleted successfully"
 #fi
 
 # Delete crd
@@ -354,24 +352,24 @@ oc get pv | grep local | awk '{print $1}' | xargs -I {} oc patch pv {} -p '{"met
 oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {} >/dev/null 2>&1 || true
 
 if oc get sc local-sc >/dev/null 2>&1; then
-   echo -e "\e[96mINFO\e[0m Deleting local-sc storageclasse..."
+   echo -e "$INFO_MSG Deleting local-sc storageclasse..."
    oc delete sc local-sc >/dev/null 2>&1 || true
 #else
-#  echo -e "\e[96mINFO\e[0m The local-sc storageclasse does not exist"
+#  echo -e "$INFO_MSG The local-sc storageclasse does not exist"
 fi
 
 if oc get sub local-storage-operator -n openshift-local-storage >/dev/null 2>&1 || true; then
-   echo -e "\e[96mINFO\e[0m Deleting local-storage-operator subscription..."
+   echo -e "$INFO_MSG Deleting local-storage-operator subscription..."
    oc delete sub local-storage-operator -n openshift-local-storage >/dev/null 2>&1 || true
 else
-   echo -e "\e[96mINFO\e[0m The local-storage-operator subscription does not exist"
+   echo -e "$INFO_MSG The local-storage-operator subscription does not exist"
 fi
 
 if oc get ns openshift-local-storage >/dev/null 2>&1 || true; then
-   echo -e "\e[96mINFO\e[0m Deleting openshift-local-storage namespace..."
+   echo -e "$INFO_MSG Deleting openshift-local-storage namespace..."
    oc delete ns openshift-local-storage >/dev/null 2>&1 || true
 else
-   echo -e "\e[96mINFO\e[0m The openshift-local-storage namespace does not exist"
+   echo -e "$INFO_MSG The openshift-local-storage namespace does not exist"
 fi
 
 # Clean up local storage (Only prints if files were deleted)
@@ -379,19 +377,19 @@ for Hostname in $(oc get nodes -l $LSO_NODES_LABEL= -o jsonpath='{.items[*].stat
 
   ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$Hostname "
     if [ -d /mnt/local-storage ] && [ \"\$(ls -A /mnt/local-storage 2>/dev/null)\" ]; then
-      echo -e \"\e[96mINFO\e[0m Node $Hostname delete /mnt/local-storage files\"
+      echo -e \"$INFO_MSG Node $Hostname delete /mnt/local-storage files\"
       sudo rm -rf /mnt/local-storage
     #else
-    #  echo -e \"\e[96mINFO\e[0m Node $Hostname /mnt/local-storage not exist or empty, skip\"
+    #  echo -e \"$INFO_MSG Node $Hostname /mnt/local-storage not exist or empty, skip\"
     fi
   "
 done
 
 # 3. Disk Wiping Logic
-# 0. Add the LSO label to the worker node
+# Add the LSO label to the worker node
 for n in $LSO_NODES; do oc label node "$n" "$LSO_NODES_LABEL=" --overwrite >/dev/null 2>&1 || true; done
 
-# 1. Extract numeric value for size matching
+# Extract numeric value for size matching
 TARGET_NUM=$(echo "$ODF_DISK_SIZE" | sed 's/[^0-9]//g')
 MIN_GIB=$((TARGET_NUM - 5))
 MAX_GIB=$((TARGET_NUM + 5))
@@ -399,7 +397,7 @@ NODES=$(oc get nodes -l "$LSO_NODES_LABEL" -o jsonpath='{.items[*].metadata.name
 
 echo -e "$INFO_MSG Starting exhaustive disk wipe process on ODF nodes..."
 
-# 2. Execution Loop
+# Execution Loop
 for node in $NODES; do
     # Define node display name early
     WIPE_RESULT=$(ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$node "sudo bash -s $MIN_GIB $MAX_GIB $DISK_KNAME_PATTERN" << 'EOF'
@@ -450,7 +448,7 @@ for node in $NODES; do
 EOF
 ) || true 
 
-    # 3. Format result display
+    # Format result display
     if [[ "$WIPE_RESULT" == *"RESULT_SUCCESS"* ]]; then
         # Extract disk name (e.g., sdc)
         DISK_NAME=$(echo "$WIPE_RESULT" | grep "RESULT_SUCCESS" | awk '{print $2}')
@@ -529,7 +527,7 @@ EOF
 NODES=$(oc get nodes -l "$LSO_NODES_LABEL" -o=jsonpath='{.items[*].metadata.name}')
 COUNTER=1
 
-echo -e "$INFO_MSG Starting discovery for unused disks matching pattern: '$DISK_KNAME_PATTERN'"
+echo -e "$INFO_MSG Starting discovery for unused disks matching pattern: $DISK_KNAME_PATTERN"
 
 for node in $NODES; do
     # Execute discovery script on remote nodes via SSH
@@ -631,7 +629,7 @@ while true; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
 
         # Overwrite previous INFO line with final approved message
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s%*s\n" \
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s%*s\n" \
                "$NAME" "$OPERATOR_NS" $((LINE_WIDTH - ${#NAME} - ${#OPERATOR_NS} - 34)) ""
 
         break
@@ -640,10 +638,10 @@ while true; do
     # Spinner logic
     CHAR=${SPINNER[$((retry_count % ${#SPINNER[@]}))]}
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # Sleep and increment retry count
@@ -652,7 +650,7 @@ while true; do
 
     # Timeout handling
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace has no unapproved install plans%*s\n" \
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
     fi
@@ -670,7 +668,7 @@ while true; do
     # Loop through and approve each InstallPlan
     for NAME in $INSTALLPLAN; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
     sleep "$SLEEP_INTERVAL"
@@ -708,10 +706,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -722,10 +720,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -733,7 +731,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -800,10 +798,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -814,10 +812,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -825,7 +823,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -846,8 +844,6 @@ SPINNER=('/' '-' '\' '|')              # Spinner animation characters
 retry_count=0                          # Number of status check attempts
 progress_started=false                 # Tracks whether the spinner/progress line has been started
 MIN_PV_COUNT=$SECOND_DISK_NODE_COUNT   # Expected number of Local PVs
-INFO_MSG="\e[96mINFO\e[0m"
-FAIL_MSG="\e[31mFAILED\e[0m"
 
 while true; do
     # Get Local PVs
@@ -952,7 +948,7 @@ while true; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
 
         # Overwrite previous INFO line with final approved message
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s%*s\n" \
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s%*s\n" \
                "$NAME" "$OPERATOR_NS" $((LINE_WIDTH - ${#NAME} - ${#OPERATOR_NS} - 34)) ""
 
         break
@@ -961,10 +957,10 @@ while true; do
     # Spinner logic
     CHAR=${SPINNER[$((retry_count % ${#SPINNER[@]}))]}
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # Sleep and increment retry count
@@ -973,7 +969,7 @@ while true; do
 
     # Timeout handling
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace has no unapproved install plans%*s\n" \
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
     fi
@@ -991,7 +987,7 @@ while true; do
     # Loop through and approve each InstallPlan
     for NAME in $INSTALLPLAN; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
     sleep "$SLEEP_INTERVAL"
@@ -1029,10 +1025,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -1043,10 +1039,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -1054,7 +1050,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -1120,67 +1116,6 @@ run_command "Create the StorageCluster resource..."
 
 sleep 10
 
-# Wait for $namespace namespace pods to be in 'Running' state
-MAX_RETRIES=180              # Maximum number of retries
-SLEEP_INTERVAL=5             # Sleep interval in seconds
-LINE_WIDTH=120               # Control line width
-SPINNER=('/' '-' '\' '|')    # Spinner animation characters
-retry_count=0                # Number of status check attempts
-progress_started=false       # Tracks whether the spinner/progress line has been started
-namespace=openshift-storage
-
-# Main loop
-while true; do
-    # 1. Check Deployments
-    # READY column format: x/y  -> x must equal y
-    DEPLOY_NOT_READY=$(oc -n "$namespace" get deploy --no-headers 2>/dev/null | \
-    awk '{
-        split($2, a, "/");
-        if (a[1] != a[2]) print
-    }' || true)
-
-    # 2. Check DaemonSets
-    # DESIRED == READY
-    DS_NOT_READY=$(oc -n "$namespace" get ds --no-headers 2>/dev/null | \
-    awk '$2 != $4 {print}' || true)
-
-    # 3. Success condition
-    if [[ -z "$DEPLOY_NOT_READY" && -z "$DS_NOT_READY" ]]; then
-        if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All Deployments and DaemonSets in %s are Ready%*s\n" \
-                   "$namespace" $((LINE_WIDTH - ${#namespace} - 47)) ""
-        else
-            echo -e "\e[96mINFO\e[0m All Deployments and DaemonSets in $namespace are Ready"
-        fi
-        break
-    fi
-
-    # 4. Spinner / progress output
-    CHAR=${SPINNER[$((retry_count % 4))]}
-    MSG="Waiting for Deployments and DaemonSets in $namespace to be Ready..."
-
-    if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
-        progress_started=true
-    else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
-    fi
-
-    # 5. Retry & timeout handling
-    sleep "$SLEEP_INTERVAL"
-    retry_count=$((retry_count + 1))
-
-    if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m Deployments or DaemonSets in %s are not Ready%*s\n" \
-               "$namespace" $((LINE_WIDTH - ${#namespace} - 55)) ""
-
-        [[ -n "$DEPLOY_NOT_READY" ]] && echo "$DEPLOY_NOT_READY" || echo "None"
-
-        [[ -n "$DS_NOT_READY" ]] && echo "$DS_NOT_READY" || echo "None"
-        exit 1
-    fi
-done
-
 # Wait for $pod_name pods to be in Running state
 MAX_RETRIES=900                # Maximum number of retries
 SLEEP_INTERVAL=2               # Sleep interval in seconds
@@ -1213,10 +1148,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -1227,10 +1162,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -1238,12 +1173,14 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
     fi
 done
+
+sleep 10
 
 # Wait for $namespace namespace pods to be in 'Running' state
 MAX_RETRIES=150              # Maximum number of retries
@@ -1266,10 +1203,10 @@ while true; do
         if [[ -z "$not_ready_exists" ]]; then
             # SUCCESS: Pods exist AND all of them are ready
             if $progress_started; then
-                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                printf "\r$INFO_MSG All %s namespace pods are Running%*s\n" \
                        "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
             else
-                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+                echo -e "$INFO_MSG All $namespace namespace pods are Running"
             fi
             break
         fi
@@ -1283,10 +1220,10 @@ while true; do
     [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
 
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # 4. Handle timeout and retry
@@ -1294,13 +1231,13 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
 done
 
-echo -e "\e[96mINFO\e[0m Wait until all Pods in the openshift-storage namespace are running"
+echo -e "$INFO_MSG Wait until all Pods in the openshift-storage namespace are running"
 
 # Waiting for StorageClasses to be created
 MAX_RETRIES=300               # Maximum number of retries
@@ -1311,13 +1248,13 @@ progress_started=false        # Tracks whether the progress line has been starte
 
 # Define the list of required StorageClasses
 REQUIRED_SC=(
-    "ocs-storagecluster-ceph-rbd1"
+    "ocs-storagecluster-ceph-rbd"
     "ocs-storagecluster-ceph-rgw"
     "ocs-storagecluster-cephfs"
     "openshift-storage.noobaa.io"
 )
 
-echo -e "\e[96mINFO\e[0m Starting verification for ODF StorageClasses..."
+echo -e "$INFO_MSG Starting verification for ODF StorageClasses..."
 
 # Loop to wait until all specified StorageClasses are present in the cluster
 while true; do
@@ -1338,7 +1275,7 @@ while true; do
         # Clean up the spinner line and print the final success message
         printf "\r"    # Move cursor to the beginning of the line
         tput el        # Clear the entire line
-        echo -e "\e[96mINFO\e[0m All ODF StorageClasses have been created successfully"
+        echo -e "$INFO_MSG All ODF StorageClasses have been created successfully"
         break
     else
         # Calculate progress (Total minus Missing)
@@ -1346,7 +1283,7 @@ while true; do
         total_count=${#REQUIRED_SC[@]}
 
         # Display dynamic progress and spinner on a single line
-        printf "\r\e[96mINFO\e[0m Waiting for ODF StorageClasses to be ready (%d/%d) %s" \
+        printf "\r$INFO_MSG Waiting for ODF StorageClasses to be ready (%d/%d) %s" \
                "$ready_count" "$total_count" "$CHAR"
         tput el        # Clear to the end of the line
     fi
@@ -1358,7 +1295,7 @@ while true; do
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
         printf "\r"    # Reset line for the error message
         tput el        # Clear the line
-        echo -e "\e[31mFAILED\e[0m Reached max retries. Missing StorageClasses: ${missing_sc[*]}"
+        echo -e "$FAIL_MSG Reached max retries. Missing StorageClasses: ${missing_sc[*]}"
         exit 1
     fi
 done
@@ -1405,9 +1342,9 @@ metadata:
     openshift.io/node-selector: ""
 spec: {}
 EOF
-    echo -e "\e[96mINFO\e[0m Namespace ${OBC_NAMESPACE} created"
+    echo -e "$INFO_MSG Namespace ${OBC_NAMESPACE} created"
 else
-    echo -e "\e[96mINFO\e[0m Namespace ${OBC_NAMESPACE} already exists"
+    echo -e "$INFO_MSG Namespace ${OBC_NAMESPACE} already exists"
 fi
 
 # Create an ObjectBucketClaim named ${OBC_NAME}
@@ -1430,7 +1367,7 @@ spec:
   objectBucketName: obc-${OBC_NAMESPACE}-${OBC_NAME}
   storageClassName: ${OBC_STORAGECLASS_S3}
 EOF
-run_command "Create an ObjectBucketClaim named ${OBC_NAME}"
+run_command "Created ObjectBucketClaim ${OBC_NAME} in namespace ${OBC_NAMESPACE}"
 
 # Waiting for configmap to be created
 MAX_RETRIES=180              # Maximum number of retries
@@ -1452,7 +1389,7 @@ while true; do
         # Overwrite the spinner line before printing the final message
         printf "\r"    # Move cursor to the beginning of the line
         tput el        # Clear the entire line
-        echo -e "\e[96mINFO\e[0m The configmap '$CONFIGMAP_NAME' has been created"
+        echo -e "$INFO_MSG Created ConfigMap '$CONFIGMAP_NAME' in namespace ${OBC_NAMESPACE}"
         break
     else
         # Print the waiting message only once
@@ -1461,7 +1398,7 @@ while true; do
         fi
 
         # Display spinner on the same line
-        printf "\r\e[96mINFO\e[0m Waiting for configmap '%s' to be created %s" "$CONFIGMAP_NAME" "$CHAR"
+        printf "\r$INFO_MSG Waiting for configmap '%s' to be created %s" $CONFIGMAP_NAME "$CHAR"
         tput el  # Clear to the end of the line
     fi
 
@@ -1472,7 +1409,7 @@ while true; do
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
         printf "\r"  # Move to the beginning of the line
         tput el      # Clear the entire line
-        echo -e "\e[31mFAILED\e[0m Reached max retries, configmap '$CONFIGMAP_NAME' was not created"
+        echo -e "$FAIL_MSG Reached max retries, configmap $CONFIGMAP_NAME was not created"
         exit 1
     fi
 done
@@ -1492,4 +1429,4 @@ oc create -n ${OBC_NAMESPACE} secret generic ${OBC_NAME}-obc-credentials \
    --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
    --from-literal=bucketnames="${BUCKET_NAME}" \
    --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}" >/dev/null 2>&1
-run_command "Object storage secret '${OBC_NAME}-credentials' created in ${OBC_NAMESPACE}"
+run_command "Created Secret ${OBC_NAME}-credentials in namespace ${OBC_NAMESPACE}"
