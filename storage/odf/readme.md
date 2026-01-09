@@ -48,5 +48,5 @@
 
 ### Reference Documentation
 -  Install Red Hat OpenShift Data Foundation 4.X in [internal-attached mode](https://access.redhat.com/articles/5692201) using command line interface
-
+-  Deploying [ODF CLI](https://openshift.blog/docs/openshift/ops/storage/odf-deploy-cli/)
 -  Install Red Hat OpenShift Data Foundation 4.X in [internal mode](https://access.redhat.com/articles/5683981) using command line interface
