@@ -4,17 +4,16 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export OCP_VERSION=4.16.21                                     # Only supports installation of version 4.10+
-export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
+export OCP_VERSION=4.16.21                               # Only supports installation of version 4.10+
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxxxx"
 export VCENTER_PASSWORD="xxxxx"
+export PULL_SECRET="$HOME/ocp-inst/pull-secret"          # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
-export MACHINE_NETWORK_CIDR="10.184.134.0/24"
-export NETWORK_TYPE="OVNKubernetes"
+export MACHINE_NET_CIDR="10.184.134.0/24"
 
 export WORKER_REPLICAS="2"
 export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $WORKER_CORES_PER_SOCKET
@@ -27,6 +26,7 @@ export CONTROL_PLANE_DISK_SIZE="100"
 export WORKER_CORES_PER_SOCKET="4"
 export CONTROL_PLANE_CORES_PER_SOCKET="4"
 
+export NETWORK_TYPE="OVNKubernetes"
 export SSH_KEY_PATH="$HOME/.ssh"
 export VCENTER="vcenter.cee.ibmc.devcluster.openshift.com"
 export DATACENTERS="ceedatacenter"
@@ -214,7 +214,7 @@ networking:
   - cidr: 10.128.0.0/14
     hostPrefix: 23
   machineNetwork:
-  - cidr: "$MACHINE_NETWORK_CIDR"
+  - cidr: "$MACHINE_NET_CIDR"
   networkType: $NETWORK_TYPE
   serviceNetwork:
   - 172.30.0.0/16
@@ -244,7 +244,7 @@ platform:
       server: $VCENTER
       user: "$VCENTER_USERNAME"
 publish: External
-pullSecret: '$(cat $PULL_SECRET_PATH)'
+pullSecret: '$(cat $PULL_SECRET)'
 sshKey: |
   $(cat $SSH_KEY_PATH/id_rsa.pub)
 EOF
@@ -285,7 +285,7 @@ networking:
   - cidr: 10.128.0.0/14
     hostPrefix: 23
   machineNetwork:
-  - cidr: "$MACHINE_NETWORK_CIDR"
+  - cidr: "$MACHINE_NET_CIDR"
   networkType: $NETWORK_TYPE
   serviceNetwork:
   - 172.30.0.0/16
@@ -301,7 +301,7 @@ platform:
     username: "$VCENTER_USERNAME"
     vCenter: $VCENTER
 publish: External
-pullSecret: '$(cat $PULL_SECRET_PATH)'
+pullSecret: '$(cat $PULL_SECRET)'
 sshKey: |
   $(cat $SSH_KEY_PATH/id_rsa.pub)
 EOF
