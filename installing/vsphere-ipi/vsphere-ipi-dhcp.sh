@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export OCP_VERSION=4.16.21                               # Only supports installation of version 4.10+
+export OCP_VERSION=4.18.20                               # Only supports installation of version 4.10+
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxxxx"
