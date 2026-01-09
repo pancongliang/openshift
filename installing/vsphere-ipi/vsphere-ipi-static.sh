@@ -51,6 +51,7 @@ for i in $(seq $MACHINE_NET_START_IP $MACHINE_NET_END_IP); do
     [ -z "$BOOT" ] && { BOOT="$ip"; }
     [ ${#CP[@]} -eq 3 ] && [ ${#WK[@]} -eq $WORKER_REPLICAS ] && [ -n "$BOOT" ] && break
 done
+
 export CONTROL_PLANE_IPS=(${CP[@]})
 export WORKER_IPS=(${WK[@]})
 export BOOTSTRAP_IP="$BOOT"
