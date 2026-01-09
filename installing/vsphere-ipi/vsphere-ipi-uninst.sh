@@ -28,6 +28,11 @@ run_command() {
     fi
 }
 
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
+
 PRINT_TASK "TASK [Uninstalling a cluster]"
-echo -e "\e[96mINFO\e[0m Starting the OpenShift cluster uninstallation..."
+echo -e "$INFO_MSG Starting the OpenShift cluster uninstallation..."
 /usr/local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
