@@ -266,6 +266,10 @@ timeout 2s oc delete pods --all -n openshift-storage --force --grace-period=0 >/
 oc patch ns "$NAMESPACE" --type=merge -p '{"spec":{"finalizers":null}}' >/dev/null 2>&1 || true
 timeout 2s oc delete ns "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
 
+# Remove lable
+oc get nodes -l 'node-role.kubernetes.io/worker' -o name \
+  | xargs -I {} oc label {} cluster.ocs.openshift.io/openshift-storage- >/dev/null 2>&1 || true
+
 # Check if namespace exists
 #NAMESPACE="openshift-storage"
 #if oc get namespace "$NAMESPACE" >/dev/null 2>&1; then
@@ -336,6 +340,7 @@ do
   oc patch crd "$crd" --type=merge -p '{"metadata":{"finalizers":[]}}' >/dev/null 2>&1 || true
 done
 
+# Delete lso
 # Delete local volume and pv, sc
 (oc get localvolumes -n openshift-local-storage -o name 2>/dev/null | xargs -r -I {} oc -n openshift-local-storage delete {} 2>/dev/null) >/dev/null 2>&1 || true
 (oc get localvolume -n openshift-local-storage -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | xargs -r -I {} oc patch localvolume {} -n openshift-local-storage --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null) >/dev/null 2>&1 || true
@@ -409,6 +414,9 @@ for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= \
   "
 done
 
+# Remove lable
+oc get nodes -l 'node-role.kubernetes.io/worker' -o name \
+  | xargs -I {} oc label {} local.storage.openshift.io/openshift-local-storage- >/dev/null 2>&1 || true
 
 # Add an empty line after the task
 echo
