@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Default storage class name
 # oc patch storageclass <SC_NAME> -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
@@ -33,16 +33,21 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
+
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 PRINT_TASK "TASK [Deploying Minio Object Storage]"
 
 # Delete minio project
 if oc get project minio >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m Deleting minio project..."
+    echo -e "$INFO_MSG Deleting minio project..."
     oc delete project minio >/dev/null 2>&1
 fi
 
@@ -52,10 +57,10 @@ oc get pv -o json | jq -r '.items[] | select(.spec.claimRef.namespace=="minio") 
 # Check if Default StorageClass exists
 DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
-    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
+    echo -e "$FAIL_MSG No default StorageClass found!"
     exit 1
 else
-    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+    echo -e "$INFO_MSG Default StorageClass found: $DEFAULT_STORAGE_CLASS"
 fi
 
 # Deploy minio resources
@@ -188,10 +193,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -202,10 +207,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -213,7 +218,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -242,9 +247,9 @@ grep -qxF "alias mc='oc -n minio exec deploy/minio -- mc'" ~/.bashrc || echo "al
 run_command "Add mc cli alias to $HOME/.bashrc"
 
 # Print Minio address and credentials
-echo -e "\e[96mINFO\e[0m Minio Host: $BUCKET_HOST"
-echo -e "\e[96mINFO\e[0m Minio Console: $MINIO_CONSOLE"
-echo -e "\e[96mINFO\e[0m Minio default ID/PW: minioadmin/minioadmin"
+echo -e "$INFO_MSG Minio Host: $BUCKET_HOST"
+echo -e "$INFO_MSG Minio Console: $MINIO_CONSOLE"
+echo -e "$INFO_MSG Minio default ID/PW: minioadmin/minioadmin"
 
 # Check the environment variable CREATE_MINIO_CREDENTIALS: continue if "true", exit if otherwise
 if [[ "$CREATE_MINIO_CREDENTIALS" != "true" ]]; then
@@ -267,9 +272,9 @@ metadata:
     openshift.io/node-selector: ""
 spec: {}
 EOF
-    echo -e "\e[96mINFO\e[0m Namespace ${BUCKET_NAMESPACE} created"
+    echo -e "$INFO_MSG Namespace ${BUCKET_NAMESPACE} created"
 else
-    echo -e "\e[96mINFO\e[0m Namespace ${BUCKET_NAMESPACE}already exists"
+    echo -e "$INFO_MSG Namespace ${BUCKET_NAMESPACE}already exists"
 fi
 
 # Object storage secret minio-credentials created in ${BUCKET_NAMESPACE}
