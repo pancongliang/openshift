@@ -56,6 +56,7 @@ aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
 EOF
 run_command "Set up aws credentials"
 
+# Verify pull-secret
 cat $PULL_SECRET >/dev/null 2>&1
 run_command "Verify existence of $PULL_SECRET file"
 
