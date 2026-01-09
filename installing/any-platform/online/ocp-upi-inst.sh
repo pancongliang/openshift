@@ -17,7 +17,7 @@ export NODE_DISK_KNAME="/dev/sda"
 export NODE_NM_CONN_NAME="'Wired connection 1'" 
 export NODE_GATEWAY_IP="10.184.134.1"
 export NODE_NET_PREFIX="24"
-export NODE_DNS_FORWARDER_IP="10.184.134.1"                 # Resolve DNS addresses on the Internet
+export NODE_DNS_FORWARDER_IP="10.184.134.1"            # Resolve DNS addresses on the Internet
 
 # Specify OpenShift node’s hostname and ip address
 export BASTION_HOSTNAME="bastion"
