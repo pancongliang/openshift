@@ -6,7 +6,7 @@
   ```
   export CHANNEL_NAME="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"
-  export NAMESPACE="openshift-local-storage"
+  export OPERATOR_NS="openshift-local-storage"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/01-operator.yaml | envsubst | oc create -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
