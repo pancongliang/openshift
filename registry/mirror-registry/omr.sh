@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export REGISTRY_HOSTNAME="mirror.registry.example.com"
@@ -27,25 +27,30 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
+
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 # Step 1:
 PRINT_TASK "TASK [Delete existing duplicate data]"
 
 # Check if there is an quay-app.service
  if [ -f /etc/systemd/system/quay-pod.service ]; then
-    echo -e "\e[96mINFO\e[0m Mirror registry detected starting uninstall"
+    echo -e "$INFO_MSG Mirror registry detected starting uninstall"
     if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
-        echo -e "\e[96mINFO\e[0m Uninstall the mirror registry"
+        echo -e "$INFO_MSG Uninstall the mirror registry"
     else
-        echo -e "\e[31mFAILED\e[0m Uninstall the mirror registry"
+        echo -e "$FAIL_MSG Uninstall the mirror registry"
         exit 1 
     fi
 else
-    echo -e "\e[96mINFO\e[0m No mirror registry is running"
+    echo -e "$INFO_MSG No mirror registry is running"
 fi
 
 # Delete existing duplicate data
@@ -65,16 +70,16 @@ packages=("wget" "podman")
 package_list="${packages[*]}"
 
 # Install all packages at once
-echo -e "\e[96mINFO\e[0m Installing RPM package..."
+echo -e "$INFO_MSG Installing RPM package..."
 dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
     rpm -q $package >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo -e "\e[96mINFO\e[0m Install $package package"
+        echo -e "$INFO_MSG Install $package package"
     else
-        echo -e "\e[31mFAILED\e[0m Install $package package"
+        echo -e "$FAIL_MSG Install $package package"
     fi
 done
 
@@ -92,7 +97,7 @@ sudo chmod -R 777 ${REGISTRY_INSTALL_DIR}
 run_command "Create the ${REGISTRY_INSTALL_DIR} directory and modify its permissions"
 
 # Download mirror registry
-echo -e "\e[96mINFO\e[0m Downloading the mirror registry package"
+echo -e "$INFO_MSG Downloading the mirror registry package"
 
 # wget -P ${REGISTRY_INSTALL_DIR} https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/mirror-registry/latest/mirror-registry.tar.gz >/dev/null 2>&1
 sudo wget -O ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz >/dev/null 2>&1
@@ -107,13 +112,13 @@ run_command "Extract the mirror-registry package"
 if ! grep -q "$REGISTRY_HOSTNAME" /etc/hosts; then
   echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts > /dev/null
   echo "$REGISTRY_HOST_IP $REGISTRY_HOSTNAME" | sudo tee -a /etc/hosts > /dev/null
-  echo -e "\e[96mINFO\e[0m Add registry entry to /etc/hosts"
+  echo -e "$INFO_MSG Add registry entry to /etc/hosts"
 else
-  echo -e "\e[96mINFO\e[0m Registry entry already exists in /etc/hosts"
+  echo -e "$INFO_MSG Registry entry already exists in /etc/hosts"
 fi
 
 # Install mirror-registry
-echo -e "\e[96mINFO\e[0m Installing the mirror registry..."
+echo -e "$INFO_MSG Installing the mirror registry..."
 sudo ${REGISTRY_INSTALL_DIR}/mirror-registry install \
      --quayHostname ${REGISTRY_HOSTNAME} \
      --quayRoot ${REGISTRY_INSTALL_DIR} \
@@ -142,7 +147,7 @@ while true; do
         if $progress_started; then
             printf "\n"  # Ensure newline after spinner line
         fi
-        echo -e "\e[96mINFO\e[0m Quay pod is in 'Running' state"
+        echo -e "$INFO_MSG Quay pod is in 'Running' state"
         break
     else
         # Pod not yet running, show spinner
@@ -150,7 +155,7 @@ while true; do
             progress_started=true
         fi
         # Display spinner on same line
-        printf "\r\e[96mINFO\e[0m Waiting for quay pod to be in 'Running' state %s" "$CHAR"
+        printf "\r$INFO_MSG Waiting for quay pod to be in 'Running' state %s" "$CHAR"
         tput el  # Clear to end of line
     fi
 
@@ -161,7 +166,7 @@ while true; do
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
         printf "\r"   # Move to line start
         tput el       # Clear line
-        echo -e "\e[31mFAILED\e[0m Quay pod did not reach 'Running' state after $MAX_RETRIES retries"
+        echo -e "$FAIL_MSG Quay pod did not reach 'Running' state after $MAX_RETRIES retries"
         exit 1
     fi
 done
@@ -186,9 +191,9 @@ run_command "Login registry https://${REGISTRY_HOSTNAME}:8443"
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo 
     PRINT_TASK "TASK [Quay login information]"
-    echo -e "\e[96mINFO\e[0m Quay Console: https://${REGISTRY_HOSTNAME}:8443"
-    echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
-    echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
+    echo -e "$INFO_MSG Quay Console: https://${REGISTRY_HOSTNAME}:8443"
+    echo -e "$INFO_MSG Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
+    echo -e "$ACTION_MSG Add DNS Records for Mirror Registry to Allow OCP Access"
     exit 0
 fi
 
@@ -260,25 +265,25 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
+            printf "$INFO_MSG Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
+            printf "\r$INFO_MSG Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
         fi
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
         # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m MachineConfigPools not Ready%*s\n" $((LINE_WIDTH - 20)) ""
+            printf "\r$FAIL_MSG MachineConfigPools not Ready%*s\n" $((LINE_WIDTH - 20)) ""
             exit 1
         fi
     else
         # All MCPs are Ready
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+            printf "\r$INFO_MSG All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         else
-            printf "\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+            printf "$INFO_MSG All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         fi
         break
     fi
@@ -299,25 +304,25 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            printf "$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            printf "\r$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
         fi
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
         # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
+            printf "\r$FAIL_MSG Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
             exit 1
         fi
     else
         # All Cluster Operators are Ready
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+            printf "\r$INFO_MSG All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         else
-            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+            printf "$INFO_MSG All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         fi
         break
     fi
@@ -329,8 +334,8 @@ echo
 # Step 7:
 PRINT_TASK "TASK [Quay Login Guide]"
 
-echo -e "\e[96mINFO\e[0m Quay Console: https://${REGISTRY_HOSTNAME}:8443"
-echo -e "\e[96mINFO\e[0m CLI: podman login ${REGISTRY_HOSTNAME}:8443 -u $REGISTRY_ID -p $REGISTRY_PW"
+echo -e "$INFO_MSG Quay Console: https://${REGISTRY_HOSTNAME}:8443"
+echo -e "$INFO_MSG CLI: podman login ${REGISTRY_HOSTNAME}:8443 -u $REGISTRY_ID -p $REGISTRY_PW"
 
 # Add an empty line after the task
 echo
@@ -338,7 +343,7 @@ echo
 # Step 8:
 PRINT_TASK "TASK [Add DNS Record Entries for Mirror Registry]"
 
-echo -e "\e[33mACTION\e[0m Add DNS Records for Mirror Registry to Allow OCP Access"
+echo -e "$ACTION_MSG Add DNS Records for Mirror Registry to Allow OCP Access"
 
 # Add an empty line after the task
 echo
