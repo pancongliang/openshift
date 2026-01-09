@@ -1,15 +1,15 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'printf "\e[31mFAILED\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
+trap 'printf "\e[31mFAIL\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export CLUSTER_NAME="copan"
 export CLUSTER_API="api.$CLUSTER_NAME.xxx"
-export REGION="ap-northeast-1"
 export AWS_ACCESS_KEY_ID="xxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxx"
 export STORAGE_SIZE="100" 
+export REGION="ap-northeast-1"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -27,7 +27,7 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         printf "\033[96mINFO\033[0m %s\n" "$1"
     else
-        printf "\033[31mFAILED\033[0m %s\n" "$1"
+        printf "\033[31mFAIL\033[0m %s\n" "$1"
         exit 1
     fi
 }
@@ -73,7 +73,6 @@ run_command "Get public subnet id: $PUBLIC_SUBNET_ID"
 
 # Add an empty line after the task
 echo
-
 
 # Step 3:
 PRINT_TASK "TASK [Create Security Group]"
@@ -174,7 +173,7 @@ run_command "[Create access $INSTANCE_NAME file in current directory]"
 
 # Modify permissions for the key pair file
 chmod 777 ./ocp-bastion.sh > /dev/null
-[run_command "[Set permissions for $INSTANCE_NAME file]"
+run_command "[Set permissions for $INSTANCE_NAME file]"
 
 # Add an empty line after the task
 echo
