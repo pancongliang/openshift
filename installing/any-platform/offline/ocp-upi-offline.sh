@@ -1,13 +1,13 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Specify the OpenShift release version
 export OCP_VERSION="4.16.21"
 
 # Specify required parameters for install-config.yaml
-export PULL_SECRET_FILE="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"                    # OVNKubernetes or OpenShiftSDN(≤ 4.14)
@@ -87,16 +87,21 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
 
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION="\e[33mACTION\e[0m"
+
 # Step 1:
 PRINT_TASK "TASK [Configure Environment Variables]"
 
-cat $PULL_SECRET_FILE >/dev/null 2>&1
-run_command "Verify existence of $PULL_SECRET_FILE file"
+cat $PULL_SECRET >/dev/null 2>&1
+run_command "Verify existence of $PULL_SECRET file"
 
 # Define variables
 missing_variables=()
@@ -114,7 +119,7 @@ check_all_variables() {
     check_variable "CLUSTER_NAME"
     check_variable "BASE_DOMAIN"
     check_variable "SSH_KEY_PATH"
-    check_variable "PULL_SECRET_FILE"
+    check_variable "PULL_SECRET"
     check_variable "NETWORK_TYPE"
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
@@ -166,10 +171,10 @@ check_all_variables
 # Display missing variables, if any
 if [ ${#missing_variables[@]} -gt 0 ]; then
     IFS=', '
-    echo -e "\e[31mFAILED\e[0m Missing variables: ${missing_variables[*]}"
+    echo -e "$FAIL_MSG Missing variables: ${missing_variables[*]}"
     unset IFS
 else
-    echo -e "\e[96mINFO\e[0m Confirm all required variables are set"
+    echo -e "$INFO_MSG Confirm all required variables are set"
 fi
 
 # Add an empty line after the task
@@ -207,12 +212,12 @@ if [[ $permanent_status == "enforcing" ]]; then
     # Change SELinux to permissive
     sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
     permanent_status="permissive"
-    echo -e "\e[96mINFO\e[0m Set permanent selinux policy to $permanent_status"
+    echo -e "$INFO_MSG Set permanent selinux policy to $permanent_status"
 elif [[ $permanent_status =~ ^[Dd]isabled$ ]] || [[ $permanent_status == "permissive" ]]; then
-    echo -e "\e[96mINFO\e[0m Permanent selinux policy is already $permanent_status"
+    echo -e "$INFO_MSG Permanent selinux policy is already $permanent_status"
 
 else
-    echo -e "\e[31mFAILED\e[0m SELinux permanent policy is $permanent_status, expected permissive or disabled"
+    echo -e "$FAIL_MSG SELinux permanent policy is $permanent_status, expected permissive or disabled"
 fi
 
 # Temporarily set SELinux security policy to permissive
@@ -232,16 +237,16 @@ packages=("podman" "bind-utils" "bind" "httpd" "httpd-tools" "haproxy" "nfs-util
 package_list="${packages[*]}"
 
 # Install all packages at once
-echo -e "\e[96mINFO\e[0m Downloading RPM packages for installation..."
+echo -e "$INFO_MSG Downloading RPM packages for installation..."
 dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
     rpm -q $package >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo -e "\e[96mINFO\e[0m Install $package package"
+        echo -e "$INFO_MSG Install $package package"
     else
-        echo -e "\e[31mFAILED\e[0m Install $package package"
+        echo -e "$FAIL_MSG Install $package package"
     fi
 done
 
@@ -271,7 +276,7 @@ rm -f /etc/bash_completion.d/oc_completion >/dev/null 2>&1
 rm -f oc-mirror.tar.gz* >/dev/null 2>&1
 
 # Download the openshift-install
-echo -e "\e[96mINFO\e[0m Downloading the openshift-install tool..."
+echo -e "$INFO_MSG Downloading the openshift-install tool..."
 
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
 run_command "Download openshift-install tool"
@@ -298,7 +303,7 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the OpenShift client
-echo -e "\e[96mINFO\e[0m Downloading the openshift-client tool..."
+echo -e "$INFO_MSG Downloading the openshift-client tool..."
 
 wget -q "$download_url" -O "$openshift_client"
 run_command "Download openshift-client tool"
@@ -321,7 +326,7 @@ bash -c '/usr/local/bin/oc completion bash >> /etc/bash_completion.d/oc_completi
 run_command "Enable oc bash completion"
 
 # Download the oc-mirror tool
-echo -e "\e[96mINFO\e[0m Downloading the oc-mirror tool..."
+echo -e "$INFO_MSG Downloading the oc-mirror tool..."
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
@@ -360,9 +365,9 @@ update_httpd_listen_port() {
     if [ "$listen_port" != "8080" ]; then
         # Change listen port to 8080
         sed -i 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
-        echo -e "\e[96mINFO\e[0m Set the httpd listening port to 8080"
+        echo -e "$INFO_MSG Set the httpd listening port to 8080"
     else
-        echo -e "\e[96mINFO\e[0m Listening port for httpd is already set to 8080"
+        echo -e "$INFO_MSG Listening port for httpd is already set to 8080"
     fi
 }
 # Call the function to update listen port
@@ -411,10 +416,10 @@ PRINT_TASK "TASK [Configure and Verify NFS Service]"
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m The nfsnobody user is already present"
+    echo -e "$INFO_MSG The nfsnobody user is already present"
 else
     useradd nfsnobody
-    echo -e "\e[96mINFO\e[0m Create the nfsnobody user"
+    echo -e "$INFO_MSG Create the nfsnobody user"
 fi
 
 # Create NFS directories
@@ -433,10 +438,10 @@ run_command "Set ownership of nfs directory"
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo -e "\e[96mINFO\e[0m Export configuration for nfs already exists"
+    echo -e "$INFO_MSG Export configuration for nfs already exists"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo -e "\e[96mINFO\e[0m Setting up nfs export configuration"
+    echo -e "$INFO_MSG Setting up nfs export configuration"
 fi
 
 # Enable and start service
@@ -651,9 +656,9 @@ run_command "Add DNS IP $LOCAL_DNS_IP to /etc/resolv.conf"
 # Append “dns=none” immediately below the “[main]” section in the main NM config
 if ! sed -n '/^\[main\]/,/^\[/{/dns=none/p}' /etc/NetworkManager/NetworkManager.conf | grep -q 'dns=none'; then
     sed -i '/^\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf
-    echo -e "\e[96mINFO\e[0m Prevent NetworkManager from modifying /etc/resolv.conf"
+    echo -e "$INFO_MSG Prevent NetworkManager from modifying /etc/resolv.conf"
 else
-    echo -e "\e[96mINFO\e[0m Prevent NetworkManager from modifying /etc/resolv.conf"
+    echo -e "$INFO_MSG Prevent NetworkManager from modifying /etc/resolv.conf"
 fi
 
 # Restart service
@@ -699,9 +704,9 @@ done
 
 # Display results
 if [ "$all_successful" = true ]; then
-    echo -e "\e[96mINFO\e[0m Verify DNS resolution with nslookup"
+    echo -e "$INFO_MSG Verify DNS resolution with nslookup"
 else
-    echo -e "\e[31mFAILED\e[0m DNS resolve failed for the following domain/ip: ${failed_hostnames[*]}"
+    echo -e "$FAIL_MSG DNS resolve failed for the following domain/ip: ${failed_hostnames[*]}"
 fi
 
 # Delete old records
@@ -942,15 +947,15 @@ PRINT_TASK "TASK [Install Mirror Registry]"
 
 # Check if there is an quay-app.service
  if [ -f /etc/systemd/system/quay-pod.service ]; then
-        echo -e "\e[96mINFO\e[0m Mirror registry detected starting uninstall"
+        echo -e "$INFO_MSG Mirror registry detected starting uninstall"
     if ${REGISTRY_INSTALL_DIR}/mirror-registry uninstall -v --autoApprove --quayRoot "${REGISTRY_INSTALL_DIR}" > /dev/null 2>&1; then
-        echo -e "\e[96mINFO\e[0m Uninstall the mirror registry"
+        echo -e "$INFO_MSG Uninstall the mirror registry"
     else
-        echo -e "\e[31mFAILED\e[0m Uninstall the mirror registry"
+        echo -e "$FAIL_MSG Uninstall the mirror registry"
         exit 1
     fi
 else
-    echo -e "\e[96mINFO\e[0m No mirror registry is running"
+    echo -e "$INFO_MSG No mirror registry is running"
 fi
 
 # Delete existing duplicate data
@@ -967,7 +972,7 @@ chmod -R 777 ${REGISTRY_INSTALL_DIR}
 run_command "Set permissions of ${REGISTRY_INSTALL_DIR} directory"
 
 # Download mirror registry
-echo -e "\e[96mINFO\e[0m Downloading the mirror registry package"
+echo -e "$INFO_MSG Downloading the mirror registry package"
 
 wget -O ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz >/dev/null 2>&1
 run_command "Download mirror registry package"
@@ -976,7 +981,7 @@ run_command "Download mirror registry package"
 tar xvf ${REGISTRY_INSTALL_DIR}/mirror-registry.tar.gz -C ${REGISTRY_INSTALL_DIR}/ >/dev/null 2>&1
 run_command "Extract the mirror registry package"
 
-echo -e "\e[96mINFO\e[0m Installing the mirror registry..."
+echo -e "$INFO_MSG Installing the mirror registry..."
 # Install mirror registry
 ${REGISTRY_INSTALL_DIR}/mirror-registry install \
      --quayHostname ${REGISTRY_NAME}.${BASE_DOMAIN} \
@@ -1024,9 +1029,9 @@ if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; t
     rm -rf ${SSH_KEY_PATH} 
     mkdir -p ${SSH_KEY_PATH}
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    echo -e "\e[96mINFO\e[0m Create an ssh-key for accessing the node"
+    echo -e "$INFO_MSG Create an ssh-key for accessing the node"
 else
-    echo -e "\e[96mINFO\e[0m SSH key for accessing the node already exists"
+    echo -e "$INFO_MSG SSH key for accessing the node already exists"
 fi
 
 # If known_hosts exists, clear it without error
@@ -1101,9 +1106,9 @@ run_command "Generate kubernetes manifests"
 if grep -q "mastersSchedulable: true" "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"; then
   # Replace "mastersSchedulable: true" with "mastersSchedulable: false"
   sed -i 's/mastersSchedulable: true/mastersSchedulable: false/' "${INSTALL_DIR}/manifests/cluster-scheduler-02-config.yml"
-  echo -e "\e[96mINFO\e[0m Disable the master node from scheduling custom pods"
+  echo -e "$INFO_MSG Disable the master node from scheduling custom pods"
 else
-  echo -e "\e[96mINFO\e[0m Disable the master node from scheduling custom pods"
+  echo -e "$INFO_MSG Disable the master node from scheduling custom pods"
 fi
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-openshift-config-secret-htpasswd-secret.yaml
@@ -1214,7 +1219,7 @@ generate_setup_script() {
         bs) IGN_FILE="bootstrap.ign" ;;
         m*) IGN_FILE="master.ign"    ;;
         w*) IGN_FILE="worker.ign"    ;;
-        *)  echo -e "\e[31mFAILED\e[0m Unknown host type for ${HOSTNAME}" ;;
+        *)  echo -e "$FAIL_MSG Unknown host type for ${HOSTNAME}" ;;
     esac
 
 # Create the setup script for the node
@@ -1233,9 +1238,9 @@ EOF
 
     # Check if the setup script was successfully created
     if [ -f "${INSTALL_DIR}/${HOSTNAME}" ]; then
-        echo -e "\e[96mINFO\e[0m Generate setup script: ${INSTALL_DIR}/${HOSTNAME}"
+        echo -e "$INFO_MSG Generate setup script: ${INSTALL_DIR}/${HOSTNAME}"
     else
-        echo -e "\e[31mFAILED\e[0m Generate setup script for ${HOSTNAME}"
+        echo -e "$FAIL_MSG Generate setup script for ${HOSTNAME}"
     fi
 }
 
@@ -1268,7 +1273,7 @@ cat << EOF > ${INSTALL_DIR}/mirror-img.sh
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 # set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line \$LINENO - Command: \$BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "$FAIL_MSG Line \$LINENO - Command: \$BASH_COMMAND"; exit 1' ERR
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -1283,9 +1288,9 @@ PRINT_TASK() {
 run_command() {
     local exit_code=\$?
     if [ \$exit_code -eq 0 ]; then
-        echo -e "\e[96mINFO\e[0m \$1"
+        echo -e "$INFO_MSG \$1"
     else
-        echo -e "\e[31mFAILED\e[0m \$1"
+        echo -e "$FAIL_MSG \$1"
         exit 1
     fi
 }
@@ -1295,11 +1300,11 @@ run_command() {
 PRINT_TASK "TASK [Mirror OCP Release Images to Mirror Registry]"
 
 # Login to the registry
-podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET_FILE}" "${REGISTRY_NAME}.${BASE_DOMAIN}:8443" >/dev/null 2>&1
+podman login -u "$REGISTRY_ID" -p "$REGISTRY_PW" --authfile "${PULL_SECRET}" "${REGISTRY_NAME}.${BASE_DOMAIN}:8443" >/dev/null 2>&1
 run_command "Add authentication information to pull-secret"
 
 # Save the PULL_SECRET file either as $XDG_RUNTIME_DIR/containers/auth.json
-cat "${PULL_SECRET_FILE}" | jq . > \$XDG_RUNTIME_DIR/containers/auth.json
+cat "${PULL_SECRET}" | jq . > \$XDG_RUNTIME_DIR/containers/auth.json
 run_command "Save pull-secret file to \$XDG_RUNTIME_DIR/containers/auth.json"
 
 # Create ImageSetConfiguration directory
@@ -1364,17 +1369,17 @@ PORTS="6443|22623"
 # Step 1: Wait for the bootstrap container to be running
 for i in \$(seq 1 \$MAX_RETRIES); do
     # Display spinner while waiting
-    printf "\r\e[96mINFO\e[0m Checking container '%s'... %s" "\$CONTAINER" "\${SPINNER[\$((i % 4))]}"
+    printf "\r$INFO_MSG Checking container '%s'... %s" "\$CONTAINER" "\${SPINNER[\$((i % 4))]}"
     # Check container status via SSH and podman
     CONTAINER_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo podman ps --filter "name=\$CONTAINER" --format "{{.Status}}" 2>/dev/null | tr -d '\r\n')
     # If container is running, print success message and break
     if [[ "\$CONTAINER_STATUS" == Up* ]]; then
-        printf "\r\e[96mINFO\e[0m Container '%s' is Running%*s\n" "\$CONTAINER" \$((LINE_WIDTH - \${#CONTAINER} - 20)) ""
+        printf "\r$INFO_MSG Container '%s' is Running%*s\n" "\$CONTAINER" \$((LINE_WIDTH - \${#CONTAINER} - 20)) ""
         break
     fi
     # If max retries reached, print failure and exit
     if [[ \$i -eq \$MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m Container '%s' is Not Running%*s\n" "\$CONTAINER" \$((LINE_WIDTH - \${#CONTAINER} - 25)) ""
+        printf "\r$FAIL_MSG Container '%s' is Not Running%*s\n" "\$CONTAINER" \$((LINE_WIDTH - \${#CONTAINER} - 25)) ""
         exit 1
     fi
 
@@ -1384,17 +1389,17 @@ done
 # Step 2: Wait for required ports (6443 and 22623) to be listening
 for i in \$(seq 1 \$MAX_RETRIES); do
     # Display spinner while waiting
-    printf "\r\e[96mINFO\e[0m Checking ports 6443 and 22623... %s" "\${SPINNER[\$((i % 4))]}"
+    printf "\r$INFO_MSG Checking ports 6443 and 22623... %s" "\${SPINNER[\$((i % 4))]}"
     # Check port status via SSH and netstat
     PORT_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo netstat -ntplu 2>/dev/null | tr -d '\r\n')
     # If ports are listening, print success message and break
     if echo "\$PORT_STATUS" | grep -qE "\$PORTS"; then
-        printf "\r\e[96mINFO\e[0m Ports 6443 and 22623 are now listening%*s\n" \$((LINE_WIDTH - 35)) ""
+        printf "\r$INFO_MSG Ports 6443 and 22623 are now listening%*s\n" \$((LINE_WIDTH - 35)) ""
         break
     fi
     # If max retries reached, print failure and exit
     if [[ \$i -eq \$MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m Ports 6443 and 22623 are not ready%*s\n" \$((LINE_WIDTH - 30)) ""
+        printf "\r$FAIL_MSG Ports 6443 and 22623 are not ready%*s\n" \$((LINE_WIDTH - 30)) ""
         exit 1
     fi
 
@@ -1402,7 +1407,7 @@ for i in \$(seq 1 \$MAX_RETRIES); do
 done
 
 # Step 3: Final message indicating bootstrap is ready
-printf "\e[96mINFO\e[0m You can now install Control Plane & Worker nodes%*s\n" \$((LINE_WIDTH - 50)) ""
+printf "$INFO_MSG You can now install Control Plane & Worker nodes%*s\n" \$((LINE_WIDTH - 50)) ""
 EOC
 run_command "Generated script to monitor bootstrap readiness: ${INSTALL_DIR}/check-bootstrap.sh"
 
@@ -1438,26 +1443,26 @@ while true; do
     if [ \${#NOT_READY_NODES[@]} -eq 0 ]; then
         if \$progress_started; then
             # Overwrite spinner line and print success message
-            printf "\r\e[96mINFO\e[0m All Cluster Nodes are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
+            printf "\r$INFO_MSG All Cluster Nodes are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         else
-            echo -e "\e[96mINFO\e[0m All Cluster Nodes are Ready"
+            echo -e "$INFO_MSG All Cluster Nodes are Ready"
         fi
         break
     else
         # Spinner logic to show progress while waiting
         CHAR=\${SPINNER[\$((retry_count % 4))]}
         if ! \$progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all Cluster Nodes to be Ready... %s" "\$CHAR"
+            printf "$INFO_MSG Waiting for all Cluster Nodes to be Ready... %s" "\$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Nodes to be Ready... %s" "\$CHAR"
+            printf "\r$INFO_MSG Waiting for all Cluster Nodes to be Ready... %s" "\$CHAR"
         fi
         # Sleep between retries and increment retry counter
         sleep "\$SLEEP_INTERVAL"
         retry_count=\$((retry_count + 1))
         # Timeout handling: exit if max retries exceeded
         if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Cluster Nodes not Ready%*s\n" \$((LINE_WIDTH - 17)) ""
+            printf "\r$FAIL_MSG Cluster Nodes not Ready%*s\n" \$((LINE_WIDTH - 17)) ""
             exit 1
         fi
     fi
@@ -1478,25 +1483,25 @@ while true; do
     if echo "\$output" | grep -q -v "True False False"; then
         CHAR=\${SPINNER[\$((retry_count % 4))]}
         if ! \$progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "\$CHAR"
+            printf "$INFO_MSG Waiting for all MachineConfigPools to be Ready... %s" "\$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "\$CHAR"
+            printf "\r$INFO_MSG Waiting for all MachineConfigPools to be Ready... %s" "\$CHAR"
         fi
 
         sleep "\$SLEEP_INTERVAL"
         retry_count=\$((retry_count + 1))
         # Timeout handling
         if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m MachineConfigPools not Ready%*s\n" \$((LINE_WIDTH - 20)) ""
+            printf "\r$FAIL_MSG MachineConfigPools not Ready%*s\n" \$((LINE_WIDTH - 20)) ""
             exit 1
         fi
     else
         # All MCPs are Ready    
         if \$progress_started; then
-            printf "\r\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
+            printf "\r$INFO_MSG All MachineConfigPools are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         else
-            printf "\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
+            printf "$INFO_MSG All MachineConfigPools are Ready%*s\n" \$((LINE_WIDTH - 18)) ""
         fi
         break
     fi
@@ -1517,25 +1522,25 @@ while true; do
     if echo "\$output" | grep -q -v "True False False"; then
         CHAR=\${SPINNER[\$((retry_count % 4))]}
         if ! \$progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "\$CHAR"
+            printf "$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "\$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "\$CHAR"
+            printf "\r$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "\$CHAR"
         fi
 
         sleep "\$SLEEP_INTERVAL"
         retry_count=\$((retry_count + 1))
         # Timeout handling
         if [[ \$retry_count -ge \$MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" \$((LINE_WIDTH - 31)) ""
+            printf "\r$FAIL_MSG Cluster Operators not Ready%*s\n" \$((LINE_WIDTH - 31)) ""
             exit 1
         fi
     else
         # All Cluster Operators are Ready    
         if \$progress_started; then
-            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" \$((LINE_WIDTH - 32)) ""
+            printf "\r$INFO_MSG All Cluster Operators are Ready%*s\n" \$((LINE_WIDTH - 32)) ""
         else
-            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" \$((LINE_WIDTH - 32)) ""
+            printf "$INFO_MSG All Cluster Operators are Ready%*s\n" \$((LINE_WIDTH - 32)) ""
         fi
         break
     fi
@@ -1556,7 +1561,7 @@ PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
 run_command "Default login: use kubeconfig"
 
-echo -e "\e[96mINFO\e[0m HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
+echo -e "$INFO_MSG HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
 
 # Add an empty line after the task
 echo
@@ -1567,21 +1572,21 @@ PRINT_TASK "TASK [Mirror the OpenShift release image, boot from RHCOS ISO, and i
 # Set column width
 COL_WIDTH=35
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_NAME mirror ocp release image:" "Open a new terminal → bash ${INSTALL_DIR}/mirror-img.sh"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BASTION_NAME mirror ocp release image:" "Open a new terminal → bash ${INSTALL_DIR}/mirror-img.sh"
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_NAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BASTION_NAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_NAME: -1} | sh → reboot"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_NAME: -1} | sh → reboot"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_NAME: -1} | sh → reboot"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$MASTER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_NAME: -1} | sh → reboot"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$MASTER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_NAME: -1} | sh → reboot"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$MASTER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_NAME: -1} | sh → reboot"
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_NAME: -1} | sh → reboot"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_NAME: -1} | sh → reboot"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_NAME: -1} | sh → reboot"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$WORKER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_NAME: -1} | sh → reboot"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$WORKER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_NAME: -1} | sh → reboot"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$WORKER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_NAME: -1} | sh → reboot"
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
+printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
 
 # Add an empty line after the task
 echo
