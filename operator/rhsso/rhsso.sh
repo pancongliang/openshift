@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Default storage class name
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
@@ -29,19 +29,24 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
+
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 # Step 0:
 PRINT_TASK "TASK [Delete old rhsso resources]"
 
 # Uninstall first
 if oc get ns $OPERATOR_NS >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m Deleting keycloak resources..."
+    echo -e "$INFO_MSG Deleting keycloak resources..."
 else
-    echo -e "\e[96mINFO\e[0m keycloak does not exist"
+    echo -e "$INFO_MSG keycloak does not exist"
 fi
 
 oc delete configmap openid-route-ca -n openshift-config >/dev/null 2>&1 || true
@@ -57,10 +62,10 @@ oc get ip -n $OPERATOR_NS --no-headers 2>/dev/null|grep rhsso-operator|awk '{pri
 
 
 if oc get ns $OPERATOR_NS >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m Deleting $OPERATOR_NS project..."
+    echo -e "$INFO_MSG Deleting $OPERATOR_NS project..."
     oc delete ns $OPERATOR_NS >/dev/null 2>&1 || true
 else
-    echo -e "\e[96mINFO\e[0m $OPERATOR_NS project does not exist"
+    echo -e "$INFO_MSG $OPERATOR_NS project does not exist"
 fi
 
 # Add an empty line after the task
@@ -72,10 +77,10 @@ PRINT_TASK "TASK [Check the default storage class]"
 # Check if Default StorageClass exists
 DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
-    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
+    echo -e "$FAIL_MSG No default StorageClass found!"
     exit 1
 else
-    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+    echo -e "$INFO_MSG Default StorageClass found: $DEFAULT_STORAGE_CLASS"
 fi
 
 # Add an empty line after the task
@@ -138,7 +143,7 @@ while true; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
 
         # Overwrite previous INFO line with final approved message
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s%*s\n" \
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s%*s\n" \
                "$NAME" "$OPERATOR_NS" $((LINE_WIDTH - ${#NAME} - ${#OPERATOR_NS} - 34)) ""
 
         break
@@ -147,10 +152,10 @@ while true; do
     # Spinner logic
     CHAR=${SPINNER[$((retry_count % ${#SPINNER[@]}))]}
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # Sleep and increment retry count
@@ -159,7 +164,7 @@ while true; do
 
     # Timeout handling
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace has no unapproved install plans%*s\n" \
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
     fi
@@ -177,7 +182,7 @@ while true; do
     # Loop through and approve each InstallPlan
     for NAME in $INSTALLPLAN; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
     sleep "$SLEEP_INTERVAL"
@@ -215,10 +220,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -229,10 +234,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -240,7 +245,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -288,10 +293,10 @@ while true; do
         if [[ -z "$not_ready_exists" ]]; then
             # SUCCESS: Pods exist AND all of them are ready
             if $progress_started; then
-                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                printf "\r$INFO_MSG All %s namespace pods are Running%*s\n" \
                        "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
             else
-                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+                echo -e "$INFO_MSG All $namespace namespace pods are Running"
             fi
             break
         fi
@@ -305,10 +310,10 @@ while true; do
     [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
 
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # 4. Handle timeout and retry
@@ -316,7 +321,7 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
@@ -406,7 +411,7 @@ while true; do
         # Overwrite the spinner line before printing the final message
         printf "\r"    # Move cursor to the beginning of the line
         tput el        # Clear the entire line
-        echo -e "\e[96mINFO\e[0m The secret '$SECRET_NAME' has been created"
+        echo -e "$INFO_MSG The secret '$SECRET_NAME' has been created"
         break
     else
         # Print the waiting message only once
@@ -415,7 +420,7 @@ while true; do
         fi
 
         # Display spinner on the same line
-        printf "\r\e[96mINFO\e[0m Waiting for secret '%s' to be created %s" "$SECRET_NAME" "$CHAR"
+        printf "\r$INFO_MSG Waiting for secret '%s' to be created %s" "$SECRET_NAME" "$CHAR"
         tput el  # Clear to the end of the line
     fi
 
@@ -426,7 +431,7 @@ while true; do
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
         printf "\r"  # Move to the beginning of the line
         tput el      # Clear the entire line
-        echo -e "\e[31mFAILED\e[0m Reached max retries, secret '$SECRET_NAME' was not created"
+        echo -e "$FAIL_MSG Reached max retries, secret '$SECRET_NAME' was not created"
         exit 1
     fi
 done
@@ -555,10 +560,10 @@ while true; do
         if [[ -z "$not_ready_exists" ]]; then
             # SUCCESS: Pods exist AND all of them are ready
             if $progress_started; then
-                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                printf "\r$INFO_MSG All %s namespace pods are Running%*s\n" \
                        "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
             else
-                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+                echo -e "$INFO_MSG All $namespace namespace pods are Running"
             fi
             break
         fi
@@ -572,10 +577,10 @@ while true; do
     [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
 
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # 4. Handle timeout and retry
@@ -583,7 +588,7 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
@@ -606,25 +611,25 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            printf "$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            printf "\r$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
         fi
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
         # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
+            printf "\r$FAIL_MSG Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
             exit 1
         fi
     else
         # All Cluster Operators are Ready
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+            printf "\r$INFO_MSG All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         else
-            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+            printf "$INFO_MSG All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         fi
         break
     fi
@@ -638,9 +643,9 @@ KEYCLOAK_ADMIN_USER=$(oc get secret credential-example-sso -o=jsonpath='{.data.A
 KEYCLOAK_ADMIN_PASSWORD=$(oc get secret credential-example-sso -o=jsonpath='{.data.ADMIN_PASSWORD}' -n ${OPERATOR_NS} | base64 -d)
 
 # Print variables for verification (optional)
-echo -e "\e[96mINFO\e[0m Keycloak host: $KEYCLOAK_HOST"
-echo -e "\e[96mINFO\e[0m Keycloak console ID/PWD: $KEYCLOAK_ADMIN_USER/$KEYCLOAK_ADMIN_PASSWORD"
-echo -e "\e[96mINFO\e[0m User created by keycloak: $KEYCLOAK_REALM_USER/$KEYCLOAK_REALM_PASSWORD"
+echo -e "$INFO_MSG Keycloak host: $KEYCLOAK_HOST"
+echo -e "$INFO_MSG Keycloak console ID/PWD: $KEYCLOAK_ADMIN_USER/$KEYCLOAK_ADMIN_PASSWORD"
+echo -e "$INFO_MSG User created by keycloak: $KEYCLOAK_REALM_USER/$KEYCLOAK_REALM_PASSWORD"
 
 # Add an empty line after the task
 echo
