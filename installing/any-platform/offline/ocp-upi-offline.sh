@@ -12,14 +12,12 @@ export CLUSTER_NAME="ocp"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"                    # OVNKubernetes or OpenShiftSDN(≤ 4.14)
 
-# Specify the OpenShift node’s installation disk and network manager connection name
-export COREOS_INSTALL_DEV="/dev/sda"
-export NET_IF_NAME="'Wired connection 1'" 
-
-# Specify the OpenShift node infrastructure network configuration
-export GATEWAY_IP="10.184.134.1"
-export NETMASK="24"
-export DNS_FORWARDER_IP="10.184.134.1"                 # Resolve DNS addresses on the Internet
+# Specify the OpenShift node infrastructure configuration
+export NODE_DISK_KNAME="/dev/sda"
+export NODE_NM_CONN_NAME="'Wired connection 1'"
+export NODE_GATEWAY_IP="10.184.134.1"
+export NODE_NET_PREFIX="24"
+export NODE_DNS_FORWARDER_IP="10.184.134.1"             # Resolve DNS addresses on the Internet
 
 # Specify OpenShift node’s hostname and ip address
 export BASTION_HOSTNAME="bastion"
@@ -121,9 +119,9 @@ check_all_variables() {
     check_variable "POD_CIDR"
     check_variable "HOST_PREFIX"
     check_variable "SERVICE_CIDR"
-    check_variable "GATEWAY_IP"
-    check_variable "NETMASK"
-    check_variable "DNS_FORWARDER_IP"
+    check_variable "NODE_GATEWAY_IP"
+    check_variable "NODE_NET_PREFIX"
+    check_variable "NODE_DNS_FORWARDER_IP"
     check_variable "BASTION_HOSTNAME"
     check_variable "BOOTSTRAP_HOSTNAME"
     check_variable "MASTER01_HOSTNAME"
@@ -140,8 +138,8 @@ check_all_variables() {
     check_variable "WORKER02_IP"
     check_variable "WORKER03_IP"    
     check_variable "BOOTSTRAP_IP"
-    check_variable "COREOS_INSTALL_DEV"
-    check_variable "NET_IF_NAME"
+    check_variable "NODE_DISK_KNAME"
+    check_variable "NODE_NM_CONN_NAME"
     check_variable "REGISTRY_HOSTNAME"
     check_variable "REGISTRY_ID"
     check_variable "REGISTRY_PW"
@@ -503,7 +501,7 @@ options {
     secroots-file   "/var/named/data/named.secroots";
     recursing-file  "/var/named/data/named.recursing";
     allow-query     { any; };
-    forwarders      { ${DNS_FORWARDER_IP}; };
+    forwarders      { ${NODE_DNS_FORWARDER_IP}; };
 
     recursion yes;
     dnssec-validation yes;
@@ -1223,14 +1221,14 @@ generate_setup_script() {
 cat << EOF > "${INSTALL_DIR}/${HOSTNAME}"
 #!/bin/bash
 # Configure network settings
-sudo nmcli con mod ${NET_IF_NAME} ipv4.addresses ${IP_ADDRESS}/${NETMASK} ipv4.gateway ${GATEWAY_IP} ipv4.dns ${LOCAL_DNS_IP} ipv4.method manual connection.autoconnect yes
-sudo nmcli con down ${NET_IF_NAME}
-sudo nmcli con up ${NET_IF_NAME}
+sudo nmcli con mod ${NODE_NM_CONN_NAME} ipv4.addresses ${IP_ADDRESS}/${NODE_NET_PREFIX} ipv4.gateway ${NODE_GATEWAY_IP} ipv4.dns ${LOCAL_DNS_IP} ipv4.method manual connection.autoconnect yes
+sudo nmcli con down ${NODE_NM_CONN_NAME}
+sudo nmcli con up ${NODE_NM_CONN_NAME}
 
 sudo sleep 10
 
 # Install CoreOS using the appropriate Ignition file
-sudo coreos-installer install ${COREOS_INSTALL_DEV} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/${IGN_FILE} --firstboot-args 'rd.neednet=1' --copy-network
+sudo coreos-installer install ${NODE_DISK_KNAME} --insecure-ignition --ignition-url=http://${BASTION_IP}:8080/pre/${IGN_FILE} --firstboot-args 'rd.neednet=1' --copy-network
 EOF
 
     # Check if the setup script was successfully created
