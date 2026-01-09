@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export QUAY_VERSION='v3.15.2'               # Quay version: v3.12.12  v3.13.8   v3.14.5   v3.15.2
@@ -32,11 +32,15 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
 
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 # Step 1:
 PRINT_TASK "TASK [Delete existing duplicate data]"
@@ -46,12 +50,12 @@ remove_container() {
     local container_name="$1"
     if podman container exists "$container_name"; then
         if podman rm -f "$container_name" >/dev/null 2>&1; then
-            echo -e "\e[96mINFO\e[0m Container $container_name removed"
+            echo -e "$INFO_MSG Container $container_name removed"
         else
-            echo -e "\e[31mFAILED\e[0m Container $container_name removed"
+            echo -e "$FAIL_MSG Container $container_name removed"
         fi
     else
-        echo -e "\e[96mINFO\e[0m No such container: $container_name"
+        echo -e "$INFO_MSG No such container: $container_name"
     fi
 }
 
@@ -60,12 +64,12 @@ remove_directory() {
     local dir_path="$1"
     if [ -d "$dir_path" ]; then
         if sudo rm -rf "$dir_path" >/dev/null 2>&1; then
-            echo -e "\e[96mINFO\e[0m Quay install directory $dir_path removed"
+            echo -e "$INFO_MSG Quay install directory $dir_path removed"
         else
-            echo -e "\e[31mFAILED\e[0m Quay install directory $dir_path removed"
+            echo -e "$FAIL_MSG Quay install directory $dir_path removed"
         fi
     else
-        echo -e "\e[96mINFO\e[0m No such install directory: $dir_path"
+        echo -e "$INFO_MSG No such install directory: $dir_path"
     fi
 }
 
@@ -80,12 +84,12 @@ remove_directory "$QUAY_INST_DIR"
 CA_CERT="/etc/pki/ca-trust/source/anchors/${QUAY_HOST_NAME}.ca.pem"
 if [ -f "$CA_CERT" ]; then
     if sudo rm -rf "$CA_CERT"; then
-        echo -e "\e[96mINFO\e[0m CA cert $CA_CERT removed"
+        echo -e "$INFO_MSG CA cert $CA_CERT removed"
     else
-        echo -e "\e[31mFAILED\e[0m CA cert $CA_CERT removed"
+        echo -e "$FAIL_MSG CA cert $CA_CERT removed"
     fi
 else
-    echo -e "\e[96mINFO\e[0m No such file: $CA_CERT"
+    echo -e "$INFO_MSG No such file: $CA_CERT"
 fi
 
 # Remove systemd service files if they exist
@@ -94,12 +98,12 @@ for service in postgresql-quay redis quay mirroring-worker; do
 
     if [ -f "$SERVICE_FILE" ]; then
         if sudo rm -rf "$SERVICE_FILE"; then
-            echo -e "\e[96mINFO\e[0m Systemd service $SERVICE_FILE removed"
+            echo -e "$INFO_MSG Systemd service $SERVICE_FILE removed"
         else
-            echo -e "\e[31mFAILED\e[0m Systemd service $SERVICE_FILE removed"
+            echo -e "$FAIL_MSG Systemd service $SERVICE_FILE removed"
         fi
     else
-        echo -e "\e[96mINFO\e[0m No such file: $SERVICE_FILE"
+        echo -e "$INFO_MSG No such file: $SERVICE_FILE"
     fi
 done
 
@@ -116,16 +120,16 @@ packages=("podman")
 package_list="${packages[*]}"
 
 # Install all packages at once
-echo -e "\e[96mINFO\e[0m Installing RPM package..."
+echo -e "$INFO_MSG Installing RPM package..."
 dnf install -y $package_list >/dev/null 2>&1
 
 # Check if each package was installed successfully
 for package in "${packages[@]}"; do
     rpm -q $package >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo -e "\e[96mINFO\e[0m Install $package package"
+        echo -e "$INFO_MSG Install $package package"
     else
-        echo -e "\e[31mFAILED\e[0m Install $package package"
+        echo -e "$FAIL_MSG Install $package package"
     fi
 done
 
@@ -207,9 +211,9 @@ run_command "Verify existence of $PULL_SECRET_FILE file"
 if ! grep -q "$QUAY_HOST_NAME" /etc/hosts; then
   echo "# Add registry entry to /etc/hosts" | sudo tee -a /etc/hosts > /dev/null
   echo "$QUAY_HOST_IP $QUAY_HOST_NAME" | sudo tee -a /etc/hosts > /dev/null
-  echo -e "\e[96mINFO\e[0m Add registry entry to /etc/hosts"
+  echo -e "$INFO_MSG Add registry entry to /etc/hosts"
 else
-  echo -e "\e[96mINFO\e[0m Registry entry already exists in /etc/hosts"
+  echo -e "$INFO_MSG Registry entry already exists in /etc/hosts"
 fi
 
 # Create a database data directory
@@ -260,14 +264,14 @@ while true; do
         # Overwrite spinner line and print final message
         printf "\r"
         tput el
-        echo -e "\e[96mINFO\e[0m All containers are running"
+        echo -e "$INFO_MSG All containers are running"
         break
     else
         # Spinner display
         if ! $progress_started; then
             progress_started=true
         fi
-        printf "\r\e[96mINFO\e[0m Waiting for all containers to be running %s" "$CHAR"
+        printf "\r$INFO_MSG Waiting for all containers to be running %s" "$CHAR"
         tput el
 
         sleep "$SLEEP_INTERVAL"
@@ -276,7 +280,7 @@ while true; do
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             printf "\r"
             tput el
-            echo -e "\e[31mFAILED\e[0m Some containers are not running"
+            echo -e "$FAIL_MSG Some containers are not running"
             exit 1
         fi
     fi
@@ -387,14 +391,14 @@ while true; do
         # Overwrite spinner line and print final message
         printf "\r"
         tput el
-        echo -e "\e[96mINFO\e[0m All containers are running"
+        echo -e "$INFO_MSG All containers are running"
         break
     else
         # Spinner display
         if ! $progress_started; then
             progress_started=true
         fi
-        printf "\r\e[96mINFO\e[0m Waiting for all containers to be running %s" "$CHAR"
+        printf "\r$INFO_MSG Waiting for all containers to be running %s" "$CHAR"
         tput el
 
         sleep "$SLEEP_INTERVAL"
@@ -403,7 +407,7 @@ while true; do
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
             printf "\r"
             tput el
-            echo -e "\e[31mFAILED\e[0m Some containers are not running"
+            echo -e "$FAIL_MSG Some containers are not running"
             exit 1
         fi
     fi
@@ -471,9 +475,9 @@ while true; do
     # If HTTP code is 2xx/3xx/4xx, the API is considered available
     if [[ "$HTTP_CODE" =~ ^2|3|4$ ]]; then
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m Quay API is available%*s\n" $((LINE_WIDTH - 22)) ""
+            printf "\r$INFO_MSG Quay API is available%*s\n" $((LINE_WIDTH - 22)) ""
         else
-            echo -e "\e[96mINFO\e[0m Quay API is available"
+            echo -e "$INFO_MSG Quay API is available"
         fi
         break
     fi
@@ -482,10 +486,10 @@ while true; do
     CHAR=${SPINNER[$((retry_count % 4))]}
     MSG="Waiting for Quay API to be available..."
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # Sleep for the defined interval and increment retry count
@@ -494,7 +498,7 @@ while true; do
 
     # Timeout handling
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m Quay API did not become available%*s\n" $((LINE_WIDTH - 36)) ""
+        printf "\r$FAIL_MSG Quay API did not become available%*s\n" $((LINE_WIDTH - 36)) ""
         exit 1
     fi
 done
@@ -505,14 +509,14 @@ curl -X POST -k "https://$QUAY_HOST_NAME:$QUAY_PORT/api/v1/user/initialize" \
   --data '{"username":"'"$REGISTRY_ID"'","password":"'"$REGISTRY_PW"'","email":"test@example.com","access_token":true}' >/dev/null 2>&1
 run_command "Using the API to create the first user"
 
-echo -e "\e[96mINFO\e[0m Installation complete"
+echo -e "$INFO_MSG Installation complete"
 
 # Check the environment variable OCP_TRUSTED_CA: continue if "true", exit if otherwise
 if [[ "$OCP_TRUSTED_CA" != "true" ]]; then
     echo 
     PRINT_TASK "TASK [Quay login information]"
-    echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
-    echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
+    echo -e "$INFO_MSG Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
+    echo -e "$INFO_MSG Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
     echo -e "\e[33mACTION\e[0m Add DNS Records for Standalone Quay to Allow OCP Access"
     exit 0
 fi
@@ -582,7 +586,7 @@ cat <<EOF > $AUTHFILE
 }
 EOF
 fi
-echo -e "\e[96mINFO\e[0m Authentication information for quay registry added to $AUTHFILE"
+echo -e "$INFO_MSG Authentication information for quay registry added to $AUTHFILE"
 
 # Update pull-secret 
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=tmp-pull-secret >/dev/null 2>&1
@@ -612,25 +616,25 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
+            printf "$INFO_MSG Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
+            printf "\r$INFO_MSG Waiting for all MachineConfigPools to be Ready... %s" "$CHAR"
         fi
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
         # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m MachineConfigPools not Ready%*s\n" $((LINE_WIDTH - 20)) ""
+            printf "\r$FAIL_MSG MachineConfigPools not Ready%*s\n" $((LINE_WIDTH - 20)) ""
             exit 1
         fi
     else
         # All MCPs are Ready
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+            printf "\r$INFO_MSG All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         else
-            printf "\e[96mINFO\e[0m All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
+            printf "$INFO_MSG All MachineConfigPools are Ready%*s\n" $((LINE_WIDTH - 18)) ""
         fi
         break
     fi
@@ -651,25 +655,25 @@ while true; do
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            printf "$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
+            printf "\r$INFO_MSG Waiting for all Cluster Operators to be Ready... %s" "$CHAR"
         fi
 
         sleep "$SLEEP_INTERVAL"
         retry_count=$((retry_count + 1))
         # Timeout handling
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
+            printf "\r$FAIL_MSG Cluster Operators not Ready%*s\n" $((LINE_WIDTH - 31)) ""
             exit 1
         fi
     else
         # All Cluster Operators are Ready
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+            printf "\r$INFO_MSG All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         else
-            printf "\e[96mINFO\e[0m All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
+            printf "$INFO_MSG All Cluster Operators are Ready%*s\n" $((LINE_WIDTH - 32)) ""
         fi
         break
     fi
@@ -681,8 +685,8 @@ echo
 # Step 8:
 PRINT_TASK "TASK [Quay login information]"
 
-echo -e "\e[96mINFO\e[0m Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
-echo -e "\e[96mINFO\e[0m Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
+echo -e "$INFO_MSG Quay Console: https://$QUAY_HOST_NAME:$QUAY_PORT"
+echo -e "$INFO_MSG Quay superuser credentials — ID: $REGISTRY_ID, PW: $REGISTRY_PW"
 
 # Add an empty line after the task
 echo
