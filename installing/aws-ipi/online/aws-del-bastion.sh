@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export CLUSTER_NAME="copan"
@@ -25,7 +25,7 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         printf "\033[96mINFO\033[0m %s\n" "$1"
     else
-        printf "\033[31mFAILED\033[0m %s\n" "$1"
+        printf "\033[31mFAIL\033[0m %s\n" "$1"
         exit 1
     fi
 }
