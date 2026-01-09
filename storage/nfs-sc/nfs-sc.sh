@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export NFS_SERVER_IP="10.184.134.30"
@@ -23,10 +23,15 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
+
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 PRINT_TASK "TASK [Install and Configure NFS Server]"
 
@@ -36,18 +41,18 @@ run_command "Install nfs-utils package"
 
 # Check if NFS_DIR exists and create it if missing
 if [[ -d "${NFS_DIR}" ]]; then
-    echo -e "\e[96mINFO\e[0m Directory ${NFS_DIR} already exists, skipping creation"
+    echo -e "$INFO_MSG Directory ${NFS_DIR} already exists, skipping creation"
 else
     mkdir -p "${NFS_DIR}"
-    echo -e "\e[96mINFO\e[0m Directory ${NFS_DIR} created successfully"
+    echo -e "$INFO_MSG Directory ${NFS_DIR} created successfully"
 fi
 
 # Add nfsnobody user if not exists
 if id "nfsnobody" >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m User nfsnobody exists"
+    echo -e "$INFO_MSG User nfsnobody exists"
 else
     sudo useradd nfsnobody
-    echo -e "\e[96mINFO\e[0m Create the nfsnobody user"
+    echo -e "$INFO_MSG Create the nfsnobody user"
 fi
 
 # Change ownership and permissions
@@ -60,10 +65,10 @@ run_command "Set permissions of nfs directory"
 # Add NFS export configuration
 export_config_line="${NFS_DIR}    (rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)"
 if grep -q "$export_config_line" "/etc/exports"; then
-    echo -e "\e[96mINFO\e[0m Export configuration for nfs already exists"
+    echo -e "$INFO_MSG Export configuration for nfs already exists"
 else
     echo "$export_config_line" >> "/etc/exports"
-    echo -e "\e[96mINFO\e[0m Setting up nfs export configuration"
+    echo -e "$INFO_MSG Setting up nfs export configuration"
 fi
 
 # Enable and start service
@@ -81,7 +86,7 @@ PRINT_TASK "TASK [Install NFS Storage Class]"
 
 export NAMESPACE="nfs-client-provisioner"
 if oc get project ${NAMESPACE} >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m Deleting ${NAMESPACE} project..."
+    echo -e "$INFO_MSG Deleting ${NAMESPACE} project..."
     oc delete project ${NAMESPACE} >/dev/null 2>&1
 fi
 
@@ -248,10 +253,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -262,10 +267,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -273,7 +278,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -295,7 +300,7 @@ parameters:
 EOF
 run_command "Create nfs storage class"
 
-echo -e "\e[96mINFO\e[0m Installation complete"
+echo -e "$INFO_MSG Installation complete"
 
 # Add an empty line after the task
 echo
