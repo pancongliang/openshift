@@ -62,7 +62,11 @@ FAIL_MSG="\e[31mFAIL\e[0m"
 NOTE_MSG="\e[33mNOTE\e[0m"
 
 # Step 1:
-PRINT_TASK "TASK [Trust the vCenter Certificate]"
+PRINT_TASK "TASK [Verify pull-secret and trust vCenter certificate]"
+
+# Verify pull-secret
+cat $PULL_SECRET >/dev/null 2>&1
+run_command "Verify existence of $PULL_SECRET file"
 
 # delete credentials
 sudo rm -rf /etc/pki/ca-trust/source/anchors/vcenter.crt >/dev/null 2>&1 || true
