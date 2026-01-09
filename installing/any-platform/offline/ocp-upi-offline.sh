@@ -95,7 +95,7 @@ run_command() {
 # Define color output variables
 INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
-ACTION="\e[33mACTION\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 # Step 1:
 PRINT_TASK "TASK [Configure Environment Variables]"
@@ -1572,21 +1572,21 @@ PRINT_TASK "TASK [Mirror the OpenShift release image, boot from RHCOS ISO, and i
 # Set column width
 COL_WIDTH=35
 
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BASTION_NAME mirror ocp release image:" "Open a new terminal → bash ${INSTALL_DIR}/mirror-img.sh"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME mirror ocp release image:" "Open a new terminal → bash ${INSTALL_DIR}/mirror-img.sh"
 
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BASTION_NAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
 
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$MASTER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_NAME: -1} | sh → reboot"
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$MASTER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_NAME: -1} | sh → reboot"
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$MASTER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$MASTER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$MASTER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$MASTER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_NAME: -1} | sh → reboot"
 
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$WORKER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_NAME: -1} | sh → reboot"
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$WORKER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_NAME: -1} | sh → reboot"
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$WORKER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$WORKER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$WORKER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$WORKER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_NAME: -1} | sh → reboot"
 
-printf "$ACTION %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
 
 # Add an empty line after the task
 echo
