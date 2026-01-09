@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export COLLECTOR="fluentd"    # vector or fluentd
@@ -26,22 +26,26 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
 
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 # Step 0:
 PRINT_TASK "TASK [Delete old logging resources]"
 
 # Delete custom resources
 if oc get clusterLogging instance -n openshift-logging >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m Deleting clusterLogging instance..."
+    echo -e "$INFO_MSG Deleting clusterLogging instance..."
     oc delete clusterLogging instance -n openshift-logging >/dev/null 2>&1 || true
-    echo -e "\e[96mINFO\e[0m Deleting logging and elasticsearch operator..."
+    echo -e "$INFO_MSG Deleting logging and elasticsearch operator..."
 else
-    echo -e "\e[96mINFO\e[0m ClusterLogging does not exist"
+    echo -e "$INFO_MSG ClusterLogging does not exist"
 fi
 
 oc delete sub elasticsearch-operator -n openshift-operators-redhat >/dev/null 2>&1 || true
@@ -55,10 +59,10 @@ oc get ip -n openshift-logging --no-headers 2>/dev/null|grep cluster-logging|awk
 oc delete operatorgroups --all -n openshift-operators-redhat >/dev/null 2>&1 || true
 
 if oc get ns openshift-logging >/dev/null 2>&1; then
-   echo -e "\e[96mINFO\e[0m Delete openshift-logging project..."
+   echo -e "$INFO_MSG Delete openshift-logging project..."
    oc delete ns openshift-logging >/dev/null 2>&1 || true
 else
-   echo -e "\e[96mINFO\e[0m The openshift-logging project does not exist"
+   echo -e "$INFO_MSG The openshift-logging project does not exist"
 fi
 
 # Add an empty line after the task
@@ -160,7 +164,7 @@ while true; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
 
         # Overwrite previous INFO line with final approved message
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s%*s\n" \
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s%*s\n" \
                "$NAME" "$OPERATOR_NS" $((LINE_WIDTH - ${#NAME} - ${#OPERATOR_NS} - 34)) ""
 
         break
@@ -169,10 +173,10 @@ while true; do
     # Spinner logic
     CHAR=${SPINNER[$((retry_count % ${#SPINNER[@]}))]}
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # Sleep and increment retry count
@@ -181,7 +185,7 @@ while true; do
 
     # Timeout handling
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace has no unapproved install plans%*s\n" \
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
     fi
@@ -199,7 +203,7 @@ while true; do
     # Loop through and approve each InstallPlan
     for NAME in $INSTALLPLAN; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
     sleep "$SLEEP_INTERVAL"
@@ -225,7 +229,7 @@ while true; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
 
         # Overwrite previous INFO line with final approved message
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s%*s\n" \
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s%*s\n" \
                "$NAME" "$OPERATOR_NS" $((LINE_WIDTH - ${#NAME} - ${#OPERATOR_NS} - 34)) ""
 
         break
@@ -234,10 +238,10 @@ while true; do
     # Spinner logic
     CHAR=${SPINNER[$((retry_count % ${#SPINNER[@]}))]}
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # Sleep and increment retry count
@@ -246,7 +250,7 @@ while true; do
 
     # Timeout handling
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace has no unapproved install plans%*s\n" \
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
     fi
@@ -264,7 +268,7 @@ while true; do
     # Loop through and approve each InstallPlan
     for NAME in $INSTALLPLAN; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
     sleep "$SLEEP_INTERVAL"
@@ -302,10 +306,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -316,10 +320,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -327,7 +331,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -366,10 +370,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -380,10 +384,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -391,7 +395,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -404,7 +408,7 @@ if [ "$COLLECTOR" == "fluentd" ]; then
 elif [ "$COLLECTOR" == "vector" ]; then
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/elasticsearch/02-instance-vector.yaml | envsubst | oc apply -f - >/dev/null 2>&1
 else
-  echo -e "\e[96mINFO\e[0m Invalid collector type specified"
+  echo -e "$INFO_MSG Invalid collector type specified"
 fi
 
 sleep 30
@@ -430,10 +434,10 @@ while true; do
         if [[ -z "$not_ready_exists" ]]; then
             # SUCCESS: Pods exist AND all of them are ready
             if $progress_started; then
-                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                printf "\r$INFO_MSG All %s namespace pods are Running%*s\n" \
                        "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
             else
-                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+                echo -e "$INFO_MSG All $namespace namespace pods are Running"
             fi
             break
         fi
@@ -447,10 +451,10 @@ while true; do
     [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
 
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # 4. Handle timeout and retry
@@ -458,13 +462,13 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
 done
 
-echo -e "\e[96mINFO\e[0m Installation complete"
+echo -e "$INFO_MSG Installation complete"
 
 # Add an empty line after the task
 echo
