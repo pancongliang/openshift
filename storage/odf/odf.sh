@@ -193,14 +193,14 @@ timeout 2s oc delete ns "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 ||
 # Delete StorageClasses individually
 timeout 2s oc delete sc ocs-storagecluster-ceph-rbd ocs-storagecluster-ceph-rbd-virtualization ocs-storagecluster-ceph-rgw ocs-storagecluster-cephfs openshift-storage.noobaa.io >/dev/null 2>&1 || true
 
-# Delete local rook data on worker nodes
+# Delete local rook data on ODF nodes
 for Hostname in $(oc get nodes -l $ODF_NODES_LABEL= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
     ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$Hostname "
-        if [ -d /var/lib/rook ] && [ \"\$(ls -A /var/lib/rook  >/dev/null 2>&1)\" ]; then
-            echo -e \"\e[96mINFO\e[0m $Hostname delete /var/lib/rook files\"
+        if [ -d /var/lib/rook ] && [ \"\$(ls -A /var/lib/rook  2>/dev/null)\" ]; then
+            echo -e \"\e[96mINFO\e[0m Node $Hostname delete /var/lib/rook files\"
             sudo rm -rf /var/lib/rook
         #else
-        #    echo -e \"\e[96mINFO\e[0m $Hostname /var/lib/rook not exist or empty, skip\"
+        #    echo -e \"\e[96mINFO\e[0m Node $Hostname /var/lib/rook not exist or empty, skip\"
         fi
     "
 done
@@ -1005,7 +1005,7 @@ SPINNER=('/' '-' '\' '|')      # Spinner animation characters
 retry_count=0                  # Number of status check attempts
 progress_started=false         # Tracks whether the spinner/progress line has been started
 project=$OPERATOR_NS
-pod_name=odf-operator
+pod_name=noobaa-operator
 
 while true; do
     # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
@@ -1181,6 +1181,70 @@ while true; do
     fi
 done
 
+# Wait for $pod_name pods to be in Running state
+MAX_RETRIES=900                # Maximum number of retries
+SLEEP_INTERVAL=2               # Sleep interval in seconds
+LINE_WIDTH=120                 # Control line width
+SPINNER=('/' '-' '\' '|')      # Spinner animation characters
+retry_count=0                  # Number of status check attempts
+progress_started=false         # Tracks whether the spinner/progress line has been started
+project=$OPERATOR_NS
+pod_name=noobaa-endpoint
+
+while true; do
+    # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
+    RAW_STATUS=$(oc -n "$project" get po --no-headers 2>/dev/null | grep "$pod_name" | awk '{print $2}' || true)
+
+    # 2. Logic to determine if pods are ready
+    if [[ -z "$RAW_STATUS" ]]; then
+        # If RAW_STATUS is empty, it means no pods were found
+        is_ready=false
+    else
+        # Check if any pod has 'ready' count not equal to 'total' count
+        not_ready_count=$(echo "$RAW_STATUS" | awk -F/ '$1 != $2' | wc -l)
+        if [[ $not_ready_count -eq 0 ]]; then
+            is_ready=true
+        else
+            is_ready=false
+        fi
+    fi
+
+    # 3. Handle UI output and loop control
+    if $is_ready; then
+        # Successfully running
+        if $progress_started; then
+            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
+        else
+            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+        fi
+        break
+    else
+        # Still waiting or pod not found yet
+        CHAR=${SPINNER[$((retry_count % 4))]}
+        # Provide different messages if pods are missing vs. starting
+        MSG="Waiting for $pod_name pods to be Running..."
+        [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
+
+        if ! $progress_started; then
+            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            progress_started=true
+        else
+            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        fi
+
+        # 4. Retry management
+        sleep "$SLEEP_INTERVAL"
+        retry_count=$((retry_count + 1))
+
+        if [[ $retry_count -ge $MAX_RETRIES ]]; then
+            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+                   "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
+            exit 1
+        fi
+    fi
+done
+
 # Wait for $namespace namespace pods to be in 'Running' state
 MAX_RETRIES=150              # Maximum number of retries
 SLEEP_INTERVAL=20            # Sleep interval in seconds
@@ -1237,6 +1301,67 @@ while true; do
 done
 
 echo -e "\e[96mINFO\e[0m Wait until all Pods in the openshift-storage namespace are running"
+
+# Waiting for StorageClasses to be created
+MAX_RETRIES=300               # Maximum number of retries
+SLEEP_INTERVAL=1              # Sleep interval in seconds
+SPINNER=('/' '-' '\' '|')     # Spinner animation characters
+retry_count=0                 # Number of status check attempts
+progress_started=false        # Tracks whether the progress line has been started
+
+# Define the list of required StorageClasses
+REQUIRED_SC=(
+    "ocs-storagecluster-ceph-rbd1"
+    "ocs-storagecluster-ceph-rgw"
+    "ocs-storagecluster-cephfs"
+    "openshift-storage.noobaa.io"
+)
+
+echo -e "\e[96mINFO\e[0m Starting verification for ODF StorageClasses..."
+
+# Loop to wait until all specified StorageClasses are present in the cluster
+while true; do
+    missing_sc=()
+    
+    # Check existence of each StorageClass in the list
+    for sc in "${REQUIRED_SC[@]}"; do
+        if ! oc get storageclass "$sc" &>/dev/null; then
+            missing_sc+=("$sc")
+        fi
+    done
+
+    # Select the current spinner character
+    CHAR=${SPINNER[$((retry_count % 4))]}
+
+    # If the missing_sc array is empty, all resources are created
+    if [ ${#missing_sc[@]} -eq 0 ]; then
+        # Clean up the spinner line and print the final success message
+        printf "\r"    # Move cursor to the beginning of the line
+        tput el        # Clear the entire line
+        echo -e "\e[96mINFO\e[0m All ODF StorageClasses have been created successfully"
+        break
+    else
+        # Calculate progress (Total minus Missing)
+        ready_count=$(( ${#REQUIRED_SC[@]} - ${#missing_sc[@]} ))
+        total_count=${#REQUIRED_SC[@]}
+
+        # Display dynamic progress and spinner on a single line
+        printf "\r\e[96mINFO\e[0m Waiting for ODF StorageClasses to be ready (%d/%d) %s" \
+               "$ready_count" "$total_count" "$CHAR"
+        tput el        # Clear to the end of the line
+    fi
+
+    sleep "$SLEEP_INTERVAL"
+    retry_count=$((retry_count + 1))
+
+    # Handle timeout if maximum retries are reached
+    if [[ $retry_count -ge $MAX_RETRIES ]]; then
+        printf "\r"    # Reset line for the error message
+        tput el        # Clear the line
+        echo -e "\e[31mFAILED\e[0m Reached max retries. Missing StorageClasses: ${missing_sc[*]}"
+        exit 1
+    fi
+done
 
 # Add an empty line after the task
 echo
