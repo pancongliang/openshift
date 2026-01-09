@@ -9,7 +9,7 @@
   export SUB_CHANNEL="stable-2.8"
   export CATALOG_SOURCE="redhat-operators"
   export SUB_CHANNEL="multicluster-engine"
-
+  export OPERATOR_NS="multicluster-engine"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/mce/01-operator.yaml | envsubst | oc create -f -
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
   ```
