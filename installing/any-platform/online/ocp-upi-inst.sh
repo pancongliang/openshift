@@ -20,14 +20,14 @@ export NODE_NET_PREFIX="24"
 export NODE_DNS_FORWARDER_IP="10.184.134.1"            # Resolve DNS addresses on the Internet
 
 # Specify OpenShift node’s hostname and ip address
-export BASTION_HOSTNAME="bastion"
-export BOOTSTRAP_HOSTNAME="bootstrap"
-export MASTER01_HOSTNAME="master01"
-export MASTER02_HOSTNAME="master02"
-export MASTER03_HOSTNAME="master03"
-export WORKER01_HOSTNAME="worker01"
-export WORKER02_HOSTNAME="worker02"
-export WORKER03_HOSTNAME="worker03"
+export BASTION_NAME="bastion"
+export BOOTSTRAP_NAME="bootstrap"
+export MASTER01_NAME="master01"
+export MASTER02_NAME="master02"
+export MASTER03_NAME="master03"
+export MASTER01_NAME="worker01"
+export MASTER02_NAME="worker02"
+export MASTER03_NAME="worker03"
 export BASTION_IP="10.184.134.30"                      # API_VIPS and INGRESS_VIPS
 export BOOTSTRAP_IP="10.184.134.122"
 export MASTER01_IP="10.184.134.102"
@@ -115,14 +115,14 @@ check_all_variables() {
     check_variable "NODE_GATEWAY_IP"
     check_variable "NODE_NET_PREFIX"
     check_variable "NODE_DNS_FORWARDER_IP"
-    check_variable "BASTION_HOSTNAME"
-    check_variable "BOOTSTRAP_HOSTNAME"
-    check_variable "MASTER01_HOSTNAME"
-    check_variable "MASTER02_HOSTNAME"
-    check_variable "MASTER03_HOSTNAME"
-    check_variable "WORKER01_HOSTNAME"
-    check_variable "WORKER02_HOSTNAME"
-    check_variable "WORKER03_HOSTNAME"
+    check_variable "BASTION_NAME"
+    check_variable "BOOTSTRAP_NAME"
+    check_variable "MASTER01_NAME"
+    check_variable "MASTER02_NAME"
+    check_variable "MASTER03_NAME"
+    check_variable "MASTER01_NAME"
+    check_variable "MASTER02_NAME"
+    check_variable "MASTER03_NAME"
     check_variable "BASTION_IP"
     check_variable "MASTER01_IP"
     check_variable "MASTER02_IP"
@@ -166,8 +166,8 @@ echo
 PRINT_TASK "TASK [Configure Hostname and Time Zone]"
 
 # Change hostname
-hostnamectl set-hostname ${BASTION_HOSTNAME}
-run_command "Set hostname to ${BASTION_HOSTNAME}"
+hostnamectl set-hostname ${BASTION_NAME}
+run_command "Set hostname to ${BASTION_NAME}"
 
 # Change time zone to UTC
 timedatectl set-timezone UTC
@@ -333,7 +333,7 @@ rm -rf /etc/httpd/conf.d/base.conf  >/dev/null 2>&1
 # Create a virtual host configuration file
 cat << EOF > /etc/httpd/conf.d/base.conf
 <VirtualHost *:8080>
-   ServerName ${BASTION_HOSTNAME}
+   ServerName ${BASTION_NAME}
    DocumentRoot ${HTTPD_DIR}
 </VirtualHost>
 EOF
@@ -523,17 +523,17 @@ $(printf "%-35s IN  A      %s\n" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}." "${AP
 $(printf "%-35s IN  A      %s\n" "*.apps.${CLUSTER_NAME}.${BASE_DOMAIN}." "${INGRESS_VIPS}")
 ;
 ; Create entries for the master hosts.
-$(printf "%-35s IN  A      %s\n" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
-$(printf "%-35s IN  A      %s\n" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
-$(printf "%-35s IN  A      %s\n" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
+$(printf "%-35s IN  A      %s\n" "${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER01_IP}")
+$(printf "%-35s IN  A      %s\n" "${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER02_IP}")
+$(printf "%-35s IN  A      %s\n" "${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${MASTER03_IP}")
 ;
 ; Create entries for the worker hosts.
-$(printf "%-35s IN  A      %s\n" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
-$(printf "%-35s IN  A      %s\n" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
-$(printf "%-35s IN  A      %s\n" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
+$(printf "%-35s IN  A      %s\n" "${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER01_IP}")
+$(printf "%-35s IN  A      %s\n" "${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER02_IP}")
+$(printf "%-35s IN  A      %s\n" "${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${WORKER03_IP}")
 ;
 ; Create an entry for the bootstrap host.
-$(printf "%-35s IN  A      %s\n" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
+$(printf "%-35s IN  A      %s\n" "${BOOTSTRAP_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}." "${BOOTSTRAP_IP}")
 EOF
 run_command "Generate forward DNS zone file: /var/named/${FORWARD_ZONE_FILE}"
 
@@ -564,17 +564,17 @@ $(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_VIPS")" "api.${CLUSTE
 $(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_VIPS")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the master hosts.
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER01_IP")" "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER02_IP")" "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER03_IP")" "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER01_IP")" "${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER02_IP")" "${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER03_IP")" "${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the worker hosts.
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER01_IP")" "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER02_IP")" "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER03_IP")" "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER01_IP")" "${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER02_IP")" "${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER03_IP")" "${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create an entry for the bootstrap host.
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$BOOTSTRAP_IP")" "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$BOOTSTRAP_IP")" "${BOOTSTRAP_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 EOF
 run_command "Generate reverse DNS zone file: /var/named/${REVERSE_ZONE_FILE}"
 
@@ -626,13 +626,13 @@ hostnames=(
     "api.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "test.apps.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
-    "${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
+    "${BOOTSTRAP_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}"
     "${API_VIPS}"
     "${MASTER01_IP}"
     "${MASTER02_IP}"
@@ -667,24 +667,24 @@ fi
 export NODE_ANNOTATION="Openshift UPI Node Resolve"
 
 sed -i "/# ${NODE_ANNOTATION}/d;
-        /${BOOTSTRAP_HOSTNAME}/d;
-        /${MASTER01_HOSTNAME}/d;
-        /${MASTER02_HOSTNAME}/d;
-        /${MASTER03_HOSTNAME}/d;
-        /${WORKER01_HOSTNAME}/d;
-        /${WORKER02_HOSTNAME}/d;
-        /${WORKER03_HOSTNAME}/d" /etc/hosts
+        /${BOOTSTRAP_NAME}/d;
+        /${MASTER01_NAME}/d;
+        /${MASTER02_NAME}/d;
+        /${MASTER03_NAME}/d;
+        /${MASTER01_NAME}/d;
+        /${MASTER02_NAME}/d;
+        /${MASTER03_NAME}/d" /etc/hosts
 
 # OpenShift Node Hostname Resolve
 {
   echo "# ${NODE_ANNOTATION}"
-  printf "%-15s %s\n" "${BOOTSTRAP_IP}"    "${BOOTSTRAP_HOSTNAME}"
-  printf "%-15s %s\n" "${MASTER01_IP}"     "${MASTER01_HOSTNAME}"
-  printf "%-15s %s\n" "${MASTER02_IP}"     "${MASTER02_HOSTNAME}"
-  printf "%-15s %s\n" "${MASTER03_IP}"     "${MASTER03_HOSTNAME}"
-  printf "%-15s %s\n" "${WORKER01_IP}"     "${WORKER01_HOSTNAME}"
-  printf "%-15s %s\n" "${WORKER02_IP}"     "${WORKER02_HOSTNAME}"
-  printf "%-15s %s\n" "${WORKER03_IP}"     "${WORKER03_HOSTNAME}"
+  printf "%-15s %s\n" "${BOOTSTRAP_IP}"    "${BOOTSTRAP_NAME}"
+  printf "%-15s %s\n" "${MASTER01_IP}"     "${MASTER01_NAME}"
+  printf "%-15s %s\n" "${MASTER02_IP}"     "${MASTER02_NAME}"
+  printf "%-15s %s\n" "${MASTER03_IP}"     "${MASTER03_NAME}"
+  printf "%-15s %s\n" "${WORKER01_IP}"     "${MASTER01_NAME}"
+  printf "%-15s %s\n" "${WORKER02_IP}"     "${MASTER02_NAME}"
+  printf "%-15s %s\n" "${WORKER03_IP}"     "${MASTER03_NAME}"
 } | tee -a /etc/hosts >/dev/null
 run_command "Update /etc/hosts with hostname and IP"
 
@@ -739,34 +739,34 @@ listen kube-apiserver-6443
   option  httpchk GET /readyz HTTP/1.0
   option  log-health-checks
   timeout check 10s
-  server ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2 backup
-  server ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
-  server ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
-  server ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
+  server ${BOOTSTRAP_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2 backup
+  server ${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
+  server ${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
+  server ${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
 
 listen machine-config-server-22623
   bind ${MCS_VIPS}:22623
   mode tcp
-  server ${BOOTSTRAP_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:22623 check inter 1s backup
-  server ${MASTER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:22623 check inter 1s
-  server ${MASTER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:22623 check inter 1s
-  server ${MASTER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:22623 check inter 1s
+  server ${BOOTSTRAP_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${BOOTSTRAP_IP}:22623 check inter 1s backup
+  server ${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER01_IP}:22623 check inter 1s
+  server ${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER02_IP}:22623 check inter 1s
+  server ${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${MASTER03_IP}:22623 check inter 1s
 
 listen ingress-router-80
   bind ${INGRESS_VIPS}:80
   mode tcp
   balance source
-  server ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:80 check inter 1s
-  server ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check inter 1s
-  server ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:80 check inter 1s
+  server ${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:80 check inter 1s
+  server ${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check inter 1s
+  server ${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:80 check inter 1s
   
 listen ingress-router-443
   bind ${INGRESS_VIPS}:443
   mode tcp
   balance source
-  server ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check inter 1s
-  server ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
-  server ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
+  server ${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check inter 1s
+  server ${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
+  server ${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
 
 listen ingress-router-health-check
   mode http
@@ -775,9 +775,9 @@ listen ingress-router-health-check
   option log-health-checks
   http-check expect status 200
   timeout check 5s
-  server ${WORKER01_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:1936 check inter 10s fall 2 rise 2
-  server ${WORKER02_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:1936 check inter 10s fall 2 rise 2
-  server ${WORKER03_HOSTNAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:1936 check inter 10s fall 2 rise 2
+  server ${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:1936 check inter 10s fall 2 rise 2
+  server ${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:1936 check inter 10s fall 2 rise 2
+  server ${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:1936 check inter 10s fall 2 rise 2
 EOF
 run_command "Generate haproxy configuration file"
 
@@ -1108,12 +1108,12 @@ EOF
 
 # Generate setup scripts for each node
 generate_setup_script "bs" "${BOOTSTRAP_IP}" # → bs
-generate_setup_script "m${MASTER01_HOSTNAME: -1}" "${MASTER01_IP}"  # → m1
-generate_setup_script "m${MASTER02_HOSTNAME: -1}" "${MASTER02_IP}"  # → m2
-generate_setup_script "m${MASTER03_HOSTNAME: -1}" "${MASTER03_IP}"  # → m3
-generate_setup_script "w${WORKER01_HOSTNAME: -1}" "${WORKER01_IP}"  # → w1
-generate_setup_script "w${WORKER02_HOSTNAME: -1}" "${WORKER02_IP}"  # → w2
-generate_setup_script "w${WORKER03_HOSTNAME: -1}" "${WORKER03_IP}"  # → w3
+generate_setup_script "m${MASTER01_NAME: -1}" "${MASTER01_IP}"  # → m1
+generate_setup_script "m${MASTER02_NAME: -1}" "${MASTER02_IP}"  # → m2
+generate_setup_script "m${MASTER03_NAME: -1}" "${MASTER03_IP}"  # → m3
+generate_setup_script "w${MASTER01_NAME: -1}" "${WORKER01_IP}"  # → w1
+generate_setup_script "w${MASTER02_NAME: -1}" "${WORKER02_IP}"  # → w2
+generate_setup_script "w${MASTER03_NAME: -1}" "${WORKER03_IP}"  # → w3
 
 # Set correct permissions
 chmod a+r ${INSTALL_DIR}/*.ign
@@ -1211,7 +1211,7 @@ rm -rf ${INSTALL_DIR}/check-cluster.sh >/dev/null 2>&1
 cat <<EOF > ${INSTALL_DIR}/check-cluster.sh
 #!/bin/bash
 # Wait for all cluster nodes to be Ready
-NODES=("$MASTER01_HOSTNAME" "$MASTER02_HOSTNAME" "$MASTER03_HOSTNAME" "$WORKER01_HOSTNAME" "$WORKER02_HOSTNAME" "$WORKER03_HOSTNAME")
+NODES=("$MASTER01_NAME" "$MASTER02_NAME" "$MASTER03_NAME" "$MASTER01_NAME" "$MASTER02_NAME" "$MASTER03_NAME")
 MAX_RETRIES=1800             # Maximum number of retries
 SLEEP_INTERVAL=2             # Sleep interval in seconds
 LINE_WIDTH=120               # Control line width
@@ -1363,20 +1363,20 @@ PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
 
 # Set column width
 COL_WIDTH=35
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_NAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER01_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_HOSTNAME: -1} | sh → reboot"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER02_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_HOSTNAME: -1} | sh → reboot"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER03_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_NAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_NAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_NAME: -1} | sh → reboot"
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER01_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_HOSTNAME: -1} | sh → reboot"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER02_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_HOSTNAME: -1} | sh → reboot"
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$WORKER03_HOSTNAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_HOSTNAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${MASTER01_NAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${MASTER02_NAME: -1} | sh → reboot"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$MASTER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${MASTER03_NAME: -1} | sh → reboot"
 
-printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_HOSTNAME check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
+printf "\e[33mACTION\e[0m %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
 
 # Add an empty line after the task
 echo
