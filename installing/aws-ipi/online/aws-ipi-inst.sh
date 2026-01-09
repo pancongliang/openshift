@@ -39,7 +39,7 @@ run_command() {
 # Define color output variables
 INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
-NOTE_MSG="\e[33mNOTE\e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 # Step 1:
 PRINT_TASK "TASK [Set up AWS credentials and verify pull-secret]"
