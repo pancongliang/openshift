@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export SUB_CHANNEL="stable"
@@ -27,27 +27,32 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
+
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+ACTION="\e[33mACTION\e[0m"
 
 # Step 0:
 PRINT_TASK "TASK [Delete old acs resources]"
 
 # Delete custom resources
 if oc get securedcluster stackrox-secured-cluster-services -n $NAMESPACE >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m Deleting securedcluster stackrox-secured-cluster-services..."
+    echo -e "$INFO_MSG Deleting securedcluster stackrox-secured-cluster-services..."
     oc delete securedcluster stackrox-secured-cluster-services -n $NAMESPACE >/dev/null 2>&1 || true
 else
-    echo -e "\e[96mINFO\e[0m Securedcluster does not exist"
+    echo -e "$INFO_MSG Securedcluster does not exist"
 fi
 
 if oc get central stackrox-central-services -n $NAMESPACE >/dev/null 2>&1; then
-    echo -e "\e[96mINFO\e[0m Deleting central stackrox-central-services..."
+    echo -e "$INFO_MSG Deleting central stackrox-central-services..."
     oc delete central stackrox-central-services -n $NAMESPACE >/dev/null 2>&1 || true
 else
-    echo -e "\e[96mINFO\e[0m Central does not exist"
+    echo -e "$INFO_MSG Central does not exist"
 fi
 
 oc delete subscription rhacs-operator -n rhacs-operator >/dev/null 2>&1 || true
@@ -55,18 +60,18 @@ oc get csv -n rhacs-operator -o name | grep rhacs-operator | awk -F/ '{print $2}
 oc get ip -n rhacs-operator --no-headers 2>/dev/null|grep rhacs-operator|awk '{print $1}'|xargs -r oc delete ip -n rhacs-operator >/dev/null 2>&1 || true
 
 if oc get ns $NAMESPACE >/dev/null 2>&1; then
-   echo -e "\e[96mINFO\e[0m Deleting rhacs operator..."
-   echo -e "\e[96mINFO\e[0m Deleting $NAMESPACE project..."
+   echo -e "$INFO_MSG Deleting rhacs operator..."
+   echo -e "$INFO_MSG Deleting $NAMESPACE project..."
    oc delete ns $NAMESPACE >/dev/null 2>&1 || true
 else
-   echo -e "\e[96mINFO\e[0m The $NAMESPACE project does not exist"
+   echo -e "$INFO_MSG The $NAMESPACE project does not exist"
 fi
 
 if oc get ns rhacs-operator >/dev/null 2>&1; then
-   echo -e "\e[96mINFO\e[0m Deleting rhacs-operator project..."
+   echo -e "$INFO_MSG Deleting rhacs-operator project..."
    oc delete ns rhacs-operator >/dev/null 2>&1 || true
 else
-   echo -e "\e[96mINFO\e[0m The rhacs-operator project does not exist"
+   echo -e "$INFO_MSG The rhacs-operator project does not exist"
 fi
 
 sleep 5
@@ -80,10 +85,10 @@ PRINT_TASK "TASK [Check the default storage class]"
 # Check if Default StorageClass exists
 DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
-    echo -e "\e[31mFAILED\e[0m No default StorageClass found!"
+    echo -e "$FAIL_MSG No default StorageClass found!"
     exit 1
 else
-    echo -e "\e[96mINFO\e[0m Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+    echo -e "$INFO_MSG Default StorageClass found: $DEFAULT_STORAGE_CLASS"
 fi
 
 # Add an empty line after the task
@@ -152,7 +157,7 @@ while true; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
 
         # Overwrite previous INFO line with final approved message
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s%*s\n" \
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s%*s\n" \
                "$NAME" "$OPERATOR_NS" $((LINE_WIDTH - ${#NAME} - ${#OPERATOR_NS} - 34)) ""
 
         break
@@ -161,10 +166,10 @@ while true; do
     # Spinner logic
     CHAR=${SPINNER[$((retry_count % ${#SPINNER[@]}))]}
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # Sleep and increment retry count
@@ -173,7 +178,7 @@ while true; do
 
     # Timeout handling
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace has no unapproved install plans%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace has no unapproved install plans%*s\n" \
                "$OPERATOR_NS" $((LINE_WIDTH - ${#OPERATOR_NS} - 45)) ""
         break
     fi
@@ -191,7 +196,7 @@ while true; do
     # Loop through and approve each InstallPlan
     for NAME in $INSTALLPLAN; do
         oc patch installplan "$NAME" -n "$OPERATOR_NS" --type merge --patch '{"spec":{"approved":true}}' &> /dev/null || true
-        printf "\r\e[96mINFO\e[0m Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
+        printf "\r$INFO_MSG Approved install plan %s in namespace %s\n" "$NAME" "$OPERATOR_NS"
     done
     # Slight delay to avoid excessive polling
     sleep 3
@@ -231,10 +236,10 @@ while true; do
     if $is_ready; then
         # Successfully running
         if $progress_started; then
-            printf "\r\e[96mINFO\e[0m The %s pods are Running%*s\n" \
+            printf "\r$INFO_MSG The %s pods are Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 20)) ""
         else
-            echo -e "\e[96mINFO\e[0m The $pod_name pods are Running"
+            echo -e "$INFO_MSG The $pod_name pods are Running"
         fi
         break
     else
@@ -245,10 +250,10 @@ while true; do
         [[ -z "$RAW_STATUS" ]] && MSG="Waiting for $pod_name pods to be created..."
 
         if ! $progress_started; then
-            printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
             progress_started=true
         else
-            printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+            printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
         fi
 
         # 4. Retry management
@@ -256,7 +261,7 @@ while true; do
         retry_count=$((retry_count + 1))
 
         if [[ $retry_count -ge $MAX_RETRIES ]]; then
-            printf "\r\e[31mFAILED\e[0m The %s pods are not Running%*s\n" \
+            printf "\r$FAIL_MSG The %s pods are not Running%*s\n" \
                    "$pod_name" $((LINE_WIDTH - ${#pod_name} - 23)) ""
             exit 1
         fi
@@ -359,10 +364,10 @@ while true; do
         if [[ -z "$not_ready_exists" ]]; then
             # SUCCESS: Pods exist AND all of them are ready
             if $progress_started; then
-                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                printf "\r$INFO_MSG All %s namespace pods are Running%*s\n" \
                        "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
             else
-                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+                echo -e "$INFO_MSG All $namespace namespace pods are Running"
             fi
             break
         fi
@@ -376,10 +381,10 @@ while true; do
     [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
 
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # 4. Handle timeout and retry
@@ -387,7 +392,7 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
@@ -398,7 +403,7 @@ if roxctl -h >/dev/null 2>&1; then
     run_command "The roxctl tool already installed, skipping installation"
 else
     # Download the roxctl tool
-    echo -e "\e[96mINFO\e[0m Downloading the roxctl tool"
+    echo -e "$INFO_MSG Downloading the roxctl tool"
     arch="$(uname -m | sed "s/x86_64//")"; arch="${arch:+-$arch}"
     curl -f -o roxctl "https://mirror.openshift.com/pub/rhacs/assets/latest/bin/Linux/roxctl${arch}" >/dev/null 2>&1
     run_command "Downloaded roxctl tool"
@@ -416,9 +421,9 @@ else
 
     # Verify the installation
     if roxctl -h >/dev/null 2>&1; then
-       echo -e "\e[96mINFO\e[0m Roxctl tool installation complete"
+       echo -e "$INFO_MSG Roxctl tool installation complete"
     else
-       echo -e "\e[31mFAILED\e[0m Roxctl tool installation complete"
+       echo -e "$FAIL_MSG Roxctl tool installation complete"
     fi
 fi
 
@@ -508,10 +513,10 @@ while true; do
         if [[ -z "$not_ready_exists" ]]; then
             # SUCCESS: Pods exist AND all of them are ready
             if $progress_started; then
-                printf "\r\e[96mINFO\e[0m All %s namespace pods are Running%*s\n" \
+                printf "\r$INFO_MSG All %s namespace pods are Running%*s\n" \
                        "$namespace" $((LINE_WIDTH - ${#namespace} - 28)) ""
             else
-                echo -e "\e[96mINFO\e[0m All $namespace namespace pods are Running"
+                echo -e "$INFO_MSG All $namespace namespace pods are Running"
             fi
             break
         fi
@@ -525,10 +530,10 @@ while true; do
     [[ -z "$POD_STATUS_LIST" ]] && MSG="Waiting for $namespace pods to be created..."
 
     if ! $progress_started; then
-        printf "\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "$INFO_MSG %s %s" "$MSG" "$CHAR"
         progress_started=true
     else
-        printf "\r\e[96mINFO\e[0m %s %s" "$MSG" "$CHAR"
+        printf "\r$INFO_MSG %s %s" "$MSG" "$CHAR"
     fi
 
     # 4. Handle timeout and retry
@@ -536,7 +541,7 @@ while true; do
     retry_count=$((retry_count + 1))
 
     if [[ $retry_count -ge $MAX_RETRIES ]]; then
-        printf "\r\e[31mFAILED\e[0m The %s namespace pods are not Running%*s\n" \
+        printf "\r$FAIL_MSG The %s namespace pods are not Running%*s\n" \
                "$namespace" $((LINE_WIDTH - ${#namespace} - 45)) ""
         exit 1
     fi
@@ -551,8 +556,8 @@ PRINT_TASK "TASK [Login cluster information]"
 ACS_CONSOLE=$(oc get route central -n $NAMESPACE -o jsonpath='{"https://"}{.spec.host}{"\n"}')
 ACS_PW=$(oc get secret central-htpasswd -n $NAMESPACE -o jsonpath='{.data.password}' | base64 -d)
 
-echo -e "\e[96mINFO\e[0m ACS console: $ACS_CONSOLE"
-echo -e "\e[96mINFO\e[0m ACS user ID: admin  PW: $ACS_PW"
+echo -e "$INFO_MSG ACS console: $ACS_CONSOLE"
+echo -e "$INFO_MSG ACS user ID: admin  PW: $ACS_PW"
 
 # Add an empty line after the task
 echo
