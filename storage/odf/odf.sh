@@ -5,17 +5,24 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # Define the device pattern to search for
 # Ensure the OCP cluster has at least three worker nodes, each with at least one 100GB disk.
-export DEVICE_PATTERN="sd*"          # Disk wildcard name
-export LOCAL_DISK_SIZE="100Gi"       # At least 100GB of disk space, By default, it will format the non-root disk and reference the second disk (sd*).
-export SECOND_DISK_NODE_COUNT="3"      # Number of nodes with a second disk
+export DISK_KNAME_PATTERN="sd[b-z]"
+export ODF_DISK_SIZE="100Gi"         # At least 100GB of disk space, By default, it will format the non-root disk and reference the second disk (sd*).
+export ODF_NODES="worker01.ocp.example.com worker02.ocp.example.com worker03.ocp.example.com"
+
+# Install version
 export ODF_CHANNEL_NAME="stable-4.16"
 export CATALOG_SOURCE_NAME="redhat-operators"
 
 # Whether to create OBC and its object storage secret
-export CREATE_OBC_AND_CREDENTIALS="true"      # true or false
+export CREATE_OBC_AND_CREDENTIALS="false"                      # true or false
 export OBC_NAMESPACE="test" 
 export OBC_NAME="test"
 export OBC_STORAGECLASS_S3="openshift-storage.noobaa.io"      # openshift-storage.noobaa.io or ocs-storagecluster-ceph-rgw
+
+# Set the label variable
+export ODF_NODES_LABEL="cluster.ocs.openshift.io/openshift-storage"
+export LSO_NODES_LABEL="local.storage.openshift.io/openshift-local-storage"
+export LSO_NODES="$ODF_NODES"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -40,12 +47,16 @@ run_command() {
 
 # Define color output variables
 INFO_MSG="\e[96mINFO\e[0m"
-FAIL_MSG="\e[31mFAILED\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
 MSG_WARN="\e[33mWARN\e[0m"
-
+WARN_MSG="\e[33mWARN\e[0m"
 
 # Step 0:
 PRINT_TASK "TASK [Delete old ODF and LSO resources]"
+
+# 1. Cleanup Logic: ODF (OpenShift Data Foundation)
+
+echo -e "$INFO_MSG Starting ODF cleanup process..."
 
 # Function to check if an API exists
 api_exists() {
@@ -54,19 +65,14 @@ api_exists() {
 }
 
 # Annotate StorageCluster for forced cleanup
-if api_exists storageclusters; then
-    if oc get storagecluster ocs-storagecluster -n openshift-storage >/dev/null 2>&1; then
-        echo -e "$INFO_MSG Annotating StorageCluster for cleanup..."
-        oc annotate storagecluster -n openshift-storage ocs-storagecluster uninstall.ocs.openshift.io/cleanup-policy="delete" --overwrite >/dev/null 2>&1 || true
-        oc annotate storagecluster -n openshift-storage ocs-storagecluster uninstall.ocs.openshift.io/mode="forced" --overwrite >/dev/null 2>&1 || true
-    fi
-fi
+oc annotate storagecluster -n openshift-storage ocs-storagecluster uninstall.ocs.openshift.io/cleanup-policy="delete" --overwrite >/dev/null 2>&1 || true
+oc annotate storagecluster -n openshift-storage ocs-storagecluster uninstall.ocs.openshift.io/mode="forced" --overwrite >/dev/null 2>&1 || true
 
 # Delete VolumeSnapshots
 if api_exists volumesnapshot; then
     if oc get volumesnapshot --all-namespaces >/dev/null 2>&1; then
         echo -e "$INFO_MSG Deleting all VolumeSnapshots..."
-        oc get volumesnapshot --all-namespaces -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name --no-headers 2>/dev/null |
+        oc get volumesnapshot --all-namespaces -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name --no-headers 2>/dev/null || true
         while read ns name; do
             timeout 1s oc delete volumesnapshot "$name" -n "$ns" >/dev/null 2>&1 || true
             oc patch volumesnapshot "$name" -n "$ns" -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1 || true
@@ -95,14 +101,13 @@ force_delete_resource() {
 
     # 2. If normal deletion fails, remove finalizers to unstick the resource
     # echo -e "$INFO_MSG Removing finalizers from $type $namespace/$name"
+    oc patch secrets $name -n $namespace --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' >/dev/null 2>&1 || true
     oc patch $type $name -n $namespace --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' >/dev/null 2>&1 || true
-
+    
     # 3. Force delete the resource immediately
     # echo -e "$INFO_MSG Force deleting $type $namespace/$name"
     timeout 3s oc delete $type $name -n $namespace --force --grace-period=0 >/dev/null 2>&1 || true
 }
-
-echo -e "$INFO_MSG Starting OCS cleanup process..."
 
 # Process PVCs 
 # echo -e "$INFO_MSG Checking for OCS-related PVCs..."
@@ -139,9 +144,6 @@ if oc get obc --all-namespaces >/dev/null 2>&1; then
 fi
 
 # Delete all resources in the namespace
-timeout 2s oc delete secrets --all -n openshift-storage --force >/dev/null 2>&1 || true
-
-# Delete all resources in the namespace
 RESOURCES=(
   storagesystems.odf.openshift.io
   storageclusters.ocs.openshift.io
@@ -176,6 +178,7 @@ done
 
 oc patch secret rook-ceph-mon -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
 oc patch cm rook-ceph-mon-endpoints -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
+oc patch cm ocs-client-operator-config -n openshift-storage -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
 
 timeout 2s oc delete pods --all -n openshift-storage --force --grace-period=0 >/dev/null 2>&1 || true
 
@@ -188,17 +191,10 @@ oc patch ns "$NAMESPACE" --type=merge -p '{"spec":{"finalizers":null}}' >/dev/nu
 timeout 2s oc delete ns "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
 
 # Delete StorageClasses individually
-for sc in ocs-storagecluster-ceph-rbd ocs-storagecluster-ceph-rbd-virtualization ocs-storagecluster-ceph-rgw ocs-storagecluster-cephfs openshift-storage.noobaa.io; do
-    if oc get sc $sc >/dev/null 2>&1 || true; then
-#       echo -e "$INFO_MSG Deleting storageclass $sc..."
-        timeout 2s oc delete sc $sc >/dev/null 2>&1 || true
-#    else
-#        echo -e "$INFO_MSG StorageClass $sc does not exist"
-    fi
-done
+timeout 2s oc delete sc ocs-storagecluster-ceph-rbd ocs-storagecluster-ceph-rbd-virtualization ocs-storagecluster-ceph-rgw ocs-storagecluster-cephfs openshift-storage.noobaa.io >/dev/null 2>&1 || true
 
 # Delete local rook data on worker nodes
-for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
+for Hostname in $(oc get nodes -l $ODF_NODES_LABEL= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
     ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$Hostname "
         if [ -d /var/lib/rook ] && [ \"\$(ls -A /var/lib/rook  >/dev/null 2>&1)\" ]; then
             echo -e \"\e[96mINFO\e[0m $Hostname delete /var/lib/rook files\"
@@ -266,9 +262,15 @@ timeout 2s oc delete pods --all -n openshift-storage --force --grace-period=0 >/
 oc patch ns "$NAMESPACE" --type=merge -p '{"spec":{"finalizers":null}}' >/dev/null 2>&1 || true
 timeout 2s oc delete ns "$NAMESPACE" --force --grace-period=0 >/dev/null 2>&1 || true
 
-# Remove lable
-oc get nodes -l 'node-role.kubernetes.io/worker' -o name \
-  | xargs -I {} oc label {} cluster.ocs.openshift.io/openshift-storage- >/dev/null 2>&1 || true
+# Remove $ODF_NODES_LABEL label
+for n in $LSO_NODES; do oc label node "$n" "$ODF_NODES_LABEL-" --overwrite >/dev/null 2>&1 || true; done
+for n in $LSO_NODES; do oc label node "$n" "topology.rook.io/rack-" --overwrite >/dev/null 2>&1 || true; done
+
+# Remove the PV provided by the ocs-storagecluster-ceph-rbd storage class
+for pv in $(oc get pv -o custom-columns=NAME:.metadata.name,SC:.spec.storageClassName --no-headers | awk '$2=="ocs-storagecluster-ceph-rbd"{print $1}'); do
+  oc patch pv $pv -p '{"metadata":{"finalizers":[]}}' --type=merge >/dev/null 2>&1
+  oc delete pv $pv >/dev/null 2>&1
+done
 
 # Check if namespace exists
 #NAMESPACE="openshift-storage"
@@ -340,10 +342,15 @@ do
   oc patch crd "$crd" --type=merge -p '{"metadata":{"finalizers":[]}}' >/dev/null 2>&1 || true
 done
 
-# Delete lso
+# 2. Cleanup Logic: LSO (Local Storage Operator)
+echo -e "$INFO_MSG Starting LSO cleanup process..."
+
 # Delete local volume and pv, sc
+timeout 2s oc -n openshift-local-storage delete LocalVolumeDiscovery --all >/dev/null 2>&1 || true
+timeout 2s oc -n openshift-local-storage delete LocalVolumeSet --all >/dev/null 2>&1 || true
 (oc get localvolumes -n openshift-local-storage -o name 2>/dev/null | xargs -r -I {} oc -n openshift-local-storage delete {} 2>/dev/null) >/dev/null 2>&1 || true
 (oc get localvolume -n openshift-local-storage -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | xargs -r -I {} oc patch localvolume {} -n openshift-local-storage --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]' 2>/dev/null) >/dev/null 2>&1 || true
+oc get pv | grep local | awk '{print $1}' | xargs -I {} oc patch pv {} -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
 oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {} >/dev/null 2>&1 || true
 
 if oc get sc local-sc >/dev/null 2>&1; then
@@ -368,55 +375,93 @@ else
 fi
 
 # Clean up local storage (Only prints if files were deleted)
-for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= \
-  -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
+for Hostname in $(oc get nodes -l $LSO_NODES_LABEL= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
 
   ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$Hostname "
     if [ -d /mnt/local-storage ] && [ \"\$(ls -A /mnt/local-storage 2>/dev/null)\" ]; then
-      echo -e \"\e[96mINFO\e[0m $Hostname delete /mnt/local-storage files\"
+      echo -e \"\e[96mINFO\e[0m Node $Hostname delete /mnt/local-storage files\"
       sudo rm -rf /mnt/local-storage
     #else
-    #  echo -e \"\e[96mINFO\e[0m $Hostname /mnt/local-storage not exist or empty, skip\"
+    #  echo -e \"\e[96mINFO\e[0m Node $Hostname /mnt/local-storage not exist or empty, skip\"
     fi
   "
 done
 
-# Wipe second attached disk on all worker nodes
-for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= \
-  -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
+# 3. Disk Wiping Logic
+# 0. Add the LSO label to the worker node
+for n in $LSO_NODES; do oc label node "$n" "$LSO_NODES_LABEL=" --overwrite >/dev/null 2>&1 || true; done
 
-  ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$Hostname "
-    # Find the first non-system disk
-    disk=\$(lsblk -dnlo NAME,TYPE | awk '\$2==\"disk\" {print \$1}' | while read d; do
-      # Skip system/root disk (mounted or partitioned)
-      if ! lsblk /dev/\$d | grep -Eq '/boot|/var|/ |part'; then
-        echo \$d
-        break
-      fi
-    done)
+# 1. Extract numeric value for size matching
+TARGET_NUM=$(echo "$ODF_DISK_SIZE" | sed 's/[^0-9]//g')
+MIN_GIB=$((TARGET_NUM - 5))
+MAX_GIB=$((TARGET_NUM + 5))
+NODES=$(oc get nodes -l "$LSO_NODES_LABEL" -o jsonpath='{.items[*].metadata.name}')
 
-    if [ -n \"\$disk\" ]; then
-      # Remove filesystem / partition signatures
-      sudo wipefs -fa /dev/\$disk >/dev/null 2>&1
+echo -e "$INFO_MSG Starting exhaustive disk wipe process on ODF nodes..."
 
-      # Wipe common Ceph metadata locations
-      for gb in 0 1 10 100 1000; do
-        sudo dd if=/dev/zero of=/dev/\$disk bs=1K count=200 seek=\$((gb * 1024**2)) oflag=direct,dsync >/dev/null 2>&1
-      done
+# 2. Execution Loop
+for node in $NODES; do
+    # Define node display name early
+    WIPE_RESULT=$(ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$node "sudo bash -s $MIN_GIB $MAX_GIB $DISK_KNAME_PATTERN" << 'EOF'
+        MIN=$1
+        MAX=$2
+        PATTERN=$3
+        
+        shopt -s nullglob
+        for data_disk in /dev/$PATTERN; do
+            [ ! -b "${data_disk}" ] && continue
+            
+            # Get size accurately
+            SIZE_BYTES=$(blockdev --getsize64 "${data_disk}" 2>/dev/null || true)
+            [ -z "$SIZE_BYTES" ] && continue
+            GIB=$(( SIZE_BYTES / 1024 / 1024 / 1024 ))
+            
+            if [ "$GIB" -ge "$MIN" ] && [ "$GIB" -le "$MAX" ]; then
+                if ! lsblk "${data_disk}" | grep -Eq '/boot|/var|/ |part'; then
+                    
+                    # A. Clear filesystem signatures and partition tables
+                    wipefs -af "${data_disk}" >/dev/null 2>&1
+                    blockdev --rereadpt "${data_disk}" >/dev/null 2>&1
 
-      # Discard blocks if supported (SSD / NVMe)
-      sudo blkdiscard /dev/\$disk >/dev/null 2>&1 || true
+                    # B. Zap the disk to a fresh, usable state (zap-all is important, b/c MBR has to be clean)
+                    sgdisk --zap-all "${data_disk}" >/dev/null 2>&1
+                    
+                    # C. Wipe a large portion of the beginning&end of the disk to remove more LVM metadata that may be present
+                    mb=100
+                    dd if=/dev/zero of="${data_disk}" bs=1M  count=${mb} oflag=direct,dsync >/dev/null 2>&1
+                    dd if=/dev/zero of="${data_disk}" bs=512 count=$(( 2048 * $mb )) seek=$(( $(blockdev --getsz ${data_disk}) - 2048 * $mb )) >/dev/null 2>&1
 
-      echo -e \"\e[96mINFO\e[0m $Hostname Wiped second attached disk /dev/\$disk\"
-    #else
-    #  echo -e \"\e[96mINFO\e[0m $Hostname No second attached disk found, skip\"
+                    # D. SSD Discard
+                    blkdiscard "${data_disk}" >/dev/null 2>&1 || true
+                    sync
+
+                    # E. Inform the OS
+                    [[ -f /usr/sbin/partprobe ]] && partprobe "${data_disk}" >/dev/null 2>&1 || true
+                    
+                    # Final output for the local script to parse
+                    echo "RESULT_SUCCESS ${data_disk##*/}"
+                    exit 0
+                fi
+            fi
+        done
+        
+        echo "RESULT_NOT_FOUND"
+        exit 1
+EOF
+) || true 
+
+    # 3. Format result display
+    if [[ "$WIPE_RESULT" == *"RESULT_SUCCESS"* ]]; then
+        # Extract disk name (e.g., sdc)
+        DISK_NAME=$(echo "$WIPE_RESULT" | grep "RESULT_SUCCESS" | awk '{print $2}')
+        echo -e "$INFO_MSG Node ${node} successfully wiped disk: /dev/${DISK_NAME}"
+    else
+        echo -e "$INFO_MSG Node ${node} no matching disk found to wipe ($ODF_DISK_SIZE)"
     fi
-  "
 done
 
-# Remove lable
-oc get nodes -l 'node-role.kubernetes.io/worker' -o name \
-  | xargs -I {} oc label {} local.storage.openshift.io/openshift-local-storage- >/dev/null 2>&1 || true
+# Remove label
+for n in $LSO_NODES; do oc label node "$n" "$LSO_NODES_LABEL-" --overwrite >/dev/null 2>&1 || true; done
 
 # Add an empty line after the task
 echo
@@ -424,98 +469,105 @@ echo
 # Step 1:
 PRINT_TASK "TASK [Automating discovery for local storage devices]"
 
-# Define the output environment file name
-OUTPUT_ENV_FILE="generated_vars.env"
-
-# Define color output variables
-INFO_MSG="\e[96mINFO\e[0m"
-FAIL_MSG="\e[31mFAILED\e[0m"
-MSG_WARN="\e[33mWARN\e[0m"
-
-# Initialize or clear the output file
-rm -rf "$OUTPUT_ENV_FILE"
-
-echo -e "$INFO_MSG Starting discovery for unused devices matching pattern: '$DEVICE_PATTERN'"
-
-# Generate the remote execution script
-cat << EOF > find-secondary-device.sh
-#!/bin/bash
-set -uo pipefail
-
-NODE_NAME="\$(hostname)" 
-COUNTER=\$1
-
-# Internal color variables for remote node output
-MSG_INFO="\e[96mINFO\e[0m"
-MSG_FAIL="\e[31mFAILED\e[0m"
-MSG_WARN="\e[33mWARN\e[0m"
-
-# Enable nullglob to prevent errors if no devices match
-shopt -s nullglob
-
-# Iterate over devices
-for device in /dev/$DEVICE_PATTERN; do
-  # Check if device is valid (blkid returns 2 means no filesystem, i.e., empty disk)
-  /usr/sbin/blkid "\${device}" &> /dev/null
-  if [ \$? == 2 ]; then
-    # Get the /dev/disk/by-path/ identifier
-    DEVICE_PATH=\$(ls -l /dev/disk/by-path/ | awk -v dev="\${device##*/}" '\$0 ~ dev {print "/dev/disk/by-path/" \$9}')
-
-    # Output the export statement to stdout (will be captured into the local env file)
-    echo "export DEVICE_PATH_\$COUNTER=\$DEVICE_PATH"
-    
-    # Output the info message to stderr (will be displayed on the screen)
-    echo -e "\$MSG_INFO \$NODE_NAME: Found unused device \$DEVICE_PATH" >&2
-    
-    exit 0
+# 1. Add the LSO label to the worker node
+for n in $LSO_NODES; do
+  if oc label node $n $LSO_NODES_LABEL="" --overwrite >/dev/null 2>&1; then
+    echo -e "$INFO_MSG Add the LSO label to the $n node"
+  else
+    echo -e "$FAIL_MSG Add the LSO label to the $n node"
   fi
 done
 
-# If no device is found after the loop
-echo -e "\$MSG_WARN \$NODE_NAME: No secondary block device found matching $DEVICE_PATTERN" >&2
-EOF
+# 2. Environment Preparation
+# Extract numeric value and set GiB range
+TARGET_NUM=$(echo "$ODF_DISK_SIZE" | sed 's/[^0-9]//g')
+MIN_GIB=$((TARGET_NUM - 5))
+MAX_GIB=$((TARGET_NUM + 5))
 
-# Get the list of worker nodes
-echo -e "$INFO_MSG Fetching worker nodes list..."
-NODES=$(oc get nodes -l 'node-role.kubernetes.io/worker' -o=jsonpath='{.items[*].metadata.name}')
-
-if [ -z "$NODES" ]; then
-    echo -e "$FAIL_MSG No worker nodes found via 'oc' command."
-    rm -f find-secondary-device.sh
-    exit 1
-fi
-
-# Counter initialization
-COUNTER=1
-
-# Loop through each node
-for node in $NODES; do
-  # Execute via SSH
-  # stdout (variables) >> appended to local file
-  # stderr (colored logs) -> displayed on bastion screen
-  ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET core@$node "sudo bash -s $COUNTER" < find-secondary-device.sh >> "$OUTPUT_ENV_FILE"
-  
-  # Increment counter
-  COUNTER=$((COUNTER + 1))
-done
-
-# Clean up the temporary script
+# Define the output environment file name
+OUTPUT_ENV_FILE="generated_vars.env"
+rm -f "$OUTPUT_ENV_FILE"
 rm -f find-secondary-device.sh
 
-echo -e "$INFO_MSG Discovery process finished"
+# 3. Generate Remote Discovery Script
+cat << 'EOF' > find-secondary-device.sh
+#!/bin/bash
+set -uo pipefail
+shopt -s nullglob
 
-# Check if the environment file has content and source it
-if [ -s "$OUTPUT_ENV_FILE" ]; then
-    echo -e "$INFO_MSG Applying variables from $OUTPUT_ENV_FILE"
+# Retrieve parameters from command line arguments
+MIN_GIB=$1
+MAX_GIB=$2
+PATTERN=$3
+
+for device in /dev/$PATTERN; do
+    # If it's not a block device, skip this step.
+    [ ! -b "$device" ] && continue
+    # Get size in bytes and convert to GiB integer
+    SIZE_BYTES=$(lsblk -dn -o SIZE -b "${device}" 2>/dev/null | tr -d '[:space:]')
+    [ -z "$SIZE_BYTES" ] && continue
     
-    # Sourcing the file within the script
+    CURRENT_GIB=$(( SIZE_BYTES / 1024 / 1024 / 1024 ))
+
+    # Check if disk size is within the allowed range
+    if [ "$CURRENT_GIB" -ge "$MIN_GIB" ] && [ "$CURRENT_GIB" -le "$MAX_GIB" ]; then
+        # Check if the device is raw/empty (blkid returns 2 if no filesystem)
+        /usr/sbin/blkid "${device}" &> /dev/null
+        if [ $? -eq 2 ]; then
+            # Get the persistent by-path identifier
+            DEVICE_PATH=$(ls -l /dev/disk/by-path/ | awk -v dev="${device##*/}" '$0 ~ dev {print "/dev/disk/by-path/" $9}')
+            if [ -n "$DEVICE_PATH" ]; then
+                echo "${device##*/} $DEVICE_PATH"
+                exit 0
+            fi
+        fi
+    fi
+done
+EOF
+
+# 4. Iterate through Nodes and Collect Device Paths
+NODES=$(oc get nodes -l "$LSO_NODES_LABEL" -o=jsonpath='{.items[*].metadata.name}')
+COUNTER=1
+
+echo -e "$INFO_MSG Starting discovery for unused disks matching pattern: '$DISK_KNAME_PATTERN'"
+
+for node in $NODES; do
+    # Execute discovery script on remote nodes via SSH
+    # Pass MIN, MAX, and PATTERN as positional arguments
+    RAW_OUT=$(ssh -o StrictHostKeyChecking=no -o LogLevel=QUIET "core@$node" "sudo bash -s $MIN_GIB $MAX_GIB $DISK_KNAME_PATTERN" < find-secondary-device.sh)
+    DISK_NAME=$(echo "$RAW_OUT" | awk '{print $1}')
+    FOUND_PATH=$(echo "$RAW_OUT" | awk '{print $2}')
+    # Append to local env file; empty paths will be filtered later
+    echo "export DEVICE_PATH_$COUNTER=$FOUND_PATH" >> "$OUTPUT_ENV_FILE"
+    
+    if [ -n "$FOUND_PATH" ]; then
+        echo -e "$INFO_MSG Node $node node found device: $FOUND_PATH ($DISK_NAME)" 
+    else
+        # Critical Error: If any node fails to find a disk, stop the script immediately
+        echo -e "$FAIL_MSG Node $node no matching unused disk found ($ODF_DISK_SIZE)"
+        rm -f find-secondary-device.sh
+        exit 1
+    fi
+    COUNTER=$((COUNTER + 1))
+done
+
+# 5. Final Processing: Deduplication and Empty Value Removal
+if [ -s "$OUTPUT_ENV_FILE" ]; then
+    echo -e "$INFO_MSG Deduplicating and cleaning $OUTPUT_ENV_FILE"
+    # Filter: 1. Value must not be empty ($2 != "") 2. Value must be unique (!seen[$2]++)
+    TEMP_FILE=$(mktemp)
+    awk -F'=' '$2 != "" && !seen[$2]++' "$OUTPUT_ENV_FILE" > "$TEMP_FILE"
+    mv -f "$TEMP_FILE" "$OUTPUT_ENV_FILE"
+    # Source variables into current session
     source "./$OUTPUT_ENV_FILE"
+    echo -e "$INFO_MSG Final variables applied successfully"
 else
-    echo -e "$FAIL_MSG No variables were generated. The env file is empty."
+    echo -e "$FAIL_MSG No secondary block devices were discovered"
 fi
 
-# Initialize or clear the output file
-rm -rf "$OUTPUT_ENV_FILE"
+# Cleanup temporary files
+rm -f find-secondary-device.sh
+rm -f "$OUTPUT_ENV_FILE"
 
 # Add an empty line after the task
 echo
@@ -558,7 +610,6 @@ spec:
   sourceNamespace: openshift-marketplace
 EOF
 run_command "Install the local storage operator"
-
 
 # Automatically approve install plans in the $OPERATOR_NS namespace
 # Stage 1: Wait for the first unapproved InstallPlan to appear and approve it
@@ -689,10 +740,6 @@ while true; do
     fi
 done
 
-# Add the local-storage tag to the worker node
-oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} local.storage.openshift.io/openshift-local-storage='' >/dev/null 2>&1 
-run_command "Add the local-storage tag to the worker node"
-
 # Create the local volume resource
 oc create -f - <<EOF >/dev/null 2>&1 
 apiVersion: "local.storage.openshift.io/v1"
@@ -704,7 +751,7 @@ spec:
   nodeSelector: 
     nodeSelectorTerms:
     - matchExpressions:
-        - key: local.storage.openshift.io/openshift-local-storage
+        - key: $LSO_NODES_LABEL
           operator: In
           values:
           - ""
@@ -792,15 +839,7 @@ oc get sc local-sc >/dev/null 2>&1
 run_command "Check if a StorageClass named local-sc exists"
 
 # Check Local PV status
-#oc get pv -o jsonpath='{range .items[?(@.spec.local)]}{.metadata.name}{" "}{.status.phase}{"\n"}{end}' | \
-#while read pv status; do
-#  if [[ "$status" != "Available" && "$status" != "Bound" ]]; then
-#    echo -e "$FAIL_MSG PV $pv status: $status"
-#  else
-#    echo -e "$INFO_MSG PV $pv status: $status"
-#  fi
-#done
-
+export SECOND_DISK_NODE_COUNT=$(echo $LSO_NODES | wc -w)
 MAX_RETRIES=60                         # Maximum number of retries
 SLEEP_INTERVAL=2                       # Sleep interval in seconds
 SPINNER=('/' '-' '\' '|')              # Spinner animation characters
@@ -966,7 +1005,7 @@ SPINNER=('/' '-' '\' '|')      # Spinner animation characters
 retry_count=0                  # Number of status check attempts
 progress_started=false         # Tracks whether the spinner/progress line has been started
 project=$OPERATOR_NS
-pod_name=operator
+pod_name=odf-operator
 
 while true; do
     # 1. Capture the Ready status column (e.g., "1/1", "0/2") for pods matching the name
@@ -1022,9 +1061,18 @@ while true; do
     fi
 done
 
-# Add the local-storage tag to the worker node
-oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} cluster.ocs.openshift.io/openshift-storage='' >/dev/null 2>&1 
-run_command "Add the ocs tag to the worker node"
+# Enable console plugin
+oc patch console.operator cluster -n openshift-storage --type json -p '[{"op": "add", "path": "/spec/plugins", "value": ["odf-console"]}]' >/dev/null 2>&1
+run_command "Enable console plugin"
+
+# Add the $ODF_NODES_LABEL label to the ODF node
+for n in $ODF_NODES; do
+  if oc label node $n $ODF_NODES_LABEL="" --overwrite >/dev/null 2>&1; then
+    echo -e "$INFO_MSG Add the ODF label to the $n node"
+  else
+    echo -e "$FAIL_MSG Add the ODF label to the $n node"
+  fi
+done
 
 oc create -f - <<EOF >/dev/null 2>&1 
 apiVersion: ocs.openshift.io/v1
@@ -1053,7 +1101,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: "${LOCAL_DISK_SIZE}"  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
+            storage: "${ODF_DISK_SIZE}"  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
         storageClassName: local-sc
         volumeMode: Block
     name: ocs-deviceset
