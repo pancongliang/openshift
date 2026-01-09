@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
-trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
 export OCP_VERSION=4.18.20                              # Only supports installation of version 4.14+
@@ -71,10 +71,15 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
+
+# Define color output variables
+INFO_MSG="\e[96mINFO\e[0m"
+FAIL_MSG="\e[31mFAIL\e[0m"
+WARN_MSG="\e[33mWARN\e[0m"
 
 # Step 1:
 PRINT_TASK "TASK [Trust the vCenter certificate]"
@@ -118,7 +123,7 @@ sudo rm -f openshift-client-linux-amd64-rhel8.tar.gz* >/dev/null 2>&1
 sudo rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
 
 # Download the openshift-install
-echo -e "\e[96mINFO\e[0m Downloading the openshift-install tool..."
+echo -e "$INFO_MSG Downloading the openshift-install tool..."
 
 wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
 run_command "Download openshift-install tool"
@@ -145,7 +150,7 @@ elif [ "$rhel_version" -eq 9 ]; then
 fi
 
 # Download the OpenShift client
-echo -e "\e[96mINFO\e[0m Downloading the openshift-client tool..."
+echo -e "$INFO_MSG Downloading the openshift-client tool..."
 
 wget -q "$download_url" -O "$openshift_client"
 run_command "Download openshift-client tool"
@@ -186,9 +191,9 @@ if [ ! -f "${SSH_KEY_PATH}/id_rsa" ] || [ ! -f "${SSH_KEY_PATH}/id_rsa.pub" ]; t
     rm -rf ${SSH_KEY_PATH} 
     mkdir -p ${SSH_KEY_PATH}
     ssh-keygen -t rsa -N '' -f ${SSH_KEY_PATH}/id_rsa >/dev/null 2>&1
-    echo -e "\e[96mINFO\e[0m Create ssh-key for accessing node"
+    echo -e "$INFO_MSG Create ssh-key for accessing node"
 else
-    echo -e "\e[96mINFO\e[0m SSH key for accessing the node already exists"
+    echo -e "$INFO_MSG SSH key for accessing the node already exists"
 fi
 
 sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
@@ -403,8 +408,8 @@ PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
 run_command "Default login: use kubeconfig"
 
-echo -e "\e[96mINFO\e[0m HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
-echo -e "\e[33mACTION\e[0m Please manually run: source ~/.bash_profile"
+echo -e "$INFO_MSG HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
+echo -e "$INFO_MSG Please manually run: source ~/.bash_profile"
 
 # Add an empty line after the task
 echo
