@@ -93,6 +93,10 @@ for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{
   "
 done
 
+# Remove lable
+oc get nodes -l 'node-role.kubernetes.io/worker' -o name \
+  | xargs -I {} oc label {} local.storage.openshift.io/openshift-local-storage- >/dev/null 2>&1 || true
+
 # Add an empty line after the task
 echo
 
