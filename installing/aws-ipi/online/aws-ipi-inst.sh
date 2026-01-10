@@ -5,7 +5,7 @@ set -uo pipefail
 
 # Set environment variables
 export OCP_VERSION=4.16.26
-export PULL_SECRET="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="xxxxx"
 export BASE_DOMAIN="xxxxx"
 export AWS_ACCESS_KEY_ID="xxxxx"
@@ -13,7 +13,7 @@ export AWS_SECRET_ACCESS_KEY="xxxxx"
 export WORKER_INSTANCE_TYPE='m6a.2xlarge'           # (m6a.4xlarge vcpu: 16 mem:64 / Bare Metal: c5n.metal)https://aws.amazon.com/cn/ec2/instance-types/m6a/
 export REGION="ap-northeast-1"
 export SSH_KEY_PATH="$HOME/.ssh"
-export INSTALL_DIR="$HOME/ocp-inst/ocp"
+export INSTALL_DIR="$HOME/aws-ipi/ocp"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -199,7 +199,7 @@ sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
 mkdir -p $INSTALL_DIR >/dev/null 2>&1
 run_command "Create install dir: $INSTALL_DIR"
 
-cat << EOF > $INSTALL_DIR/install-config.yaml >/dev/null 2>&1
+cat << EOF > $INSTALL_DIR/install-config.yaml 2>/dev/null
 #additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
