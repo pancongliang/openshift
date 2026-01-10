@@ -1359,7 +1359,6 @@ PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
 COL_WIDTH=35
 printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
 
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source ~/.bashrc"
 printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
 
 printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$MASTER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_NAME: -1} | sh → reboot"
@@ -1380,7 +1379,7 @@ PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 
 # Load shell environment
 grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bashrc || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bashrc
-run_command "Default login: use kubeconfig"
+run_command "Loading Kubeconfig and completion: source ~/.bashrc && source /etc/bash_completion.d/oc_completion"
 
 echo -e "$INFO_MSG HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
 
