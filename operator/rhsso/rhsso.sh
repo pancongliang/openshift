@@ -59,7 +59,8 @@ oc delete operatorgroup rhsso-operator-group $OPERATOR_NS >/dev/null 2>&1 || tru
 oc delete sub rhsso-operator -n $OPERATOR_NS >/dev/null 2>&1 || true
 oc get csv -n $OPERATOR_NS -o name | grep rhsso-operator | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n $OPERATOR_NS >/dev/null 2>&1 || true
 oc get ip -n $OPERATOR_NS --no-headers 2>/dev/null|grep rhsso-operator|awk '{print $1}'|xargs -r oc delete ip -n $OPERATOR_NS >/dev/null 2>&1 || true
-
+oc delete user $KEYCLOAK_REALM_USER >/dev/null 2>&1 || true
+oc delete identity "$(oc get identity -o jsonpath="{.items[?(@.user.name=='${KEYCLOAK_REALM_USER}')].metadata.name}")" >/dev/null 2>&1 || true
 
 if oc get ns $OPERATOR_NS >/dev/null 2>&1; then
     echo -e "$INFO_MSG Deleting $OPERATOR_NS project..."
