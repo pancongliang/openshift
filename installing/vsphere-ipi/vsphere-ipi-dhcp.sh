@@ -5,7 +5,7 @@ set -uo pipefail
 
 # Set environment variables
 export OCP_VERSION="4.18.21"                             # Only supports installation of version 4.10+
-export CLUSTER_NAME="copan"
+export CLUSTER_NAME="pan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxxxxx"
 export VCENTER_PASSWORD="xxxxxx"
