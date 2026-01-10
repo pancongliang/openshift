@@ -39,7 +39,7 @@ run_command() {
 # Define color output variables
 INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
-ACT_MSG="\e[33mACT \e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 # Step 1:
 PRINT_TASK "TASK [Set up AWS credentials and verify pull-secret]"
@@ -302,7 +302,7 @@ printf "$INFO_MSG Kubeconfig login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconf
 
 OS_TYPE=$(uname -s)
 if [ "$OS_TYPE" = "Darwin" ]; then
-    printf "$ACT_MSG Run 'source ~/.zshrc' to apply the updated PATH\n"
+    printf "$ACTION_MSG Run 'source ~/.zshrc' to apply the updated PATH\n"
 fi
 
 # Add an empty line after the task
