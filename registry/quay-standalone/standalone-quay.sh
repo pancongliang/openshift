@@ -13,7 +13,7 @@ export QUAY_INST_DIR="/opt/quay-inst"
 export QUAY_PORT="9443"
 export REGISTRY_ID="quayadmin"
 export REGISTRY_PW="password"
-export OCP_TRUSTED_CA="true"                # OCP trust Quay: true, otherwise false
+export OCP_TRUSTED_CA="false"                # OCP trust Quay: true, otherwise false
 
 
 # Function to print a task with uniform length
