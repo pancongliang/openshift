@@ -191,9 +191,9 @@ run_command "Set hostname to ${BASTION_NAME}"
 timedatectl set-timezone UTC
 run_command "Set time zone to UTC"
 
-# Write LANG=en_US.UTF-8 to the $HOME/bash_profile file]
+# Write LANG=en_US.UTF-8 to the ~/.bash_profile file
 grep -q "^export LANG=en_US.UTF-8" ~/.bash_profile || echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
-run_command "Write LANG=en_US.UTF-8 to $HOME/.bash_profile"
+run_command "Write LANG=en_US.UTF-8 to ~/.bash_profile"
 
 # Add an empty line after the task
 echo
@@ -1558,7 +1558,7 @@ echo
 PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 
 # Load shell environment
-grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
+grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bashrc || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bashrc
 run_command "Default login: use kubeconfig"
 
 echo -e "$INFO_MSG HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
@@ -1575,7 +1575,7 @@ COL_WIDTH=35
 printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME mirror ocp release image:" "Open a new terminal → bash ${INSTALL_DIR}/mirror-img.sh"
 
 printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source \$HOME/.bash_profile"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME load shell environment:" "source /etc/bash_completion.d/oc_completion && source ~/.bashrc"
 printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
 
 printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$MASTER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_NAME: -1} | sh → reboot"
