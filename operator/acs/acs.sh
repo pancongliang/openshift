@@ -547,12 +547,7 @@ while true; do
     fi
 done
 
-# Add an empty line after the task
-echo
-
-# Step 3:
-PRINT_TASK "TASK [Login cluster information]"
-
+# Login cluster information
 ACS_CONSOLE=$(oc get route central -n $NAMESPACE -o jsonpath='{"https://"}{.spec.host}{"\n"}')
 ACS_PW=$(oc get secret central-htpasswd -n $NAMESPACE -o jsonpath='{.data.password}' | base64 -d)
 
