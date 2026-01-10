@@ -4,12 +4,12 @@
 set -uo pipefail
 
 # Set environment variables
-export OCP_VERSION=4.16.26
-export PULL_SECRET="$HOME/aws-ipi/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-export CLUSTER_NAME="xxxxx"
-export BASE_DOMAIN="xxxxx"
-export AWS_ACCESS_KEY_ID="xxxxx"
-export AWS_SECRET_ACCESS_KEY="xxxxx"
+export OCP_VERSION=4.18.26
+export PULL_SECRET="$HOME/aws-ipi/pull-secret"      # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export CLUSTER_NAME="copan"
+export BASE_DOMAIN="apac.aws.cee.support"
+export AWS_ACCESS_KEY_ID="xxxxxx"
+export AWS_SECRET_ACCESS_KEY="xxxxxx"
 export WORKER_INSTANCE_TYPE='m6a.2xlarge'           # (m6a.4xlarge vcpu: 16 mem:64 / Bare Metal: c5n.metal)https://aws.amazon.com/cn/ec2/instance-types/m6a/
 export REGION="ap-northeast-1"
 export SSH_KEY_PATH="$HOME/.ssh"
@@ -39,7 +39,7 @@ run_command() {
 # Define color output variables
 INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
-ACTION_MSG="\e[33mACTION\e[0m"
+ACT_MSG="\e[33mACT \e[0m"
 
 # Step 1:
 PRINT_TASK "TASK [Set up AWS credentials and verify pull-secret]"
@@ -66,6 +66,10 @@ echo
 # Step 2:
 PRINT_TASK "TASK [Install OpenShift Install and Client Tools]"
 
+# Create user-local bin directory
+mkdir -p $HOME/.local/bin/
+run_command "Create $HOME/.local/bin/ directory"
+
 # Determine the operating system
 OS_TYPE=$(uname -s)
 printf "$INFO_MSG Client operating system: $OS_TYPE\n"
@@ -73,7 +77,7 @@ printf "$INFO_MSG Client operating system: $OS_TYPE\n"
 ARCH=$(uname -m)
 printf "$INFO_MSG Client architecture: $ARCH\n"
 
-# Handle macOS
+# MacOS Install OpenShift Install and Client Tools
 if [ "$OS_TYPE" = "Darwin" ]; then
     # Determine the download URL based on the architecture
     if [ "$ARCH" = "x86_64" ]; then
@@ -89,12 +93,12 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     curl -sL "$download_url" -o "$openshift_install"
     run_command "Download openshift-install"
 
-    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1 || true
-    sudo tar -xzf "$openshift_install" -C "/usr/local/bin/" >/dev/null 2>&1
+    rm -f $HOME/.local/bin/openshift-install >/dev/null 2>&1 || true
+    tar -xzf "$openshift_install" -C "$HOME/.local/bin/" >/dev/null 2>&1
     run_command "Install openshift-install"
 
-    chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
-    run_command "Set permissions for /usr/local/bin/openshift-install"
+    chmod +x $HOME/.local/bin/openshift-install >/dev/null 2>&1
+    run_command "Set permissions for $HOME/.local/bin/openshift-install"
     
     rm -rf "$openshift_install" >/dev/null 2>&1
 
@@ -112,19 +116,22 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift-client"
 
-    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1 || true
-    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1 || true
-    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
+    rm -f $HOME/.local/bin/oc >/dev/null 2>&1 || true
+    rm -f $HOME/.local/bin/kubectl >/dev/null 2>&1 || true
+    rm -f $HOME/.local/bin/README.md >/dev/null 2>&1 || true
 
-    sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
+    tar -xzf "$openshift_client" -C "$HOME/.local/bin/" >/dev/null 2>&1
     run_command "install openshift-client"
 
-    sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
-    run_command "Set permissions for /usr/local/bin/oc"
+    chmod +x $HOME/.local/bin/oc >/dev/null 2>&1
+    run_command "Set permissions for $HOME/.local/bin/oc"
 
-    sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
-    run_command "Set permissions for /usr/local/bin/kubectl"
-   
+    chmod +x $HOME/.local/bin/kubectl >/dev/null 2>&1
+    run_command "Set permissions for $HOME/.local/bin/kubectl"
+
+    grep -Fxq 'export PATH="$HOME/.local/bin:$PATH"' ~/.zshrc || echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+    run_command "Added $HOME/.local/bin to PATH in ~/.zshrc"
+    
     rm -rf "$openshift_client" >/dev/null 2>&1
 
 # Handle Linux
@@ -134,18 +141,18 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "Download openshift-install tool"
 
-    sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1 || true
-    sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
+    rm -f $HOME/.local/bin/openshift-install >/dev/null 2>&1 || true
+    tar -xzf "openshift-install-linux.tar.gz" -C "$HOME/.local/bin/" >/dev/null 2>&1
     run_command "Install openshift-install tool"
 
-    sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
-    run_command "Set permissions for /usr/local/bin/openshift-install"
+    chmod +x $HOME/.local/bin/openshift-install >/dev/null 2>&1
+    run_command "Set permissions for $HOME/.local/bin/openshift-install"
     rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
     # Delete the old version of oc cli
-    sudo rm -f /usr/local/bin/oc >/dev/null 2>&1 || true
-    sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1 || true
-    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
+    rm -f $HOME/.local/bin/oc >/dev/null 2>&1 || true
+    rm -f $HOME/.local/bin/kubectl >/dev/null 2>&1 || true
+    rm -f $HOME/.local/bin/README.md >/dev/null 2>&1 || true
 
     # Get the RHEL version number
     rhel_version=$(rpm -E %{rhel})
@@ -165,18 +172,18 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift client tool"
 
-    # Extract the downloaded tarball to /usr/local/bin/
-    sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
+    # Extract the downloaded tarball to $HOME/.local/bin/
+    tar -xzf "$openshift_client" -C "$HOME/.local/bin/" >/dev/null 2>&1
     run_command "Install openshift client tool"
 
-    sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
-    run_command "Set permissions for /usr/local/bin/oc"
+    chmod +x $HOME/.local/bin/oc >/dev/null 2>&1
+    run_command "Set permissions for $HOME/.local/bin/oc"
 
-    sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
-    run_command "Set permissions for /usr/local/bin/kubectl"
+    chmod +x $HOME/.local/bin/kubectl >/dev/null 2>&1
+    run_command "Set permissions for $HOME/.local/bin/kubectl"
 
-    sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1 || true
-    sudo rm -rf $openshift_client >/dev/null 2>&1 || true
+    rm -f $HOME/.local/bin/README.md >/dev/null 2>&1 || true
+    rm -rf $openshift_client >/dev/null 2>&1 || true
 fi
 
 # Add an empty line after the task
@@ -195,7 +202,7 @@ else
     printf "$INFO_MSG SSH key for accessing the node already exists\n"
 fi
 
-sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
+rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
 mkdir -p $INSTALL_DIR >/dev/null 2>&1
 run_command "Create install dir: $INSTALL_DIR"
 
@@ -239,10 +246,8 @@ sshKey: |
 EOF
 run_command "Create install-config.yaml file"
 
-export PATH="/usr/local/bin:$PATH"
-
 # Generate manifests
-/usr/local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
+$HOME/.local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
 run_command "Generate kubernetes manifests"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-openshift-config-secret-htpasswd-secret.yaml
@@ -289,11 +294,16 @@ spec:
 EOF
 run_command "Create oauth htpasswd identityprovider manifests"
 
-/usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
+$HOME/.local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "Installation complete"
 
 printf "$INFO_MSG HTPasswd login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443\n"
 printf "$INFO_MSG Kubeconfig login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig\n"
+
+OS_TYPE=$(uname -s)
+if [ "$OS_TYPE" = "Darwin" ]; then
+    printf "$ACT_MSG Run 'source ~/.zshrc' to apply the updated PATH\n"
+fi
 
 # Add an empty line after the task
 echo
