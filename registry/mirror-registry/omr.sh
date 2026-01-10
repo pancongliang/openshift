@@ -9,7 +9,7 @@ export REGISTRY_HOST_IP="10.184.134.30"
 export REGISTRY_ID="admin"
 export REGISTRY_PW="password"
 export REGISTRY_INSTALL_DIR="/opt/quay-install"
-export OCP_TRUSTED_CA="true"                # OCP trust Quay: true, otherwise false
+export OCP_TRUSTED_CA="false"                # OCP trust Quay: true, otherwise false
 
 # Function to print a task with uniform length
 PRINT_TASK() {
