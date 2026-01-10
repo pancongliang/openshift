@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-set -euo pipefail
-trap 'printf "\e[31mFAIL\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
+# trap 'printf "\e[31mFAIL\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
+set -uo pipefail
 
 # Set environment variables
 export OCP_VERSION=4.16.26
