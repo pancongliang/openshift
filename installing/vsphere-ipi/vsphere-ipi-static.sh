@@ -420,11 +420,11 @@ echo
 PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
 
 # Backup and configure kubeconfig
-grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bash_profile || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bash_profile
+grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bashrc || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bashrc
 run_command "Default login: use kubeconfig"
 
 echo -e "$INFO_MSG HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
-echo -e "$INFO_MSG Please manually run: source ~/.bash_profile"
+echo -e "$INFO_MSG Please manually run: source ~/.bashrc"
 
 # Add an empty line after the task
 echo
