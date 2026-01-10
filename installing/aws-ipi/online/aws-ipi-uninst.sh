@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'printf "\e[31mFAIL\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export INSTALL_DIR="$HOME/ocp-inst/ocp"
+export INSTALL_DIR="$HOME/aws-ipi/ocp"
 export AWS_ACCESS_KEY_ID="xxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
 
@@ -32,7 +32,7 @@ run_command() {
 # Define color output variables
 INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
-ACT_MSG="\e[33mACT \e[0m"
+ACTION_MSG="\e[33mACTION\e[0m"
 
 # Step 1:
 PRINT_TASK "TASK [Uninstalling a cluster]"
