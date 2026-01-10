@@ -1,11 +1,10 @@
 #!/bin/bash
-
-# Set environment variables
-export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
-
 # Enable strict mode for robust error handling and log failures with line number.
 set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+
+# Set environment variables
+export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -23,7 +22,7 @@ run_command() {
     if [ $exit_code -eq 0 ]; then
         echo -e "\e[96mINFO\e[0m $1"
     else
-        echo -e "\e[31mFAILED\e[0m $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
@@ -31,7 +30,7 @@ run_command() {
 # Define color output variables
 INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
-ACTION_MSG="\e[33mACTION\e[0m"
+ACT_MSG="\e[33mACT \e[0m"
 
 PRINT_TASK "TASK [Uninstalling a cluster]"
 echo -e "$INFO_MSG Starting the OpenShift cluster uninstallation..."
