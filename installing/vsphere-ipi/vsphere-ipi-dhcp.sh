@@ -198,7 +198,7 @@ mkdir -p $INSTALL_DIR >/dev/null 2>&1
 run_command "Create install dir: $INSTALL_DIR"
 
 if [[ "$(printf '%s\n' "4.13" "$OCP_VERSION" | sort -V | head -n1)" == "4.13" && "$OCP_VERSION" != "4.13" ]]; then
-    cat << EOF > $INSTALL_DIR/install-config.yaml
+    cat << EOF > $INSTALL_DIR/install-config.yaml 2>/dev/null
 additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
 baseDomain: $BASE_DOMAIN
