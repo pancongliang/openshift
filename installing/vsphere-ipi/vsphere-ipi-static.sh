@@ -5,20 +5,21 @@ set -uo pipefail
 
 # Set environment variables
 export OCP_VERSION=4.18.20                              # Only supports installation of version 4.14+
-export CLUSTER_NAME="pan"
+export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
-export VCENTER_USERNAME="xxxxxx"
-export VCENTER_PASSWORD="xxxxxx"
+export VCENTER_USERNAME="copan@cee.ibmc.devcluster.openshift.com"
+export VCENTER_PASSWORD="!Chonglyang0721"
 export PULL_SECRET="$HOME/ocp-inst/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
-export API_VIPS="10.184.134.15"
-export INGRESS_VIPS="10.184.134.16"
-export MACHINE_NET_CIDR="10.184.134.0/24"
-export MACHINE_NET_START_IP="41"
+export API_VIPS="10.48.55.15"
+export INGRESS_VIPS="10.48.55.16"
+export MACHINE_NET_CIDR="10.48.55.0/24"
+export MACHINE_NET_START_IP="100"
 export MACHINE_NET_END_IP="230"
-export MACHINE_NET_GATEWAY="10.184.134.1"
-export MACHINE_NET_DNS="10.184.134.30"                  # The nameserver needs to be able to resolve the vCenter URL
+export MACHINE_NET_GATEWAY="10.48.55.1"
+export MACHINE_NET_DNS="10.48.55.1"                  # The nameserver needs to be able to resolve the vCenter URL
 export MACHINE_NET_PREFIX="24"
+export VM_NETWORKS="cee-vlan-753"
 
 export WORKER_REPLICAS="2"
 export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $WORKER_CORES_PER_SOCKET
@@ -38,23 +39,6 @@ export DATACENTERS="ceedatacenter"
 export COMPUTE_CLUSTER="/ceedatacenter/host/ceecluster"
 export DATASTORE="/ceedatacenter/datastore/vsanDatastore"
 export RESOURCE_POOL="/ceedatacenter/host/ceecluster/Resources"
-export VM_NETWORKS="cee-vlan-1167"
-
-# Automatically find unused IP addresses and assign them to nodes
-CP=(); WK=(); BOOT=""
-ip_prefix=$(echo "$MACHINE_NET_CIDR" | cut -d'.' -f1-3)
-for i in $(seq $MACHINE_NET_START_IP $MACHINE_NET_END_IP); do
-    ip="${ip_prefix}.$i"
-    ping -c1 -W0.2 $ip &>/dev/null && continue
-    [ ${#CP[@]} -lt 3 ] && { CP+=("$ip"); continue; }
-    [ ${#WK[@]} -lt $WORKER_REPLICAS ] && { WK+=("$ip"); continue; }
-    [ -z "$BOOT" ] && { BOOT="$ip"; }
-    [ ${#CP[@]} -eq 3 ] && [ ${#WK[@]} -eq $WORKER_REPLICAS ] && [ -n "$BOOT" ] && break
-done
-
-export CONTROL_PLANE_IPS=(${CP[@]})
-export WORKER_IPS=(${WK[@]})
-export BOOTSTRAP_IP="$BOOT"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -81,6 +65,101 @@ run_command() {
 INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
 ACTION_MSG="\e[33mACTION\e[0m"
+
+# Step 0:
+PRINT_TASK "TASK [Automatically find unused IP addresses]"
+
+# Automatically find unused IP addresses and assign them to nodes
+# --- 1. Initialize Variables ---
+# Convert comma/space separated strings into arrays
+API_VIPS=(${API_VIPS:-})
+INGRESS_VIPS=(${INGRESS_VIPS:-})
+CP=()
+WK=()
+BOOT=""
+
+# Extract the subnet prefix (e.g., 10.48.55)
+ip_prefix=$(echo "$MACHINE_NET_CIDR" | cut -d'.' -f1-3)
+
+# --- 2. Detection Function ---
+# Check if an IP is available (Returns 0 if NOT reachable via ping)
+is_ip_free() {
+    local target_ip=$1
+    # -c 1: send 1 packet; -W 1: wait 1 second for response
+    if ping -c 1 -W 1 "$target_ip" >/dev/null 2>&1; then
+        return 1 # IP is occupied (Ping successful)
+    else
+        return 0 # IP is free (Ping failed)
+    fi
+}
+
+# --- 3. Print Initial Status ---
+[ ${#API_VIPS[@]} -gt 0 ] && echo -e "$INFO_MSG Preset API_VIP: ${API_VIPS[*]}"
+[ ${#INGRESS_VIPS[@]} -gt 0 ] && echo -e "$INFO_MSG Preset INGRESS_VIP: ${INGRESS_VIPS[*]}"
+
+# --- 4. Core Allocation Logic ---
+for i in $(seq "$MACHINE_NET_START_IP" "$MACHINE_NET_END_IP"); do
+    ip="${ip_prefix}.$i"
+
+    # A. Static Check: Skip if IP is already in the preset VIP lists
+    [[ " ${API_VIPS[*]} " == *" $ip "* ]] && continue
+    [[ " ${INGRESS_VIPS[*]} " == *" $ip "* ]] && continue
+
+    # B. Dynamic Check: Skip if the IP responds to ping (already active on network)
+    if ! is_ip_free "$ip"; then
+        continue
+    fi
+
+    # C. Sequential Allocation
+    # Assign API VIP if none exists
+    if [ ${#API_VIPS[@]} -eq 0 ]; then
+        API_VIPS+=("$ip")
+        echo -e "$INFO_MSG Allocated API_VIP: $ip"
+        continue
+    fi
+
+    # Assign Ingress VIP if none exists
+    if [ ${#INGRESS_VIPS[@]} -eq 0 ]; then
+        INGRESS_VIPS+=("$ip")
+        echo -e "$INFO_MSG Allocated INGRESS_VIP: $ip"
+        continue
+    fi
+
+    # Assign 3 IPs for Control Plane
+    if [ ${#CP[@]} -lt 3 ]; then
+        CP+=("$ip")
+        echo -e "$INFO_MSG Allocated Control Plane IP: $ip"
+        continue
+    fi
+
+    # Assign Worker IPs based on replicas count
+    if [ ${#WK[@]} -lt "$WORKER_REPLICAS" ]; then
+        WK+=("$ip")
+        echo -e "$INFO_MSG Allocated Worker IP: $ip"
+        continue
+    fi
+
+    # Assign Bootstrap IP (The final required IP)
+    if [ -z "$BOOT" ]; then
+        BOOT="$ip"
+        echo -e "$INFO_MSG Allocated Bootstrap IP: $ip"
+        break
+    fi
+done
+
+# --- 5. Verify Results ---
+if [ -z "$BOOT" ]; then
+    echo -e "$FAIL_MSG Insufficient IP pool or too many occupied addresses!"
+    exit 1
+fi
+
+# --- 6. Export Final Variables ---
+export CONTROL_PLANE_IPS=("${CP[@]}")
+export WORKER_IPS=("${WK[@]}")
+export BOOTSTRAP_IP="$BOOT"
+export API_VIPS=("${API_VIPS[@]}")
+export INGRESS_VIPS=("${INGRESS_VIPS[@]}")
+
 
 # Step 1:
 PRINT_TASK "TASK [Verify pull-secret and trust vCenter certificate]"
