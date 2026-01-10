@@ -50,7 +50,7 @@ INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
 ACTION_MSG="\e[33mACTION\e[0m"
 
-# Step 0:
+# Step 1:
 PRINT_TASK "TASK [Delete old logging resources]"
 
 # Uninstall first
@@ -62,7 +62,7 @@ else
 fi
 
 if oc get clusterlogforwarder.observability instance -n openshift-logging >/dev/null 2>&1; then
-   echo -e "$INFO_MSG Deleting clusterlogforwarder.observability..."
+   echo -e "$INFO_MSG Deleting clusterlogforwarder observability..."
    oc delete clusterlogforwarder.observability instance -n openshift-logging >/dev/null 2>&1 || true
 else
    echo -e "$INFO_MSG The clusterlogforwarder.observability resource does not exist"
@@ -126,24 +126,6 @@ fi
 # Add an empty line after the task
 echo
 
-# Step 1:
-# If ODF does not exist, a default StorageClass is required (for MinIO).
-if [ "$ODF_CREATE_OBC_AND_CREDENTIALS" = "false" ]; then
-    DEFAULT_STORAGE_CLASS=$(oc get sc \
-      -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
-
-    if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
-        PRINT_TASK "TASK [Check the default storage class]"
-        echo -e "$FAIL_MSG No default StorageClass found!"
-        exit 1
-    else
-        PRINT_TASK "TASK [Check the default storage class]"
-        echo -e "$INFO_MSG Default StorageClass found: $DEFAULT_STORAGE_CLASS"
-        # Add an empty line after the task
-        echo
-    fi
-fi
-
 # Step 2:
 # Deploying Object Storage
 # Only run this block if ODF_CREATE_OBC_AND_CREDENTIALS is false
@@ -172,7 +154,7 @@ if [[ "$ODF_CREATE_OBC_AND_CREDENTIALS" == "false" ]]; then
 
     # Deploy MinIO if necessary
     if [[ -n "$MINIO_POD" ]] && [[ "$POD_STATUS" == "Running" ]] && [[ "$BUCKET_EXISTS" == true ]]; then
-        PRINT_TASK "TASK [Deploying Minio Object Storage]"
+        PRINT_TASK "TASK [Deploy Minio Object Storage and validate default StorageClass]"
         echo -e "$INFO_MSG MinIO already exists and bucket exists, skipping deployment"
     else
         curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/minio/minio.sh | sh
@@ -210,6 +192,20 @@ stringData:
   region: minio
 EOF
     run_command "Create object storage secret ${BUCKET_NAME}-minio-credentials in openshift-logging namespace"
+
+    # If ODF does not exist, a default StorageClass is required (for MinIO).
+    if [ "$ODF_CREATE_OBC_AND_CREDENTIALS" = "false" ]; then
+        DEFAULT_STORAGE_CLASS=$(oc get sc \
+          -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
+    
+        if [ -z "$DEFAULT_STORAGE_CLASS" ]; then
+            echo -e "$FAIL_MSG No default StorageClass found!"
+            exit 1
+        else
+            echo -e "$INFO_MSG Default StorageClass found: $DEFAULT_STORAGE_CLASS"
+            # Add an empty line after the task
+        fi
+    fi
 fi
 
 # Only run this block if ODF_CREATE_OBC_AND_CREDENTIALS is true
