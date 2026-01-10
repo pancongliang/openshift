@@ -179,7 +179,7 @@ run_command "Set hostname to ${BASTION_NAME}"
 timedatectl set-timezone UTC
 run_command "Set time zone to UTC"
 
-# Write LANG=en_US.UTF-8 to the ~/.bash_profile file]
+# Write LANG=en_US.UTF-8 to the ~/.bash_profile file
 grep -q "^export LANG=en_US.UTF-8" ~/.bash_profile || echo 'export LANG=en_US.UTF-8' >> ~/.bash_profile
 run_command "Write LANG=en_US.UTF-8 to ~/.bash_profile"
 
