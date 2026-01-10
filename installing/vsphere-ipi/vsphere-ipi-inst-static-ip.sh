@@ -7,7 +7,7 @@ trap 'echo "failed: [Line $LINENO: Command \`$BASH_COMMAND\`]"; exit 1' ERR
 export OCP_VERSION=4.16.29                              # Only supports installation of version 4.14+
 export PULL_SECRET_PATH="$HOME/ocp-inst/pull-secret"    # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/ocp"
-export CLUSTER_NAME="copan"
+export CLUSTER_NAME="pan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxxxx"
 export VCENTER_PASSWORD="xxxxx"
