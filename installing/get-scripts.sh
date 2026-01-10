@@ -8,7 +8,7 @@ info() {
 }
 
 rm -rf "$BASE"
-mkdir -p "$BASE" "$BASE/quay" "$BASE/storage" "$BASE/vsphere" "$BASE/aws" "$BASE/UPI"
+mkdir -p "$BASE" "$BASE/quay" "$BASE/storage" "$BASE/vsphere" "$BASE/aws" "$BASE/upi"
 
 # Operator
 wget -q -O "$BASE/acs.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/acs/acs.sh && info "Downloaded $BASE/acs.sh"
@@ -30,8 +30,8 @@ wget -q -O "$BASE/storage/nfs-sc.sh" https://raw.githubusercontent.com/pancongli
 wget -q -O "$BASE/storage/odf.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/odf/odf.sh && info "Downloaded $BASE/storage/odf.sh"
 
 # UPI
-wget -q -O "$BASE/UPI/ocp-upi-inst.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/any-platform/online/ocp-upi-inst.sh && info "Downloaded $BASE/UPI/ocp-upi-inst.sh"
-wget -q -O "$BASE/UPI/ocp-upi-offline.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/any-platform/offline/ocp-upi-offline.sh && info "Downloaded $BASE/UPI/ocp-upi-offline.sh"
+wget -q -O "$BASE/upi/ocp-upi-inst.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/any-platform/online/ocp-upi-inst.sh && info "Downloaded $BASE/UPI/ocp-upi-inst.sh"
+wget -q -O "$BASE/upi/ocp-upi-offline.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/any-platform/offline/ocp-upi-offline.sh && info "Downloaded $BASE/UPI/ocp-upi-offline.sh"
 
 # vSphere
 wget -q -O "$BASE/vsphere/vsphere-ipi-dhcp.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/vsphere-ipi/vsphere-ipi-dhcp.sh && info "Downloaded $BASE/vsphere/vsphere-ipi-dhcp.sh"
