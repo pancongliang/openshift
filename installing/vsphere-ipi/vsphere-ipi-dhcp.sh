@@ -150,7 +150,6 @@ fi
 echo -e "$INFO_MSG Downloading the openshift-client tool..."
 
 curl -sSLk -o $openshift_client "$download_url" >/dev/null 2>&1
-wget -q "$download_url" -O "$openshift_client"
 run_command "Download openshift-client tool"
 
 # Extract the downloaded tarball to $HOME/.local/bin/
@@ -328,8 +327,6 @@ sshKey: |
 EOF
     run_command "Generate install-config.yaml file"
 fi
-
-export PATH="/usr/local/bin:$PATH"
 
 # Generate manifests
 $HOME/.local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
