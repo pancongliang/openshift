@@ -138,7 +138,7 @@ echo
 
 # Step 3: 
 # Task: Generate a self-signed certificate
-PRINT_TASK "[TASK: Generate a self-signed certificate]"
+PRINT_TASK "TASK [Generate a self-signed certificate]"
 
 # Default variable
 export DOMAIN="$QUAY_HOST_NAME"
