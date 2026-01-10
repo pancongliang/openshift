@@ -1,7 +1,7 @@
 #!/bin/bash
 # Enable strict mode for robust error handling and log failures with line number.
-set -euo pipefail
-trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+# trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
+set -uo pipefail
 
 # Set environment variables
 export OCP_VERSION=4.18.20                              # Only supports installation of version 4.14+
@@ -89,12 +89,20 @@ PRINT_TASK "TASK [Verify pull-secret and trust vCenter certificate]"
 cat $PULL_SECRET >/dev/null 2>&1
 run_command "Verify existence of $PULL_SECRET file"
 
+# Verify sudo permission
+if sudo -n true 2>/dev/null; then
+  echo -e "$INFO_MSG Passwordless sudo permission verified"
+else
+  echo -e "$FAIL_MSG Passwordless sudo permission is required for this installation"
+  exit 1
+fi
+
 # delete credentials
 sudo rm -rf /etc/pki/ca-trust/source/anchors/vcenter.crt >/dev/null 2>&1 || true
-sudo rm -rf download.zip
-sudo rm -rf vc_certs
+rm -rf download.zip
+rm -rf vc_certs
 
-wget --no-check-certificate https://vcenter.cee.ibmc.devcluster.openshift.com/certs/download.zip >/dev/null 2>&1
+curl -sSLk -o download.zip "https://vcenter.cee.ibmc.devcluster.openshift.com/certs/download.zip" >/dev/null 2>&1
 run_command "Download vCenter certificate"
 
 unzip download.zip -d vc_certs >/dev/null 2>&1
@@ -109,8 +117,8 @@ run_command "Copy the certificate to /etc/pki/ca-trust/source/anchors/vcenter.cr
 sudo update-ca-trust extract >/dev/null 2>&1
 run_command "Trust vCenter certificate"
 
-sudo rm -rf download.zip
-sudo rm -rf vc_certs
+rm -rf download.zip
+rm -rf vc_certs
 
 # Add an empty line after the task
 echo
@@ -119,27 +127,31 @@ echo
 PRINT_TASK "TASK [Install OpenShift Install and Client Tools]"
 
 # Delete the old version of oc cli
-sudo rm -f /usr/local/bin/oc >/dev/null 2>&1
-sudo rm -f /usr/local/bin/kubectl >/dev/null 2>&1
-sudo rm -f /usr/local/bin/openshift-install >/dev/null 2>&1
-sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
-sudo rm -f openshift-install-linux.tar.gz* >/dev/null 2>&1
-sudo rm -f openshift-client-linux-amd64-rhel8.tar.gz* >/dev/null 2>&1
-sudo rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
+rm -f $HOME/.local/bin/oc >/dev/null 2>&1
+rm -f $HOME/.local/bin/kubectl >/dev/null 2>&1
+rm -f $HOME/.local/bin/openshift-install >/dev/null 2>&1
+rm -f $HOME/.local/bin/README.md >/dev/null 2>&1
+rm -f openshift-install-linux.tar.gz* >/dev/null 2>&1
+rm -f openshift-client-linux-amd64-rhel8.tar.gz* >/dev/null 2>&1
+rm -f openshift-client-linux.tar.gz* >/dev/null 2>&1
+
+# Create user-local bin directory
+mkdir -p $HOME/.local/bin/
+run_command "Create $HOME/.local/bin/ directory"
 
 # Download the openshift-install
 echo -e "$INFO_MSG Downloading the openshift-install tool..."
 
-wget -q "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
+curl -sSLk -o openshift-install-linux.tar.gz "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" >/dev/null 2>&1
 run_command "Download openshift-install tool"
 
-sudo tar -xzf "openshift-install-linux.tar.gz" -C "/usr/local/bin/" >/dev/null 2>&1
+tar -xzf "openshift-install-linux.tar.gz" -C "$HOME/.local/bin/" >/dev/null 2>&1
 run_command "Install openshift-install tool"
 
-sudo chmod +x /usr/local/bin/openshift-install >/dev/null 2>&1
-run_command "Set permissions for /usr/local/bin/openshift-install"
+chmod +x $HOME/.local/bin/openshift-install >/dev/null 2>&1
+run_command "Set permissions for $HOME/.local/bin/openshift-install"
 
-sudo rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
+rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
 
 # Get the RHEL version number
 rhel_version=$(rpm -E %{rhel})
@@ -157,21 +169,21 @@ fi
 # Download the OpenShift client
 echo -e "$INFO_MSG Downloading the openshift-client tool..."
 
-wget -q "$download_url" -O "$openshift_client"
+curl -sSLk -o $openshift_client "$download_url" >/dev/null 2>&1
 run_command "Download openshift-client tool"
 
-# Extract the downloaded tarball to /usr/local/bin/
-sudo tar -xzf "$openshift_client" -C "/usr/local/bin/" >/dev/null 2>&1
+# Extract the downloaded tarball to $HOME/.local/bin/
+tar -xzf "$openshift_client" -C "$HOME/.local/bin/" >/dev/null 2>&1
 run_command "Install openshift-client tool"
 
-sudo chmod +x /usr/local/bin/oc >/dev/null 2>&1
-run_command "Set permissions fo /usr/local/bin/oc"
+chmod +x $HOME/.local/bin/oc >/dev/null 2>&1
+run_command "Set permissions fo $HOME/.local/bin/oc"
 
-sudo chmod +x /usr/local/bin/kubectl >/dev/null 2>&1
-run_command "Set permissions fo /usr/local/bin/kubectl"
+chmod +x $HOME/.local/bin/kubectl >/dev/null 2>&1
+run_command "Set permissions fo $HOME/.local/bin/kubectl"
 
-sudo rm -f /usr/local/bin/README.md >/dev/null 2>&1
-sudo rm -rf $openshift_client >/dev/null 2>&1
+rm -f $HOME/.local/bin/README.md >/dev/null 2>&1
+rm -rf $openshift_client >/dev/null 2>&1
 
 # Add an empty line after the task
 echo
@@ -201,7 +213,7 @@ else
     echo -e "$INFO_MSG SSH key for accessing the node already exists"
 fi
 
-sudo rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
+rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
 mkdir -p $INSTALL_DIR >/dev/null 2>&1
 run_command "Create install dir: $INSTALL_DIR"
 
@@ -328,10 +340,8 @@ sshKey: |
 EOF
 run_command "Append remaining configuration $INSTALL_DIR/install-config.yaml"
 
-export PATH="/usr/local/bin:$PATH"
-
 # Generate manifests
-/usr/local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
+$HOME/.local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
 run_command "Generate kubernetes manifests"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-openshift-config-secret-htpasswd-secret.yaml
@@ -378,7 +388,7 @@ spec:
 EOF
 run_command "Create oauth htpasswd identityprovider manifests"
 
-/usr/local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
+$HOME/.local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "Installation complete"
 
 # Add an empty line after the task
@@ -395,7 +405,7 @@ run_command "Remove the entry with the same host name as the node in /etc/hosts"
 # Generate the latest IP→hostname mappings and append them to /etc/hosts
 {
   echo "# ${NODE_ANNOTATION}"
-  /usr/local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get node -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{" "}{.metadata.name}{"\n"}{end}' \
+  $HOME/.local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get node -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{" "}{.metadata.name}{"\n"}{end}' \
     | while read -r IP NAME; do
         [[ -z "$IP" ]] && continue
         printf "%-15s %s\n" "$IP" "$NAME"
