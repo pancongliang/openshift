@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-BASE="$HOME/ocp-inst"
+BASE="$HOME/ocp-inst1"
 
 info() {
     echo -e "\e[96mINFO\e[0m $1"
@@ -30,8 +30,8 @@ wget -q -O "$BASE/storage/nfs-sc.sh" https://raw.githubusercontent.com/pancongli
 wget -q -O "$BASE/storage/odf.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/odf/odf.sh && info "Downloaded $BASE/storage/odf.sh"
 
 # UPI
-wget -q -O "$BASE/upi/ocp-upi-inst.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/any-platform/online/ocp-upi-inst.sh && info "Downloaded $BASE/UPI/ocp-upi-inst.sh"
-wget -q -O "$BASE/upi/ocp-upi-offline.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/any-platform/offline/ocp-upi-offline.sh && info "Downloaded $BASE/UPI/ocp-upi-offline.sh"
+wget -q -O "$BASE/upi/ocp-upi-inst.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/any-platform/online/ocp-upi-inst.sh && info "Downloaded $BASE/upi/ocp-upi-inst.sh"
+wget -q -O "$BASE/upi/ocp-upi-offline.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/any-platform/offline/ocp-upi-offline.sh && info "Downloaded $BASE/upi/ocp-upi-offline.sh"
 
 # vSphere
 wget -q -O "$BASE/vsphere/vsphere-ipi-dhcp.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/vsphere-ipi/vsphere-ipi-dhcp.sh && info "Downloaded $BASE/vsphere/vsphere-ipi-dhcp.sh"
