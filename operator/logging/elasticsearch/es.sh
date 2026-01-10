@@ -69,7 +69,7 @@ fi
 echo
 
 # Step 1:
-PRINT_TASK "[TASK: Install OpenShift Logging]"
+PRINT_TASK "TASK [Install OpenShift Logging]"
 
 # Create a namespace
 cat << EOF | oc apply -f - >/dev/null 2>&1
