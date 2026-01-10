@@ -32,7 +32,7 @@ run_command() {
 # Define color output variables
 INFO_MSG="\e[96mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
-ACTION_MSG="\e[33mACTION\e[0m"
+ACT_MSG="\e[33mACT \e[0m"
 
 # Step 1:
 PRINT_TASK "TASK [Uninstalling a cluster]"
