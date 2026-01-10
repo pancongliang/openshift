@@ -227,7 +227,7 @@ else
   FEATURE_SET_LINE=""
 fi
 
-cat << EOF > $INSTALL_DIR/install-config.yaml
+cat << EOF > $INSTALL_DIR/install-config.yaml 2>/dev/null
 $FEATURE_SET_LINE
 additionalTrustBundlePolicy: Proxyonly
 apiVersion: v1
@@ -332,7 +332,7 @@ cat << EOF >> $INSTALL_DIR/install-config.yaml
       password: "$VCENTER_PASSWORD"
       port: 443
       server: $VCENTER
-      user: "$VCENTER_ID"
+      user: "$VCENTER_USERNAME"
 publish: External
 pullSecret: '$(cat $PULL_SECRET)'
 sshKey: |
