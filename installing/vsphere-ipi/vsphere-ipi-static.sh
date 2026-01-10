@@ -7,12 +7,12 @@ set -uo pipefail
 export OCP_VERSION=4.18.20                              # Only supports installation of version 4.14+
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
-export VCENTER_USERNAME="copan@cee.ibmc.devcluster.openshift.com"
-export VCENTER_PASSWORD="!Chonglyang0721"
+export VCENTER_USERNAME="xxxxxx"
+export VCENTER_PASSWORD="xxxxxx"
 export PULL_SECRET="$HOME/ocp-inst/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
-export API_VIPS="10.48.55.15"
-export INGRESS_VIPS="10.48.55.16"
+#export API_VIPS="10.48.55.15"
+#export INGRESS_VIPS="10.48.55.16"
 export MACHINE_NET_CIDR="10.48.55.0/24"
 export MACHINE_NET_START_IP="100"
 export MACHINE_NET_END_IP="230"
@@ -160,6 +160,8 @@ export BOOTSTRAP_IP="$BOOT"
 export API_VIPS=("${API_VIPS[@]}")
 export INGRESS_VIPS=("${INGRESS_VIPS[@]}")
 
+# Add an empty line after the task
+echo
 
 # Step 1:
 PRINT_TASK "TASK [Verify pull-secret and trust vCenter certificate]"
