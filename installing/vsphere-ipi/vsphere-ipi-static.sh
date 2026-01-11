@@ -7,17 +7,17 @@ set -uo pipefail
 export OCP_VERSION=4.18.20                              # Only supports installation of version 4.14+
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
-export VCENTER_USERNAME="xxxxxx"
-export VCENTER_PASSWORD="xxxxxx"
+export VCENTER_USERNAME="xxxxx"
+export VCENTER_PASSWORD="xxxxx"
 export PULL_SECRET="$HOME/ocp-inst/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
-#export API_VIPS="10.48.55.15"
-#export INGRESS_VIPS="10.48.55.16"
+export API_VIPS="10.48.55.150"
+export INGRESS_VIPS="10.48.55.151"
 export MACHINE_NET_CIDR="10.48.55.0/24"
 export MACHINE_NET_START_IP="100"
 export MACHINE_NET_END_IP="230"
 export MACHINE_NET_GATEWAY="10.48.55.1"
-export MACHINE_NET_DNS="10.48.55.1"                  # The nameserver needs to be able to resolve the vCenter URL
+export MACHINE_NET_DNS="10.48.55.125"                  # The nameserver needs to be able to resolve the vCenter URL
 export MACHINE_NET_PREFIX="24"
 export VM_NETWORKS="cee-vlan-753"
 
@@ -94,8 +94,8 @@ is_ip_free() {
 }
 
 # --- 3. Print Initial Status ---
-[ ${#API_VIPS[@]} -gt 0 ] && echo -e "$INFO_MSG Preset API_VIP: ${API_VIPS[*]}"
-[ ${#INGRESS_VIPS[@]} -gt 0 ] && echo -e "$INFO_MSG Preset INGRESS_VIP: ${INGRESS_VIPS[*]}"
+[ ${#API_VIPS[@]} -gt 0 ] && echo -e "$INFO_MSG Preset API VIP: ${API_VIPS[*]}"
+[ ${#INGRESS_VIPS[@]} -gt 0 ] && echo -e "$INFO_MSG Preset Ingress VIP: ${INGRESS_VIPS[*]}"
 
 # --- 4. Core Allocation Logic ---
 for i in $(seq "$MACHINE_NET_START_IP" "$MACHINE_NET_END_IP"); do
