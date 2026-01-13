@@ -14,6 +14,8 @@ export WORKER_INSTANCE_TYPE='m6a.2xlarge'           # (m6a.4xlarge vcpu: 16 mem:
 export REGION="ap-northeast-1"
 export SSH_KEY_PATH="$HOME/.ssh"
 export INSTALL_DIR="$HOME/aws-ipi/ocp"
+
+# Add user's local bin to PATH
 export PATH="$HOME/.local/bin:$PATH"
 
 # Function to print a task with uniform length
