@@ -4,7 +4,7 @@
 set -uo pipefail
 
 # Set environment variables
-export OCP_VERSION="4.18.21"                             # Only supports installation of version 4.10+
+export OCP_VERSION="4.18.21"                            # Only supports installation of version 4.10+
 export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxxxxx"
@@ -12,19 +12,20 @@ export VCENTER_PASSWORD="xxxxxx"
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
 export MACHINE_NET_CIDR="10.184.134.0/24"
-export PULL_SECRET="$HOME/ocp-inst/pull-secret"          # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET="$HOME/ocp-inst/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
 
 export WORKER_REPLICAS="3"
-export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $WORKER_CORES_PER_SOCKET
+export WORKER_CPU_COUNT="12"                            # Total CPUs, must be a multiple of $WORKER_CORES_PER_SOCKET=4
 export WORKER_MEMORY_MB="32768"
 export WORKER_DISK_SIZE="100"
-export CONTROL_PLANE_CPU_COUNT="4"             # cpus must be a multiple of $CONTROL_PLANE_CORES_PER_SOCKET
+export CONTROL_PLANE_CPU_COUNT="4"                      # Total CPUs, must be a multiple of $WORKER_CORES_PER_SOCKET=4
 export CONTROL_PLANE_MEMORY_MB="16384"
 export CONTROL_PLANE_DISK_SIZE="100"
+export VM_NETWORKS="cee-vlan-1167"
 
-export WORKER_CORES_PER_SOCKET="4"
-export CONTROL_PLANE_CORES_PER_SOCKET="4"
+export WORKER_CORES_PER_SOCKET="4"                      # Cores per VM socket; total CPUs / coresPerSocket = number of sockets
+export CONTROL_PLANE_CORES_PER_SOCKET="4"               # Cores per VM socket; total CPUs / coresPerSocket = number of sockets
 
 export NETWORK_TYPE="OVNKubernetes"
 export SSH_KEY_PATH="$HOME/.ssh"
