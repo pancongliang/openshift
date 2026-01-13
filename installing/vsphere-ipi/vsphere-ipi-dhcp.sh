@@ -11,7 +11,7 @@ export VCENTER_USERNAME="xxxxxx"
 export VCENTER_PASSWORD="xxxxxx"
 export API_VIPS="10.184.134.15"
 export INGRESS_VIPS="10.184.134.16"
-export MACHINE_NET_CIDR="10.184.134.0/24"
+export MACHINE_NET_CIDR="10.184.134.0/24"               # Node IP address range (CIDR)
 export PULL_SECRET="$HOME/ocp-inst/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
 
