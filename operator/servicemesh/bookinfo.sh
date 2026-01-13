@@ -6,6 +6,8 @@ trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 export CONTROL_PLANE_NS=istio-system
 export BOOKINFO_NS=bookinfo
 
+# Add user's local bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
 
 # Delete custom resources
 echo "uninstall custom resources..."
