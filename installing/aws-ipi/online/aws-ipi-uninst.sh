@@ -7,6 +7,7 @@ trap 'printf "\e[31mFAIL\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"
 export INSTALL_DIR="$HOME/aws-ipi/ocp"
 export AWS_ACCESS_KEY_ID="xxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
+export PATH="$HOME/.local/bin:$PATH"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -50,4 +51,4 @@ EOF
 run_command "Set up AWS credentials"
 
 printf "$INFO_MSG Starting the OpenShift cluster uninstallation...\n"
-$HOME/.local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
+openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
