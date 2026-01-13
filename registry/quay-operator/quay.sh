@@ -17,6 +17,8 @@ export OBJECTSTORAGE_MANAGED="false"     # If there is MCG/ODF object storage: t
 export INTERNAL_POSTGRESQL="true"        # Set to true if PostgreSQL is provisioned by the operator, otherwise false
 export OCP_TRUSTED_CA="fasle"            # OCP trust Quay: true, otherwise false
 
+# Add user's local bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
