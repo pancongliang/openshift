@@ -10,6 +10,9 @@ export ES_SUB_CHANNEL="stable"
 export CATALOG_SOURCE=redhat-operators
 export STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[0].metadata.name}')
 
+# Add user's local bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
