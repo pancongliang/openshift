@@ -507,11 +507,8 @@ PRINT_TASK "TASK [OpenShift Cluster Login Guide]"
 # grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bashrc || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bashrc
 # run_command "Default login: use kubeconfig"
 
-echo -e "$INFO_MSG HTPasswd login: oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
-echo -e "$INFO_MSG Kubeconfig login: "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig"
-
-# Add an empty line after the task
-echo
+echo -e "$INFO_MSG HTPasswd Login: oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
+echo -e "$INFO_MSG Kubeconfig Login: export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig"
 
 # Add an empty line after the task
 echo
