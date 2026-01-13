@@ -4,7 +4,7 @@ set -euo pipefail
 #trap 'echo "failed: [line $LINENO: command \`$BASH_COMMAND\`]"; exit 1' ERR
 
 # Default variable
-export DOMAIN="quay-server.example.com"
+export DOMAIN="*.apps.ocp.example.com"
 export CERT_OUTPUT_DIR="certs"
 export CERT_DURATION_DAYS=36500
 
