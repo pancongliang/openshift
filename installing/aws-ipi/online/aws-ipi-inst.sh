@@ -69,6 +69,12 @@ echo
 # Step 2:
 PRINT_TASK "TASK [Install OpenShift Install and Client Tools]"
 
+# Delete the old version of oc cli
+rm -f $HOME/.local/bin/oc >/dev/null 2>&1 || true
+rm -f $HOME/.local/bin/kubectl >/dev/null 2>&1 || true
+rm -f $HOME/.local/bin/README.md >/dev/null 2>&1 || true
+rm -f $HOME/.local/bin/openshift-install >/dev/null 2>&1 || true
+
 # Create user-local bin directory
 mkdir -p $HOME/.local/bin/
 run_command "Create $HOME/.local/bin/ directory"
@@ -96,7 +102,6 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     curl -sL "$download_url" -o "$openshift_install"
     run_command "Download openshift-install"
 
-    rm -f $HOME/.local/bin/openshift-install >/dev/null 2>&1 || true
     tar -xzf "$openshift_install" -C "$HOME/.local/bin/" >/dev/null 2>&1
     run_command "Install openshift-install"
 
@@ -119,10 +124,6 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     curl -sL "$download_url" -o "$openshift_client"
     run_command "Download openshift-client"
 
-    rm -f $HOME/.local/bin/oc >/dev/null 2>&1 || true
-    rm -f $HOME/.local/bin/kubectl >/dev/null 2>&1 || true
-    rm -f $HOME/.local/bin/README.md >/dev/null 2>&1 || true
-
     tar -xzf "$openshift_client" -C "$HOME/.local/bin/" >/dev/null 2>&1
     run_command "install openshift-client"
 
@@ -136,7 +137,8 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     run_command "Added $HOME/.local/bin to PATH in ~/.zshrc"
     
     rm -rf "$openshift_client" >/dev/null 2>&1
-
+    rm -f $HOME/.local/bin/README.md >/dev/null 2>&1 || true
+    
 # Handle Linux
 elif [ "$OS_TYPE" = "Linux" ]; then
     # Download the OpenShift Installer
@@ -144,18 +146,12 @@ elif [ "$OS_TYPE" = "Linux" ]; then
     curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_VERSION}/openshift-install-linux.tar.gz" -o "openshift-install-linux.tar.gz"
     run_command "Download openshift-install tool"
 
-    rm -f $HOME/.local/bin/openshift-install >/dev/null 2>&1 || true
     tar -xzf "openshift-install-linux.tar.gz" -C "$HOME/.local/bin/" >/dev/null 2>&1
     run_command "Install openshift-install tool"
 
     chmod +x $HOME/.local/bin/openshift-install >/dev/null 2>&1
     run_command "Set permissions for $HOME/.local/bin/openshift-install"
     rm -rf openshift-install-linux.tar.gz >/dev/null 2>&1
-
-    # Delete the old version of oc cli
-    rm -f $HOME/.local/bin/oc >/dev/null 2>&1 || true
-    rm -f $HOME/.local/bin/kubectl >/dev/null 2>&1 || true
-    rm -f $HOME/.local/bin/README.md >/dev/null 2>&1 || true
 
     # Get the RHEL version number
     rhel_version=$(rpm -E %{rhel})
