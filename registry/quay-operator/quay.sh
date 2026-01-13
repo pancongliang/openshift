@@ -746,7 +746,7 @@ progress_started=false       # Tracks whether the spinner/progress line has been
 
 while true; do
     # Get MCP statuses: Ready, Updated, Degraded
-    output=$(/usr/local/bin/oc get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+    output=$(oc get mcp --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     # If any MCP is not Ready/Updated/Degraded as expected
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
@@ -785,7 +785,7 @@ progress_started=false       # Tracks whether the spinner/progress line has been
 
 while true; do
     # Get Cluster Operator statuses: Available, Progressing, Degraded
-    output=$(/usr/local/bin/oc get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
+    output=$(oc get co --no-headers 2>/dev/null | awk '{print $3, $4, $5}')
     # If any CO is not Available/Progressing/Degraded as expected
     if echo "$output" | grep -q -v "True False False"; then
         CHAR=${SPINNER[$((retry_count % 4))]}
