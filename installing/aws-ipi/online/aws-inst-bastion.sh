@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'printf "\e[31mFAIL\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export CLUSTER_NAME="pan"
+export CLUSTER_NAME="copan"
 export AWS_ACCESS_KEY_ID="xxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxx"
 export STORAGE_SIZE="100" 
