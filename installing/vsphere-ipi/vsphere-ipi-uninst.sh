@@ -5,6 +5,7 @@ trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1'
 
 # Set environment variables
 export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
+export PATH="$HOME/.local/bin:$PATH"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -34,4 +35,4 @@ ACTION_MSG="\e[33mACTION\e[0m"
 
 PRINT_TASK "TASK [Uninstalling a cluster]"
 echo -e "$INFO_MSG Starting the OpenShift cluster uninstallation..."
-$HOME/.local/bin/openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
+openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
