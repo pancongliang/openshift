@@ -16,6 +16,8 @@ export CREATE_MINIO_CREDENTIALS="false"  # true or false
 export BUCKET_NAME="loki-bucket"
 export BUCKET_NAMESPACE="openshift-logging"
 
+# Add user's local bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
