@@ -34,6 +34,7 @@ export COMPUTE_CLUSTER="/ceedatacenter/host/ceecluster"
 export DATASTORE="/ceedatacenter/datastore/vsanDatastore"
 export RESOURCE_POOL="/ceedatacenter/host/ceecluster/Resources"
 export VM_NETWORKS="cee-vlan-1167"
+export PATH="$HOME/.local/bin:$PATH"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -329,7 +330,7 @@ EOF
 fi
 
 # Generate manifests
-$HOME/.local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
+openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
 run_command "Generate kubernetes manifests"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-openshift-config-secret-htpasswd-secret.yaml
@@ -376,7 +377,7 @@ spec:
 EOF
 run_command "Create oauth htpasswd identityprovider manifests"
 
-$HOME/.local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
+openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "Installation complete"
 
 # Add an empty line after the task
@@ -393,7 +394,7 @@ run_command "Remove the entry with the same host name as the node in /etc/hosts"
 # Generate the latest IP→hostname mappings and append them to /etc/hosts
 {
   echo "# ${NODE_ANNOTATION}"
-  $HOME/.local/bin/oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get node -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{" "}{.metadata.name}{"\n"}{end}' \
+  oc --kubeconfig=${INSTALL_DIR}/auth/kubeconfig get node -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{" "}{.metadata.name}{"\n"}{end}' \
     | while read -r IP NAME; do
         [[ -z "$IP" ]] && continue
         printf "%-15s %s\n" "$IP" "$NAME"
