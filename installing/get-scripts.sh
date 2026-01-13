@@ -45,5 +45,8 @@ wget -q -O "$BASE/aws/aws-del-bastion.sh" https://raw.githubusercontent.com/panc
 wget -q -O "$BASE/aws/aws-inst-bastion.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-inst-bastion.sh && info "Downloaded $BASE/aws/aws-inst-bastion.sh"
 wget -q -O "$BASE/aws/aws-ssh-deploy.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/installing/aws-ipi/online/aws-ssh-deploy.sh && info "Downloaded $BASE/aws/aws-ssh-deploy.sh"
 
+# Cert
+wget -q -O "$BASE/aws/self-signed-cert.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/certificate/self-signed-cert.sh && info "Downloaded $BASE/aws/self-signed-cert.sh"
 # Grant script execution permissions
+
 find $BASE -type f -name "*.sh" -exec chmod +x {} +  && info "Grant script execution permissions"
