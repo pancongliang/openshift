@@ -4,9 +4,9 @@ set -euo pipefail
 trap 'printf "\e[31mFAIL\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export INSTALL_DIR="$HOME/ocp-inst/aws-ipi/ocp"
 export AWS_ACCESS_KEY_ID="xxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
+export INSTALL_DIR="$HOME/ocp-inst/aws-ipi/ocp"
 
 # Add user's local bin to PATH
 export PATH="$HOME/.local/bin:$PATH"
