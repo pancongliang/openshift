@@ -5,12 +5,12 @@ set -uo pipefail
 
 # Set environment variables
 export OCP_VERSION=4.18.26
-export PULL_SECRET="$HOME/ocp-inst/pull-secret"     # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-export INSTALL_DIR="$HOME/ocp-inst/aws-ipi/ocp"
 export CLUSTER_NAME="xxxxxx"
 export BASE_DOMAIN="xxxxxx"
 export AWS_ACCESS_KEY_ID="xxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
+export INSTALL_DIR="$HOME/ocp-inst/aws-ipi/ocp"
+export PULL_SECRET="$HOME/ocp-inst/pull-secret"     # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export WORKER_INSTANCE_TYPE='m6a.2xlarge'           # (m6a.4xlarge vcpu: 16 mem:64 / Bare Metal: c5n.metal)https://aws.amazon.com/cn/ec2/instance-types/m6a/
 export REGION="ap-northeast-1"
 export SSH_KEY_PATH="$HOME/.ssh"
