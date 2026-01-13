@@ -7,6 +7,8 @@ trap 'printf "\e[31mFAIL\e[0m Line %s - Command: %s\n" "$LINENO" "$BASH_COMMAND"
 export INSTALL_DIR="$HOME/aws-ipi/ocp"
 export AWS_ACCESS_KEY_ID="xxxxxx"
 export AWS_SECRET_ACCESS_KEY="xxxxxx"
+
+# Add user's local bin to PATH
 export PATH="$HOME/.local/bin:$PATH"
 
 # Function to print a task with uniform length
