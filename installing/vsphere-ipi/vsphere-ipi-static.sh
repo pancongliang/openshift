@@ -9,28 +9,28 @@ export CLUSTER_NAME="copan"
 export BASE_DOMAIN="ocp.test"
 export VCENTER_USERNAME="xxxxx"
 export VCENTER_PASSWORD="xxxxx"
-export PULL_SECRET="$HOME/ocp-inst/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
-export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
-export API_VIPS="10.48.55.150"
-export INGRESS_VIPS="10.48.55.151"
-export MACHINE_NET_CIDR="10.48.55.0/24"
-export MACHINE_NET_START_IP="100"
-export MACHINE_NET_END_IP="230"
+export API_VIPS="10.48.55.150"                          # API VIP (auto-selects an unused IP if unset)
+export INGRESS_VIPS="10.48.55.151"                      # Ingress VIP (auto-selects an unused IP if unset)
+export MACHINE_NET_CIDR="10.48.55.0/24"                 # Node IP range
+export MACHINE_NET_START_IP="100"                       # Start of static IP range, auto-selects unused IPs via ping
+export MACHINE_NET_END_IP="230"                         # End of static IP range, auto-selects unused IPs via ping
 export MACHINE_NET_GATEWAY="10.48.55.1"
-export MACHINE_NET_DNS="10.48.55.125"                  # The nameserver needs to be able to resolve the vCenter URL
+export MACHINE_NET_DNS="10.48.55.125"                   # DNS server that can resolve the vCenter URL
 export MACHINE_NET_PREFIX="24"
 export VM_NETWORKS="cee-vlan-753"
+export PULL_SECRET="$HOME/ocp-inst/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
 
 export WORKER_REPLICAS="2"
-export WORKER_CPU_COUNT="12"                   # cpus must be a multiple of $WORKER_CORES_PER_SOCKET
+export WORKER_CPU_COUNT="12"                            # Total CPUs, must be a multiple of $WORKER_CORES_PER_SOCKET=4
 export WORKER_MEMORY_MB="32768"
 export WORKER_DISK_SIZE="100"
-export CONTROL_PLANE_CPU_COUNT="4"             # cpus must be a multiple of $CONTROL_PLANE_CORES_PER_SOCKET
+export CONTROL_PLANE_CPU_COUNT="4"                      # Total CPUs, must be a multiple of $WORKER_CORES_PER_SOCKET=4
 export CONTROL_PLANE_MEMORY_MB="16384"
 export CONTROL_PLANE_DISK_SIZE="100"
 
-export WORKER_CORES_PER_SOCKET="4"
-export CONTROL_PLANE_CORES_PER_SOCKET="4"
+export WORKER_CORES_PER_SOCKET="4"                      # Cores per VM socket; total CPUs / coresPerSocket = number of sockets
+export CONTROL_PLANE_CORES_PER_SOCKET="4"               # Cores per VM socket; total CPUs / coresPerSocket = number of sockets
 
 export NETWORK_TYPE="OVNKubernetes"
 export SSH_KEY_PATH="$HOME/.ssh"
