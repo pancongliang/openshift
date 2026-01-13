@@ -34,7 +34,6 @@ export DATACENTERS="ceedatacenter"
 export COMPUTE_CLUSTER="/ceedatacenter/host/ceecluster"
 export DATASTORE="/ceedatacenter/datastore/vsanDatastore"
 export RESOURCE_POOL="/ceedatacenter/host/ceecluster/Resources"
-export VM_NETWORKS="cee-vlan-1167"
 
 # Add user's local bin to PATH
 export PATH="$HOME/.local/bin:$PATH"
