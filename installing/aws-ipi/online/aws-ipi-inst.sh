@@ -14,6 +14,7 @@ export WORKER_INSTANCE_TYPE='m6a.2xlarge'           # (m6a.4xlarge vcpu: 16 mem:
 export REGION="ap-northeast-1"
 export SSH_KEY_PATH="$HOME/.ssh"
 export INSTALL_DIR="$HOME/aws-ipi/ocp"
+export PATH="$HOME/.local/bin:$PATH"
 
 # Function to print a task with uniform length
 PRINT_TASK() {
@@ -247,7 +248,7 @@ EOF
 run_command "Create install-config.yaml file"
 
 # Generate manifests
-$HOME/.local/bin/openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
+openshift-install create manifests --dir "${INSTALL_DIR}" >/dev/null 2>&1
 run_command "Generate kubernetes manifests"
 
 cat << EOF > ${INSTALL_DIR}/manifests/custom-openshift-config-secret-htpasswd-secret.yaml
@@ -294,7 +295,7 @@ spec:
 EOF
 run_command "Create oauth htpasswd identityprovider manifests"
 
-$HOME/.local/bin/openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
+openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "Installation complete"
 
 printf "$INFO_MSG HTPasswd login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443\n"
