@@ -24,6 +24,9 @@ export ODF_NODES_LABEL="cluster.ocs.openshift.io/openshift-storage"
 export LSO_NODES_LABEL="local.storage.openshift.io/openshift-local-storage"
 export LSO_NODES="$ODF_NODES"
 
+# Add user's local bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
