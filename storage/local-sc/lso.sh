@@ -15,6 +15,9 @@ export CATALOG_SOURCE_NAME="redhat-operators"
 # Set the label variable
 export LSO_NODES_LABEL="local.storage.openshift.io/openshift-local-storage"
 
+# Add user's local bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
