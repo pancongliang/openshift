@@ -296,8 +296,8 @@ run_command "Create oauth htpasswd identityprovider manifests"
 openshift-install create cluster --dir "$INSTALL_DIR" --log-level=info
 run_command "Installation complete"
 
-printf "$INFO_MSG HTPasswd login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443\n"
-printf "$INFO_MSG Kubeconfig login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig\n"
+printf "$INFO_MSG HTPasswd Login: oc login -u admin -p redhat https://api.$CLUSTER_NAME.$BASE_DOMAIN:6443\n"
+printf "$INFO_MSG Kubeconfig Login: export KUBECONFIG=$INSTALL_DIR/auth/kubeconfig\n"
 
 OS_TYPE=$(uname -s)
 if [ "$OS_TYPE" = "Darwin" ]; then
