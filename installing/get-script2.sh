@@ -4,7 +4,7 @@ set -euo pipefail
 BASE="$HOME/ocp-inst"
 
 info() {
-    printf "\033[96mINFO\033[0m %s\n $1"
+    printf "\033[96mINFO\033[0m %s\n" "$1"
 }
 
 rm -rf "$BASE"
