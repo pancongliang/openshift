@@ -11,6 +11,9 @@ export NAMESPACE="stackrox"
 # Default storage class name
 export DEFAULT_STORAGE_CLASS=$(oc get sc -o jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 
+# Add user's local bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
@@ -398,6 +401,7 @@ while true; do
     fi
 done
 
+
 # Check if roxctl is already installed and operational
 if roxctl -h >/dev/null 2>&1; then
     run_command "The roxctl tool already installed, skipping installation"
@@ -408,16 +412,20 @@ else
     curl -f -o roxctl "https://mirror.openshift.com/pub/rhacs/assets/latest/bin/Linux/roxctl${arch}" >/dev/null 2>&1
     run_command "Downloaded roxctl tool"
 
+    # Create user-local bin directory
+    mkdir -p $HOME/.local/bin/
+    run_command "Create $HOME/.local/bin/ directory"
+
     # Remove the old version (if it exists)
-    sudo rm -f /usr/local/bin/roxctl >/dev/null 2>&1
+    rm -f $HOME/.local/bin/roxctl >/dev/null 2>&1
     
     # Set execute permissions for the tool
     chmod +x roxctl >/dev/null 2>&1
     run_command "Set execute permissions for roxctl tool"
 
     # Move the new version to /usr/local/bin
-    sudo mv -f roxctl /usr/local/bin/ >/dev/null
-    run_command "Installed roxctl tool to /usr/local/bin/roxctl"
+    mv -f roxctl $HOME/.local/bin/ >/dev/null
+    run_command "Installed roxctl tool to $HOME/.local/bin/roxctl"
 
     # Verify the installation
     if roxctl -h >/dev/null 2>&1; then
@@ -430,7 +438,7 @@ fi
 sleep 20
 
 # Creating resources by using the init bundle
-sudo rm -rf cluster_init_bundle.yaml
+rm -rf cluster_init_bundle.yaml
 
 export ROX_CENTRAL_ADDRESS=$(oc get route central -n $NAMESPACE -o jsonpath='{.spec.host}'):443
 
@@ -447,7 +455,7 @@ sleep 1
 oc apply -f cluster_init_bundle.yaml -n $NAMESPACE >/dev/null 2>&1
 run_command "Creating resources by using the init bundle"
 
-sudo rm -rf cluster_init_bundle.yaml
+rm -rf cluster_init_bundle.yaml
 
 sleep 10
 
