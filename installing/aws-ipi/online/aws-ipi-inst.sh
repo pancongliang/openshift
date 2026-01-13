@@ -5,7 +5,7 @@ set -uo pipefail
 
 # Set environment variables
 export OCP_VERSION=4.18.26
-export PULL_SECRET="$HOME/ocp-inst/aws-ipi/pull-secret"      # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET="$HOME/ocp-inst/pull-secret"     # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/aws-ipi/ocp"
 export CLUSTER_NAME="xxxxxx"
 export BASE_DOMAIN="xxxxxx"
