@@ -408,14 +408,14 @@ run_command "Generate the latest IP and hostname mappings and append them to /et
 echo
 
 # Step 5:
-PRINT_TASK "TASK [Kubeconfig Setup and OCP Login Guide]"
+PRINT_TASK "TASK [OpenShift Cluster Login Guide]"
 
-# Backup and configure kubeconfig
-grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bashrc || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bashrc
-run_command "Default login: use kubeconfig"
+# Set the kubeconfig environment variable
+# grep -q "^export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" ~/.bashrc || echo "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig" >> ~/.bashrc
+# run_command "Default login: use kubeconfig"
 
-echo -e "$INFO_MSG HTPasswd login: unset KUBECONFIG && oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
-echo -e "$INFO_MSG Please manually run: source ~/.bashrc"
+echo -e "$INFO_MSG HTPasswd login: oc login -u admin -p redhat https://api.${CLUSTER_NAME}.${BASE_DOMAIN}:6443"
+echo -e "$INFO_MSG Kubeconfig login: "export KUBECONFIG=${INSTALL_DIR}/auth/kubeconfig"
 
 # Add an empty line after the task
 echo
