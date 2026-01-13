@@ -24,6 +24,9 @@ export ODF_STORAGECLASS="ocs-storagecluster-ceph-rbd"        # ocs-storagecluste
 export OBC_NAMESPACE="openshift-logging" 
 export OBC_NAME="loki"
 
+# Add user's local bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 # Function to print a task with uniform length
 PRINT_TASK() {
     max_length=110  # Adjust this to your desired maximum length
