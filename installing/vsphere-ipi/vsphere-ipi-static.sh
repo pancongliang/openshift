@@ -21,7 +21,7 @@ export VM_NETWORKS="cee-vlan-753"
 export PULL_SECRET="$HOME/ocp-inst/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
 
-export WORKER_REPLICAS="2"
+export WORKER_REPLICAS="3"
 export WORKER_CPU_COUNT="12"                            # Total CPUs, must be a multiple of $WORKER_CORES_PER_SOCKET=4
 export WORKER_MEMORY_MB="32768"
 export WORKER_DISK_SIZE="100"
