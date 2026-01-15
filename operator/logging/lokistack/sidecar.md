@@ -19,12 +19,11 @@ data:
         Name        tail
         Path        /var/log/app/*.log
         DB          /var/log/app/fluentbit.db
-        Mem_Buf_Limit     5MB
-        Skip_Long_Lines   On
 
     [OUTPUT]
         Name        stdout
         Match       *
+        Format json_lines
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -78,9 +77,13 @@ $ oc logs -f deployment/samplelog -c samplelog
 ^C
 
 $ oc logs -f deployment/samplelog -c samplelog-sidecar
-[2026/01/15 10:47:34.384559180] [ info] [engine] Shutdown Grace Period=5, Shutdown Input Grace Period=2
-[2026/01/15 10:47:34.384749577] [ info] [input:tail:tail.0] inotify_fs_add(): inode=123763632 watch_fd=1 name=/var/log/app/samplelog.log
-[2026/01/15 10:47:34.386765560] [ info] [output:stdout:stdout.0] worker #0 started
-[0] tail.0: [[1768474055.239296791, {}], {"log"=>"2026-01-15 10:47:23 - Hello OpenShift"}]
-[0] tail.0: [[1768474060.242979862, {}], {"log"=>"2026-01-15 10:47:23 - Hello OpenShift"}]
+[2026/01/15 11:07:58.231320481] [ info] [engine] Shutdown Grace Period=5, Shutdown Input Grace Period=2
+[2026/01/15 11:07:58.231571621] [ info] [input:tail:tail.0] inotify_fs_add(): inode=25205984 watch_fd=1 name=/var/log/app/samplelog.log
+[2026/01/15 11:07:58.231672359] [ info] [output:stdout:stdout.0] worker #0 started
+{"date":1768475279.439743,"log":"2026-01-15 10:47:23 - Hello OpenShift"}
+{"date":1768475284.442776,"log":"2026-01-15 10:47:23 - Hello OpenShift"}
+{"date":1768475289.447111,"log":"2026-01-15 10:47:23 - Hello OpenShift"}
+{"date":1768475294.450144,"log":"2026-01-15 10:47:23 - Hello OpenShift"}
+{"date":1768475299.453092,"log":"2026-01-15 10:47:23 - Hello OpenShift"}
+{"date":1768475304.456158,"log":"2026-01-15 10:47:23 - Hello OpenShift"}
 ~~~
