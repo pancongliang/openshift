@@ -23,7 +23,7 @@ data:
     [OUTPUT]
         Name        stdout
         Match       *
-        Format json_lines
+        Format      json_lines
 ---
 apiVersion: apps/v1
 kind: Deployment
