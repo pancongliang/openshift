@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-BASE="$HOME/ocp-inst"
+BASE="$HOME/ocp-inst1"
 
 info() {
     printf "\033[96mINFO\033[0m %s\n" "$1"
