@@ -49,12 +49,12 @@ wget -q -O "$BASE/aws/aws-ssh-deploy.sh" https://raw.githubusercontent.com/panco
 wget -q -O "$BASE/aws/self-signed-cert.sh" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/certificate/self-signed-cert.sh && info "Downloaded $BASE/aws/self-signed-cert.sh"
 
 # Finalize-ns
-wget -q -O "$BASE/finalize-ns" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/postinst-config/tool/finalize-ns && info "Downloaded $BASE/finalize-ns"
+wget -q -O "$BASE/finalize_ns" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/postinst-config/tool/finalize-ns && info "Downloaded $BASE/finalize-ns"
 
 # Nodes
 wget -q -O "$BASE/nodes" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/postinst-config/tool/nodes  && info "Downloaded $BASE/nodes"
 
-sudo mv -f "$BASE/finalize-ns" "$BASE/nodes" /usr/local/bin/  && info "Move the finalize-ns and nodes files to /usr/local/bin/"
+sudo mv -f "$BASE/finalize_ns" "$BASE/nodes" /usr/local/bin/  && info "Move the finalize_ns and nodes files to /usr/local/bin/"
 sudo chmod +x /usr/local/bin/* && info "Grant execute permissions to files in /usr/local/bin/"
 
 # Grant script execution permissions
