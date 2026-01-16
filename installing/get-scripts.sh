@@ -54,7 +54,7 @@ wget -q -O "$BASE/finalize-ns" https://raw.githubusercontent.com/pancongliang/op
 # Nodes
 wget -q -O "$BASE/nodes" https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/postinst-config/tool/nodes  && info "Downloaded $BASE/nodes"
 
-sudo mv "$BASE/finalize-ns" "$BASE/nodes" /usr/local/bin/  && info "Move the finalize-ns and nodes files to /usr/local/bin/"
+sudo mv -f "$BASE/finalize-ns" "$BASE/nodes" /usr/local/bin/  && info "Move the finalize-ns and nodes files to /usr/local/bin/"
 sudo chmod +x /usr/local/bin/* && info "Grant execute permissions to files in /usr/local/bin/"
 
 # Grant script execution permissions
