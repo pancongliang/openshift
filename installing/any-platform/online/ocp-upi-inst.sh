@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Specify the OpenShift release version
-export OCP_VERSION="4.16.21"
+export OCP_VERSION="4.18.21"
 
 # Specify required parameters for install-config.yaml
 export PULL_SECRET="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
@@ -29,13 +29,13 @@ export WORKER01_NAME="worker01"
 export WORKER02_NAME="worker02"
 export WORKER03_NAME="worker03"
 export BASTION_IP="10.184.134.30"                      # API_VIPS and INGRESS_VIPS
-export BOOTSTRAP_IP="10.184.134.136"
-export MASTER01_IP="10.184.134.82"
-export MASTER02_IP="10.184.134.78"
-export MASTER03_IP="10.184.134.114"
-export WORKER01_IP="10.184.134.58"
-export WORKER02_IP="10.184.134.152"
-export WORKER03_IP="10.184.134.150"
+export BOOTSTRAP_IP="10.184.134.196"
+export MASTER01_IP="10.184.134.163"
+export MASTER02_IP="10.184.134.228"
+export MASTER03_IP="10.184.134.198"
+export WORKER01_IP="10.184.134.172"
+export WORKER02_IP="10.184.134.74"
+export WORKER03_IP="10.184.134.59"
 
 
 # More options — no changes required!
