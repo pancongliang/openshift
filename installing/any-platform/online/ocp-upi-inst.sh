@@ -566,21 +566,21 @@ cat << EOF > "/var/named/${REVERSE_ZONE_FILE}"
 ; with a trailing dot.
 ;
 ; The api identifies the IP of load balancer.
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_VIPS")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$API_INT_VIPS")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "${API_VIPS}")" "api.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "${API_INT_VIPS}")" "api-int.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the master hosts.
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER01_IP")" "${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER02_IP")" "${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$MASTER03_IP")" "${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "${MASTER01_IP}")" "${MASTER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "${MASTER02_IP}")" "${MASTER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "${MASTER03_IP}")" "${MASTER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create entries for the worker hosts.
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER01_IP")" "${WORKER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER02_IP")" "${WORKER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$WORKER03_IP")" "${WORKER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "${WORKER01_IP}")" "${WORKER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "${WORKER02_IP}")" "${WORKER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "${WORKER03_IP}")" "${WORKER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 ;
 ; Create an entry for the bootstrap host.
-$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "$BOOTSTRAP_IP")" "${BOOTSTRAP_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
+$(printf "%-15s IN  PTR      %s\n" "$(get_reverse_ip "${BOOTSTRAP_IP}")" "${BOOTSTRAP_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN}.")
 EOF
 run_command "Generate reverse DNS zone file: /var/named/${REVERSE_ZONE_FILE}"
 
@@ -1164,14 +1164,14 @@ CONTAINER="cluster-bootstrap"
 PORTS="6443|22623"
 
 # Step 0: Verify SSH connectivity first
-ssh $ssh_opts core@$BOOTSTRAP_IP "echo ok" >/dev/null 2>&1 || { printf "\r\e[31mFAIL\e[0m SSH connection failed\n"; exit 1; }
+ssh $ssh_opts core@${BOOTSTRAP_IP} "echo ok" >/dev/null 2>&1 || { printf "\r\e[31mFAIL\e[0m SSH connection failed\n"; exit 1; }
 
 # Step 1: Wait for the bootstrap container to be running
 for i in \$(seq 1 \$MAX_RETRIES); do
     # Display spinner while waiting
     printf "\r$INFO_MSG Checking container '%s'... %s" "\$CONTAINER" "\${SPINNER[\$((i % 4))]}"
     # Check container status via SSH and podman
-    CONTAINER_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo podman ps --filter "name=\$CONTAINER" --format "{{.Status}}" 2>/dev/null | tr -d '\r\n')
+    CONTAINER_STATUS=\$(ssh \$ssh_opts core@${BOOTSTRAP_IP} sudo podman ps --filter "name=\$CONTAINER" --format "{{.Status}}" 2>/dev/null | tr -d '\r\n')
     # If container is running, print success message and break
     if [[ "\$CONTAINER_STATUS" == Up* ]]; then
         printf "\r$INFO_MSG Container '%s' is Running%*s\n" "\$CONTAINER" \$((LINE_WIDTH - \${#CONTAINER} - 20)) ""
@@ -1191,7 +1191,7 @@ for i in \$(seq 1 \$MAX_RETRIES); do
     # Display spinner while waiting
     printf "\r$INFO_MSG Checking ports 6443 and 22623... %s" "\${SPINNER[\$((i % 4))]}"
     # Check port status via SSH and netstat
-    PORT_STATUS=\$(ssh \$ssh_opts core@$BOOTSTRAP_IP sudo netstat -ntplu 2>/dev/null | tr -d '\r\n')
+    PORT_STATUS=\$(ssh \$ssh_opts core@${BOOTSTRAP_IP} sudo netstat -ntplu 2>/dev/null | tr -d '\r\n')
     # If ports are listening, print success message and break
     if echo "\$PORT_STATUS" | grep -qE "\$PORTS"; then
         printf "\r$INFO_MSG Ports 6443 and 22623 are now listening%*s\n" \$((LINE_WIDTH - 35)) ""
@@ -1359,19 +1359,19 @@ PRINT_TASK "TASK [Booting From RHCOS ISO and Installing OCP]"
 
 # Set column width
 COL_WIDTH=35
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BOOTSTRAP_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "${BOOTSTRAP_NAME} node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/bs | sh → reboot"
 
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "${BASTION_NAME} check bootstrap status:" "bash ${INSTALL_DIR}/check-bootstrap.sh"
 
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$MASTER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER01_NAME: -1} | sh → reboot"
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$MASTER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER02_NAME: -1} | sh → reboot"
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$MASTER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/m${MASTER03_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "${MASTER01_NAME} node installation steps:" "Boot RHCOS ISO → curl -s http://${BASTION_IP}:8080/pre/m${MASTER01_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "${MASTER02_NAME} node installation steps:" "Boot RHCOS ISO → curl -s http://${BASTION_IP}:8080/pre/m${MASTER02_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "${MASTER03_NAME} node installation steps:" "Boot RHCOS ISO → curl -s http://${BASTION_IP}:8080/pre/m${MASTER03_NAME: -1} | sh → reboot"
 
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$WORKER01_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER01_NAME: -1} | sh → reboot"
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$WORKER02_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER02_NAME: -1} | sh → reboot"
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$WORKER03_NAME node installation steps:" "Boot RHCOS ISO → curl -s http://$BASTION_IP:8080/pre/w${WORKER03_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "${WORKER01_NAME} node installation steps:" "Boot RHCOS ISO → curl -s http://${BASTION_IP}:8080/pre/w${WORKER01_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "${WORKER02_NAME} node installation steps:" "Boot RHCOS ISO → curl -s http://${BASTION_IP}:8080/pre/w${WORKER02_NAME: -1} | sh → reboot"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "${WORKER03_NAME} node installation steps:" "Boot RHCOS ISO → curl -s http://${BASTION_IP}:8080/pre/w${WORKER03_NAME: -1} | sh → reboot"
 
-printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "$BASTION_NAME check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
+printf "$ACTION_MSG %-*s → %s\n" $COL_WIDTH "${BASTION_NAME} check installation status:" "bash ${INSTALL_DIR}/check-cluster.sh"
 # Add an empty line after the task
 echo
 
