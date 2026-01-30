@@ -1164,7 +1164,7 @@ CONTAINER="cluster-bootstrap"
 PORTS="6443|22623"
 
 # Step 0: Verify SSH connectivity first
-ssh $ssh_opts core@${BOOTSTRAP_IP} "echo ok" >/dev/null 2>&1 || { printf "\r\e[31mFAIL\e[0m SSH connection failed\n"; exit 1; }
+ssh \$ssh_opts core@${BOOTSTRAP_IP} "echo ok" >/dev/null 2>&1 || { printf "\r\e[31mFAIL\e[0m SSH connection failed\n"; exit 1; }
 
 # Step 1: Wait for the bootstrap container to be running
 for i in \$(seq 1 \$MAX_RETRIES); do
