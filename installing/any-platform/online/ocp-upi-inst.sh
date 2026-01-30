@@ -1159,9 +1159,12 @@ MAX_RETRIES=300              # Maximum number of retries
 SLEEP_INTERVAL=3             # Sleep interval in seconds
 LINE_WIDTH=120               # Control line width
 SPINNER=('/' '-' '\' '|')    # Spinner animation characters
-ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=15 -o BatchMode=yes"
 CONTAINER="cluster-bootstrap"
 PORTS="6443|22623"
+
+# Step 0: Verify SSH connectivity first
+ssh $ssh_opts core@$BOOTSTRAP_IP "echo ok" >/dev/null 2>&1 || { printf "\r\e[31mFAIL\e[0m SSH connection failed\n"; exit 1; }
 
 # Step 1: Wait for the bootstrap container to be running
 for i in \$(seq 1 \$MAX_RETRIES); do
