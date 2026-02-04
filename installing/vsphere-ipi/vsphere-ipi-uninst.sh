@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAILED\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Set environment variables
-export INSTALL_DIR="$HOME/ocp-inst/vsphere/ocp"
+export INSTALL_DIR="$HOME/tools/vsphere/ocp"
 
 # Add user's local bin to PATH
 export PATH="$HOME/.local/bin:$PATH"
