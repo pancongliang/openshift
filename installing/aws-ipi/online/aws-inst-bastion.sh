@@ -24,7 +24,7 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        printf "\033[96mINFO\033[0m %s\n" "$1"
+        printf "\033[36mINFO\033[0m %s\n" "$1"
     else
         printf "\033[31mFAIL\033[0m %s\n" "$1"
         exit 1
