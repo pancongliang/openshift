@@ -979,6 +979,7 @@ else
   echo -e "$INFO_MSG Disable the master node from scheduling custom pods"
 fi
 
+# Create an htpasswd secret containing the admin user
 cat << EOF > ${INSTALL_DIR}/manifests/custom-openshift-config-secret-htpasswd-secret.yaml
 apiVersion: v1
 kind: Secret
@@ -991,6 +992,7 @@ data:
 EOF
 run_command "Create htpasswd secret manifests"
 
+# Create cluster-admin clusterrolebinding manifests
 cat << EOF > ${INSTALL_DIR}/manifests/custom-clusterrolebinding-cluster-admin-0.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -1007,6 +1009,7 @@ subjects:
 EOF
 run_command "Create cluster-admin clusterrolebinding manifests"
 
+# Create oauth htpasswd identityprovider manifests
 cat << EOF > ${INSTALL_DIR}/manifests/custom-cluster-oauth.yaml
 apiVersion: config.openshift.io/v1
 kind: OAuth
@@ -1023,6 +1026,7 @@ spec:
 EOF
 run_command "Create oauth htpasswd identityprovider manifests"
 
+# Create image registry persistentvolume manifests
 cat << EOF > ${INSTALL_DIR}/manifests/custom-image-registry-persistentvolume.yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -1040,6 +1044,7 @@ spec:
 EOF
 run_command "Create image registry persistentvolume manifests"
 
+# Create imageregistry config manifests
 cat << EOF > ${INSTALL_DIR}/manifests/custom-cluster-configs.imageregistry.yaml
 apiVersion: imageregistry.operator.openshift.io/v1
 kind: Config
