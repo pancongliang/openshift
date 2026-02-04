@@ -7,7 +7,7 @@ trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' E
 export OCP_VERSION="4.16.21"
 
 # Specify required parameters for install-config.yaml
-export PULL_SECRET="$HOME/ocp-inst/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET="$HOME/tools/pull-secret"   # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export CLUSTER_NAME="ocp"
 export BASE_DOMAIN="example.com"
 export NETWORK_TYPE="OVNKubernetes"                    # OVNKubernetes or OpenShiftSDN(≤ 4.14)
