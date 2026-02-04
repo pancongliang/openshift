@@ -22,9 +22,9 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        echo "ok: $1"
+        echo -e "\e[36mINFO\e[0m $1"
     else
-        echo "failed: $1"
+        echo -e "\e[31mFAIL\e[0m $1"
         exit 1
     fi
 }
