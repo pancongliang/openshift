@@ -33,7 +33,7 @@ PRINT_TASK() {
 run_command() {
     local exit_code=$?
     if [ $exit_code -eq 0 ]; then
-        printf "\033[96mINFO\033[0m %s\n" "$1"
+        printf "\033[36mINFO\033[0m %s\n" "$1"
     else
         printf "\033[31mFAIL\033[0m %s\n" "$1"
         exit 1
@@ -41,7 +41,7 @@ run_command() {
 }
 
 # Define color output variables
-INFO_MSG="\e[96mINFO\e[0m"
+INFO_MSG="\e[36mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
 ACTION_MSG="\e[33mACTION\e[0m"
 
