@@ -1,22 +1,52 @@
 ## Install and configure virtualization Operator
 
 ### Install virtualization Operator
+~~~
+oc create -f - <<EOF 
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-cnv
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: kubevirt-hyperconverged-group
+  namespace: openshift-cnv
+spec:
+  targetNamespaces:
+    - openshift-cnv
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: hco-operatorhub
+  namespace: openshift-cnv
+spec:
+  source: redhat-operators
+  installPlanApproval: "Automatic"
+  sourceNamespace: openshift-marketplace
+  name: kubevirt-hyperconverged
+  channel: stable
+EOF
+~~~
 
-* To install the Operator using the default namespace, follow these steps:
-  ```
-  export SUB_CHANNEL="stable"
-  export CATALOG_SOURCE="redhat-operators"
-  export OPERATOR_NS="openshift-cnv"
-
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/virtualization/01-operator.yaml | envsubst | oc create -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-  ```
+oc get pod -n openshift-cnv
 
 ### Create HyperConverged
-* Create HyperConverged and Check
-  ```
-  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/virtualization/02-hyperconverged.yaml
+~~~
+oc create -f - <<EOF 
+apiVersion: hco.kubevirt.io/v1beta1
+kind: HyperConverged
+metadata:
+  name: kubevirt-hyperconverged
+  namespace: openshift-cnv
+spec:
+EOF
+~~~
 
-  oc get pod -n openshift-cnv
-  ```
+### Check the pods in the openshift-cnv namespace
+```
+oc get pod -n openshift-cnv
+```
 
