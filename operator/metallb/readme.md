@@ -1,64 +1,75 @@
 ## Install and configure MetalLB Operator
 
 ### Install MetalLB Operator
-* Install the Operator using the metallb-system namespace
-  ```
-  export SUB_CHANNEL="stable"
-  export CATALOG_SOURCE="redhat-operators"
-  export OPERATOR_NS="metallb-system"
-  
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/metallb/operator.yaml | envsubst | oc apply -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-  ```
+
+```
+cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metallb-system
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: metallb-operator
+  namespace: metallb-system
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: metallb-operator-sub
+  namespace: metallb-system
+spec:
+  channel: stable
+  installPlanApproval: "Automatic"
+  name: metallb-operator
+  source:  redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
+```
 
 ### Create an instance of MetalLB
-* Create an instance of MetalLB
-  ```
-  cat << EOF | oc apply -f -
-  apiVersion: metallb.io/v1beta1
-  kind: MetalLB
-  metadata:
-    name: metallb
-    namespace: metallb-system
-  EOF
-  ```
+```
+cat << EOF | oc apply -f -
+apiVersion: metallb.io/v1beta1
+kind: MetalLB
+metadata:
+  name: metallb
+  namespace: metallb-system
+EOF
+```
 
 ### Create an address pool
-* Define Address Pool Range
-  ```
-  export ADDRESSES="10.184.134.180-10.184.134.182"
+```
+export ADDRESSES="10.184.134.180-10.184.134.182"
+# or 
+export ADDRESSES="10.184.134.135/24"
 
-  # or 
- 
-  export ADDRESSES="10.184.134.135/24"
-  ```
-* Create the Address Pool
-  ```
-  oc create -f - <<EOF
-  apiVersion: metallb.io/v1beta1
-  kind: IPAddressPool
-  metadata:
-    name: example-l2
-    namespace: metallb-system
-  spec:
-    addresses:
-    - ${ADDRESSES}
-    autoAssign: true
-    avoidBuggyIPs: true
-  EOF
-  ```
+oc create -f - <<EOF
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: example-l2
+  namespace: metallb-system
+spec:
+  addresses:
+  - ${ADDRESSES}
+  autoAssign: true
+  avoidBuggyIPs: true
+EOF
+```
 
 ### Configure MetalLB with L2 Advertisement
-* Configuring MetalLB with an L2 advertisement
-  ```
-  oc create -f - <<EOF 
-  apiVersion: metallb.io/v1beta1 
-  kind: L2Advertisement 
-  metadata: 
-    name: l2advertisement 
-    namespace: metallb-system 
-  spec: 
-    ipAddressPools: 
-     - example-l2
-  EOF
-  ```
+```
+oc create -f - <<EOF 
+apiVersion: metallb.io/v1beta1 
+kind: L2Advertisement 
+metadata: 
+  name: l2advertisement 
+  namespace: metallb-system 
+spec: 
+  ipAddressPools: 
+   - example-l2
+EOF
+```
