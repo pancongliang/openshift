@@ -6,41 +6,109 @@
 - Ensure the OCP cluster has at least three worker nodes or infrastructure nodes, each with at least one 100GB disk.
 
 ### Install Red Hat OpenShift Data Foundation
-- Install the Operator using the default namespace:
-  ```
-  export CHANNEL_NAME="stable-4.16"
-  export CATALOG_SOURCE_NAME="redhat-operators"
-  export OPERATOR_NS="openshift-storage"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/01-operator.yaml | envsubst | oc create -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-  ```
 
-### Label Nodes with Storage Devices
-- Add the `ocs` label to OCP nodes with storage devices:
-  ```
-  oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} cluster.ocs.openshift.io/openshift-storage=''
-  ```
+```
+export CHANNEL_NAME="stable-4.16"
+
+oc create -f - <<EOF 
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    openshift.io/node-selector: ""
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  name: openshift-storage
+spec: {}
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-storage-operatorgroup
+  namespace: openshift-storage
+spec:
+  targetNamespaces:
+  - openshift-storage
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: odf-operator
+  namespace: openshift-storage
+spec:
+  channel: ${CHANNEL_NAME}
+  installPlanApproval: "Automatic"
+  name: odf-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
+```
+
+### Add the `ocs` label to OCP nodes with storage devices
+```
+oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} cluster.ocs.openshift.io/openshift-storage=''
+```
 
 ### Create StorageCluster
-- Create the StorageCluster by specifying variables:
-  ```
-  export LOCAL_PV_SIZE="100Gi"
-  export STORAGE_CLASS_NAME="local-block"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/odf/02-storagecluster.yaml | envsubst | oc create -f -
-  ```
+```
+export LOCAL_PV_SIZE="100Gi"
+export STORAGE_CLASS="local-block"
+
+oc create -f - <<EOF 
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  manageNodes: false
+  resources:
+    mds:
+      limits:
+        cpu: "3"
+        memory: "8Gi"
+      requests:
+        cpu: "3"
+        memory: "8Gi"
+  monDataDirHostPath: /var/lib/rook
+  multiCloudGateway:
+    disableLoadBalancerService: true
+  storageDeviceSets:
+  - count: 1  # Modify count to desired value. For each set of 3 disks increment the count by 1.
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: "${LOCAL_PV_SIZE}"  # This should be changed as per storage size. Minimum 100 GiB and Maximum 4 TiB
+        storageClassName: ${STORAGE_CLASS}
+        volumeMode: Block
+    name: ocs-deviceset
+    placement: {}
+    portable: false
+    replica: 3
+    resources:
+      limits:
+        cpu: "2"
+        memory: "5Gi"
+      requests:
+        cpu: "2"
+        memory: "5Gi"
+EOF
+```
 
 ### Verify Installation
-- Check the status of ODF pods and storage classes:
-  ```
-  $ oc get pods -n openshift-storage
+```
+$ oc get pods -n openshift-storage
 
-  $ oc get sc
-  local-block                   kubernetes.io/no-provisioner            Delete  WaitForFirstConsumer   false 7m16s
-  ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete  Immediate              true  8m  # Block storage
-  ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete  Immediate              false 9m  # RGW Object storage
-  ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete  Immediate              true  8m  # FS storage
-  openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete  Immediate              false 8m  # NooBaa Object storage
-  ```
+$ oc get sc
+local-block                   kubernetes.io/no-provisioner            Delete  WaitForFirstConsumer   false 7m16s
+ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete  Immediate              true  8m  # Block storage
+ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete  Immediate              false 9m  # RGW Object storage
+ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete  Immediate              true  8m  # FS storage
+openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete  Immediate              false 8m  # NooBaa Object storage
+```
 
 
 ### Uninstalling OpenShift Data Foundation
