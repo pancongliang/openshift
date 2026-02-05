@@ -4,11 +4,36 @@
 
 * Install the Operator using the default namespace
   ```
-  export CHANNEL_NAME="stable"
-  export CATALOG_SOURCE_NAME="redhat-operators"
-  export OPERATOR_NS="openshift-local-storage"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/01-operator.yaml | envsubst | oc create -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+  oc create -f - <<EOF
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: openshift-local-storage
+    annotations:
+      openshift.io/node-selector: ""
+      workload.openshift.io/allowed: management
+  ---
+  apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: local-operator-group
+    namespace: openshift-local-storage
+  spec:
+    targetNamespaces:
+      - openshift-local-storage
+  ---
+  apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: local-storage-operator
+    namespace: openshift-local-storage
+  spec:
+    channel: stable
+    installPlanApproval: Automatic
+    source: redhat-operators
+    name: local-storage-operator
+    sourceNamespace: openshift-marketplace
+  EOF
   ```
 
 ### Add Disks to Worker Nodes
