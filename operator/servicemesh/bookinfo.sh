@@ -16,10 +16,10 @@ oc delete ServiceMeshMemberRoll --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || tr
 oc delete ServiceMeshControlPlane --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || true
 oc delete kiali --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || true
 oc delete jaeger --all -n $CONTROL_PLANE_NS >/dev/null 2>&1 || true
-oc delete subscription elasticsearch-operator -n openshift-operators >/dev/null 2>&1 || true
-oc delete subscription kiali-ossm -n openshift-operators >/dev/null 2>&1 || true
-oc delete subscription jaeger-product -n openshift-operators >/dev/null 2>&1 || true
-oc delete subscription servicemeshoperator -n openshift-operators >/dev/null 2>&1 || true
+oc delete sub elasticsearch-operator -n openshift-operators >/dev/null 2>&1 || true
+oc delete sub kiali-ossm -n openshift-operators >/dev/null 2>&1 || true
+oc delete sub jaeger-product -n openshift-operators >/dev/null 2>&1 || true
+oc delete sub servicemeshoperator -n openshift-operators >/dev/null 2>&1 || true
 
 oc get csv -n openshift-operators -o name | grep elasticsearch | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
 oc get csv -n openshift-operators -o name | grep kiali | awk -F/ '{print $2}' | xargs -I {} oc delete csv {} -n openshift-operators >/dev/null 2>&1 || true
