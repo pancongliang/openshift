@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'echo -e "\e[31mFAIL\e[0m Line $LINENO - Command: $BASH_COMMAND"; exit 1' ERR
 
 # Specify the OpenShift release version
-export OCP_VERSION="4.21.3"
+export OCP_VERSION="4.18.21"
 
 # Specify required parameters for install-config.yaml
 export PULL_SECRET="$HOME/tools/pull-secret"           # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
