@@ -18,7 +18,7 @@ export MACHINE_NET_GATEWAY="10.48.55.1"
 export MACHINE_NET_DNS="10.48.55.125"                   # DNS server that can resolve the vCenter URL
 export MACHINE_NET_PREFIX="24"
 export VM_NETWORKS="cee-vlan-753"
-export PULL_SECRET="$HOME/tools/pull-secret"         # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
+export PULL_SECRET="$HOME/tools/pull-secret"            # https://cloud.redhat.com/openshift/install/metal/installer-provisioned
 export INSTALL_DIR="$HOME/tools/vsphere/ocp"
 
 export WORKER_REPLICAS="3"
