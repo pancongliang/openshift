@@ -196,6 +196,9 @@ else
     echo -e "$INFO_MSG SSH key for accessing the node already exists"
 fi
 
+# If known_hosts exists, clear it without error
+[ -f "${SSH_KEY_PATH}/known_hosts" ] && > "${SSH_KEY_PATH}/known_hosts" || true
+
 rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
 mkdir -p $INSTALL_DIR >/dev/null 2>&1
 run_command "Create install dir: $INSTALL_DIR"
