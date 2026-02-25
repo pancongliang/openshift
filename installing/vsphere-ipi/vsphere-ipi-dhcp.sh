@@ -84,7 +84,7 @@ sudo rm -rf /etc/pki/ca-trust/source/anchors/vcenter.crt >/dev/null 2>&1 || true
 rm -rf download.zip
 rm -rf vc_certs
 
-curl -sSLk -o download.zip "https://vcenter.cee.ibmc.devcluster.openshift.com/certs/download.zip" >/dev/null 2>&1
+curl -sSLk -o download.zip "https://$VCENTER/certs/download.zip" >/dev/null 2>&1
 run_command "Download vCenter certificate"
 
 unzip download.zip -d vc_certs >/dev/null 2>&1
