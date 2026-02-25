@@ -35,9 +35,13 @@ INFO_MSG="\e[36mINFO\e[0m"
 FAIL_MSG="\e[31mFAIL\e[0m"
 ACTION_MSG="\e[33mACTION\e[0m"
 
+# Step 1:
 PRINT_TASK "TASK [Uninstalling a cluster]"
+
+# Uninstalling a cluster
 echo -e "$INFO_MSG Starting the OpenShift cluster uninstallation..."
 openshift-install destroy cluster --dir $INSTALL_DIR --log-level info
 
+# Delete install dir
 rm -rf $INSTALL_DIR >/dev/null 2>&1 || true
 run_command "Delete install dir: $INSTALL_DIR"
