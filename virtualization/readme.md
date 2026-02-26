@@ -31,8 +31,6 @@ spec:
 EOF
 ~~~
 
-oc get pod -n openshift-cnv
-
 ### Create HyperConverged
 ~~~
 oc create -f - <<EOF 
