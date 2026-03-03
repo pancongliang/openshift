@@ -314,7 +314,6 @@ kind: ConfigMap
 metadata:
   name: fluentdserver
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
