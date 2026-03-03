@@ -4,6 +4,8 @@
 
 * Install the Operator using the default namespace
   ```bash
+  export SUB_CHANNEL="stable"
+  
   cat << EOF | oc apply -f -
   apiVersion: v1
   kind: Namespace
@@ -30,7 +32,7 @@
   spec:
     channel: ${SUB_CHANNEL}
     installPlanApproval: "Manual"
-    source: ${CATALOG_SOURCE}
+    source: redhat-operators
     name: rhacs-operator
     sourceNamespace: openshift-marketplace
   EOF
