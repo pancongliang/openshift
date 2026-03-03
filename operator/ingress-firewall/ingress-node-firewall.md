@@ -1,5 +1,3 @@
-
-
 ## Install and Configure Ingress Node Firewall Operator
 
 ### Install Ingress Node Firewall Operator
