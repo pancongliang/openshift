@@ -1,5 +1,5 @@
 ### Monitor var-lib-containers-usage
-~~~
+```
 oc apply -f - <<'EOF'
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -24,10 +24,10 @@ spec:
           The /var/lib/containers mount on node {{ $labels.instance }} 
           is using {{ printf "%.2f" $value }}% of its capacity (threshold: 80%).
 EOF
-~~~
+```
 
 ### Monitor var-lib-containers-usage
-~~~
+```
 oc apply -f - <<'EOF'
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -51,10 +51,10 @@ spec:
         description: |
           The /var/lib/containersmount on node {{ $labels.instance }}"
           is using {{ printf "%.2f" $value }}% of its capacity (threshold: 80%).
-~~~
+```
 
 ### Monitor sysroot-disk-usage
-~~~
+```
 oc apply -f - <<'EOF'
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -79,4 +79,4 @@ spec:
           The /sysroot mount on node {{ $labels.instance }} 
           is using {{ printf "%.2f" $value }}% of its capacity (threshold: 70%).
 EOF
-~~~
+```
