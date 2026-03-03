@@ -8,11 +8,34 @@
 
   ```
   export SUB_CHANNEL="release-2.12"
-  export CATALOG_SOURCE="redhat-operators"
-  export OPERATOR_NS="open-cluster-management"
 
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/acm/01-operator.yaml | envsubst | oc create -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+  cat << EOF | oc apply -f -
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: open-cluster-management
+  ---
+  apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: open-cluster-management
+    namespace: open-cluster-management
+  spec:
+    targetNamespaces:
+    - open-cluster-management
+  ---
+  apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: advanced-cluster-management
+    namespace: open-cluster-management
+  spec:
+    channel: ${SUB_CHANNEL}
+    installPlanApproval: Manual
+    name: advanced-cluster-management
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+  EOF
   ```
 
 ### Create Advanced Cluster Management Custom Resources
