@@ -31,7 +31,7 @@
     namespace: open-cluster-management
   spec:
     channel: ${SUB_CHANNEL}
-    installPlanApproval: Manual
+    installPlanApproval: Automatic
     name: advanced-cluster-management
     source: redhat-operators
     sourceNamespace: openshift-marketplace
