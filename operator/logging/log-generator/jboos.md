@@ -1,8 +1,28 @@
 
 ### Build samplelog-app image
 ~~~
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/jboos/index.jsp
-wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/operator/logging/samplelog-pod/jboos/Dockerfile
+cat > Dockerfile << EOF
+FROM registry.redhat.io/jboss-webserver-5/jws57-openjdk11-openshift-rhel8:5.7.3-2.1687186259
+RUN rm -rf /deployments/*
+RUN mkdir /deployments/ROOT
+COPY ./index.jsp /deployments/ROOT/
+EOF
+
+cat > index.jsp << EOF
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Log Test</title>
+</head>
+<body>
+<%
+    out.print("Hello World");
+    System.out.println("Hello World");
+%>
+</body>
+</html>
+EOF
 
 podman build -t docker.registry.example.com:5000/jboss-webserver-5/samplelog-app:latest .
 podman push docker.registry.example.com:5000/jboss-webserver-5/samplelog-app:latest
