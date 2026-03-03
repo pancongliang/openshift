@@ -1,18 +1,45 @@
 
 #### Install Cert Manager Operator
 * Install the Operator using the default namespace
-  ~~~
+  ```bash
   export SUB_CHANNEL="stable-v1"
-  export CATALOG_SOURCE="redhat-operators"
-  export OPERATOR_NS="cert-manager-operator"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/cert-manager/01-operator.yaml | envsubst | oc create -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
-  ~~~
+  
+  cat << EOF | oc apply -f -
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: cert-manager-operator
+  ---
+  apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    annotations:
+      olm.providedAPIs: CertManager.v1alpha1.operator.openshift.io,Certificate.v1.cert-manager.io,CertificateRequest.v1.cert-manager.io,Challenge.v1.acme.cert-manager.io,ClusterIssuer.v1.cert-manager.io,Issuer.v1.cert-manager.io,IstioCSR.v1alpha1.operator.openshift.io,Order.v1.acme.cert-manager.io
+    generateName: cert-manager-operator-
+    namespace: cert-manager-operator
+  spec:
+    upgradeStrategy: Default
+  ---
+  apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    labels:
+      operators.coreos.com/openshift-cert-manager-operator.cert-manager-operator: ""
+    name: openshift-cert-manager-operator
+    namespace: cert-manager-operator
+  spec:
+    channel: ${SUB_CHANNEL}
+    installPlanApproval: "Manual"
+    name: openshift-cert-manager-operator
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+  EOF
+  ```
 
 #### Configure a Self-Signed CA Issuer
     
 * Generate a Private CA Certificate
-  ~~~
+  ```bash
   openssl genrsa -out rootCA.key
   
   openssl req -x509 \
@@ -26,19 +53,19 @@
     -extensions SAN \
     -config <(cat /etc/pki/tls/openssl.cnf \
             <(printf '[SAN]\nbasicConstraints=critical, CA:TRUE\nkeyUsage=keyCertSign, cRLSign, digitalSignature'))
-  ~~~
+  ```
 
 * Create a Secret for the CA in cert-manager Namespace
-  ~~~
+  ```bash
   export CA_SIGNER_SECRET=example-root-ca
   export CA_CRT=rootCA.pem
   export CA_KEY=rootCA.key
 
   oc create secret tls -n cert-manager $CA_SIGNER_SECRET --cert=$CA_CRT --key=$CA_KEY
-  ~~~
+  ```
 
 * Create a ClusterIssuer Using the Private CA
-  ~~~
+  ```bash
   export CLUSTER_ISSUER=example-ca-issuer
 
   cat << EOF | oc apply -f -
@@ -50,12 +77,12 @@
     ca:
       secretName: $CA_SIGNER_SECRET
   EOF
-  ~~~
+  ```
 
 #### Create Certificate Resources
 
 * Create a Certificate resource for the Ingress Controller
-  ~~~
+  ```bash
   export INGRESS_DOMAIN=apps.ocp.example.com
   export INGRESS_CERT_SECRET=example-router-certs
   export CERT_DURATION="2h"
@@ -80,10 +107,10 @@
     duration: $CERT_DURATION
     renewBefore: $CERT_RENEW_BEFORE
   EOF  
-  ~~~
+  ```
 
 * Verify Certificate Status and Generated TLS Secret
-  ~~~
+  ```bash
   $ oc get certificate -n openshift-ingress
     ··· Output ···
     NAME           READY   SECRET                 AGE
@@ -93,39 +120,39 @@
     ··· Output ···
     NAME                  TYPE                 DATA   AGE
     example-router-certs   kubernetes.io/tls   3      34s
-  ~~~
+  ```
 
   
 #### Replace the Default Ingress Certificate
 
 * Create a config map that includes only the root CA certificate that is used to sign the wildcard certificate
-  ~~~
+  ```bash
   oc create configmap custom-ca --from-file=ca-bundle.crt=rootCA.pem -n openshift-config
-  ~~~
+  ```
   
 * Update the cluster-wide proxy configuration with the newly created config map:
-  ~~~
+  ```bash
   oc patch proxy/cluster --type=merge --patch='{"spec":{"trustedCA":{"name":"custom-ca"}}}'
-  ~~~
+  ```
 
 * Update the Ingress Controller configuration with the newly created secret  
-  ~~~
+  ```bash
   oc patch ingresscontroller.operator default \
   --type=json -n openshift-ingress-operator \
   -p "[{\"op\":\"replace\",\"path\":\"/spec/defaultCertificate\",\"value\":{\"name\":\"$INGRESS_CERT_SECRET\"}}]"
-  ~~~
+  ```
 
 * Confirm that the cluster status has returned to normal
-  ~~~
+  ```bash
   oc get co
   oc get mcp
   oc get node
-  ~~~
+  ```
   
 #### Verify Automatic Certificate Renewal
 
 * Check that the Ingress Certificate Has Been Updated
-  ~~~
+  ```bash
   $ oc get certificaterequests.cert-manager.io -n openshift-ingress
   ··· Output ···
   NAME             APPROVED   DENIED   READY   ISSUER                  REQUESTER                                         AGE
@@ -163,10 +190,10 @@
   subject=CN = apps.ocp.example.com
   X509v3 Subject Alternative Name: 
       DNS:apps.ocp.example.com, DNS:*.apps.ocp.example.com
-  ~~~
+  ```
 
 * Wait and Verify Automatic Renewal
-  ~~~
+  ```bash
   $ date
   Fri Nov 14 05:31:51 PM UTC 2025
 
@@ -245,7 +272,6 @@
   issuer=CN = Test Workspace Signer
   subject=CN = apps.ocp.example.com
 
-
   $ date
   Sat Nov 15 10:08:34 AM UTC 2025
   
@@ -277,4 +303,4 @@
   notAfter=Nov 15 11:26:28 2025 GMT
   issuer=CN = Test Workspace Signer
   subject=CN = apps.ocp.example.com
-  ~~~
+  ```
