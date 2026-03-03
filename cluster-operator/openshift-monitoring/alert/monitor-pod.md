@@ -30,8 +30,8 @@ promhttp_metric_handler_requests_total{code="503"} 0
 total_reversed_words N
 ```
 
-* To increase the counter, one can use the following command
-  ```
-  $ curl http://service_IP:8080/ -X POST -d '{"word":"abc"}'   <--- This will reverse the word and increase the counter
-  $ curl -vk service_IP:8080/metrics  <-- Verify the counter
-  ```
+#### To increase the counter, one can use the following command
+```
+$ curl http://service_IP:8080/ -X POST -d '{"word":"abc"}'   <--- This will reverse the word and increase the counter
+$ curl -vk service_IP:8080/metrics  <-- Verify the counter
+```
