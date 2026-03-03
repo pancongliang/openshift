@@ -7,7 +7,7 @@ PermitRootLogin yes
 ```
 
 #### Base64-encode the modified 40-rhcos-defaults.conf file, then create a MachineConfig
-```
+```bash
 BASE64=$(base64 -w 0 /etc/ssh/sshd_config.d/40-rhcos-defaults.conf)
 cat << EOF | oc apply -f -
 apiVersion: machineconfiguration.openshift.io/v1
