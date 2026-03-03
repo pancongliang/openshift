@@ -4,7 +4,7 @@
 ### Get tonken and Prometheus route addresses
 
 #### Get tonken and Prometheus route addresses
-```
+```bash
 export TOKEN=$(oc whoami -t)
 export URL=$(oc get route prometheus-k8s -o jsonpath='https://{.spec.host}' -n openshift-monitoring) 
 
@@ -17,7 +17,7 @@ export URL=$(oc get route prometheus-k8s -o jsonpath='https://{.spec.host}' -n o
 ### Querying metrics
 
 #### Specify querying metrics
-```
+```bash
 export NAMESPACE="minio"
 export QUERY="container_memory_working_set_bytes{namespace='${NAMESPACE}'}"
 export QUERY="pod:container_cpu_usage:sum{namespace='${NAMESPACE}'}"
@@ -45,7 +45,7 @@ export QUERY='sum(max by (device) (node_filesystem_size_bytes{instance="'${NODE}
 ```
 
 #### Customize the most recent time range  
-```
+```bash
 export RECENT_TIME_RANGE='10m' 
 export QUERY="kubelet_volume_stats_available_bytes{namespace='${NAMESPACE}'}[${RECENT_TIME_RANGE}]"
 ```
@@ -53,7 +53,7 @@ export QUERY="kubelet_volume_stats_available_bytes{namespace='${NAMESPACE}'}[${R
 ### Query metrics via [HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/#http-api)
 
 #### If `QUERY does not contain special characters`, query through the following method
-```
+```bash
 curl -s -g -k -X GET \
      -H "Authorization: Bearer ${TOKEN}" \
      -H 'Accept: application/json' \
@@ -61,7 +61,7 @@ curl -s -g -k -X GET \
 ```
   
 #### If `QUERY contains special characters`, query through the following method
-```
+```bash
 curl -s -k -XPOST "${URL}/api/v1/query" \
      -H "Authorization: Bearer ${TOKEN}" \
      --data-urlencode "query=${QUERY}" | jq
@@ -74,7 +74,7 @@ oc exec -n openshift-monitoring prometheus-k8s-0 -c prometheus -it \
 ```  
 
 #### Custom time range and interval
-```
+```bash
 export START="2023-12-20T00:00:00Z"
 export END="2023-12-20T03:00:00Z"
 export INTERVAL="15m"
@@ -86,7 +86,7 @@ curl -s -g -k -X GET \
 ```
 
 #### Change the timestamp to something human-readable
-```
+```bash
 curl -s -g -k -X GET \
      -H "Authorization: Bearer ${TOKEN}" \
      -H 'Accept: application/json' \
@@ -100,7 +100,7 @@ curl -s -g -k -X GET \
 ```
 
 #### Convert timestamp to human readable and change memory byte units to MB
-```
+```bash
 export QUERY="container_memory_working_set_bytes{namespace='${NAMESPACE}'}"
 
 curl -s -g -k -X GET \
