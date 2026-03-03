@@ -29,7 +29,7 @@
     namespace: cert-manager-operator
   spec:
     channel: ${SUB_CHANNEL}
-    installPlanApproval: "Manual"
+    installPlanApproval: "Automatic"
     name: openshift-cert-manager-operator
     source: redhat-operators
     sourceNamespace: openshift-marketplace
