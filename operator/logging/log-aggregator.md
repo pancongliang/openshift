@@ -1,5 +1,5 @@
 
-- [Deploy Kafka](openshift/operator/logging/log-aggregator.md)
+- [Deploy Kafka](operator/logging/log-aggregator.md)
 - [Deploy Syslog](#deploy-syslog)
 - [Deploy Fluentd Receiver](#deploy-fluentd-receiver)
 - [Deploy Elasticsearch](#deploy-elasticsearch)
