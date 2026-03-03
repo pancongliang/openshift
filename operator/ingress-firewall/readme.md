@@ -6,20 +6,43 @@
 
 * To install the Operator using the default namespace, follow these steps:
 
-  ```
+  ```bash
   export SUB_CHANNEL="stable"
-  export CATALOG_SOURCE="redhat-operators"
-  export OPERATOR_NS="openshift-ingress-node-firewall"
 
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/ingress-firewall/01-operator.yaml | envsubst | oc create -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+  cat << EOF | oc apply -f -
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    labels:
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/enforce-version: v1.24
+    name: openshift-ingress-node-firewall
+  ---
+  apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: ingress-node-firewall-operators
+    namespace: openshift-ingress-node-firewall
+  ---
+  apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: ingress-node-firewall-sub
+    namespace: openshift-ingress-node-firewall
+  spec:
+    channel: ${SUB_CHANNEL}
+    installPlanApproval: Automatic
+    name: ingress-node-firewall
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+  EOF
   ```
 
 ### Create an IngressNodeFirewallConfig custom resource
 
 * Create an IngressNodeFirewallConfig custom resource:
 
-  ```
+  ```bash
   oc get nodes -o name | xargs -I {} oc label {} ingressnodefirewall.openshift.io/openshift-ingress-node-firewall=''
   
   cat << EOF | oc apply -f -
@@ -37,7 +60,7 @@
 ### Create an Ingress Node Firewall rules object
 
 * Create a Deny ssh Ingress Node Firewall rules
-  ```
+  ```bash
   cat << EOF | oc apply -f -
   apiVersion: ingressnodefirewall.openshift.io/v1alpha1
   kind: IngressNodeFirewall
@@ -62,7 +85,7 @@
   EOF
   ```
 * Allow ssh rules only for specific IP addresses
-  ```
+  ```bash
   cat << EOF | oc apply -f -
   apiVersion: ingressnodefirewall.openshift.io/v1alpha1
   kind: IngressNodeFirewall
@@ -97,7 +120,7 @@
   ```
 
 * Only allow specific IP addresses to access the specified port rules
-  ```
+  ```bash
   cat << EOF | oc apply -f -
   apiVersion: ingressnodefirewall.openshift.io/v1alpha1
   kind: IngressNodeFirewall
@@ -132,7 +155,7 @@
   ```
     
 * Create a Deny Nodeport Ingress Node Firewall rules
-  ```
+  ```bash
   cat << EOF | oc apply -f -
   apiVersion: ingressnodefirewall.openshift.io/v1alpha1
   kind: IngressNodeFirewall
