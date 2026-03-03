@@ -7,17 +7,41 @@
 ### Install and configure OADP Operator
 
 * Install OADP Operator:
-  ```
+  ```bash
   export SUB_CHANNEL="stable-1.4"
-  export CATALOG_SOURCE="redhat-operators"
-  export OPERATOR_NS="openshift-adp"
-  
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/oadp/01-operator.yaml | envsubst | oc apply -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+
+  cat << EOF | oc apply -f -
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: openshift-adp
+  ---
+  apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: openshift-adp
+    namespace: openshift-adp
+  spec:
+    targetNamespaces:
+    - openshift-adp
+    upgradeStrategy: Default
+  ---
+  apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: redhat-oadp-operator
+    namespace: openshift-adp
+  spec:
+    channel: ${SUB_CHANNEL}
+    installPlanApproval: Automatic
+    name: redhat-oadp-operator
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+  EOF
   ```
 
 * Create a Secret named "cloud-credentials" in the openshift-adp project to allow access to Minio:
-  ```
+  ```bash
   cat << EOF > credentials-velero
   [default]
   aws_access_key_id=minioadmin
@@ -29,15 +53,52 @@
   ```
 
 * Create DataProtectionApplication:
-  ```
+  ```bash
   export S3URL=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
   export BUCKET_NAME="oadp-bucket"
   
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/oadp/02-dpa.yaml | envsubst | oc apply -f -
+  cat << EOF | oc apply -f -
+  apiVersion: oadp.openshift.io/v1alpha1
+  kind: DataProtectionApplication
+  metadata:
+    name: dpa-sample
+    namespace: openshift-adp
+  spec:
+    backupLocations:
+      - velero:
+          config:
+            profile: default
+            region: minio
+            s3ForcePathStyle: 'true'
+            s3Url: '${S3URL}'
+          credential:
+            key: cloud
+            name: cloud-credentials
+          default: true
+          objectStorage:
+            bucket: ${BUCKET_NAME}
+            prefix: velero
+          provider: aws
+    configuration:
+      nodeAgent:
+        enable: true
+        uploaderType: kopia    # kopia or restic
+      velero:
+        defaultPlugins:
+          - openshift
+          - aws
+          - kubevirt
+    snapshotLocations:
+      - velero:
+          config:
+            profile: default
+            region: minio
+          provider: aws
+  EOF
   ```
 
 * View the Resources related to the DataProtectionApplication object:
-  ```
+  ```bash
   oc get po -n openshift-adp
   oc get dataprotectionapplication -n openshift-adp
   oc get backupStorageLocations -n openshift-adp
@@ -48,7 +109,7 @@
 
 ### Deploy test application
 * Create a test pod:
-  ```
+  ```bash
   oc new-project sample-backup
   oc -n sample-backup new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
   oc -n sample-backup expose svc/nginx
@@ -67,7 +128,7 @@
 #### Backing up applications
 
 * Modify Deployment to Add Annotation to Pods, Specifying Which PVC(s) Should Be Backed Up:
-  ```
+  ```bash
   export NAMESPACE=sample-backup
   export DEPLOYMENT=nginx
   
@@ -83,12 +144,12 @@
 
   ```
 * Create a FSB Backup:
-  ```
+  ```bash
   velero backup create sample-backup-1 --include-namespaces $NAMESPACE
   ```
 
 * Verify that the status of the Backup is Completed:
-  ```
+  ```bash
   oc get backup -n openshift-adp sample-backup-1 -o jsonpath='{.status.phase}'
 
   $ velero get backup
@@ -97,7 +158,7 @@
   ```
 
 * Viewing Backup details:
-  ```
+  ```bash
   $ velero backup describe sample-backup-1 --details
   ···
   Velero-Native Snapshot PVs:  auto
@@ -113,14 +174,14 @@
   ```
   
 * Viewing PodVolumeBackup:
-  ```
+  ```bash
   $ oc get PodVolumeBackup -n openshift-adp
   NAME                    STATUS      CREATED   NAMESPACE       POD                      VOLUME       UPLOADER TYPE   STORAGE LOCATION   AGE
   sample-backup-1-42bxs   Completed   38m       sample-backup   nginx-5945948fc6-5km6h   nginx-html   kopia           dpa-sample-1       38m
   ```
   
 * Verify that the backup data exists in the object storage:
-  ```
+  ```bash
   $ mc ls my-minio/oadp-bucket/velero/backups/sample-backup-1
   [2025-09-14 13:38:26 UTC]    29B STANDARD sample-backup-1-csi-volumesnapshotclasses.json.gz
   [2025-09-14 13:38:26 UTC]    29B STANDARD sample-backup-1-csi-volumesnapshotcontents.json.gz
@@ -150,25 +211,25 @@
   ```
 
 * If a backup error occurs, can view the Log by the following method:
-  ```
+  ```bash
   velero backup logs sample-backup-1
   velero describe backup sample-backup-1
   ```
   
 #### Restore Testing
 * Delete the namespace to back up the object:
-  ```
+  ```bash
   oc delete project $NAMESPACE
   oc get pv -o json | jq -r ".items[] | select(.spec.claimRef.namespace==\"$NAMESPACE\") | .metadata.name" | xargs -r oc delete pv
   ```
   
 * Create a Restore from Backup with Velero:
-  ```
+  ```bash
   velero create restore sample-restore-1 --from-backup sample-backup-1
   ```
 
 * Verify that the status of the Restore is Completed by entering the following command:
-  ```
+  ```bash
   oc get restore -n openshift-adp sample-restore-1 -o jsonpath='{.status.phase}'
 
   $ velero get restore
@@ -177,7 +238,7 @@
   ```
 
 * Verify that the backup resources have been restored by entering the following command:
-  ```
+  ```bash
   oc get all -n $NAMESPACE 
   oc get pvc,pv -n $NAMESPACE 
   
@@ -187,7 +248,7 @@
   ```
 
 * View the log data related to this restore in the object storage:
-  ```
+  ```bash
   $ mc ls my-minio/oadp-bucket/velero/restores/sample-restore-1/
   [2025-09-14 14:19:21 UTC]    27B STANDARD restore-sample-restore-1-itemoperations.json.gz
   [2025-09-14 14:19:21 UTC] 8.2KiB STANDARD restore-sample-restore-1-logs.gz
@@ -197,7 +258,7 @@
   ```
   
 * If a restore error occurs, can view the Log by the following method:
-  ```
+  ```bash
   velero restore logs sample-restore-1
   velero describe restore sample-restore-1
   ```
@@ -207,7 +268,7 @@
 #### Backing up applications
 
 * A default `StorageClass` and `VolumeSnapshotClass` must be available as prerequisites:
-  ```
+  ```bash
   $ oc get storageclass
   NAME                PROVISIONER       RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
   gp3-csi (default)   ebs.csi.aws.com   Delete          WaitForFirstConsumer   true                   3h10m
@@ -218,18 +279,18 @@
   ```
   
 * Label the `VolumeSnapshotClass` with velero.io/csi-volumesnapshot-class:
-  ```
+  ```bash
   oc label volumesnapshotclass $(oc get volumesnapshotclass -o=jsonpath='{.items[?(@.metadata.annotations.snapshot\.storage\.kubernetes\.io/is-default-class=="true")].metadata.name}') velero.io/csi-volumesnapshot-class="true"
   ```
   
 * Disable Velero’s NodeAgent/Kopia file system backup and use only CSI snapshots:
-  ```
+  ```bash
   oc patch dpa dpa-sample -n openshift-adp --type=json -p='[{"op":"remove","path":"/spec/configuration/nodeAgent"}]'
   oc patch dpa dpa-sample -n openshift-adp --type=merge -p '{"spec":{"configuration":{"velero":{"defaultPlugins":["openshift","aws","csi"],"featureFlags":["EnableCSI"]}}}}'
   ```
   
 * Remove the backup.velero.io/backup-volumes annotation; otherwise, Velero will use FSB:
-  ```
+  ```bash
   export NAMESPACE=sample-backup
   export DEPLOYMENT=nginx
 
@@ -237,8 +298,7 @@
   ```
   
 * Create a CSI Snapshot Backup:
-
-  ```
+  ```bash
   velero backup create sample-backup-2 --include-namespaces $NAMESPACE
 
   # The VolumeSnapshot is automatically deleted after the backup
@@ -246,7 +306,7 @@
   ```
 
 * Verify that the status of the Backup is Completed:
-  ```
+  ```bash
   oc get backup -n openshift-adp sample-backup-2 -o jsonpath='{.status.phase}'
 
   $ velero get backup sample-backup-2
@@ -255,13 +315,14 @@
   ```
 
 * Viewing VolumeSnapshotContent Objects:
-  ```
+  ```bash
   oc get volumesnapshotcontent
   NAME                                               READYTOUSE   RESTORESIZE   DELETIONPOLICY   DRIVER            VOLUMESNAPSHOTCLASS   VOLUMESNAPSHOT                              VOLUMESNAPSHOTNAMESPACE                   AGE
   snapcontent-66017d1c-633a-4214-a61a-e99f21a0d05a   true         5368709120    Retain           ebs.csi.aws.com   csi-aws-vsc           name-4d3484a3-6d69-491f-a58b-565b73326a47   ns-4d3484a3-6d69-491f-a58b-565b73326a47   110s
   ```
+  
 * Viewing Backup details:
-  ```
+  ```bash
   $ velero backup describe sample-backup-2 --details
   ···
   Velero-Native Snapshot PVs:  auto
@@ -282,7 +343,7 @@
   ```
 
 * Verify that the backup data exists in the object storage:
-  ```
+  ```bash
   $ mc ls my-minio/oadp-bucket/velero/backups/sample-backup-2
   [2025-09-14 15:18:05 UTC]   426B STANDARD sample-backup-2-csi-volumesnapshotclasses.json.gz
   [2025-09-14 15:18:05 UTC]   747B STANDARD sample-backup-2-csi-volumesnapshotcontents.json.gz
@@ -300,18 +361,18 @@
 
 #### Restore Testing
 * Delete the namespace to back up the object:
-  ```
+  ```bash
   oc delete project $NAMESPACE
   oc get pv -o json | jq -r ".items[] | select(.spec.claimRef.namespace==\"$NAMESPACE\") | .metadata.name" | xargs -r oc delete pv
   ```
   
 * Create a Restore from Backup with Velero:
-  ```
+  ```bash
   velero create restore sample-restore-2 --from-backup sample-backup-2
   ```
 
 * Verify that the status of the Restore is Completed by entering the following command:
-  ```
+  ```bash
   oc get restore -n openshift-adp sample-restore-2 -o jsonpath='{.status.phase}'
 
   $ velero get restore sample-restore-2
@@ -324,7 +385,7 @@
   ```
 
 * Verify that the backup resources have been restored by entering the following command:
-  ```
+  ```bash
   oc get all -n $NAMESPACE 
   oc get pvc,pv -n $NAMESPACE 
   oc get VolumeSnapshot -n $NAMESPACE
@@ -335,7 +396,7 @@
   ```
 
 * View the log data related to this restore in the object storage:
-  ```
+  ```bash
   $ mc ls my-minio/oadp-bucket/velero/restores/sample-restore-2/
   [2025-09-14 15:30:10 UTC]    27B STANDARD restore-sample-restore-2-itemoperations.json.gz
   [2025-09-14 15:30:10 UTC] 8.6KiB STANDARD restore-sample-restore-2-logs.gz
@@ -348,7 +409,7 @@
 #### Backing up applications
 
 * A default `StorageClass` and `VolumeSnapshotClass` must be available as prerequisites:
-  ```
+  ```bash
   $ oc get storageclass
   NAME                PROVISIONER       RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
   gp3-csi (default)   ebs.csi.aws.com   Delete          WaitForFirstConsumer   true                   3h10m
@@ -359,12 +420,12 @@
   ```
 
 * Enable NodeAgent/Kopia for file system backup and configure Velero to move CSI snapshot data while disabling default FSB:
-  ```
+  ```bash
   oc patch dpa dpa-sample -n openshift-adp --type=merge -p '{"spec":{"configuration":{"nodeAgent":{"enable":true,"uploaderType":"kopia"},"velero":{"defaultSnapshotMoveData":true,"defaultVolumesToFSBackup":false}}}}'
   ```
   
 * Remove the backup.velero.io/backup-volumes annotation; otherwise, Velero will use FSB:
-  ```
+  ```bash
   export NAMESPACE=sample-backup
   export DEPLOYMENT=nginx
 
@@ -372,17 +433,16 @@
   ```
   
 * Create a Snapshot Move Data Backup:
-  ```
+  ```bash
   velero create backup sample-backup-3 --include-namespaces $NAMESPACE
 
   # The VolumeSnapshot is automatically deleted after the backup
   oc get volumesnapshot -n $NAMESPACE -w
   oc get VolumeSnapshotContent -w
-  
   ```
 
 * Verify that the status of the Backup is Completed:
-  ```
+  ```bash
   oc get backup -n openshift-adp sample-backup-3 -o jsonpath='{.status.phase}'
 
   $ velero get backup sample-backup-3
@@ -391,7 +451,7 @@
   ```
   
 * Viewing Backup details:
-  ```
+  ```bash
   $ velero backup describe sample-backup-3 --details
   ···
   Velero-Native Snapshot PVs:  auto
@@ -409,15 +469,16 @@
           Moved data Size (bytes): 17
     Pod Volume Backups: <none included>
   ```
+  
 * Viewing the DataUpload Object  
-  ```
+  ```bash
   $ oc get DataUpload -n openshift-adp -l velero.io/backup-name=sample-backup-3
   NAME                    STATUS      STARTED   BYTES DONE   TOTAL BYTES   STORAGE LOCATION   AGE     NODE
   sample-backup-3-sdtk4   Completed   3m        17           17            dpa-sample-1       3m55s   ip-10-0-85-183.ap-northeast-1.compute.internal
   ```
   
 * Verify that the backup data exists in the object storage:
-  ```
+  ```bash
   $ mc ls my-minio/oadp-bucket/velero/backups/sample-backup-3
   [2025-09-14 15:44:22 UTC]    29B STANDARD sample-backup-3-csi-volumesnapshotclasses.json.gz
   [2025-09-14 15:44:22 UTC]    29B STANDARD sample-backup-3-csi-volumesnapshotcontents.json.gz
@@ -457,19 +518,19 @@
 
 #### Restore Testing
 * Delete the namespace to back up the object:
-  ```
+  ```bash
   oc delete project $NAMESPACE
   oc get pv -o json | jq -r ".items[] | select(.spec.claimRef.namespace==\"$NAMESPACE\") | .metadata.name" | xargs -r oc delete pv
   ```
   
 * Create a Restore from Backup with Velero:
-  ```
+  ```bash
   velero create restore sample-restore-3 --from-backup sample-backup-3
   oc get volumesnapshot -n $NAMESPACE
   ```
 
 * Verify that the status of the Restore is Completed by entering the following command:
-  ```
+  ```bash
   oc get restore -n openshift-adp sample-restore-3 -o jsonpath='{.status.phase}'
 
   $ velero get restore sample-restore-3
@@ -478,14 +539,14 @@
   ```
 
 * Viewing DataDownload Objects
-  ```
+  ```bash
   oc get DataDownload -n openshift-adp -l velero.io/restore-name=sample-restore-3
   NAME                     STATUS      STARTED   BYTES DONE   TOTAL BYTES   STORAGE LOCATION   AGE    NODE
   sample-restore-3-4mwbx   Completed   99s       17           17            dpa-sample-1       2m2s   ip-10-0-85-183.ap-northeast-1.compute.internal
   ```
   
 * Verify that the backup resources have been restored by entering the following command:
-  ```
+  ```bash
   oc get all -n $NAMESPACE 
   oc get pvc,pv -n $NAMESPACE 
   oc get VolumeSnapshot -n $NAMESPACE 
@@ -496,7 +557,7 @@
   ```
 
 * View the log data related to this restore in the object storage:
-  ```
+  ```bash
   $ mc ls my-minio/oadp-bucket/velero/restores/sample-restore-2/
   [2025-09-14 15:30:10 UTC]    27B STANDARD restore-sample-restore-2-itemoperations.json.gz
   [2025-09-14 15:30:10 UTC] 8.6KiB STANDARD restore-sample-restore-2-logs.gz
@@ -507,7 +568,7 @@
 
 ### Scheduling backups using Schedule CR
 * Create a Schedule CR, as in the following example:  
-  ```
+  ```bash
   export NAMESPACE=sample-backup
   export STORAGELOCATION=$(oc get backupStorageLocations -n openshift-adp -o jsonpath='{.items[0].metadata.name}')
 
@@ -530,7 +591,7 @@
   ```
 
 * Verify that the status of the Schedule CR:
-  ```
+  ```bash
   oc get schedule -n openshift-adp
   oc get backup -n openshift-adp 
   oc get backup -n openshift-adp sample-backup-schedule-20231214055040  -o jsonpath='{.status.phase}'
