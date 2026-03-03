@@ -31,7 +31,7 @@
     namespace: rhacs-operator
   spec:
     channel: ${SUB_CHANNEL}
-    installPlanApproval: "Manual"
+    installPlanApproval: "Automatic"
     source: redhat-operators
     name: rhacs-operator
     sourceNamespace: openshift-marketplace
