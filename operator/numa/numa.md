@@ -1,6 +1,6 @@
 
 #### Create a new MachineConfigPool to bind the CNF node
-~~~
+```bash
 cat << EOF | oc replace -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
@@ -16,15 +16,15 @@ spec:
     matchLabels:
       node-role.kubernetes.io/worker-cnf: "" 
 EOF
-~~~
+```
 
 #### Label a node to join the worker-cnf MCP
-~~~
+```bash
 oc label node worker03.ocp.example.com node-role.kubernetes.io/worker-cnf=
-~~~
+```
 
 #### Install the NUMA Resources Operator
-~~~
+```bash
 cat << EOF | oc create -f -
 apiVersion: v1
 kind: Namespace
@@ -51,10 +51,10 @@ spec:
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF
-~~~
+```
 
 #### Create the NUMAResourcesOperator custom resource
-~~~
+```bash
 cat << EOF | oc create -f -
 apiVersion: nodetopology.openshift.io/v1
 kind: NUMAResourcesOperator
@@ -66,18 +66,18 @@ spec:
         matchLabels:
           pools.operator.machineconfiguration.openshift.io/worker-cnf: "" 
 EOF
-~~~
+```
 
 #### After a few minutes, run the following command to verify that the required resources deployed successfully
-~~~
+```bash
 $ oc get all -n openshift-numaresources
 NAME                                                    READY   STATUS    RESTARTS   AGE
 pod/numaresources-controller-manager-744b67cb6d-s7f9f   1/1     Running   0          1h
 pod/numaresourcesoperator-worker-cnf-dqd4s              2/2     Running   0          29s
-~~~
+```
 
 #### Create the NUMAResourcesScheduler custom resource that deploys the NUMA-aware custom pod scheduler
-~~~
+```
 cat << EOF | oc create -f -
 apiVersion: nodetopology.openshift.io/v1
 kind: NUMAResourcesScheduler
@@ -86,19 +86,19 @@ metadata:
 spec:
   imageSpec: "registry.redhat.io/openshift4/noderesourcetopology-scheduler-rhel9:v4.16"
 EOF
-~~~
+```
 
 #### After a few seconds, run the following command to confirm the successful deployment of the required resources
-~~~
+```bash
 $ oc get all -n openshift-numaresources
 NAME                                                    READY   STATUS    RESTARTS   AGE
 pod/numaresources-controller-manager-744b67cb6d-s7f9f   1/1     Running   0          1h
 pod/numaresourcesoperator-worker-cnf-dqd4s              2/2     Running   0          50s
 pod/secondary-scheduler-7cd657696c-kjmql                1/1     Running   0          2s
-~~~
+```
 
 #### Configuring a Single NUMA Node Policy Using a PerformanceProfile
-~~~
+```bash
 $ WORKER_CNF_NODE=$(oc get nodes --selector=node-role.kubernetes.io/worker-cnf= -o jsonpath='{.items[0].metadata.name}')
 $ ssh core@$WORKER_CNF_NODE lscpu | grep NUMA
 NUMA node(s):                         2
@@ -127,16 +127,15 @@ spec:
     perPodPowerManagement: false
     realTime: true
 EOF
-~~~
+```
 
 #### Get the name of the NUMA-aware scheduler that is deployed in the cluster by running the following command
-~~~
+```bash
 oc get numaresourcesschedulers.nodetopology.openshift.io numaresourcesscheduler -o json | jq '.status.schedulerName'
-~~~
-
+```
 
 #### Create a Deployment CR that uses scheduler named topo-aware-scheduler, for example
-~~~
+```bash
 cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Namespace
@@ -173,19 +172,19 @@ spec:
             cpu: 12
             memory: "200M"
 EOF
-~~~
+```
 
 
 #### Identify the node that is running the deployment pod by running the following command
-~~~
+```bash
 $ oc get po -n dynamic-irq -o wide
 NAME                                          READY   STATUS    RESTARTS   AGE     IP             NODE
 dynamic-irq-798559ff47-dxc65                  1/1     Running   0          62s     10.128.2.3     worker03.ocp.example.com
-~~~
+```
 
 
 #### The available capacity is reduced because some resources have already been allocated to Guaranteed QoS pods
-~~~ 
+```bash
 POD_NAME=$(oc get pod -n dynamic-irq -l app=dynamic-irq -o jsonpath='{.items[0].metadata.name}')
 $ oc exec -it "$POD_NAME" -n dynamic-irq -- /bin/bash -c "grep Cpus_allowed_list /proc/self/status | awk '{print \$2}'"
 4-15
@@ -213,5 +212,5 @@ jq '.zones[] | {Name: .name, Resources: (.resources[] | select(.name=="cpu") | {
 
 $ oc get pod $POD_NAME -n dynamic-irq -o jsonpath="{ .status.qosClass }"
 Guaranteed
-~~~
+```
 
