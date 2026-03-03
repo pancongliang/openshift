@@ -1,7 +1,7 @@
 ## Install and configure virtualization Operator
 
 ### Install virtualization Operator
-~~~
+```bash
 oc create -f - <<EOF 
 apiVersion: v1
 kind: Namespace
@@ -29,10 +29,10 @@ spec:
   name: kubevirt-hyperconverged
   channel: stable
 EOF
-~~~
+```
 
 ### Create HyperConverged
-~~~
+```bash
 oc create -f - <<EOF 
 apiVersion: hco.kubevirt.io/v1beta1
 kind: HyperConverged
@@ -41,10 +41,10 @@ metadata:
   namespace: openshift-cnv
 spec:
 EOF
-~~~
+```
 
 ### Check the pods in the openshift-cnv namespace
-```
+```bash
 oc get pod -n openshift-cnv
 ```
 
