@@ -7,7 +7,7 @@
 * EmptyDir is a temporary storage volume used to provide transient storage space during the lifetime of a Pod.  
 
   ```bash
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-ephemeral.yaml | envsubst | oc apply -f -
+  oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-ephemeral.yaml
   
   oc get pod,route -n minio
   ```
