@@ -3,17 +3,44 @@
 ### Install Compliance Operator
 
 * Install the Operator using the default namespace
-  ```
+  ```bash
   export SUB_CHANNEL="stable"
-  export CATALOG_SOURCE="redhat-operators"
-  export OPERATOR_NS="openshift-compliance"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/compliance/01-operator.yaml | envsubst | oc apply -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+
+  cat << EOF | oc apply -f -
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    labels:
+      openshift.io/cluster-monitoring: "true"
+      pod-security.kubernetes.io/enforce: privileged 
+    name: openshift-compliance
+  ---
+  apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: compliance-operator
+    namespace: openshift-compliance
+  spec:
+    targetNamespaces:
+    - openshift-compliance
+  ---
+  apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: compliance-operator-sub
+    namespace: openshift-compliance
+  spec:
+    channel: ${SUB_CHANNEL}
+    installPlanApproval: "Automatic"
+    name: compliance-operator
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+  EOF
   ```
 
 ### Listing available compliance profiles
 * View the profilebundle object
-  ```
+  ```bash
   $ oc get profilebundle.compliance -n openshift-compliance
   NAME     CONTENTIMAGE                                                                                                                               CONTENTFILE         STATUS
   ocp4     registry.redhat.io/compliance/openshift-compliance-content-rhel8@sha256:2ea5a1a3be322beb76f639ac486d36a28f5af4e7a3d83d08b69c6a65d4ec8079   ssg-ocp4-ds.xml     VALID
@@ -21,7 +48,7 @@
     ```
 
 * View the compliance profiles
-  ```
+  ```bash
   $ oc get profile.compliance -n openshift-compliance
   NAME                 AGE
   ocp4-cis             2m23s
@@ -42,7 +69,7 @@
   ```
 
 * Only view the Profile related to "rhcos4" through label.
-  ```
+  ```bash
   $ oc get profile.compliance -l compliance.openshift.io/profile-bundle=rhcos4 -n openshift-compliance
   NAME              AGE
   rhcos4-e8         2m39s
@@ -52,7 +79,7 @@
   ```
 
 * View the rules contained in the Profile named "rhcos4-e8".
-  ```
+  ```bash
   $ oc get profile.compliance rhcos4-e8 -n openshift-compliance -o json | jq .rules
   [
     "rhcos4-accounts-no-uid-except-zero",
