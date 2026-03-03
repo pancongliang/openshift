@@ -2,7 +2,7 @@
 
 ### Install MetalLB Operator
 
-```
+```bash
 cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Namespace
@@ -30,7 +30,7 @@ EOF
 ```
 
 ### Create an instance of MetalLB
-```
+```bash
 cat << EOF | oc apply -f -
 apiVersion: metallb.io/v1beta1
 kind: MetalLB
@@ -41,7 +41,7 @@ EOF
 ```
 
 ### Create an address pool
-```
+```bash
 export ADDRESSES="10.184.134.180-10.184.134.182"
 # or 
 export ADDRESSES="10.184.134.135/24"
@@ -61,7 +61,7 @@ EOF
 ```
 
 ### Configure MetalLB with L2 Advertisement
-```
+```bash
 oc create -f - <<EOF 
 apiVersion: metallb.io/v1beta1 
 kind: L2Advertisement 
