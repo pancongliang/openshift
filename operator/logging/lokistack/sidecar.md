@@ -1,7 +1,6 @@
 ### Configure and install the Sidecar log agent.
 
-
-* Configure Fluent Bit to read log files and output them to stdout. The Deployment runs two containers: one application container that generates log files, and a sidecar container that collects these logs and outputs them to standard output, allowing OpenShift Logging to automatically capture them.
+Configure Fluent Bit to read log files and output them to stdout. The Deployment runs two containers: one application container that generates log files, and a sidecar container that collects these logs and outputs them to standard output, allowing OpenShift Logging to automatically capture them.
 ~~~
 cat << 'EOF' | oc apply -f -
 apiVersion: v1
