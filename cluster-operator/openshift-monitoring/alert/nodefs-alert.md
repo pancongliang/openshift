@@ -51,6 +51,7 @@ spec:
         description: |
           The /var/lib/containersmount on node {{ $labels.instance }}"
           is using {{ printf "%.2f" $value }}% of its capacity (threshold: 80%).
+EOF
 ```
 
 ### Monitor sysroot-disk-usage
