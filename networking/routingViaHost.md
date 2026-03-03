@@ -1,5 +1,5 @@
 
-### After configuring an IP on the node’s secondary network interface, set routingViaHost to true and change ipForwarding to Global to allow Pods to communicate through the node’s secondary network.
+#### After configuring an IP on the node’s secondary network interface, set routingViaHost to true and change ipForwarding to Global to allow Pods to communicate through the node’s secondary network.
 ```
 cat << EOF | oc apply -f -
 apiVersion: nmstate.io/v1
@@ -73,7 +73,7 @@ PING 10.48.55.125 (10.48.55.125) 56(84) bytes of data.
 ```
 
 
-### After assigning an IP to the node’s secondary network interface, set routingViaHost to true and enable forwarding (1) on the secondary interface to allow Pods to communicate through the secondary network.
+#### After assigning an IP to the node’s secondary network interface, set routingViaHost to true and enable forwarding (1) on the secondary interface to allow Pods to communicate through the secondary network.
 ```
 cat << EOF | oc apply -f -
 apiVersion: nmstate.io/v1
