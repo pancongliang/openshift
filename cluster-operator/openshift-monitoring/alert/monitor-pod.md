@@ -16,7 +16,7 @@ data:
 
 #### Create a test application and ServiceMonitor, PrometheusRule
 ```
-oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/cluster-operator/openshift-monitoring/alert/example-alert.yaml
+$ oc create -f https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/cluster-operator/openshift-monitoring/alert/example-alert.yaml
 ```
 
 #### Test whether the service exposing custom metrics or not, it must display metrics
@@ -32,6 +32,9 @@ total_reversed_words N
 
 #### To increase the counter, one can use the following command
 ```
-$ curl http://service_IP:8080/ -X POST -d '{"word":"abc"}'   <--- This will reverse the word and increase the counter
-$ curl -vk service_IP:8080/metrics  <-- Verify the counter
+# This will reverse the word and increase the counter
+$ curl http://service_IP:8080/ -X POST -d '{"word":"abc"}'
+
+# Verify the counter
+$ curl -vk service_IP:8080/metrics
 ```
