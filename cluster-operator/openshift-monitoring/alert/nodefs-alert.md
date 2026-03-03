@@ -1,5 +1,5 @@
 ### Monitor var-lib-containers-usage
-```
+```bash
 oc apply -f - <<'EOF'
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -27,7 +27,7 @@ EOF
 ```
 
 ### Monitor var-lib-containers-usage
-```
+```bash
 oc apply -f - <<'EOF'
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -55,7 +55,7 @@ EOF
 ```
 
 ### Monitor sysroot-disk-usage
-```
+```bash
 oc apply -f - <<'EOF'
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
