@@ -6,7 +6,7 @@
 
 * EmptyDir is a temporary storage volume used to provide transient storage space during the lifetime of a Pod.  
 
-  ```bash
+  ```
   oc create -f https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-ephemeral.yaml
   
   oc get pod,route -n minio
@@ -16,7 +16,7 @@
 
 * First specify the worker node where Minio pv/pod is located, and then create the local volume and Minio.
 
-  ```bash
+  ```
   export PV_NODE_NAME="worker01.ocp4.example.com"
   export STORAGE_SIZE="50Gi"
   ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/minio-data
@@ -32,7 +32,7 @@
 
 * Deploy Minio Object Storage
 
-  ```bash
+  ```
   export STORAGE_SIZE="50Gi"
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/minio/minio-persistent.yaml | envsubst | oc apply -f -
 
@@ -43,14 +43,14 @@
 
 * Create a bucket by accessing the Minio Console (Default ID/PW: minioadmin)
  
-  ```bash
+  ```
   oc get route minio-console -n minio -o jsonpath='http://{.spec.host}{"\n"}'
   ```
 
 * Create bucket through Minio Client (Default ID/PW: minioadmin)
   
   Create an alias named "my-minio" and Access Minio, After creating/using an "alias", the Minio url can be ignored the next time visit
-  ```bash
+  ```
   export BUCKET_HOST=$(oc get route minio -n minio -o jsonpath='http://{.spec.host}')
   echo "alias mc='oc -n minio exec -it deployment/minio -- mc'" >> ~/.bashrc && source ~/.bashrc
 
@@ -65,7 +65,7 @@
   ```
 
   Commonly used [mc commands](https://min.io/docs/minio/linux/reference/minio-mc.html?ref=docs#command-quick-reference)
-  ```bash
+  ```
   # List "my-minio" alias info
   mc alias list my-minio
 
