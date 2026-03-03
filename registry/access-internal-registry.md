@@ -1,6 +1,5 @@
 ### Accessing OpenShift 4 internal registry from bastion host
 
-
 * Expose internal registry route (disabled by default)
   ```
   oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
