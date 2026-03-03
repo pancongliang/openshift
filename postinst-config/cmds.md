@@ -23,6 +23,9 @@ done
 #### Export and Update htpasswd Secret
 ~~~
 oc extract secret/htpasswd-secret -n openshift-config --to . --confirm
+
+htpasswd -B -b htpasswd admin redhat
+
 oc set data secret/htpasswd-secret --from-file htpasswd=htpasswd -n openshift-config
 ~~~
 
@@ -93,12 +96,9 @@ oc set serviceaccount deployment/<deployment-name> <sa-name> -n <project>
 ~~~
 oc new-project trigger-build-test
 
-oc import-image php \
-  --from registry.redhat.io/ubi8/php-74:latest --confirm
+oc import-image php --from registry.redhat.io/ubi8/php-74:latest --confirm
 
-oc new-app --name trigger \
-  php~http://github.com/pancongliang/DO288-apps \
-  --context-dir trigger-builds
+oc new-app --name trigger php~http://github.com/pancongliang/DO288-apps --context-dir trigger-builds
 
 oc -n trigger-build rollout history deployment/trigger
 
