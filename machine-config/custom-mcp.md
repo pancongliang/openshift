@@ -1,5 +1,4 @@
-
-~~~
+```bash
 cat << EOF | oc apply -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
@@ -13,4 +12,4 @@ spec:
     matchLabels:
       node-role.kubernetes.io/custom: ""
 EOF
-~~~
+```
