@@ -5,18 +5,38 @@
 ### Install the Health Check Operator, and the Self Node Remediation Operator will be automatically installed
 
 * Install the Operator using the default namespace.
-  ```
+  ```bash
   export SUB_CHANNEL="stable"
-  export CATALOG_SOURCE="redhat-operators"
-  export OPERATOR_NS="node-health-check"
-
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/node-health-check/01-operator.yaml | envsubst | oc apply -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+  cat << EOF | oc apply -f -
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: node-health-check
+  ---
+  apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: node-health-check-operator
+    namespace: node-health-check
+  ---
+  apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: node-health-check-operator
+    namespace: node-health-check 
+  spec:
+    channel: ${SUB_CHANNEL}
+    installPlanApproval: Automatic 
+    name: node-healthcheck-operator
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    package: node-healthcheck-operator
+  EOF
   ```
 
 ### Create NodeHealthCheck object
-* Create NodeHealthCheck object.
-  ```
+* Create NodeHealthCheck object
+  ```bash
   cat << EOF | oc apply -f -
   apiVersion: remediation.medik8s.io/v1alpha1
   kind: NodeHealthCheck
@@ -46,7 +66,7 @@
 ### Simulate node failures
 
 * First confirm the node where the application pod is located to confirm the pod eviction process.
-  ```
+  ```bash
   $ oc -n test get pods -o custom-columns=POD:metadata.name,STATUS:status.phase,NODE:spec.nodeName,IP:status.podIP
   POD                                STATUS    NODE                        IP
   hello-openshift-5dddf5dcfc-nhmv7   Running   worker01.ocp4.example.com   10.128.3.38
@@ -55,7 +75,7 @@
   ```
 
 * Simulate worker01 node failure and create a test file for the node.
-  ```
+  ```bash
   $ oc get node -l node-role.kubernetes.io/worker
   NAME                        STATUS   ROLES    AGE   VERSION
   worker01.ocp4.example.com   Ready    worker   30d   v1.25.11+1485cc9
@@ -67,7 +87,7 @@
   ```
   
 * Then check the time when the node was last started.
-  ```
+  ```bash
   $ ssh core@worker01.ocp4.example.com sudo who -b
          system boot  2024-03-18 07:22
   ```
@@ -75,7 +95,7 @@
  ### Verify the restore process of failed nodes
  
 * Check the status of the faulty node. At this time, the faulty node will be reboot for restore.
-  ```
+  ```bash
   $ oc get node worker01.ocp4.example.com -w
   NAME                        STATUS   ROLES    AGE   VERSION
   worker01.ocp4.example.com   Ready    worker   30d   v1.25.11+1485cc9
@@ -100,9 +120,10 @@
   Normal   RemediationCreated  92s                NodeHealthCheck  [remediation] Created remediation object for node worker01.ocp4.example.com
   Normal   DetectedUnhealthy   33s (x5 over 3m37s)  NodeHealthCheck  [remediation] Node matches unhealthy condition. Node "worker01.ocp4.example.com", condition type "Ready", condition status "Unknown"
   Normal   RemediationRemoved  0s                   NodeHealthCheck  [remediation] Deleted remediation CR of kind SelfNodeRemediation with name worker01.ocp4.example.com
-  ```  
-* View the pod eviction process.
   ```
+  
+* View the pod eviction process.
+  ```bash
   $ oc -n test get pods -o custom-columns=POD:metadata.name,STATUS:status.phase,NODE:spec.nodeName,IP:status.podIP
   POD                                STATUS    NODE                        IP
   hello-openshift-5dddf5dcfc-nhmv7   Running   worker01.ocp4.example.com   10.128.3.38
@@ -122,27 +143,26 @@
   todo-http-65779b7f79-tnrt6         Running   worker02.ocp4.example.com   10.129.1.88
   ```
 
-  
 * Check the worker node that simulated the fault again and confirm that it has just been rebooted based on the latest startup time.
-  ```
+  ```bash
   $ ssh core@worker01.ocp4.example.com sudo who -b
          system boot  2024-03-20 09:42
   ```
 
 * Can confirm that previously created files still exist.
-  ```
+  ```bash
   $ ssh core@worker01.ocp4.example.com sudo ls
   test.txt
   ```
 ### Pod eviction rules when replacing failed nodes
 * If the `NodeHealthCheck.spec.unhealthyConditions.duration` value is less than the pod's default eviction time, the pod will be evicted early. 
-  ```
+  ```bash
   For example: `NodeHealthCheck.spec.unhealthyConditions.duration:150s`
   will not wait until the default pod eviction time,but will start evicting pods around the 150s
   ```
-* If the `NodeHealthCheck.spec.unhealthyConditions.duration` value is greater than the pod's default eviction time, it will be evicted according to the pod's default eviction mechanism (5 ~ 6 minutes)
 
-  ```
+* If the `NodeHealthCheck.spec.unhealthyConditions.duration` value is greater than the pod's default eviction time, it will be evicted according to the pod's default eviction mechanism (5 ~ 6 minutes)
+  ```bash
   For example: `NodeHealthCheck.spec.unhealthyConditions.duration:600s`
   will evict the pod according to the pod’s default eviction mechanism (5 ~ 6 minutes)
   ```
