@@ -3,7 +3,7 @@
 ### Install Local Storage Operator
 
 * Install the Operator using the default namespace
-  ```
+  ```bash
   oc create -f - <<EOF
   apiVersion: v1
   kind: Namespace
@@ -40,21 +40,21 @@
 
 - Ensure that there are at least 3 worker nodes and each node has a minimum of 100GB of disk space if using ODF
 - Add labels to the worker nodes
-  ```
+  ```bash
   oc get nodes -l 'node-role.kubernetes.io/worker' -o name | xargs -I {} oc label {} local.storage.openshift.io/openshift-local-storage=''
   ```
 
 ### Find the newly added Disk Device Path in Node
 
 - Run the script on the bastion machine to find the disk device path
-  ```
+  ```bash
   curl -sOL https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/storage/local-sc/find-unused-disks.sh
 
   sh find-unused-disks.sh sd*
   ```
 
 - Set the device path variables to ensure that each path is unique. If the variables are the same, apply only one
-  ```
+  ```bash
   export DEVICE_PATH_1=/dev/disk/by-path/pci-0000:02:00.0-scsi-0:0:1:0
 
   # Set only if not already defined
@@ -65,7 +65,7 @@
 ### Create LocalVolume for Block and Filesystem Modes
 
 - Block Volume Mode (ODF)
-  ```
+  ```bash
   oc create -f - <<EOF
   apiVersion: "local.storage.openshift.io/v1"
   kind: "LocalVolume"
@@ -92,7 +92,7 @@
   ```
 
 - Filesystem Volume Mode
-  ```
+  ```bash
   oc create -f - <<EOF
   apiVersion: "local.storage.openshift.io/v1"
   kind: "LocalVolume"
@@ -120,7 +120,7 @@
   ```
 
 - Verify the Local Storage Status
-  ```
+  ```bash
   oc get pods -n openshift-local-storage
   oc get pv |grep local
   oc get sc
@@ -129,18 +129,17 @@
 ### Uninstall Local Storage Operator
 
 - Delete previously created resources
-  ```
+  ```bash
   oc get localvolumes -n openshift-local-storage -o name | xargs -I {} oc -n openshift-local-storage delete {}
 
   oc get localvolume -n openshift-local-storage -o jsonpath='{.items[*].metadata.name}' | xargs -I {} oc patch localvolume {} -n openshift-local-storage --type=json -p '[{"op": "remove", "path": "/metadata/finalizers"}]'
 
   oc get pv | grep local | awk '{print $1}' | xargs -I {} oc delete pv {}
   oc get sc | grep local | awk '{print $1}' | xargs -I {} oc delete sc {}
-
   ```
   
 - Deleting Local Storage Data(/mnt/local-storage/*) from a Node
-  ```
+  ```bash
   #!/bin/bash
   for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}')
   do
@@ -150,7 +149,7 @@
   ```
 
 - Wiping unused disk from a Node
-  ```
+  ```bash
   #!/bin/bash
   for Hostname in $(oc get nodes -l node-role.kubernetes.io/worker= -o jsonpath='{.items[*].status.addresses[?(@.type=="Hostname")].address}'); do
       ssh -qT -o StrictHostKeyChecking=no core@$Hostname \
@@ -163,7 +162,7 @@
   ```
 
 - Deleting Local Storage Operator
-  ```
+  ```bash
   export CHANNEL_NAME="stable"
   export CATALOG_SOURCE_NAME="redhat-operators"
   export NAMESPACE="openshift-local-storage"
@@ -174,7 +173,7 @@
 ### Provisioning Local Volumes Without the Local Storage Operator
 
 - Set the Required Parameters
-  ```
+  ```bash
   export NAMESPACE="test"
   export PV_NAME="test-pv"
   export PVC_NAME="test-pvc"
@@ -183,7 +182,7 @@
   ```
 
 - Deploy Local Storage PV/PVC
-  ```
+  ```bash
   ssh core@${PV_NODE_NAME} sudo mkdir -p -m 777 /mnt/${PV_NAME}
   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/local-sc/deploy-local-storage.yaml | envsubst | oc apply -f -
   oc get sc
@@ -191,7 +190,7 @@
   ```
 
 - Test Volume Mount
-  ```
+  ```bash
   oc new-app --name nginx --docker-image quay.io/redhattraining/hello-world-nginx:v1.0
   oc set volumes deployment/nginx --add --name test-volume --type persistentVolumeClaim --claim-name ${PVC_NAME} --mount-path /usr/share/nginx/html
 
