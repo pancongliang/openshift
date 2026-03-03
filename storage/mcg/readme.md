@@ -2,12 +2,41 @@
 
 ### Install Red Hat OpenShift Data Foundation
 * Install the Operator using the default namespace
-  ```
-  export CHANNEL_NAME="stable-4.12"
-  export CATALOG_SOURCE_NAME="redhat-operators"
-  export NAMESPACE="openshift-storage"
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/01-operator.yaml | envsubst | oc create -f -
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+  ```bash
+  export CHANNEL_NAME="stable-4.16"
+
+  cat << EOF | oc apply -f -
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    annotations:
+      openshift.io/node-selector: ""
+    labels:
+      openshift.io/cluster-monitoring: "true"
+    name: openshift-storage
+  spec: {}
+  ---
+  apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: openshift-storage-operatorgroup
+    namespace: openshift-storage
+  spec:
+    targetNamespaces:
+    - openshift-storage
+  ---
+  apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: odf-operator
+    namespace: openshift-storage
+  spec:
+    channel: ${CHANNEL_NAME}
+    installPlanApproval: "Automatic"
+    name: odf-operator
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+  EOF
   ```
 
 
@@ -17,21 +46,56 @@
 
 ### Create Noobaa
 * Create Noobaa
-  ```
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/02-noobaa.yaml | envsubst | oc create -f -
+  ```bash
+  cat << EOF | oc apply -f -
+  apiVersion: noobaa.io/v1alpha1
+  kind: NooBaa
+  metadata:
+    name: noobaa
+    namespace: openshift-storage
+  spec:
+   dbResources:
+     requests:
+       cpu: '0.1'
+       memory: 1Gi
+   dbType: postgres
+   coreResources:
+     requests:
+       cpu: '0.1'
+       memory: 1Gi
+  EOF
   ```
 
 ### Create BackingStore
 * Create BackingStore after specifying variables
-  ```
+  ```bash
   export PVC_SIZE=100Gi
   export STORAGE_CLASS_NAME=managed-nfs-storage
-  curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/03-backing-store.yaml | envsubst | oc create -f -
+
+  cat << EOF | oc apply -f -
+  apiVersion: noobaa.io/v1alpha1
+  kind: BackingStore
+  metadata:
+    finalizers:
+    - noobaa.io/finalizer
+    labels:
+      app: noobaa
+    name: noobaa-pv-backing-store
+    namespace: openshift-storage
+  spec:
+    pvPool:
+      numVolumes: 2
+      resources:
+        requests:
+          storage: ${PVC_SIZE}
+      storageClass: ${STORAGE_CLASS_NAME}
+    type: pv-pool
+  EOF
   ```
 
 ### Verifying the Installation
 * Verifying the Installation
-  ```
+  ```bash
   $ oc get pods -n openshift-storage
   NAME                                               READY   STATUS    RESTARTS   AGE
   csi-addons-controller-manager-7fcdf7bfc8-j6h49     2/2     Running   0          76m
@@ -80,37 +144,56 @@
 
 ### Update BucketClass to use noobaa-pv-backing-store
 * Update BucketClass to use noobaa-pv-backing-store
-  ```
+  ```bash
   oc patch bucketclass noobaa-default-bucket-class --patch '{"spec":{"placementPolicy":{"tiers":[{"backingStores":["noobaa-pv-backing-store"]}]}}}' --type merge -n openshift-storage
   ```
 
 
 ### Create ObjectBucketClaim and Object Storage secret 
 * Create ObjectBucketClaim
-   ```
-   export NAMESPACE="openshift-logging"
-   export OBC_NAME="loki-bucket-mcg"
-   export GENERATE_BUCKET_NAME="${OBC_NAME}"
-   export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
-   curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/04-objectbucketclaim.yaml | envsubst | oc apply -f -
-   ```
+  ```bash
+  export NAMESPACE="openshift-logging"
+  export OBC_NAME="loki-bucket-mcg"
+  export GENERATE_BUCKET_NAME="${OBC_NAME}"
+  export OBJECT_BUCKET_NAME="obc-${NAMESPACE}-${OBC_NAME}"
+
+  cat << EOF | oc apply -f -
+  apiVersion: objectbucket.io/v1alpha1
+  kind: ObjectBucketClaim
+  metadata:
+    finalizers:
+    - objectbucket.io/finalizer
+    labels:
+      app: noobaa
+      bucket-provisioner: openshift-storage.noobaa.io-obc
+      noobaa-domain: openshift-storage.noobaa.io
+    name: ${OBC_NAME}
+    namespace: ${NAMESPACE}
+  spec:
+    additionalConfig:
+      bucketclass: noobaa-default-bucket-class
+    generateBucketName: ${GENERATE_BUCKET_NAME}
+    objectBucketName: ${OBJECT_BUCKET_NAME}
+    storageClassName: openshift-storage.noobaa.io
+  EOF
+  ```
 
 * Create Object Storage secret
 
   Get bucket properties from the associated ConfigMap
-   ```
-   export BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
-   export BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
-   export BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
-   ```
+  ```bash
+  export BUCKET_HOST=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_HOST}')
+  export BUCKET_NAME=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_NAME}')
+  export BUCKET_PORT=$(oc get -n ${NAMESPACE} configmap ${OBC_NAME} -o jsonpath='{.data.BUCKET_PORT}')
+  ```
   Get bucket access key from the associated Secret
-   ```
-   export ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
-   export SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
-   ```
+  ```bash
+  export ACCESS_KEY_ID=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+  export SECRET_ACCESS_KEY=$(oc get -n ${NAMESPACE} secret ${OBC_NAME} -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+  ```
 
 * Create an Object Storage secret with keys as follows
-   ```
+   ```bash
    oc create -n ${NAMESPACE} secret generic ${OBC_NAME}-credentials \
       --from-literal=access_key_id="${ACCESS_KEY_ID}" \
       --from-literal=access_key_secret="${SECRET_ACCESS_KEY}" \
@@ -118,7 +201,7 @@
       --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}"
    ```
 * or  
-   ```
+   ```bash
    wget -q https://raw.githubusercontent.com/pancongliang/openshift/main/storage/mcg/05-config.yaml
    oc create secret generic ${OBC_NAME}-credentials --from-file=config.yaml=<(envsubst < 05-config.yaml) -n ${NAMESPACE}
    ```
