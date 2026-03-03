@@ -1,17 +1,17 @@
 ## Use OSUS Upgrade The Cluster
 
 ### Environment
-~~~
+```
 - Current version:
 $ oc get clusterversion
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
 version   4.14.20   True        False         4d21h   Cluster version is 4.14.20
 
 - Desired version: 4.15.20
-~~~
+```
 
 ### 1.Configuring access to a secured registry for the OpenShift update service
-~~~
+```
 $ oc edit cm registry-config -n openshift-config
 apiVersion: v1
 data:
@@ -23,30 +23,59 @@ data:
     -----BEGIN CERTIFICATE-----
     ···
     -----END CERTIFICATE-----
-~~~
+```
 
 
 ### 2.Optional: Updating the global cluster pull secret
 - The procedure is required when users use a separate registry to store images than the registry used during installation.
-~~~
+```
 $ podman login --authfile /root/pull-secret.txt mirror.registry.example.com:8443
 $ oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=pull-secret
-~~~
+```
 
 
 ### 3.Installing the OpenShift Update Service Operator
-~~~
+```
 export CHANNEL_NAME="v1"
-export CATALOG_SOURCE_NAME="redhat-operators"
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/main/operator/updating-clusters/osus/01-operator.yaml | envsubst | oc create -f -
-curl -s https://raw.githubusercontent.com/pancongliang/openshift/refs/heads/main/operator/approve_ip.sh | bash
+
+cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-update-service
+  annotations:
+    openshift.io/node-selector: ""
+  labels:
+    openshift.io/cluster-monitoring: "true" 
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: update-service-operator-group
+  namespace: openshift-update-service
+spec:
+  targetNamespaces:
+  - openshift-update-service
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: update-service-subscription
+  namespace: openshift-update-service
+spec:
+  channel: ${CHANNEL_NAME}
+  installPlanApproval: "Automatic"
+  source: redhat-operators
+  sourceNamespace: "openshift-marketplace"
+  name: "cincinnati-operator"
+EOF
 
 $ oc get po -n openshift-update-service
-~~~
+```
 
 
 ### 4.Use the oc-mirror tool to mirror ocp image
-~~~
+```
 - Install oc-mirror tool:
 $ sudo curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
 $ sudo tar -xvf oc-mirror.tar.gz
@@ -89,10 +118,10 @@ drwxr-xr-x. 2 root root    98 Feb  5 12:43 release-signatures
 -rwxr-xr-x. 1 root root   349 Feb  5 12:57 updateService.yaml
 
 $ oc create -f oc-mirror-workspace/results-*/imageContentSourcePolicy.yaml 
-~~~
+```
 
 ### 5. Creating an OpenShift Update Service application
-~~~
+```
 - Use the updateService.yaml file automatically generated in step 4
 $ cat oc-mirror-workspace/results-*/updateService.yaml 
 apiVersion: updateservice.operator.openshift.io/v1
@@ -111,10 +140,10 @@ NAME                                        READY   STATUS    RESTARTS   AGE
 update-service-oc-mirror-699d5696d8-2l2xz   2/2     Running   0          22s
 update-service-oc-mirror-699d5696d8-prm4s   2/2     Running   0          23s
 updateservice-operator-c77465bfd-kk2td      1/1     Running   0          6m29s
-~~~
+```
 
 ### 6. Configuring the Cluster Version Operator (CVO)
-~~~
+```
 $ NAMESPACE=openshift-update-service
 $ NAME=update-service-oc-mirror
 
@@ -136,10 +165,10 @@ $ oc get clusterversion -o json|jq ".items[0].spec"
   "clusterID": "25b57f9f-ca4c-444f-9f77-1fc742cd3eed",
   "upstream": "http://update-service-oc-mirror-policy-engine-openshift-update-service.apps.ocp4.example.com/api/upgrades_info/v1/graph"
 }
-~~~
+```
 
 ### 7. Upgrade ocp
-~~~
+```
 - Current version:
 $ oc get clusterversion
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
@@ -189,11 +218,11 @@ NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
 version   4.10.20   True        False         18m     Cluster version is 4.10.20
 
 $ oc get co | grep -v '.True.*False.*False'
-~~~
+```
 
 
 ### ImageSetConfiguration template
-~~~
+```
 $ skopeo copy -a docker://quay.io/openshift-release-dev/ocp-release:4.10.20-x86_64 \
          docker://docker.registry.example.com:5000/ocp4/openshift4-release-images:4.10.20-x86_64
 
@@ -237,4 +266,4 @@ EOF
 
 $ oc mirror --config=./imageset-config.yaml \
             docker://docker.registry.example.com:5000/ocp4/openshift41030
-~~~            
+```            
