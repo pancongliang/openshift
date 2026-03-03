@@ -1,8 +1,9 @@
-
+### Log Aggregator pod
 - [Deploy Kafka](/operator/logging/log-aggregator.md#deploy-kafka)
 - [Deploy Syslog](/operator/logging/log-aggregator.md#deploy-syslog)
 - [Deploy Fluentd Receiver](/operator/logging/log-aggregator.md#deploy-fluentd-receiver)
 - [Deploy Elasticsearch](/operator/logging/log-aggregator.md#deploy-elasticsearch)
+
 
 ### Deploy kafka
 ```bash
