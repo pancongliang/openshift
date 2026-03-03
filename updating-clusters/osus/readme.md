@@ -10,7 +10,7 @@ version   4.14.20   True        False         4d21h   Cluster version is 4.14.20
 - Desired version: 4.15.20
 ```
 
-### 1.Configuring access to a secured registry for the OpenShift update service
+### Configuring access to a secured registry for the OpenShift update service
 ```
 $ oc edit cm registry-config -n openshift-config
 apiVersion: v1
@@ -26,7 +26,7 @@ data:
 ```
 
 
-### 2.Optional: Updating the global cluster pull secret
+### Optional: Updating the global cluster pull secret
 - The procedure is required when users use a separate registry to store images than the registry used during installation.
 ```
 $ podman login --authfile /root/pull-secret.txt mirror.registry.example.com:8443
@@ -34,7 +34,7 @@ $ oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjs
 ```
 
 
-### 3.Installing the OpenShift Update Service Operator
+### Installing the OpenShift Update Service Operator
 ```
 export CHANNEL_NAME="v1"
 
@@ -74,7 +74,7 @@ $ oc get po -n openshift-update-service
 ```
 
 
-### 4.Use the oc-mirror tool to mirror ocp image
+### Use the oc-mirror tool to mirror ocp image
 ```
 - Install oc-mirror tool:
 $ sudo curl -O https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/oc-mirror.tar.gz
@@ -120,7 +120,7 @@ drwxr-xr-x. 2 root root    98 Feb  5 12:43 release-signatures
 $ oc create -f oc-mirror-workspace/results-*/imageContentSourcePolicy.yaml 
 ```
 
-### 5. Creating an OpenShift Update Service application
+### Creating an OpenShift Update Service application
 ```
 - Use the updateService.yaml file automatically generated in step 4
 $ cat oc-mirror-workspace/results-*/updateService.yaml 
@@ -142,7 +142,7 @@ update-service-oc-mirror-699d5696d8-prm4s   2/2     Running   0          23s
 updateservice-operator-c77465bfd-kk2td      1/1     Running   0          6m29s
 ```
 
-### 6. Configuring the Cluster Version Operator (CVO)
+### Configuring the Cluster Version Operator (CVO)
 ```
 $ NAMESPACE=openshift-update-service
 $ NAME=update-service-oc-mirror
@@ -167,7 +167,7 @@ $ oc get clusterversion -o json|jq ".items[0].spec"
 }
 ```
 
-### 7. Upgrade ocp
+### Upgrade OCP
 ```
 - Current version:
 $ oc get clusterversion
