@@ -2,6 +2,8 @@
 
 * Install the Operator using the default namespace
   ```bash
+  export SUB_CHANNEL=latest
+  
   cat << EOF | oc apply -f -
   apiVersion: operators.coreos.com/v1alpha1
   kind: Subscription
