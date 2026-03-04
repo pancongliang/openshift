@@ -250,7 +250,7 @@
 * To track the progress of the pipeline run, enter the following command
   ```bash
   tkn pipelinerun list -n pipelines-tutorial
-  tkn pipelinerun logs build-and-deploy-run-cmhpv -f -n pipelines-tutorial
+  tkn pipelinerun logs build-and-deploy-run-vz4qv -f -n pipelines-tutorial
   ```
   
 * Start the pipeline for the front-end application:
@@ -265,7 +265,7 @@
 
 * To track the progress of the pipeline run, enter the following command
   ```bash
-  tkn pipelinerun logs build-and-deploy-run-cmhpv -f -n pipelines-tutorial
+  tkn pipelinerun logs build-and-deploy-run-dsczf -f -n pipelines-tutorial
   ```
 
 * After a few minutes, use tkn pipelinerun list command to verify that the pipeline ran successfully by listing all the pipeline runs
