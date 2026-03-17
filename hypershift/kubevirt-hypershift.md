@@ -32,8 +32,45 @@
    ```
 
 ### Installing OpenShift Virtualization
-- Install the OpenShift [Virtualization](/virtualization/ocp-v.md) Operator and use KubeVirt to create virtual machines (worker nodes) for the managed cluster.
+- Install the OpenShift Virtualization Operator and use KubeVirt to create virtual machines (worker nodes) for the managed cluster.
+  ```bash
+  oc create -f - <<EOF 
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: openshift-cnv
+  ---
+  apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    name: kubevirt-hyperconverged-group
+    namespace: openshift-cnv
+  spec:
+    targetNamespaces:
+      - openshift-cnv
+  ---
+  apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: hco-operatorhub
+    namespace: openshift-cnv
+  spec:
+    source: redhat-operators
+    installPlanApproval: "Automatic"
+    sourceNamespace: openshift-marketplace
+    name: kubevirt-hyperconverged
+    channel: stable
+  EOF
 
+  oc create -f - <<EOF 
+  apiVersion: hco.kubevirt.io/v1beta1
+  kind: HyperConverged
+  metadata:
+    name: kubevirt-hyperconverged
+    namespace: openshift-cnv
+  spec:
+  EOF
+  ```
 ### Installing MetalLB Operator
 - Install the [MetalLB](/operator/metallb/metallb.md) Operator to provide a network load balancer for the Hosted Clusters API.
    
