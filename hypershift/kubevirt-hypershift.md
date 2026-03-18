@@ -70,6 +70,8 @@
     namespace: openshift-cnv
   spec:
   EOF
+
+  oc get pod -n openshift-cnv
   ```
 ### Installing MetalLB Operator
 - Install the [MetalLB](/operator/metallb/metallb.md) Operator to provide a network load balancer for the Hosted Clusters API.
