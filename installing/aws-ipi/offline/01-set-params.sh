@@ -11,8 +11,8 @@ export CREDENTIALS_MODE="Passthrough"
 export NETWORK_TYPE="OVNKubernetes"    # OVNKubernetes or OpenShiftSDN(≤ 4.14)
 
 # AWS credentials
-export AWS_ACCESS_KEY_ID="AKIAQ2Fxxxx"
-export AWS_SECRET_ACCESS_KEY="KiGyRt5EyHJo+zxxx"
+export AWS_ACCESS_KEY_ID="xxxxxx"
+export AWS_SECRET_ACCESS_KEY="xxxxxx"
 export REGION="ap-northeast-1"
 export AVAILABILITY_ZONE="ap-northeast-1a"
 export TAG_NAME="$CLUSTER_NAME"     # Created AWS resource tag name
