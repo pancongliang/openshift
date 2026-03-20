@@ -17,6 +17,8 @@
   git clone https://github.com/pancongliang/openshift.git
   cd openshift/operator/logging/log-generator/multiline/
   mvn clean package
+
+  # Testing whether logs are outputting correctly
   java -jar target/*.jar
   ```
 
