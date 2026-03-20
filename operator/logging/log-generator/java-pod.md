@@ -14,16 +14,12 @@
 
 * Build Spring Boot
   ```
-  git clone https://github.com/pancongliang/multi-line-log.git
+  git clone https://github.com/pancongliang/openshift.git
+  cd openshift/operator/logging/log-generator/multiline/
   mvn clean package
+  java -jar target/*.jar
   ```
 
-* Build Spring Boot
-  ```
-  git clone https://github.com/pancongliang/multi-line-log.git
-  cd multi-line-log
-  mvn clean package
-  ```
 
 * Build image
   ```
