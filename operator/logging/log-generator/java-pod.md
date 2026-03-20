@@ -33,7 +33,7 @@
 * Create app pod
   ```
   oc new-project spring-boot-app
-  oc new-app --name spring-boot-app --image=$IMAGE_URL
+  oc new-app --name spring-boot-app --image $IMAGE_URL
 
   oc -n spring-boot-app logs spring-boot-app-6644797d54-7tfwh
     2023-12-26T05:53:53.588Z  INFO 1 --- [   scheduling-1] c.e.d.FluentdMultilineJavaApplication    : This is 
