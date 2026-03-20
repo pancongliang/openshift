@@ -25,14 +25,15 @@
 
 * Build image
   ```
-  podman build -t mirror.registry.example.com:8443/multiline-java/multiline-java:latest .
-  podman push mirror.registry.example.com:8443/multiline-java/multiline-java:latest
+  IMAGE_URL=mirror.registry.example.com:8443/multiline-java/multiline-java:latest
+  podman build -t $IMAGE_URL .
+  podman push $IMAGE_URL
   ```
 
 * Create app pod
   ```
   oc new-project spring-boot-app
-  oc new-app --name spring-boot-app --image=mirror.registry.example.com:8443/multiline-java/multiline-java:latest
+  oc new-app --name spring-boot-app --image=$IMAGE_URL
 
   oc -n spring-boot-app logs spring-boot-app-6644797d54-7tfwh
     2023-12-26T05:53:53.588Z  INFO 1 --- [   scheduling-1] c.e.d.FluentdMultilineJavaApplication    : This is 
