@@ -806,24 +806,31 @@ listen ingress-router-80
   server ${WORKER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check inter 1s
   server ${WORKER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:80 check inter 1s
   
+listen ingress-router-80
+  bind ${INGRESS_VIPS}:80
+  mode tcp
+  balance source
+  http-check connect port 1936
+  http-check send meth GET uri /healthz/ready ver HTTP/1.1 hdr host localhost
+  http-check expect status 200
+  timeout check 5s
+  default-server inter 10s fall 2 rise 2
+  server ${WORKER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:80 check
+  server ${WORKER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check
+  server ${WORKER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:80 check
+  
 listen ingress-router-443
   bind ${INGRESS_VIPS}:443
   mode tcp
   balance source
-  server ${WORKER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check inter 1s
-  server ${WORKER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check inter 1s
-  server ${WORKER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check inter 1s
-
-listen ingress-router-health-check
-  mode http
-  balance roundrobin
-  option httpchk GET /healthz/ready
-  option log-health-checks
+  http-check connect port 1936
+  http-check send meth GET uri /healthz/ready ver HTTP/1.1 hdr host localhost
   http-check expect status 200
   timeout check 5s
-  server ${WORKER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:1936 check inter 10s fall 2 rise 2
-  server ${WORKER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:1936 check inter 10s fall 2 rise 2
-  server ${WORKER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:1936 check inter 10s fall 2 rise 2
+  default-server inter 10s fall 2 rise 2
+  server ${WORKER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:443 check
+  server ${WORKER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:443 check
+  server ${WORKER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:443 check
 EOF
 run_command "Generate haproxy configuration file"
 
