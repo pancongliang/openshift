@@ -120,7 +120,7 @@ git-clone                   This object represe...   22 minutes ago
 ···
 ```
 
-###  Creating a Pipeline Object
+### Creating a Pipeline Object
 ```bash
 cat << 'EOF' | oc apply -n pipelines-tutorial -f -
 apiVersion: tekton.dev/v1

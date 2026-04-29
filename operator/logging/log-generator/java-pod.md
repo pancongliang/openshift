@@ -14,26 +14,27 @@
 
 * Build Spring Boot
   ```
-  git clone https://github.com/pancongliang/openshift.git
-  cd openshift/operator/logging/log-generator/multiline/
+  git clone https://github.com/pancongliang/multi-line-log.git
   mvn clean package
-
-  # Testing whether logs are outputting correctly
-  java -jar target/*.jar
   ```
 
+* Build Spring Boot
+  ```
+  git clone https://github.com/pancongliang/multi-line-log.git
+  cd multi-line-log
+  mvn clean package
+  ```
 
 * Build image
   ```
-  IMAGE_URL=mirror.registry.example.com:8443/multiline-java/multiline-java:latest
-  podman build -t $IMAGE_URL .
-  podman push $IMAGE_URL
+  podman build -t docker.registry.example.com:5000/multiline-java/multiline-java:latest .
+  podman push docker.registry.example.com:5000/multiline-java/multiline-java:latest
   ```
 
 * Create app pod
   ```
   oc new-project spring-boot-app
-  oc new-app --name spring-boot-app --image $IMAGE_URL
+  oc new-app --name spring-boot-app --docker-image docker.registry.example.com:5000/multiline-java/multiline-java:latest
 
   oc -n spring-boot-app logs spring-boot-app-6644797d54-7tfwh
     2023-12-26T05:53:53.588Z  INFO 1 --- [   scheduling-1] c.e.d.FluentdMultilineJavaApplication    : This is 

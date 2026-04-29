@@ -10,7 +10,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nginx-config
-  namespace: samplelog
 data:
   nginx.conf: |
     worker_processes  1;
@@ -47,7 +46,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sample-log-app
-  namespace: samplelog
 spec:
   replicas: 1
   selector:
@@ -78,7 +76,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: sample-log-app
-  namespace: samplelog
   labels:
     app: sample-log-app
 spec:
@@ -95,7 +92,6 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: sample-log-app
-  namespace: samplelog
 spec:
   port:
     targetPort: 8080-tcp
@@ -116,7 +112,7 @@ $ oc logs sample-log-app-d857dd4bf-lqpfv
 
 # Or generate multiple logs, such as 10 logs
 yum install httpd-tools
-ab -n 100 -c 100 ${ROUTE}/
+ab -n 10 -c 1 ${ROUTE}/
 
 $ oc logs sample-log-app-d857dd4bf-wkjkk
 2024-03-15T09:45:31+00:00 Hello World
