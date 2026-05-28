@@ -1,0 +1,170 @@
+### Keepalived
+#### Install keepalived
+~~~
+yum install -y keepalived psmisc
+~~~
+
+#### Configure keepalived
+~~~
+export NETWORK_INTERFACE=ens3
+export VIP=10.74.250.190
+
+# master01 node configuration
+export PRIORITY=101
+export STATE=MASTER
+
+# master02 node configuration
+export PRIORITY=100
+export STATE=BACKUP
+
+# master03 node configuration
+export PRIORITY=99
+export STATE=BACKUP
+
+cat << EOF > /etc/keepalived/keepalived.conf 
+vrrp_script chk_haproxy {
+  script "killall -0 haproxy"   # check the haproxy process
+  interval 2                    # Run the script every 2 seconds
+  weight -20                    # If the script check fails, deduct 20 points
+}
+
+vrrp_instance VI_1 {
+  interface ${NETWORK_INTERFACE} # Network interface used for VRRP communication
+  state ${STATE}                 # MASTER on haproxy, BACKUP on haproxy2
+  virtual_router_id 51           # VRRP group ID (must be same across all nodes)
+  priority ${PRIORITY}           # Master/Backup priority setting，101 on haproxy1, 100 on haproxy2
+  advert_int 1                   # VRRP advertisement interval (1 second)
+ 
+  nopreempt                      # Do not preempt MASTER when higher priority node returns
+
+  authentication {
+    auth_type PASS               # Simple password authentication (VRRP authentication)
+    auth_pass f9K2pL8sQx         # Shared password among VRRP peers
+  }
+
+  virtual_ipaddress {
+    ${VIP}                       # Floating virtual IP address
+  }
+
+  track_script {
+    chk_haproxy                  # Track haproxy health check script
+  }
+
+  track_interface {
+    ${NETWORK_INTERFACE}         # Track network interface status
+  }
+}
+EOF
+~~~
+
+#### Enable and start keepalived
+~~~
+$ systemctl enable keepalived
+$ systemctl start keepalived
+~~~
+
+#### Turn on packet forwarding and non local binding
+~~~
+cat <<EOF > /etc/sysctl.d/99-keepalived.conf
+net.ipv4.ip_nonlocal_bind = 1
+net.ipv4.ip_forward = 0
+EOF
+sysctl --system
+~~~
+
+### Haproxy
+
+#### Install haproxy
+~~~
+yum install -y haproxy
+~~~
+
+#### Configure Haproxy
+~~~
+export API_VIPS="10.184.134.30" 
+export INGRESS_VIPS="10.184.134.30"
+export MASTER01_NAME="master01"
+export MASTER02_NAME="master02"
+export MASTER03_NAME="master03"
+export WORKER01_NAME="worker01"
+export WORKER02_NAME="worker02"
+export WORKER03_NAME="worker03"
+export MASTER01_IP="10.184.134.196"
+export MASTER02_IP="10.184.134.228"
+export MASTER03_IP="10.184.134.172"
+export WORKER01_IP="10.184.134.198"
+export WORKER02_IP="10.184.134.74"
+export WORKER03_IP="10.184.134.59"
+
+cat << EOF > /etc/haproxy/haproxy.cfg 
+global
+  log         127.0.0.1 local2
+  pidfile     /var/run/haproxy.pid
+  maxconn     4000
+  daemon
+
+defaults
+  mode                    http
+  log                     global
+  option                  dontlognull
+  option http-server-close
+  option                  redispatch
+  retries                 3
+  timeout http-request    10s
+  timeout queue           1m
+  timeout connect         10s
+  timeout client          1m
+  timeout server          1m
+  timeout http-keep-alive 10s
+  timeout check           10s
+  maxconn                 3000
+
+frontend stats
+  bind *:1936
+  mode            http
+  log             global
+  maxconn 10
+  stats enable
+  stats hide-version
+  stats refresh 30s
+  stats show-node
+  stats show-desc Stats for ocp4 cluster
+  stats auth admin:passwd
+  stats uri /stats
+
+listen kube-apiserver-6443
+  bind ${API_VIPS}:6443
+  mode tcp
+  balance roundrobin
+  option  httpchk GET /readyz HTTP/1.0
+  option  log-health-checks
+  timeout check 10s
+  server ${MASTER01_NAME} ${MASTER01_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
+  server ${MASTER02_NAME} ${MASTER02_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
+  server ${MASTER03_NAME} ${MASTER03_IP}:6443 weight 1 verify none check check-ssl inter 10s fall 2 rise 2
+
+listen ingress-80
+  bind ${INGRESS_VIPS}:80
+  mode tcp
+  balance source
+  server ${WORKER01_NAME} ${WORKER01_IP}:80 check inter 10s fall 2 rise 2
+  server ${WORKER02_NAME} ${WORKER02_IP}:80 check inter 10s fall 2 rise 2
+  server ${WORKER03_NAME} ${WORKER03_IP}:80 check inter 10s fall 2 rise 2
+  
+listen ingress-443
+  bind ${INGRESS_VIPS}:443
+  mode tcp
+  balance source
+  timeout check 5s
+  default-server inter 10s fall 2 rise 2
+  server ${WORKER01_NAME} ${WORKER01_IP}:443 check inter 10s fall 2 rise 2
+  server ${WORKER02_NAME} ${WORKER02_IP}:443 check inter 10s fall 2 rise 2
+  server ${WORKER03_NAME} ${WORKER03_IP}:443 check inter 10s fall 2 rise 2
+EOF
+~~~
+
+#### Enable and start Haproxy
+~~~
+$ systemctl enable haproxy
+$ systemctl start haproxy
+~~~
