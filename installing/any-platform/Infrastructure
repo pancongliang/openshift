@@ -73,7 +73,6 @@ sysctl --system
 ~~~
 
 ### Haproxy
-
 #### Install haproxy
 ~~~
 yum install -y haproxy
