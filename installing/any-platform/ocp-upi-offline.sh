@@ -802,14 +802,6 @@ listen ingress-router-80
   bind ${INGRESS_VIPS}:80
   mode tcp
   balance source
-  server ${WORKER01_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER01_IP}:80 check inter 1s
-  server ${WORKER02_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER02_IP}:80 check inter 1s
-  server ${WORKER03_NAME}.${CLUSTER_NAME}.${BASE_DOMAIN} ${WORKER03_IP}:80 check inter 1s
-  
-listen ingress-router-80
-  bind ${INGRESS_VIPS}:80
-  mode tcp
-  balance source
   http-check connect port 1936
   http-check send meth GET uri /healthz/ready ver HTTP/1.1 hdr host localhost
   http-check expect status 200
@@ -1338,7 +1330,7 @@ YAML_EOF
 run_command "Create ${IMAGE_SET_CONF_PATH}/imageset-config.yaml file"
 
 # Mirroring ocp release image
-/usr/local/bin/oc-mirror --config=${IMAGE_SET_CONF_PATH}/imageset-config.yaml docker://${REGISTRY_NAME}.${BASE_DOMAIN}:8443 --dest-skip-tls
+/usr/local/bin/oc-mirror --config=${IMAGE_SET_CONF_PATH}/imageset-config.yaml docker://${REGISTRY_NAME}.${BASE_DOMAIN}:8443 --dest-skip-tls --v1
 
 rm -rf oc-mirror-workspace
 EOF
